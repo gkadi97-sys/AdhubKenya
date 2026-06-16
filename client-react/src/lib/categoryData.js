@@ -1436,6 +1436,17 @@ export const CATEGORY_ICONS = [
 export const TOP_CATEGORIES = CATEGORY_ICONS;
 export const MANUFACTURE_YEARS = Array.from({length: 30}, (_, i) => new Date().getFullYear() - i);
 export function getSpecs(categorySlug, level1, level2) {
+  if (categorySlug === 'vehicles') {
+    return [
+      { key: 'engineCapacity', label: 'Engine Capacity (CC)', type: 'text' },
+      { key: 'fuelType', label: 'Fuel Type', type: 'select', options: ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'Other'] },
+      { key: 'transmission', label: 'Transmission', type: 'select', options: ['Automatic', 'Manual', 'CVT', 'Other'] },
+      { key: 'driveType', label: 'Drive Type', type: 'select', options: ['2WD', '4WD', 'AWD'] },
+      { key: 'color', label: 'Color', type: 'text' },
+      { key: 'mileage', label: 'Mileage (KM)', type: 'text' },
+      { key: 'features', label: 'Features (e.g. Music, AC, Alloy rims)', type: 'text' }
+    ];
+  }
   if (categorySlug === 'auto-spares') {
     return [
       { key: 'partNumber', label: 'Part Number', type: 'text' },

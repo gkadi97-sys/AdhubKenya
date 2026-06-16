@@ -8,14 +8,15 @@ import ItemAttributesSelect from '@/components/ItemAttributesSelect';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { Link } from 'react-router-dom';
 
-const CONDITIONS = ['New','Used - Like New','Used - Good','Used - Fair'];
+const STANDARD_CONDITIONS = ['New','Used - Like New','Used - Good','Used - Fair'];
+const VEHICLE_CONDITIONS = ['Brand New', 'Foreign Used', 'Kenyan Used'];
 
 export default function PostAdPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     title:'', description:'', price:'', negotiable:false,
-    category:'', location:'', condition:'Used - Good', phone: user?.phone || '', whatsapp: user?.whatsapp || ''
+    category:'', location:'', condition:'', phone: user?.phone || '', whatsapp: user?.whatsapp || ''
   });
   const [attrs, setAttrs] = useState({ make:'', model:'', year:'', specs:{} });
 
@@ -118,8 +119,9 @@ export default function PostAdPage() {
                 {showCondition && (
                   <div className="form-group">
                     <label className="form-label">Condition *</label>
-                    <select className="form-control" name="condition" value={form.condition} onChange={handleChange}>
-                      {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                    <select className="form-control" name="condition" value={form.condition} onChange={handleChange} required>
+                      <option value="">Select Condition</option>
+                      {(form.category === 'vehicles' ? VEHICLE_CONDITIONS : STANDARD_CONDITIONS).map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                 )}
