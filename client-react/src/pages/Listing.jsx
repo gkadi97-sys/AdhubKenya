@@ -126,7 +126,7 @@ export default function ListingDetailPage() {
               <div style={{display:'flex',gap:20,fontSize:'0.85rem',color:'var(--text-muted)',marginBottom:24,flexWrap:'wrap'}}>
                 <span>📍 {listing.location}</span>
                 <span>👁️ {listing.views} views</span>
-                <span>🕐 {timeAgo(listing.createdAt)}</span>
+                <span>🕐 {timeAgo(listing.created_at || listing.createdAt)}</span>
               </div>
 
               <hr style={{border:'none',borderTop:'1px solid var(--border)',margin:'0 0 24px'}}/>
@@ -259,7 +259,7 @@ export default function ListingDetailPage() {
                 <div>
                   <div className="seller-name">{listing.seller?.name || 'Seller'}</div>
                   <div className="seller-info">📍 {listing.seller?.location || listing.location}</div>
-                  <div className="seller-info">Member since {new Date(listing.seller?.createdAt || listing.createdAt).getFullYear()}</div>
+                  <div className="seller-info">Member since {new Date(listing.seller?.created_at || listing.seller?.createdAt || listing.created_at || listing.createdAt).getFullYear()}</div>
                 </div>
               </div>
 
