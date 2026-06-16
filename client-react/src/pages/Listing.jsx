@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getListing, imageUrl, formatPrice, timeAgo } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { SCHEMA_ATTRIBUTES } from '@/lib/schemaEngine';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -177,8 +178,8 @@ export default function ListingDetailPage() {
                   if (FEATURE_KEYS.includes(k)) return; // handled by legacy array loop below
                   if (v === '' || v === null || v === undefined) return;
                   
-                  const isBoolean = v === true || v === false || schemaAttrs[k]?.type === 'checkbox';
-                  const label = schemaAttrs[k]?.label || FRIENDLY_LABELS[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+                  const isBoolean = v === true || v === false || SCHEMA_ATTRIBUTES[k]?.type === 'checkbox';
+                  const label = SCHEMA_ATTRIBUTES[k]?.label || FRIENDLY_LABELS[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
                   
                   if (isBoolean) {
                     if (v === true) booleanFeatures.push(label);
