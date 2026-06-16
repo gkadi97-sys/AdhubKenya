@@ -68,21 +68,17 @@ export default function PostAdPage() {
     }
     setLoading(true);
     try {
-      const fd = new FormData();
-      Object.entries(form).forEach(([k,v]) => {
-        if (k === 'condition' && !showCondition) return;
-        fd.append(k, v);
-      });
-      if (attrs.make)  fd.append('make',  attrs.make);
-      if (attrs.model) fd.append('model', attrs.model);
-      if (attrs.year)  fd.append('year',  attrs.year);
+      const listingData = { ...form };
+      if (!showCondition) delete listingData.condition;
+      
+      if (attrs.make)  listingData.make = attrs.make;
+      if (attrs.model) listingData.model = attrs.model;
+      if (attrs.year)  listingData.year = attrs.year;
       if (attrs.specs && Object.keys(attrs.specs).length)
-        fd.append('specs', JSON.stringify(attrs.specs));
+        listingData.specs = attrs.specs;
 
-      images.forEach(img => fd.append('images', img));
-
-      const listing = await createListing(fd);
-      navigate(`/listing/${listing._id}`);
+      const listing = await createListing(listingData, images);
+      navigate(`/listing/${listing.id}`); // Supabase uses 'id', not 'id'
     } catch (err) {
       setError(err.message);
     } finally { setLoading(false); }

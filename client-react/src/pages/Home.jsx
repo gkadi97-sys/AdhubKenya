@@ -136,7 +136,7 @@ export default function HomePage() {
             </div>
           ) : listings.length > 0 ? (
             <div className="listings-grid">
-              {listings.map(l => <ListingCard key={l._id} listing={l} />)}
+              {listings.map(l => <ListingCard key={l.id} listing={l} />)}
             </div>
           ) : (
             <div className="empty-state">

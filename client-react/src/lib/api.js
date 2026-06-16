@@ -1,69 +1,179 @@
-// API base URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { supabase } from './supabase';
 
-// Auth helpers
-export const getToken = () => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('adhub_token');
-};
+// Generic fetch wrapper is no longer needed since we use Supabase client
 
-export const getUser = () => {
-  if (typeof window === 'undefined') return null;
-  const user = localStorage.getItem('adhub_user');
-  return user ? JSON.parse(user) : null;
-};
-
-export const setAuth = (token, user) => {
-  localStorage.setItem('adhub_token', token);
-  localStorage.setItem('adhub_user', JSON.stringify(user));
-};
-
-export const clearAuth = () => {
-  localStorage.removeItem('adhub_token');
-  localStorage.removeItem('adhub_user');
-};
-
-// Generic fetch wrapper
-const apiFetch = async (endpoint, options = {}) => {
-  const token = getToken();
-  const headers = { ...options.headers };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  if (!(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-  }
-  const res = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'API Error');
+// --- Auth API ---
+// Handled by AuthContext now, but we can export dummies if needed by older components
+export const getMe = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+  
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single();
+    
+  if (error) throw error;
   return data;
 };
 
-// Auth API
-export const register = (body) => apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(body) });
-export const login = (body) => apiFetch('/auth/login', { method: 'POST', body: JSON.stringify(body) });
-export const getMe = () => apiFetch('/auth/me');
+// --- Listings API ---
+export const getListings = async (params = {}) => {
+  let query = supabase.from('listings').select('*, seller:profiles!seller_id(name, location, created_at)', { count: 'exact' });
 
-// Listings API
-export const getListings = (params = {}) => {
-  const qs = new URLSearchParams(params).toString();
-  return apiFetch(`/listings?${qs}`);
+  // Filters
+  if (params.category) query = query.eq('category', params.category);
+  if (params.location) query = query.eq('location', params.location);
+  if (params.keyword) query = query.or(`title.ilike.%${params.keyword}%,description.ilike.%${params.keyword}%`);
+  if (params.minPrice) query = query.gte('price', params.minPrice);
+  if (params.maxPrice) query = query.lte('price', params.maxPrice);
+
+  // Sorting
+  const sort = params.sort || 'createdAt';
+  if (sort === 'createdAt') query = query.order('created_at', { ascending: false });
+  if (sort === 'price_asc') query = query.order('price', { ascending: true });
+  if (sort === 'price_desc') query = query.order('price', { ascending: false });
+
+  // Pagination
+  const page = parseInt(params.page) || 1;
+  const limit = parseInt(params.limit) || 12;
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  
+  query = query.range(from, to);
+
+  const { data, error, count } = await query;
+  
+  if (error) throw error;
+  
+  return {
+    listings: data,
+    total: count,
+    pages: Math.ceil(count / limit)
+  };
 };
-export const getFeaturedListings = () => apiFetch('/listings/featured');
-export const getListing = (id) => apiFetch(`/listings/${id}`);
-export const getSellerListings = (sellerId) => apiFetch(`/listings/seller/${sellerId}`);
-export const createListing = (formData) => apiFetch('/listings', { method: 'POST', body: formData });
-export const updateListing = (id, formData) => apiFetch(`/listings/${id}`, { method: 'PUT', body: formData });
-export const deleteListing = (id) => apiFetch(`/listings/${id}`, { method: 'DELETE' });
 
-// Categories API
-export const getCategories = () => apiFetch('/categories');
+export const getFeaturedListings = async () => {
+  const { data, error } = await supabase
+    .from('listings')
+    .select('*')
+    .eq('is_featured', true)
+    .order('created_at', { ascending: false })
+    .limit(8);
+    
+  if (error) throw error;
+  return data;
+};
+
+export const getListing = async (id) => {
+  const { data, error } = await supabase
+    .from('listings')
+    .select('*, seller:profiles!seller_id(name, location, created_at)')
+    .eq('id', id)
+    .single();
+    
+  if (error) throw error;
+  
+  // Increment views
+  supabase.rpc('increment_listing_views', { listing_id: id }).then();
+  
+  return data;
+};
+
+export const getSellerListings = async (sellerId) => {
+  const { data, error } = await supabase
+    .from('listings')
+    .select('*')
+    .eq('seller_id', sellerId)
+    .order('created_at', { ascending: false });
+    
+  if (error) throw error;
+  return data;
+};
+
+// Instead of passing FormData directly to Supabase, we need to handle image uploads separately
+export const createListing = async (listingData, imageFiles) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  // Upload images first
+  const imageUrls = [];
+  if (imageFiles && imageFiles.length > 0) {
+    for (const file of imageFiles) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${session.user.id}/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('listing-images')
+        .upload(filePath, file);
+        
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('listing-images')
+        .getPublicUrl(filePath);
+        
+      imageUrls.push(publicUrl);
+    }
+  }
+
+  // Then create listing
+  const { data, error } = await supabase
+    .from('listings')
+    .insert([
+      {
+        ...listingData,
+        images: imageUrls,
+        seller_id: session.user.id
+      }
+    ])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const updateListing = async (id, updates) => {
+  const { data, error } = await supabase
+    .from('listings')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+    
+  if (error) throw error;
+  return data;
+};
+
+export const deleteListing = async (id) => {
+  const { error } = await supabase
+    .from('listings')
+    .delete()
+    .eq('id', id);
+    
+  if (error) throw error;
+  return true;
+};
+
+// Categories API (hardcoded in Supabase world since it's usually static data)
+export const getCategories = async () => {
+  // If we wanted dynamic categories, we'd fetch from a `categories` table.
+  // For now, return a placeholder empty array if any component expects this, 
+  // as categoryData.js handles this mostly.
+  return [];
+};
 
 // Image URL helper
 export const imageUrl = (path) => {
   if (!path) return '/placeholder.jpg';
   if (path.startsWith('http')) return path;
   
-  const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
-  return `${baseUrl}${path}`;
+  // If we have relative paths (legacy MongoDB ones), we just return them for now,
+  // but new Supabase paths will be full HTTP URLs.
+  return path;
 };
 
 // Format price in KES

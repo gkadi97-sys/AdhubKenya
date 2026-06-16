@@ -11,8 +11,8 @@ export default function MyAdsPage() {
   const [deleting, setDeleting] = useState(null);
 
   useEffect(() => {
-    if (user?._id) {
-      getSellerListings(user._id).then(setListings).catch(()=>setListings([])).finally(()=>setLoading(false));
+    if (user?.id) {
+      getSellerListings(user.id).then(setListings).catch(()=>setListings([])).finally(()=>setLoading(false));
     } else { setLoading(false); }
   }, [user]);
 
@@ -21,7 +21,7 @@ export default function MyAdsPage() {
     setDeleting(id);
     try {
       await deleteListing(id);
-      setListings(l => l.filter(x => x._id !== id));
+      setListings(l => l.filter(x => x.id !== id));
     } catch (e) { alert(e.message); }
     finally { setDeleting(null); }
   };
@@ -60,7 +60,7 @@ export default function MyAdsPage() {
         ) : (
           <div style={{display:'flex',flexDirection:'column',gap:16}}>
             {listings.map(l => (
-              <div key={l._id} className="card" style={{display:'flex',gap:0,overflow:'hidden'}}>
+              <div key={l.id} className="card" style={{display:'flex',gap:0,overflow:'hidden'}}>
                 {/* Image */}
                 <div style={{width:140,flexShrink:0}}>
                   <img
@@ -72,7 +72,7 @@ export default function MyAdsPage() {
                 {/* Content */}
                 <div style={{flex:1,padding:'16px 20px',display:'flex',justifyContent:'space-between',alignItems:'start',gap:12,flexWrap:'wrap'}}>
                   <div style={{flex:1}}>
-                    <Link to={`/listing/${l._id}`} style={{fontSize:'1rem',fontWeight:600,color:'var(--text)',transition:'color 0.2s'}}
+                    <Link to={`/listing/${l.id}`} style={{fontSize:'1rem',fontWeight:600,color:'var(--text)',transition:'color 0.2s'}}
                       onMouseEnter={e=>e.target.style.color='var(--primary-light)'}
                       onMouseLeave={e=>e.target.style.color='var(--text)'}
                     >{l.title}</Link>
@@ -86,11 +86,11 @@ export default function MyAdsPage() {
                     </div>
                   </div>
                   <div style={{display:'flex',gap:8,flexShrink:0}}>
-                    <Link to={`/listing/${l._id}`} className="btn btn-ghost btn-sm">View</Link>
-                    <button onClick={()=>handleDelete(l._id)} disabled={deleting===l._id}
+                    <Link to={`/listing/${l.id}`} className="btn btn-ghost btn-sm">View</Link>
+                    <button onClick={()=>handleDelete(l.id)} disabled={deleting===l.id}
                       className="btn btn-sm"
                       style={{background:'rgba(239,68,68,0.1)',color:'#fca5a5',border:'1px solid rgba(239,68,68,0.3)'}}>
-                      {deleting===l._id ? '...' : 'Delete'}
+                      {deleting===l.id ? '...' : 'Delete'}
                     </button>
                   </div>
                 </div>

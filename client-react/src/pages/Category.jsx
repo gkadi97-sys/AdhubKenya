@@ -90,7 +90,7 @@ export default function CategoryPage() {
         ) : listings.length > 0 ? (
           <>
             <div className="listings-grid">
-              {listings.map(l => <ListingCard key={l._id} listing={l} />)}
+              {listings.map(l => <ListingCard key={l.id} listing={l} />)}
             </div>
             {pages > 1 && (
               <div style={{display:'flex',justifyContent:'center',gap:8,marginTop:40}}>
