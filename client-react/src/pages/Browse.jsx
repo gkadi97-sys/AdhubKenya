@@ -29,7 +29,7 @@ const CATEGORIES = [
 ];
 
 function BrowseContent() {
-  const searchParams = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
