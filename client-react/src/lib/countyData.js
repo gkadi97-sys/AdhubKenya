@@ -1,4 +1,4 @@
-const COUNTY_TOWNS = {
+const COUNTY_TOWNS_LEGACY = {
   'Nairobi': ['CBD', 'Westlands', 'Kasarani', 'Embakasi', 'Langata', 'Karen', 'Kilimani', 'Upperhill', 'South B', 'South C', 'Eastleigh', 'Parklands', 'Industrial Area', 'Githurai', 'Roysambu', 'Ruaraka', 'Dagoretti', 'Kabete', 'Runda', 'Gigiri', 'Spring Valley', 'Lavington', 'Hurlingham', 'Kileleshwa', 'Buruburu', 'Donholm', 'Umoja', 'Kayole', 'Komarock', 'Njiru'],
   'Mombasa': ['Mombasa Island', 'Nyali', 'Bamburi', 'Kisauni', 'Likoni', 'Changamwe', 'Jomvu', 'Mikindani', 'Miritini', 'Port Reitz', 'Mtongwe', 'Shimanzi'],
   'Kwale': ['Kwale Town', 'Ukunda', 'Diani Beach', 'Msambweni', 'Lungalunga', 'Kinango', 'Shimba Hills', 'Vanga', 'Mwabungo', 'Ramisi'],
@@ -48,6 +48,26 @@ const COUNTY_TOWNS = {
   'Nyamira': ['Nyamira Town', 'Manga', 'Ekerenyo', 'Keroka', 'Nyansiongo', 'Masaba', 'Magombo', 'Rigoma'],
 };
 
+// Transform into 3-tier object
+const COUNTY_TOWNS = {};
+for (const [county, towns] of Object.entries(COUNTY_TOWNS_LEGACY)) {
+  COUNTY_TOWNS[county] = {};
+  for (const town of towns) {
+    COUNTY_TOWNS[county][town] = [];
+  }
+}
+
+// ── Sample 3-Tier Data Injections ──
+COUNTY_TOWNS['Kajiado']['Kitengela'] = ['Chang\'ombe', 'Milimani', 'Yukos', 'Acacia', 'New Valley', 'EPZ', 'Sifa Farm', 'Nonkopir'];
+COUNTY_TOWNS['Kajiado']['Ongata Rongai'] = ['Nkoroi', 'Kandisi', 'Olekasasi', 'Laiser Hill', 'Rimpa'];
+COUNTY_TOWNS['Kajiado']['Ngong'] = ['Matasia', 'Bulbul', 'Zambia', 'Kibiko', 'Lemelepo'];
+
+COUNTY_TOWNS['Nairobi']['Westlands'] = ['Rhapta Road', 'Brookside', 'Spring Valley', 'Waiyaki Way', 'Karura'];
+COUNTY_TOWNS['Nairobi']['Kilimani'] = ['Yaya', 'Dennis Pritt', 'Lenana Road', 'Argwings Kodhek', 'Riara'];
+COUNTY_TOWNS['Nairobi']['Kasarani'] = ['Seasons', 'Hunters', 'Sunton', 'Mwiki', 'Clay City'];
+
 export const COUNTIES = Object.keys(COUNTY_TOWNS).sort();
-export const getTowns = (county) => COUNTY_TOWNS[county] || [];
+export const getTowns = (county) => county && COUNTY_TOWNS[county] ? Object.keys(COUNTY_TOWNS[county]).sort() : [];
+export const getAreas = (county, town) => (county && town && COUNTY_TOWNS[county] && COUNTY_TOWNS[county][town]) ? COUNTY_TOWNS[county][town].sort() : [];
+
 export default COUNTY_TOWNS;

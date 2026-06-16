@@ -3,7 +3,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
-import { COUNTIES, getTowns } from '@/lib/countyData';
+import { COUNTIES, getTowns, getAreas } from '@/lib/countyData';
 
 
 
@@ -42,6 +42,8 @@ function BrowseContent() {
   const [category, setCategory] = useState(searchParams.get('category') || '');
   const [location, setLocation] = useState(searchParams.get('location') || '');
   const [selectedCounty, setSelectedCounty] = useState('');
+  const [selectedTown, setSelectedTown] = useState('');
+  const [selectedArea, setSelectedArea] = useState('');
 
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -58,7 +60,17 @@ function BrowseContent() {
     setActiveKeyword(k);
     setCategory(c);
     setLocation(l);
-    if (COUNTIES.includes(l)) setSelectedCounty(l);
+    // Parse location string (Area, Town, County) or (Town, County) or (County)
+    if (l) {
+      const parts = l.split(',').map(s => s.trim());
+      if (parts.length === 3) {
+        setSelectedCounty(parts[2]); setSelectedTown(parts[1]); setSelectedArea(parts[0]);
+      } else if (parts.length === 2) {
+        setSelectedCounty(parts[1]); setSelectedTown(parts[0]); setSelectedArea('');
+      } else if (COUNTIES.includes(parts[0])) {
+        setSelectedCounty(parts[0]); setSelectedTown(''); setSelectedArea('');
+      }
+    }
   }, [searchParams]);
 
   const fetchListings = async () => {
@@ -121,27 +133,49 @@ function BrowseContent() {
                 </div>
               </div>
 
-              {/* Location */}
+              {/* Location — County → Town → Area cascading */}
               <div className="filter-section">
                 <h4>County</h4>
-                <select className="form-control" value={selectedCounty} onChange={e=>{
-                  setSelectedCounty(e.target.value);
-                  setLocation(e.target.value);
+                <select className="form-control" value={selectedCounty} onChange={e => {
+                  const c = e.target.value;
+                  setSelectedCounty(c);
+                  setSelectedTown('');
+                  setSelectedArea('');
+                  setLocation(c);
                   setPage(1);
                 }}>
                   <option value="">All Counties</option>
-                  {COUNTIES.map(c=><option key={c} value={c}>{c}</option>)}
+                  {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
+
               {selectedCounty && getTowns(selectedCounty).length > 0 && (
-                <div className="filter-section">
-                  <h4>Town / Area</h4>
-                  <select className="form-control" value={location} onChange={e=>{
-                    setLocation(e.target.value);
+                <div className="filter-section" style={{ animation: 'fadeIn 0.2s ease' }}>
+                  <h4>Town / City</h4>
+                  <select className="form-control" value={selectedTown} onChange={e => {
+                    const t = e.target.value;
+                    setSelectedTown(t);
+                    setSelectedArea('');
+                    setLocation(t ? `${t}, ${selectedCounty}` : selectedCounty);
                     setPage(1);
                   }}>
-                    <option value={selectedCounty}>All of {selectedCounty}</option>
-                    {getTowns(selectedCounty).map(t=><option key={t} value={t}>{t}</option>)}
+                    <option value="">All of {selectedCounty}</option>
+                    {getTowns(selectedCounty).map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+              )}
+
+              {selectedTown && getAreas(selectedCounty, selectedTown).length > 0 && (
+                <div className="filter-section" style={{ animation: 'fadeIn 0.2s ease' }}>
+                  <h4>Area / Estate</h4>
+                  <select className="form-control" value={selectedArea} onChange={e => {
+                    const a = e.target.value;
+                    setSelectedArea(a);
+                    setLocation(a ? `${a}, ${selectedTown}, ${selectedCounty}` : `${selectedTown}, ${selectedCounty}`);
+                    setPage(1);
+                  }}>
+                    <option value="">All of {selectedTown}</option>
+                    {getAreas(selectedCounty, selectedTown).map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
               )}
