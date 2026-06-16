@@ -140,22 +140,21 @@ export default function ListingDetailPage() {
                   turbocharged: 'Turbocharged', transmission: 'Transmission', numGears: 'No. Gears',
                   driveType: 'Drive Type', color: 'Exterior Colour', colorType: 'Colour Type',
                   numDoors: 'Doors', numSeats: 'Seats', wheelSize: 'Wheel Size',
-                  interiorColor: 'Interior Colour', interiorMaterial: 'Interior Material',
-                  accidentHistory: 'Accident History', overallCondition: 'Overall Condition',
-                  logbook: 'Logbook', numKeys: 'No. Keys', financingStatus: 'Financing',
-                  insuranceStatus: 'Insurance', sellerType: 'Seller Type',
-                  financingAvailable: 'Financing Available', tradeIn: 'Trade-in Accepted',
-                  availability: 'Availability',
-                  // Property
+                  engineCapacityCc: 'Engine Size (cc)', bodyType: 'Body Type', fuelType: 'Fuel Type',
+                  transmission: 'Transmission', driveType: 'Drive Type', interiorColor: 'Interior Color',
+                  exteriorColor: 'Exterior Color', seatingCapacity: 'Seating Capacity', mileageKm: 'Mileage (km)',
                   listingCategory: 'Listing Category', currency: 'Currency', listingId: 'Listing ID',
                   landSize: 'Land Size', builtArea: 'Built-up Area', floors: 'Floors',
                   bedrooms: 'Bedrooms', bathrooms: 'Bathrooms', livingRooms: 'Living Rooms',
                   meetingRooms: 'Meeting Rooms', agencyName: 'Agency / Company', website: 'Website',
                 };
+                
+                // Legacy feature arrays
                 const FEATURE_KEYS = [
                   'comfortFeatures', 'infotainmentFeatures', 'safetyFeatures', 'exteriorFeatures', 'conditionDetails',
                   'residentialFeatures', 'commercialFeatures', 'amenities', 'legalInfo'
                 ];
+                
                 const FEATURE_LABELS = {
                   comfortFeatures: '❄️ Comfort & Convenience',
                   infotainmentFeatures: '📱 Infotainment & Connectivity',
@@ -167,7 +166,25 @@ export default function ListingDetailPage() {
                   amenities: '🏊‍♂️ Amenities & Facilities',
                   legalInfo: '⚖️ Legal & Compliance',
                 };
-                const keyValueSpecs = Object.entries(listing.specs).filter(([k, v]) => !FEATURE_KEYS.includes(k) && v && v !== '');
+                
+                // Separate boolean/checkbox attributes vs key-value attributes
+                const booleanFeatures = [];
+                const keyValueSpecs = [];
+                
+                Object.entries(listing.specs).forEach(([k, v]) => {
+                  if (FEATURE_KEYS.includes(k)) return; // handled by legacy array loop below
+                  if (v === '' || v === null || v === undefined) return;
+                  
+                  const isBoolean = v === true || v === false || schemaAttrs[k]?.type === 'checkbox';
+                  const label = schemaAttrs[k]?.label || FRIENDLY_LABELS[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+                  
+                  if (isBoolean) {
+                    if (v === true) booleanFeatures.push(label);
+                  } else {
+                    keyValueSpecs.push({ key: k, label, val: v });
+                  }
+                });
+
                 const featureSpecs = Object.entries(listing.specs).filter(([k, v]) => FEATURE_KEYS.includes(k) && Array.isArray(v) && v.length > 0);
 
                 return (
@@ -177,18 +194,35 @@ export default function ListingDetailPage() {
                       <>
                         <h3 style={{ marginBottom: 14, fontSize: '1rem' }}>Specifications</h3>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 24 }}>
-                          {keyValueSpecs.map(([key, val]) => (
-                            <div key={key} style={{ background: 'var(--surface)', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                          {keyValueSpecs.map((item) => (
+                            <div key={item.key} style={{ background: 'var(--surface)', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 3 }}>
                               <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-                                {FRIENDLY_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
+                                {item.label}
                               </span>
-                              <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{val}</span>
+                              <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{item.val}</span>
                             </div>
                           ))}
                         </div>
                       </>
                     )}
-                    {/* Feature Pill Groups */}
+                    
+                    {/* Boolean Feature Pills */}
+                    {booleanFeatures.length > 0 && (
+                      <div style={{ marginBottom: 20 }}>
+                        <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: 10, color: 'var(--text-secondary)' }}>✨ Included Features & Amenities</h4>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {booleanFeatures.map(f => (
+                            <span key={f} style={{
+                              padding: '5px 12px', background: 'var(--primary-glow)',
+                              border: '1px solid var(--primary)', borderRadius: 20,
+                              fontSize: '0.78rem', color: 'var(--primary-light)', fontWeight: 500
+                            }}>✓ {f}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Legacy Feature Pill Groups */}
                     {featureSpecs.map(([key, features]) => (
                       <div key={key} style={{ marginBottom: 20 }}>
                         <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: 10, color: 'var(--text-secondary)' }}>{FEATURE_LABELS[key]}</h4>

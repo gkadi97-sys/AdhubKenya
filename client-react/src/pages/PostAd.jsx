@@ -4,9 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { createListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
-import ItemAttributesSelect from '@/components/ItemAttributesSelect';
-import VehicleForm from '@/components/VehicleForm';
-import PropertyForm from '@/components/PropertyForm';
+import DynamicListingForm from '@/components/DynamicListingForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { Link } from 'react-router-dom';
 
@@ -83,8 +81,15 @@ export default function PostAdPage() {
       if (attrs.make)  listingData.make  = attrs.make;
       if (attrs.model) listingData.model = attrs.model;
       if (attrs.year)  listingData.year  = attrs.year;
-      if (attrs.specs && Object.keys(attrs.specs).length)
+      if (attrs.specs && Object.keys(attrs.specs).length) {
         listingData.specs = attrs.specs;
+      } else {
+        listingData.specs = {};
+      }
+      
+      // Save dynamic fields into the specs JSON column
+      if (attrs.transactionType) listingData.specs.transactionType = attrs.transactionType;
+      if (attrs.subcategory) listingData.specs.subcategory = attrs.subcategory;
 
       const listing = await createListing(listingData, images);
       navigate(`/listing/${listing.id}`);
@@ -149,24 +154,10 @@ export default function PostAdPage() {
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>{form.title.length}/100 characters</div>
               </div>
 
-              {/* Vehicle-specific comprehensive form */}
-              {isVehicle && (
+              {/* ── Dynamic Intelligent Form Engine ────────────────────────── */}
+              {form.category && (
                 <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
-                  <VehicleForm values={attrs} onChange={setAttrs} />
-                </div>
-              )}
-
-              {/* Property-specific comprehensive form */}
-              {isProperty && (
-                <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
-                  <PropertyForm values={attrs} onChange={setAttrs} />
-                </div>
-              )}
-
-              {/* Non-vehicle attributes */}
-              {!isVehicle && !isProperty && form.category && (
-                <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-                  <ItemAttributesSelect category={form.category} values={attrs} onChange={setAttrs} />
+                  <DynamicListingForm category={form.category} values={attrs} onChange={setAttrs} />
                 </div>
               )}
 
