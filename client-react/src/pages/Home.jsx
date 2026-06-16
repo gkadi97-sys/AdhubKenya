@@ -86,7 +86,7 @@ export default function HomePage() {
       <section style={{background:'var(--bg-2)',borderBottom:'1px solid var(--border)',padding:'20px 0'}}>
         <div className="container">
           <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:20,textAlign:'center'}}>
-            {[['10,000+','Active Listings'],['50,000+','Happy Users'],['47','Counties Covered'],['Free','To Post Ads']].map(([val,lbl]) => (
+            {[['Growing','Community'],['New','Listings Daily'],['47','Counties Covered'],['100%','Free to Post']].map(([val,lbl]) => (
               <div key={lbl}>
                 <div style={{fontSize:'1.6rem',fontWeight:800,fontFamily:'var(--font-display)',color:'var(--primary-light)'}}>{val}</div>
                 <div style={{fontSize:'0.8rem',color:'var(--text-muted)',marginTop:2}}>{lbl}</div>
