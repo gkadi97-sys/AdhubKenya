@@ -189,13 +189,17 @@ export default function PropertyForm({ values = {}, onChange }) {
             <TextInput value={s.landSize} onChange={v => setSpec('landSize', v)} placeholder="e.g. 50x100 or 0.5 Acres" />
           </Field>
 
-          <Field label="Built-up Area (Sq Ft / Sq M)">
-            <TextInput value={s.builtArea} onChange={v => setSpec('builtArea', v)} placeholder="e.g. 2500 sq ft" />
-          </Field>
+          {category !== 'Land and Plots' && (
+            <>
+              <Field label="Built-up Area (Sq Ft / Sq M)">
+                <TextInput value={s.builtArea} onChange={v => setSpec('builtArea', v)} placeholder="e.g. 2500 sq ft" />
+              </Field>
 
-          <Field label="Number of Floors / Stories">
-            <NumberInput value={s.floors} onChange={v => setSpec('floors', v)} placeholder="e.g. 2" />
-          </Field>
+              <Field label="Number of Floors / Stories">
+                <NumberInput value={s.floors} onChange={v => setSpec('floors', v)} placeholder="e.g. 2" />
+              </Field>
+            </>
+          )}
 
         </div>
       </div>
@@ -263,17 +267,19 @@ export default function PropertyForm({ values = {}, onChange }) {
       )}
 
       {/* ── 6. AMENITIES & FACILITIES ──────────────────────────── */}
-      <div>
-        <SectionHeader icon="🏊‍♂️" title="Amenities & Facilities" />
-        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-          Select all that apply
-        </p>
-        <CheckboxGroup
-          options={PROPERTY_SPECS.amenities}
-          selected={s.amenities || []}
-          onChange={v => setSpec('amenities', v)}
-        />
-      </div>
+      {category !== 'Land and Plots' && (
+        <div>
+          <SectionHeader icon="🏊‍♂️" title="Amenities & Facilities" />
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
+            Select all that apply
+          </p>
+          <CheckboxGroup
+            options={PROPERTY_SPECS.amenities}
+            selected={s.amenities || []}
+            onChange={v => setSpec('amenities', v)}
+          />
+        </div>
+      )}
 
       {/* ── 7. LEGAL & COMPLIANCE ──────────────────────────────── */}
       <div>
