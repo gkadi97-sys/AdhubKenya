@@ -263,6 +263,30 @@
   --text-muted: #64748b;
 }
 
+[data-theme='marketplace'] {
+  --primary: #004b91;
+  --primary-dark: #003366;
+  --primary-light: #2d73b3;
+  --primary-glow: rgba(0, 75, 145, 0.15);
+  --accent: #ff9900;
+  --accent-dark: #cc7a00;
+  --accent-light: #ffad33;
+  --accent-glow: rgba(255, 153, 0, 0.15);
+
+  --bg: #f0f2f5;
+  --bg-2: #e4e6e9;
+  --bg-3: #ccd0d5;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;
+  --surface-hover: #e4e6e9;
+  --border: #ced0d4;
+  --border-strong: #bcc0c4;
+
+  --text: #1c1e21;
+  --text-secondary: #606770;
+  --text-muted: #8d949e;
+}
+
 /* ============================================
    RESET & BASE
    ============================================ */
