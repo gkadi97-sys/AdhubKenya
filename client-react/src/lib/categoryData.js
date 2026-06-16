@@ -1067,13 +1067,31 @@ export const CATEGORY_ATTRIBUTES = {
     level2Label: 'Type',
     hasYear: false,
     data: {
-      'For Sale': [
-        'Houses & Villas','Apartments & Flats','Land & Plots',
-        'Commercial Property','Townhouses','Farms & Ranches'
+      'Residential Properties': [
+        'Apartments', 'Flats', 'Studio apartments', 'Bedsitters', 'Maisonettes',
+        'Townhouses', 'Villas', 'Bungalows', 'Detached houses', 'Semi-detached houses',
+        'Duplexes', 'Penthouses', 'Gated community homes', 'Serviced apartments',
+        'Holiday homes', 'Vacation rentals', 'Student housing', 'Shared accommodation / roommates'
       ],
-      'For Rent': [
-        'Houses & Villas','Apartments & Flats','Commercial Property',
-        'Rooms & Bedsitters','Short Lets / Airbnb','Townhouses'
+      'Commercial Properties': [
+        'Office spaces', 'Co-working spaces', 'Corporate headquarters', 'Business centers',
+        'Retail shops', 'Shopping malls', 'Supermarkets', 'Restaurants and cafés',
+        'Hotels', 'Guest houses', 'Lodges', 'Conference centers', 'Warehouses',
+        'Distribution centers', 'Industrial parks', 'Factories', 'Workshops', 'Showrooms'
+      ],
+      'Land and Plots': [
+        'Residential plots', 'Commercial plots', 'Industrial land', 'Agricultural land',
+        'Ranches', 'Farms', 'Mixed-use land', 'Beachfront land', 'Lakeside land',
+        'Hilltop plots', 'Estate development land', 'Investment plots'
+      ],
+      'Industrial Properties': [
+        'Manufacturing plants', 'Processing facilities', 'Storage facilities', 'Logistics centers',
+        'Cold rooms', 'Assembly plants', 'Industrial sheds', 'Industrial yards'
+      ],
+      'Special-Purpose Properties': [
+        'Schools', 'Universities', 'Hospitals', 'Clinics', 'Religious buildings',
+        'Community centers', 'Sports complexes', 'Event venues', 'Cinemas',
+        'Entertainment centers', 'Petrol stations', 'Car wash facilities'
       ]
     }
   },
@@ -1524,6 +1542,38 @@ export const VEHICLE_SPECS = {
     'Inspection Certificate Available', 'Service Records Available',
     'Import Documents Available',
   ],
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPERTY SPECS: All options used by PropertyForm.jsx
+// ─────────────────────────────────────────────────────────────────────────────
+export const PROPERTY_SPECS = {
+  listingCategories: [
+    'For Sale', 'For Rent', 'For Lease'
+  ],
+  currencies: [
+    'KES', 'USD', 'EUR', 'GBP'
+  ],
+  residentialFeatures: [
+    'Ensuite', 'Walk-in closets', 'Pantry', 'Laundry room', 
+    'Balcony', 'Terrace', 'Fireplace', 'Fitted Kitchen', 'Study Room',
+    'DSQ (Domestic Staff Quarters)', 'Basement'
+  ],
+  amenities: [
+    'Parking', 'Swimming pool', 'Gym', 'Elevator', 'Garden', 
+    'Children\\'s play area', 'Security guards', 'CCTV', 'Electric fence', 
+    'Backup generator', 'Borehole', 'Water tanks', 'Internet connectivity', 
+    'Solar power', 'Air conditioning', 'Clubhouse', 'Intercom'
+  ],
+  commercialFeatures: [
+    'Office partitions', 'Meeting rooms', 'Reception area', 'Loading bays', 
+    'Dock access', 'Storage rooms', 'High-speed internet', 'Security systems',
+    'Kitchenette', 'Cafeteria', 'Conference facilities'
+  ],
+  legalInfo: [
+    'Title deed available', 'Sectional property title', 'Freehold', 'Leasehold',
+    'Approved plans', 'NEMA approval', 'Change of user complete'
+  ]
 };
 
 export default CATEGORY_ATTRIBUTES;

@@ -6,6 +6,7 @@ import { createListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
 import ItemAttributesSelect from '@/components/ItemAttributesSelect';
 import VehicleForm from '@/components/VehicleForm';
+import PropertyForm from '@/components/PropertyForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { Link } from 'react-router-dom';
 
@@ -43,8 +44,11 @@ export default function PostAdPage() {
   };
 
   const handleImages = (e) => {
+    const isVehicle = form.category === 'vehicles';
+    const isProperty = form.category === 'property';
+    const maxImages = isProperty ? 15 : (isVehicle ? 10 : 5);
     const newFiles = Array.from(e.target.files);
-    const combined = [...images, ...newFiles].slice(0, 10);
+    const combined = [...images, ...newFiles].slice(0, maxImages);
     setImages(combined);
     const urls = combined.map(f => URL.createObjectURL(f));
     setPreviews(urls);
@@ -58,8 +62,9 @@ export default function PostAdPage() {
   };
 
   const isVehicle = form.category === 'vehicles';
+  const isProperty = form.category === 'property';
   const CONDITION_CATEGORIES = ['phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids'];
-  const showStandardCondition = CONDITION_CATEGORIES.includes(form.category);
+  const showStandardCondition = CONDITION_CATEGORIES.includes(form.category) && !isProperty;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -90,7 +95,7 @@ export default function PostAdPage() {
 
   return (
     <div style={{ padding: '40px 0 80px' }}>
-      <div className="container" style={{ maxWidth: isVehicle ? 960 : 780 }}>
+      <div className="container" style={{ maxWidth: (isVehicle || isProperty) ? 960 : 780 }}>
         <div style={{ marginBottom: 32 }}>
           <h1 style={{ fontSize: '1.8rem', marginBottom: 8 }}>Post a Free Ad</h1>
           <p style={{ color: 'var(--text-secondary)' }}>Fill in the details below to list your item for sale</p>
@@ -139,7 +144,7 @@ export default function PostAdPage() {
               <div className="form-group">
                 <label className="form-label">Ad Title *</label>
                 <input className="form-control" name="title" value={form.title} onChange={handleChange}
-                  placeholder={isVehicle ? 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White' : 'e.g. iPhone 13 Pro Max - 256GB'}
+                  placeholder={isVehicle ? 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White' : (isProperty ? 'e.g. 4 Bedroom Villa in Karen with Pool' : 'e.g. iPhone 13 Pro Max - 256GB')}
                   maxLength={100} required />
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>{form.title.length}/100 characters</div>
               </div>
@@ -151,8 +156,15 @@ export default function PostAdPage() {
                 </div>
               )}
 
+              {/* Property-specific comprehensive form */}
+              {isProperty && (
+                <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+                  <PropertyForm values={attrs} onChange={setAttrs} />
+                </div>
+              )}
+
               {/* Non-vehicle attributes */}
-              {!isVehicle && form.category && (
+              {!isVehicle && !isProperty && form.category && (
                 <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                   <ItemAttributesSelect category={form.category} values={attrs} onChange={setAttrs} />
                 </div>

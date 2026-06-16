@@ -130,6 +130,7 @@ export default function ListingDetailPage() {
 
               {listing.specs && Object.keys(listing.specs).filter(k => listing.specs[k] && listing.specs[k] !== '' && (Array.isArray(listing.specs[k]) ? listing.specs[k].length > 0 : true)).length > 0 && (() => {
                 const FRIENDLY_LABELS = {
+                  // Vehicle
                   vehicleType: 'Vehicle Type', bodyStyle: 'Body Style', variant: 'Variant / Trim',
                   regYear: 'Year of Registration', regNumber: 'Registration No.',
                   mileage: 'Mileage', mileageUnit: 'Mileage Unit', prevOwners: 'Previous Owners',
@@ -145,14 +146,26 @@ export default function ListingDetailPage() {
                   insuranceStatus: 'Insurance', sellerType: 'Seller Type',
                   financingAvailable: 'Financing Available', tradeIn: 'Trade-in Accepted',
                   availability: 'Availability',
+                  // Property
+                  listingCategory: 'Listing Category', currency: 'Currency', listingId: 'Listing ID',
+                  landSize: 'Land Size', builtArea: 'Built-up Area', floors: 'Floors',
+                  bedrooms: 'Bedrooms', bathrooms: 'Bathrooms', livingRooms: 'Living Rooms',
+                  meetingRooms: 'Meeting Rooms', agencyName: 'Agency / Company', website: 'Website',
                 };
-                const FEATURE_KEYS = ['comfortFeatures', 'infotainmentFeatures', 'safetyFeatures', 'exteriorFeatures', 'conditionDetails'];
+                const FEATURE_KEYS = [
+                  'comfortFeatures', 'infotainmentFeatures', 'safetyFeatures', 'exteriorFeatures', 'conditionDetails',
+                  'residentialFeatures', 'commercialFeatures', 'amenities', 'legalInfo'
+                ];
                 const FEATURE_LABELS = {
                   comfortFeatures: '❄️ Comfort & Convenience',
                   infotainmentFeatures: '📱 Infotainment & Connectivity',
                   safetyFeatures: '🛡️ Safety Features',
                   exteriorFeatures: '✨ Exterior Features',
                   conditionDetails: '📋 Condition Details',
+                  residentialFeatures: '✨ Residential Features',
+                  commercialFeatures: '💼 Commercial Features',
+                  amenities: '🏊‍♂️ Amenities & Facilities',
+                  legalInfo: '⚖️ Legal & Compliance',
                 };
                 const keyValueSpecs = Object.entries(listing.specs).filter(([k, v]) => !FEATURE_KEYS.includes(k) && v && v !== '');
                 const featureSpecs = Object.entries(listing.specs).filter(([k, v]) => FEATURE_KEYS.includes(k) && Array.isArray(v) && v.length > 0);
