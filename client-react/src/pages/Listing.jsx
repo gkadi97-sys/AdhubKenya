@@ -128,21 +128,71 @@ export default function ListingDetailPage() {
 
               <hr style={{border:'none',borderTop:'1px solid var(--border)',margin:'0 0 24px'}}/>
 
-              {listing.specs && Object.keys(listing.specs).filter(k => listing.specs[k]).length > 0 && (
-                <div style={{marginBottom:28}}>
-                  <h3 style={{marginBottom:14,fontSize:'1rem'}}>Specifications</h3>
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(180px, 1fr))',gap:'1px',background:'var(--border)',border:'1px solid var(--border)',borderRadius:'var(--radius)',overflow:'hidden'}}>
-                    {Object.entries(listing.specs).filter(([,v]) => v).map(([key, val]) => (
-                      <div key={key} style={{background:'var(--surface)',padding:'10px 14px',display:'flex',flexDirection:'column',gap:3}}>
-                        <span style={{fontSize:'0.7rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em',fontWeight:600}}>
-                          {key.replace(/([A-Z])/g,' $1').replace(/^./, s=>s.toUpperCase())}
-                        </span>
-                        <span style={{fontWeight:600,fontSize:'0.88rem'}}>{val}</span>
+              {listing.specs && Object.keys(listing.specs).filter(k => listing.specs[k] && listing.specs[k] !== '' && (Array.isArray(listing.specs[k]) ? listing.specs[k].length > 0 : true)).length > 0 && (() => {
+                const FRIENDLY_LABELS = {
+                  vehicleType: 'Vehicle Type', bodyStyle: 'Body Style', variant: 'Variant / Trim',
+                  regYear: 'Year of Registration', regNumber: 'Registration No.',
+                  mileage: 'Mileage', mileageUnit: 'Mileage Unit', prevOwners: 'Previous Owners',
+                  usageType: 'Usage Type', serviceHistory: 'Service History',
+                  fuelType: 'Fuel Type', engineCC: 'Engine (CC)', engineSize: 'Engine Size',
+                  horsepower: 'Horsepower', cylinders: 'Cylinders', engineConfig: 'Engine Config',
+                  turbocharged: 'Turbocharged', transmission: 'Transmission', numGears: 'No. Gears',
+                  driveType: 'Drive Type', color: 'Exterior Colour', colorType: 'Colour Type',
+                  numDoors: 'Doors', numSeats: 'Seats', wheelSize: 'Wheel Size',
+                  interiorColor: 'Interior Colour', interiorMaterial: 'Interior Material',
+                  accidentHistory: 'Accident History', overallCondition: 'Overall Condition',
+                  logbook: 'Logbook', numKeys: 'No. Keys', financingStatus: 'Financing',
+                  insuranceStatus: 'Insurance', sellerType: 'Seller Type',
+                  financingAvailable: 'Financing Available', tradeIn: 'Trade-in Accepted',
+                  availability: 'Availability',
+                };
+                const FEATURE_KEYS = ['comfortFeatures', 'infotainmentFeatures', 'safetyFeatures', 'exteriorFeatures', 'conditionDetails'];
+                const FEATURE_LABELS = {
+                  comfortFeatures: '❄️ Comfort & Convenience',
+                  infotainmentFeatures: '📱 Infotainment & Connectivity',
+                  safetyFeatures: '🛡️ Safety Features',
+                  exteriorFeatures: '✨ Exterior Features',
+                  conditionDetails: '📋 Condition Details',
+                };
+                const keyValueSpecs = Object.entries(listing.specs).filter(([k, v]) => !FEATURE_KEYS.includes(k) && v && v !== '');
+                const featureSpecs = Object.entries(listing.specs).filter(([k, v]) => FEATURE_KEYS.includes(k) && Array.isArray(v) && v.length > 0);
+
+                return (
+                  <div style={{ marginBottom: 28 }}>
+                    {/* Key/Value Specs Grid */}
+                    {keyValueSpecs.length > 0 && (
+                      <>
+                        <h3 style={{ marginBottom: 14, fontSize: '1rem' }}>Specifications</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 24 }}>
+                          {keyValueSpecs.map(([key, val]) => (
+                            <div key={key} style={{ background: 'var(--surface)', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                              <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+                                {FRIENDLY_LABELS[key] || key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
+                              </span>
+                              <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{val}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    {/* Feature Pill Groups */}
+                    {featureSpecs.map(([key, features]) => (
+                      <div key={key} style={{ marginBottom: 20 }}>
+                        <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: 10, color: 'var(--text-secondary)' }}>{FEATURE_LABELS[key]}</h4>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {features.map(f => (
+                            <span key={f} style={{
+                              padding: '5px 12px', background: 'var(--primary-glow)',
+                              border: '1px solid var(--primary)', borderRadius: 20,
+                              fontSize: '0.78rem', color: 'var(--primary-light)', fontWeight: 500
+                            }}>✓ {f}</span>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               <h3 style={{marginBottom:12,fontSize:'1rem'}}>Description</h3>
               <p style={{color:'var(--text-secondary)',lineHeight:1.8,whiteSpace:'pre-wrap'}}>{listing.description}</p>

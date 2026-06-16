@@ -1436,17 +1436,6 @@ export const CATEGORY_ICONS = [
 export const TOP_CATEGORIES = CATEGORY_ICONS;
 export const MANUFACTURE_YEARS = Array.from({length: 30}, (_, i) => new Date().getFullYear() - i);
 export function getSpecs(categorySlug, level1, level2) {
-  if (categorySlug === 'vehicles') {
-    return [
-      { key: 'engineCapacity', label: 'Engine Capacity (CC)', type: 'text' },
-      { key: 'fuelType', label: 'Fuel Type', type: 'select', options: ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'Other'] },
-      { key: 'transmission', label: 'Transmission', type: 'select', options: ['Automatic', 'Manual', 'CVT', 'Other'] },
-      { key: 'driveType', label: 'Drive Type', type: 'select', options: ['2WD', '4WD', 'AWD'] },
-      { key: 'color', label: 'Color', type: 'text' },
-      { key: 'mileage', label: 'Mileage (KM)', type: 'text' },
-      { key: 'features', label: 'Features (e.g. Music, AC, Alloy rims)', type: 'text' }
-    ];
-  }
   if (categorySlug === 'auto-spares') {
     return [
       { key: 'partNumber', label: 'Part Number', type: 'text' },
@@ -1458,4 +1447,84 @@ export function getSpecs(categorySlug, level1, level2) {
   }
   return [];
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VEHICLE SPECS: All options used by VehicleForm.jsx
+// ─────────────────────────────────────────────────────────────────────────────
+export const VEHICLE_SPECS = {
+
+  vehicleTypes: [
+    'Car', 'SUV', 'Pickup / Truck', 'Van', 'Minivan',
+    'Bus', 'Heavy Truck', 'Motorcycle', 'Tuk Tuk / 3-Wheeler',
+    'Trailer', 'Construction Equipment', 'Agricultural Equipment',
+  ],
+
+  bodyStyles: [
+    'Sedan', 'Hatchback', 'Wagon / Estate', 'Coupe', 'Convertible',
+    'SUV', 'Crossover', 'Pickup', 'Van', 'Minivan', 'Limousine',
+    'Bus', 'Truck', 'MPV', 'Fastback', 'Liftback',
+  ],
+
+  fuelTypes: [
+    'Petrol', 'Diesel', 'Hybrid', 'Plug-in Hybrid',
+    'Electric', 'LPG', 'CNG', 'Other',
+  ],
+
+  usageTypes: [
+    'Personal', 'Commercial', 'Fleet', 'Taxi',
+    'Ride-hailing (e.g. Uber)', 'Rental', 'Government',
+  ],
+
+  comfortFeatures: [
+    'Air Conditioning', 'Climate Control', 'Dual-Zone Climate',
+    'Rear Climate Control', 'Cruise Control', 'Adaptive Cruise Control',
+    'Push Start / Keyless Ignition', 'Keyless Entry', 'Remote Start',
+    'Auto Start-Stop', 'Electric Windows', 'Power Mirrors',
+    'Auto-Fold Mirrors', 'Rain Sensing Wipers', 'Auto Headlights',
+    'Wireless Charger', 'Power Tailgate', 'Electric Seats',
+    'Heated Seats', 'Ventilated Seats', 'Memory Seats',
+    'Heated Steering Wheel', 'Multifunction Steering Wheel',
+    'Folding Rear Seats', 'Rear AC Vents', 'Ambient Lighting',
+    'Head-Up Display', 'Digital Instrument Cluster', 'Sunroof',
+    'Panoramic Roof', 'Roof Rails', 'Running Boards', 'Tow Hitch',
+  ],
+
+  infotainmentFeatures: [
+    'Touchscreen Display', 'Navigation / GPS', 'Apple CarPlay',
+    'Android Auto', 'Bluetooth', 'USB Ports', 'AUX Input',
+    'Wi-Fi Hotspot', 'Voice Control', 'Premium Sound System',
+    'Rear Entertainment', 'CD / DVD Player', 'DAB Radio',
+    'Wireless Phone Connectivity',
+  ],
+
+  safetyFeatures: [
+    'ABS (Anti-lock Brakes)', 'EBD', 'ESC (Stability Control)',
+    'Traction Control', 'Brake Assist', 'Front Airbags',
+    'Side Airbags', 'Curtain Airbags', 'Knee Airbags',
+    'ISOFIX (Child Seat Anchors)', 'Child Locks',
+    'Blind Spot Monitoring', 'Lane Departure Warning',
+    'Lane Keep Assist', 'Forward Collision Warning',
+    'Automatic Emergency Braking', 'Pedestrian Detection',
+    'Driver Monitoring', '360° Camera', 'Reverse Camera',
+    'Front Parking Sensors', 'Rear Parking Sensors',
+    'Tire Pressure Monitoring (TPMS)', 'Alarm & Immobilizer', 'Dashcam',
+  ],
+
+  exteriorFeatures: [
+    'Alloy Wheels', 'Spare Wheel', 'LED Headlights', 'Xenon Headlights',
+    'Fog Lights', 'Daytime Running Lights (DRLs)', 'Adaptive Headlights',
+    'Window Tint', 'Bull Bar', 'Side Steps / Running Boards',
+    'Roof Rack', 'Nudge Bar', 'Snorkel', 'Differential Lock',
+  ],
+
+  conditionDetails: [
+    'Original Paint', 'Accident Damaged', 'Previously Repainted',
+    'Flood Damaged', 'Engine Replaced', 'Gearbox Replaced',
+    'Smoke Free', 'Non-Smoker Owner', 'Rust Present', 'Rebuilt',
+    'Inspection Certificate Available', 'Service Records Available',
+    'Import Documents Available',
+  ],
+};
+
 export default CATEGORY_ATTRIBUTES;
+
