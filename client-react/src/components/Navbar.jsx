@@ -19,7 +19,7 @@ export default function Navbar() {
   return (
     <>
       <div style={{ background: 'var(--accent)', color: '#fff', textAlign: 'center', padding: '8px 20px', fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.5px' }}>
-        🚧 Welcome to AdHub Kenya! The site is live, but our developers are currently tinkering and adding new features. You might experience occasional updates.
+        🚧 Welcome to AdHub Kenya! Our devs are still tinkering
       </div>
       <nav className="navbar" style={{ top: 0 }}>
         <div className="navbar-inner">
