@@ -259,7 +259,7 @@ export default function ListingDetailPage() {
                 <div>
                   <div className="seller-name">{listing.seller?.name || 'Seller'}</div>
                   <div className="seller-info">📍 {listing.seller?.location || listing.location}</div>
-                  <div className="seller-info">Member since {new Date(listing.seller?.created_at || listing.seller?.createdAt || listing.created_at || listing.createdAt).getFullYear()}</div>
+                  <div className="seller-info">Member since {new Date(listing.seller?.created_at || listing.seller?.createdAt || listing.created_at || listing.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
                 </div>
               </div>
 
