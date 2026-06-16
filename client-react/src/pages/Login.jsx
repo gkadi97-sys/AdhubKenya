@@ -1,15 +1,17 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from || '/my-ads';
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const isFromListing = redirectTo.startsWith('/listing/');
 
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -19,7 +21,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(form.email, form.password);
-      navigate('/my-ads');
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally { setLoading(false); }
@@ -38,7 +40,9 @@ export default function LoginPage() {
             </span>
           </div>
           <h1 style={{fontSize:'1.6rem',marginBottom:6}}>Welcome back</h1>
-          <p style={{color:'var(--text-secondary)',fontSize:'0.9rem'}}>Sign in to manage your ads</p>
+          <p style={{color:'var(--text-secondary)',fontSize:'0.9rem'}}>
+            {isFromListing ? 'Sign in to view the seller\'s contact details' : 'Sign in to manage your ads'}
+          </p>
         </div>
 
         <div className="card" style={{padding:32}}>

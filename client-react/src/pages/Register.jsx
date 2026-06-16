@@ -1,8 +1,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import CountyTownSelect from '@/components/CountyTownSelect';
 
 
@@ -11,6 +10,8 @@ const COUNTIES = ['Nairobi','Mombasa','Kwale','Kilifi','Tana River','Lamu','Tait
 export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from || '/post-ad';
   const [form, setForm] = useState({ name:'', email:'', password:'', phone:'', whatsapp:'', location:'' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,7 +25,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(form);
-      navigate('/post-ad');
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally { setLoading(false); }

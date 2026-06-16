@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { getListing, imageUrl, formatPrice, timeAgo } from '@/lib/api';
-import { Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
+  const [showLoginHint, setShowLoginHint] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -264,19 +266,65 @@ export default function ListingDetailPage() {
               {listing.negotiable && <div style={{fontSize:'0.8rem',color:'var(--text-muted)',marginBottom:16}}>Price is negotiable</div>}
 
               <div className="contact-btns">
-                {(listing.whatsapp || listing.phone) && (
-                  <a href={waLink} target="_blank" rel="noopener noreferrer"
-                    className="btn btn-primary btn-full btn-lg"
-                    style={{background:'#25D366',boxShadow:'0 4px 15px rgba(37,211,102,0.3)'}}>
-                    <span>💬</span> WhatsApp Seller
-                  </a>
+                {user ? (
+                  // ── LOGGED IN: show full contact details ──
+                  <>
+                    {(listing.whatsapp || listing.phone) && (
+                      <a href={waLink} target="_blank" rel="noopener noreferrer"
+                        className="btn btn-primary btn-full btn-lg"
+                        style={{background:'#25D366',boxShadow:'0 4px 15px rgba(37,211,102,0.3)'}}>
+                        <span>💬</span> WhatsApp Seller
+                      </a>
+                    )}
+                    <a href={`tel:${listing.phone}`} className="btn btn-ghost btn-full btn-lg">
+                      <span>📞</span> Call Seller
+                    </a>
+                    <div style={{background:'var(--bg-3)',borderRadius:'var(--radius)',padding:'12px 16px',textAlign:'center',fontSize:'0.85rem',color:'var(--text-muted)',border:'1px solid var(--border)'}}>
+                      📱 {listing.phone}
+                    </div>
+                  </>
+                ) : (
+                  // ── GUEST: blurred lock gate ──
+                  <div style={{ position: 'relative' }}>
+                    {/* Blurred ghost buttons */}
+                    <div style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.6 }}>
+                      <div className="btn btn-primary btn-full btn-lg" style={{background:'#25D366', marginBottom: 10}}>
+                        <span>💬</span> WhatsApp Seller
+                      </div>
+                      <div className="btn btn-ghost btn-full btn-lg" style={{ marginBottom: 10 }}>
+                        <span>📞</span> Call Seller
+                      </div>
+                      <div style={{background:'var(--bg-3)',borderRadius:'var(--radius)',padding:'12px 16px',textAlign:'center',fontSize:'0.85rem',border:'1px solid var(--border)'}}>
+                        📱 07XX XXX XXX
+                      </div>
+                    </div>
+
+                    {/* Overlay CTA */}
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      display: 'flex', flexDirection: 'column',
+                      alignItems: 'center', justifyContent: 'center',
+                      background: 'rgba(0,0,0,0.45)',
+                      borderRadius: 'var(--radius)',
+                      backdropFilter: 'blur(2px)',
+                      gap: 10, padding: 20, textAlign: 'center'
+                    }}>
+                      <div style={{ fontSize: '1.8rem' }}>🔒</div>
+                      <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Contact details are hidden</div>
+                      <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.78rem', marginBottom: 4 }}>Sign in or create a free account to contact this seller</div>
+                      <Link to="/login" state={{ from: `/listing/${listing.id}` }}
+                        className="btn btn-primary btn-sm"
+                        style={{ width: '100%', justifyContent: 'center' }}>
+                        🔑 Sign In
+                      </Link>
+                      <Link to="/register" state={{ from: `/listing/${listing.id}` }}
+                        className="btn btn-ghost btn-sm"
+                        style={{ width: '100%', justifyContent: 'center', fontSize: '0.8rem', borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}>
+                        ✨ Create Free Account
+                      </Link>
+                    </div>
+                  </div>
                 )}
-                <a href={`tel:${listing.phone}`} className="btn btn-ghost btn-full btn-lg">
-                  <span>📞</span> Call Seller
-                </a>
-                <div style={{background:'var(--bg-3)',borderRadius:'var(--radius)',padding:'12px 16px',textAlign:'center',fontSize:'0.85rem',color:'var(--text-muted)',border:'1px solid var(--border)'}}>
-                  📱 {listing.phone}
-                </div>
               </div>
 
               <div style={{marginTop:20,padding:'12px',background:'var(--primary-glow)',borderRadius:'var(--radius)',border:'1px solid var(--primary)',fontSize:'0.78rem',color:'var(--primary-light)'}}>
