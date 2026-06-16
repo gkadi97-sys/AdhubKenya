@@ -11,6 +11,7 @@ import { COUNTIES, getTowns } from '@/lib/countyData';
 
 const CATEGORIES = [
   { slug: 'vehicles',             name: 'Vehicles',                     icon: '🚗' },
+  { slug: 'auto-spares',          name: 'Auto Spares',                  icon: '⚙️' },
   { slug: 'property',             name: 'Property',                     icon: '🏠' },
   { slug: 'phones-tablets',       name: 'Phones & Tablets',             icon: '📱' },
   { slug: 'electronics',          name: 'Electronics',                  icon: '💻' },
