@@ -21,6 +21,8 @@ export default function PostAdPage() {
   const [attrs, setAttrs] = useState({ make: '', model: '', year: '', specs: {} });
   const [images, setImages] = useState([]);
   const [previews, setPreviews] = useState([]);
+  const [processingImages, setProcessingImages] = useState(false);
+  const [blurStatus, setBlurStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -41,15 +43,36 @@ export default function PostAdPage() {
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleImages = (e) => {
+  const handleImages = async (e) => {
     const isVehicle = form.category === 'vehicles';
     const isProperty = form.category === 'property';
     const maxImages = isProperty ? 15 : (isVehicle ? 10 : 5);
-    const newFiles = Array.from(e.target.files);
-    const combined = [...images, ...newFiles].slice(0, maxImages);
-    setImages(combined);
-    const urls = combined.map(f => URL.createObjectURL(f));
-    setPreviews(urls);
+    const rawNewFiles = Array.from(e.target.files);
+    
+    if (rawNewFiles.length === 0) return;
+
+    let finalNewFiles = rawNewFiles;
+
+    if (isVehicle) {
+      setProcessingImages(true);
+      try {
+        const { autoBlurLicensePlate } = await import('@/lib/imageProcessing');
+        finalNewFiles = await Promise.all(rawNewFiles.map(file => 
+          autoBlurLicensePlate(file, setBlurStatus)
+        ));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setProcessingImages(false);
+        setBlurStatus('');
+      }
+    }
+
+    setImages(prev => {
+      const combined = [...prev, ...finalNewFiles].slice(0, maxImages);
+      setPreviews(combined.map(f => URL.createObjectURL(f)));
+      return combined;
+    });
   };
 
   const removeImage = (i) => {
@@ -217,11 +240,11 @@ export default function PostAdPage() {
                   Include exterior, interior, engine bay, dashboard, and tyre photos for faster sales.
                 </p>
               )}
-              <div className="upload-area" onClick={() => document.getElementById('img-input').click()}>
-                <div className="icon">📷</div>
-                <p>Click to upload photos</p>
+              <div className="upload-area" onClick={() => !processingImages && document.getElementById('img-input').click()} style={{ opacity: processingImages ? 0.6 : 1, cursor: processingImages ? 'not-allowed' : 'pointer' }}>
+                <div className="icon">{processingImages ? '🔍' : '📷'}</div>
+                <p>{processingImages ? blurStatus || 'Scanning for number plates...' : 'Click to upload photos'}</p>
                 <p style={{ fontSize: '0.78rem', marginTop: 4 }}>JPG, PNG, WEBP — Max 5MB each</p>
-                <input id="img-input" type="file" accept="image/*" multiple onChange={handleImages} style={{ display: 'none' }} />
+                <input id="img-input" type="file" accept="image/*" multiple onChange={handleImages} style={{ display: 'none' }} disabled={processingImages} />
               </div>
               {previews.length > 0 && (
                 <div className="upload-previews">
