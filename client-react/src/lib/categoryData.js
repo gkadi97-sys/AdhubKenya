@@ -1561,7 +1561,7 @@ export const PROPERTY_SPECS = {
   ],
   amenities: [
     'Parking', 'Swimming pool', 'Gym', 'Elevator', 'Garden', 
-    'Children\\'s play area', 'Security guards', 'CCTV', 'Electric fence', 
+    'Children\'s play area', 'Security guards', 'CCTV', 'Electric fence',  
     'Backup generator', 'Borehole', 'Water tanks', 'Internet connectivity', 
     'Solar power', 'Air conditioning', 'Clubhouse', 'Intercom'
   ],
