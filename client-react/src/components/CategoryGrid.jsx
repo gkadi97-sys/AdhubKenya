@@ -39,7 +39,7 @@ export default function CategoryGrid({ onSelect, selected }) {
             <div className="name">{cat.name}</div>
           </div>
         ) : (
-          <Link key={cat.slug} href={`/category/${cat.slug}`} className="category-card">
+          <Link key={cat.slug} to={`/category/${cat.slug}`} className="category-card">
             <div className="icon">{cat.icon}</div>
             <div className="name">{cat.name}</div>
           </Link>

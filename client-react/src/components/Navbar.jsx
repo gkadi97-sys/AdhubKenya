@@ -20,7 +20,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-inner">
         {/* Logo */}
-        <Link href="/" className="navbar-logo">
+        <Link to="/" className="navbar-logo">
           <span className="logo-icon">A</span>
           <span className="logo-text">
             <span><span className="ad">Ad</span><span className="hub">Hub</span></span>
@@ -42,18 +42,18 @@ export default function Navbar() {
         {/* Actions */}
         <div className="navbar-actions">
           <ThemeSwitcher />
-          <Link href="/post-ad" className="btn btn-accent btn-sm">
+          <Link to="/post-ad" className="btn btn-accent btn-sm">
             + Post Ad
           </Link>
           {user ? (
             <>
-              <Link href="/my-ads" className="btn btn-ghost btn-sm">My Ads</Link>
+              <Link to="/my-ads" className="btn btn-ghost btn-sm">My Ads</Link>
               <button onClick={logout} className="btn btn-ghost btn-sm">Logout</button>
             </>
           ) : (
             <>
-              <Link href="/login" className="btn btn-ghost btn-sm">Login</Link>
-              <Link href="/register" className="btn btn-outline btn-sm" style={{display:'flex'}}>Register</Link>
+              <Link to="/login" className="btn btn-ghost btn-sm">Login</Link>
+              <Link to="/register" className="btn btn-outline btn-sm" style={{display:'flex'}}>Register</Link>
             </>
           )}
         </div>

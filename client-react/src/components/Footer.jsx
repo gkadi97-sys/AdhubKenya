@@ -25,7 +25,7 @@ export default function Footer() {
             <h4>Categories</h4>
             <ul>
               {[['Electronics','/category/electronics'],['Vehicles','/category/vehicles'],['Property','/category/property'],['Fashion','/category/fashion'],['Services','/category/services']].map(([name,href]) => (
-                <li key={name}><Link href={href}>{name}</Link></li>
+                <li key={name}><Link to={href}>{name}</Link></li>
               ))}
             </ul>
           </div>
@@ -34,7 +34,7 @@ export default function Footer() {
             <h4>Quick Links</h4>
             <ul>
               {[['Browse All Ads','/browse'],['Post Free Ad','/post-ad'],['Register','/register'],['Login','/login'],['My Ads','/my-ads']].map(([name,href]) => (
-                <li key={name}><Link href={href}>{name}</Link></li>
+                <li key={name}><Link to={href}>{name}</Link></li>
               ))}
             </ul>
           </div>
@@ -43,7 +43,7 @@ export default function Footer() {
             <h4>Support</h4>
             <ul>
               {[['Help Center','#'],['Safety Tips','#'],['Report Ad','#'],['Contact Us','#'],['Terms of Use','#']].map(([name,href]) => (
-                <li key={name}><Link href={href}>{name}</Link></li>
+                <li key={name}><Link to={href}>{name}</Link></li>
               ))}
             </ul>
           </div>

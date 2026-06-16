@@ -31,8 +31,8 @@ export default function PostAdPage() {
       <h3>Login Required</h3>
       <p>You need to be logged in to post an ad</p>
       <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
-        <Link href="/login" className="btn btn-primary">Login</Link>
-        <Link href="/register" className="btn btn-outline">Create Account</Link>
+        <Link to="/login" className="btn btn-primary">Login</Link>
+        <Link to="/register" className="btn btn-outline">Create Account</Link>
       </div>
     </div>
   );

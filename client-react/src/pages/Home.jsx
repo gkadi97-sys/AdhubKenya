@@ -69,7 +69,7 @@ export default function HomePage() {
             {/* Quick county links */}
             <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',marginTop:20}}>
               {counties.map(c => (
-                <Link key={c} href={`/browse?location=${c}`}
+                <Link key={c} to={`/browse?location=${c}`}
                   style={{fontSize:'0.8rem',color:'var(--text-muted)',padding:'4px 12px',borderRadius:'var(--radius-full)',border:'1px solid var(--border)',background:'var(--surface)',transition:'var(--transition)'}}
                   onMouseEnter={e => { e.target.style.color='var(--primary-light)'; e.target.style.borderColor='var(--primary)'; }}
                   onMouseLeave={e => { e.target.style.color='var(--text-muted)'; e.target.style.borderColor='var(--border)'; }}
@@ -104,7 +104,7 @@ export default function HomePage() {
               <h2 style={{fontSize:'1.5rem'}}>Browse by Category</h2>
               <p style={{color:'var(--text-secondary)',marginTop:4,fontSize:'0.9rem'}}>Find exactly what you're looking for</p>
             </div>
-            <Link href="/browse" className="btn btn-ghost btn-sm">View All →</Link>
+            <Link to="/browse" className="btn btn-ghost btn-sm">View All →</Link>
           </div>
           <CategoryGrid />
         </div>
@@ -118,7 +118,7 @@ export default function HomePage() {
               <h2 style={{fontSize:'1.5rem'}}>Latest Listings</h2>
               <p style={{color:'var(--text-secondary)',marginTop:4,fontSize:'0.9rem'}}>Fresh ads posted by sellers near you</p>
             </div>
-            <Link href="/browse" className="btn btn-ghost btn-sm">See all →</Link>
+            <Link to="/browse" className="btn btn-ghost btn-sm">See all →</Link>
           </div>
 
           {loading ? (
@@ -143,7 +143,7 @@ export default function HomePage() {
               <div className="icon">🏪</div>
               <h3>No listings yet</h3>
               <p>Be the first to post an ad on AdHub Kenya!</p>
-              <Link href="/post-ad" className="btn btn-primary">Post Free Ad</Link>
+              <Link to="/post-ad" className="btn btn-primary">Post Free Ad</Link>
             </div>
           )}
         </div>
@@ -155,8 +155,8 @@ export default function HomePage() {
           <h2 style={{fontSize:'2rem',marginBottom:12}}>Ready to Sell Something?</h2>
           <p style={{color:'var(--text-secondary)',marginBottom:28,maxWidth:480,margin:'0 auto 28px'}}>Posting your first ad is completely free. Reach thousands of buyers across Kenya in minutes.</p>
           <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
-            <Link href="/post-ad" className="btn btn-accent btn-lg">Post Free Ad Now</Link>
-            <Link href="/browse" className="btn btn-outline btn-lg">Browse Listings</Link>
+            <Link to="/post-ad" className="btn btn-accent btn-lg">Post Free Ad Now</Link>
+            <Link to="/browse" className="btn btn-outline btn-lg">Browse Listings</Link>
           </div>
         </div>
       </section>

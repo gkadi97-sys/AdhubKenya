@@ -3,7 +3,7 @@ import { imageUrl, formatPrice, timeAgo } from '@/lib/api';
 
 export default function ListingCard({ listing }) {
   return (
-    <Link href={`/listing/${listing._id}`} className="listing-card fade-in">
+    <Link to={`/listing/${listing._id}`} className="listing-card fade-in">
       <div className="image-wrap">
         <img
           src={listing.images?.[0] ? imageUrl(listing.images[0]) : `https://placehold.co/400x300/1a2b1e/00d168?text=${encodeURIComponent(listing.category)}`}

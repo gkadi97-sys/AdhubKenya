@@ -31,7 +31,7 @@ export default function MyAdsPage() {
       <div className="icon">🔐</div>
       <h3>Login Required</h3>
       <p>You need to be logged in to view your ads</p>
-      <Link href="/login" className="btn btn-primary">Login</Link>
+      <Link to="/login" className="btn btn-primary">Login</Link>
     </div>
   );
 
@@ -43,7 +43,7 @@ export default function MyAdsPage() {
             <h1 style={{fontSize:'1.8rem'}}>My Ads</h1>
             <p style={{color:'var(--text-secondary)',marginTop:4}}>Welcome, {user.name} 👋</p>
           </div>
-          <Link href="/post-ad" className="btn btn-accent">+ Post New Ad</Link>
+          <Link to="/post-ad" className="btn btn-accent">+ Post New Ad</Link>
         </div>
 
         {loading ? (
@@ -55,7 +55,7 @@ export default function MyAdsPage() {
             <div className="icon">📭</div>
             <h3>No ads yet</h3>
             <p>You haven't posted any ads. Start selling today!</p>
-            <Link href="/post-ad" className="btn btn-primary">Post Free Ad</Link>
+            <Link to="/post-ad" className="btn btn-primary">Post Free Ad</Link>
           </div>
         ) : (
           <div style={{display:'flex',flexDirection:'column',gap:16}}>
@@ -72,7 +72,7 @@ export default function MyAdsPage() {
                 {/* Content */}
                 <div style={{flex:1,padding:'16px 20px',display:'flex',justifyContent:'space-between',alignItems:'start',gap:12,flexWrap:'wrap'}}>
                   <div style={{flex:1}}>
-                    <Link href={`/listing/${l._id}`} style={{fontSize:'1rem',fontWeight:600,color:'var(--text)',transition:'color 0.2s'}}
+                    <Link to={`/listing/${l._id}`} style={{fontSize:'1rem',fontWeight:600,color:'var(--text)',transition:'color 0.2s'}}
                       onMouseEnter={e=>e.target.style.color='var(--primary-light)'}
                       onMouseLeave={e=>e.target.style.color='var(--text)'}
                     >{l.title}</Link>
@@ -86,7 +86,7 @@ export default function MyAdsPage() {
                     </div>
                   </div>
                   <div style={{display:'flex',gap:8,flexShrink:0}}>
-                    <Link href={`/listing/${l._id}`} className="btn btn-ghost btn-sm">View</Link>
+                    <Link to={`/listing/${l._id}`} className="btn btn-ghost btn-sm">View</Link>
                     <button onClick={()=>handleDelete(l._id)} disabled={deleting===l._id}
                       className="btn btn-sm"
                       style={{background:'rgba(239,68,68,0.1)',color:'#fca5a5',border:'1px solid rgba(239,68,68,0.3)'}}>
