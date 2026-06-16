@@ -104,7 +104,7 @@ export default function PostAdPage() {
             <div className="card-body">
               <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>📋 Basic Information</h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Category *</label>
                   <select className="form-control" name="category" value={form.category} onChange={handleChange} required>
@@ -237,7 +237,7 @@ export default function PostAdPage() {
           <div className="card" style={{ marginBottom: 32 }}>
             <div className="card-body">
               <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>📱 Contact Details</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="form-row">
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Phone Number *</label>
                   <input className="form-control" name="phone" value={form.phone} onChange={handleChange} placeholder="0712 345 678" required />

@@ -95,7 +95,7 @@ function BrowseContent() {
       </div>
 
       <div className="container" style={{padding:'32px 20px'}}>
-        <div style={{display:'grid',gridTemplateColumns:'260px 1fr',gap:28,alignItems:'start'}}>
+        <div className="browse-layout">
           {/* Filters Sidebar */}
           <aside>
             <div className="filters-wrap">

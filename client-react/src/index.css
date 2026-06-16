@@ -646,6 +646,9 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 /* ============================================
    RESPONSIVE
    ============================================ */
+.browse-layout { display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: start; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
 @media (max-width: 1024px) {
   .listing-detail-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
@@ -656,11 +659,14 @@ textarea.form-control { resize: vertical; min-height: 120px; }
   .search-bar { flex-wrap: wrap; border-radius: var(--radius-lg); }
   .search-bar select { display: none; }
   .navbar-search { display: none; }
+  .navbar-logo span.logo-text .kenya { display: none; }
   .section { padding: 40px 0; }
   .footer-grid { grid-template-columns: 1fr; gap: 32px; }
   .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
   .listings-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .categories-grid { grid-template-columns: repeat(3, 1fr); }
+  .browse-layout { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
   .listings-grid { grid-template-columns: 1fr; }
