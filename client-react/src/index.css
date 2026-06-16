@@ -239,6 +239,30 @@
   --text-muted: #86198f;
 }
 
+[data-theme='luxury'] {
+  --primary: #d4af37;
+  --primary-dark: #b5952f;
+  --primary-light: #eadd86;
+  --primary-glow: rgba(212, 175, 55, 0.15);
+  --accent: #e2e8f0;
+  --accent-dark: #94a3b8;
+  --accent-light: #ffffff;
+  --accent-glow: rgba(226, 232, 240, 0.15);
+
+  --bg: #0b0c10;
+  --bg-2: #12141a;
+  --bg-3: #1a1c23;
+  --surface: #15171e;
+  --surface-2: #1e212b;
+  --surface-hover: #252834;
+  --border: rgba(212, 175, 55, 0.25);
+  --border-strong: rgba(212, 175, 55, 0.45);
+
+  --text: #ffffff;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+}
+
 /* ============================================
    RESET & BASE
    ============================================ */

@@ -5,7 +5,8 @@ const themes = [
   { id: 'light', label: 'Light', icon: '☀️' },
   { id: 'minimal', label: 'Minimal', icon: '☁️' },
   { id: 'sepia', label: 'Sepia', icon: '📜' },
-  { id: 'blush', label: 'Blush', icon: '🌸' }
+  { id: 'blush', label: 'Blush', icon: '🌸' },
+  { id: 'luxury', label: 'Luxury', icon: '💎' }
 ];
 
 export default function ThemeSwitcher() {
