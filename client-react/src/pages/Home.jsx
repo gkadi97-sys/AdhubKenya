@@ -28,8 +28,6 @@ export default function HomePage() {
     navigate(`/browse?${params.toString()}`);
   };
 
-  const counties = ['Nairobi','Mombasa','Kwale','Kilifi','Tana River','Lamu','Taita-Taveta','Garissa','Wajir','Mandera','Marsabit','Isiolo','Meru','Tharaka-Nithi','Embu','Kitui','Machakos','Makueni','Nyandarua','Nyeri','Kirinyaga',"Murang'a",'Kiambu','Turkana','West Pokot','Samburu','Trans Nzoia','Uasin Gishu','Elgeyo-Marakwet','Nandi','Baringo','Laikipia','Nakuru','Narok','Kajiado','Kericho','Bomet','Kakamega','Vihiga','Bungoma','Busia','Siaya','Kisumu','Homa Bay','Migori','Kisii','Nyamira'];
-
 
   return (
     <>
@@ -66,18 +64,7 @@ export default function HomePage() {
               <button type="submit">Search</button>
             </form>
 
-            {/* Quick county links */}
-            <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',marginTop:20}}>
-              {counties.map(c => (
-                <Link key={c} to={`/browse?location=${c}`}
-                  style={{fontSize:'0.8rem',color:'var(--text-muted)',padding:'4px 12px',borderRadius:'var(--radius-full)',border:'1px solid var(--border)',background:'var(--surface)',transition:'var(--transition)'}}
-                  onMouseEnter={e => { e.target.style.color='var(--primary-light)'; e.target.style.borderColor='var(--primary)'; }}
-                  onMouseLeave={e => { e.target.style.color='var(--text-muted)'; e.target.style.borderColor='var(--border)'; }}
-                >
-                  {c}
-                </Link>
-              ))}
-            </div>
+
           </div>
         </div>
       </section>
