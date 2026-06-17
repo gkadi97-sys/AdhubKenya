@@ -72,11 +72,11 @@ export default function HomePage() {
       {/* STATS */}
       <section style={{background:'var(--bg-2)',borderBottom:'1px solid var(--border)',padding:'20px 0'}}>
         <div className="container">
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:20,textAlign:'center'}}>
+          <div className="stats-grid">
             {[['Growing','Community'],['New','Listings Daily'],['47','Counties Covered'],['100%','Free to Post']].map(([val,lbl]) => (
-              <div key={lbl}>
-                <div style={{fontSize:'1.6rem',fontWeight:800,fontFamily:'var(--font-display)',color:'var(--primary-light)'}}>{val}</div>
-                <div style={{fontSize:'0.8rem',color:'var(--text-muted)',marginTop:2}}>{lbl}</div>
+              <div key={lbl} style={{textAlign:'center',padding:'8px 4px'}}>
+                <div style={{fontSize:'1.5rem',fontWeight:800,fontFamily:'var(--font-display)',color:'var(--primary-light)'}}>{val}</div>
+                <div style={{fontSize:'0.78rem',color:'var(--text-muted)',marginTop:2,whiteSpace:'nowrap'}}>{lbl}</div>
               </div>
             ))}
           </div>
@@ -86,12 +86,12 @@ export default function HomePage() {
       {/* CATEGORIES */}
       <section className="section">
         <div className="container">
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:28}}>
+          <div className="section-header">
             <div>
               <h2 style={{fontSize:'1.5rem'}}>Browse by Category</h2>
               <p style={{color:'var(--text-secondary)',marginTop:4,fontSize:'0.9rem'}}>Find exactly what you're looking for</p>
             </div>
-            <Link to="/browse" className="btn btn-ghost btn-sm">View All →</Link>
+            <Link to="/browse" className="btn btn-ghost btn-sm" style={{whiteSpace:'nowrap'}}>View All →</Link>
           </div>
           <CategoryGrid />
         </div>
@@ -100,12 +100,12 @@ export default function HomePage() {
       {/* LATEST LISTINGS */}
       <section className="section" style={{paddingTop:0}}>
         <div className="container">
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:28}}>
+          <div className="section-header">
             <div>
               <h2 style={{fontSize:'1.5rem'}}>Latest Listings</h2>
               <p style={{color:'var(--text-secondary)',marginTop:4,fontSize:'0.9rem'}}>Fresh ads posted by sellers near you</p>
             </div>
-            <Link to="/browse" className="btn btn-ghost btn-sm">See all →</Link>
+            <Link to="/browse" className="btn btn-ghost btn-sm" style={{whiteSpace:'nowrap'}}>See all →</Link>
           </div>
 
           {loading ? (
