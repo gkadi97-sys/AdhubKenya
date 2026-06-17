@@ -104,6 +104,12 @@ export default function PostAdPage() {
       if (attrs.make)  listingData.make  = attrs.make;
       if (attrs.model) listingData.model = attrs.model;
       if (attrs.year)  listingData.year  = attrs.year;
+
+      // New DynamicListingForm stores make/model/year inside attrs.specs
+      if (attrs.specs?.make)  listingData.make  = attrs.specs.make;
+      if (attrs.specs?.model) listingData.model = attrs.specs.model;
+      if (attrs.specs?.year)  listingData.year  = attrs.specs.year;
+
       if (attrs.specs && Object.keys(attrs.specs).length) {
         listingData.specs = attrs.specs;
       } else {
