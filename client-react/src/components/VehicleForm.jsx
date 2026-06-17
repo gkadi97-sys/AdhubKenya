@@ -140,6 +140,15 @@ export default function VehicleForm({ values = {}, onChange }) {
 
   const s = specs; // shorthand
 
+  // Visibility logic
+  const vType = s.vehicleType || '';
+  const isStandardCar = ['Car', 'SUV', 'Pickup / Truck', 'Van', 'Minivan', ''].includes(vType);
+  const hasBodyStyle = isStandardCar;
+  const hasDoors = isStandardCar;
+  const hasInterior = !['Motorcycle', 'Tuk Tuk / 3-Wheeler', 'Trailer', 'Agricultural Equipment'].includes(vType);
+  const hasEngine = vType !== 'Trailer';
+  const hasDriveType = isStandardCar || vType === 'Heavy Truck' || vType === 'Construction Equipment' || vType === 'Agricultural Equipment';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
@@ -153,10 +162,12 @@ export default function VehicleForm({ values = {}, onChange }) {
               options={VEHICLE_SPECS.vehicleTypes} />
           </Field>
 
-          <Field label="Body Style">
-            <Select value={s.bodyStyle} onChange={v => setSpec('bodyStyle', v)}
-              options={VEHICLE_SPECS.bodyStyles} />
-          </Field>
+          {hasBodyStyle && (
+            <Field label="Body Style">
+              <Select value={s.bodyStyle} onChange={v => setSpec('bodyStyle', v)}
+                options={VEHICLE_SPECS.bodyStyles} />
+            </Field>
+          )}
 
           <Field label="Make (Brand)" required>
             <select className="form-control" style={{ fontSize: '0.85rem' }} value={make}
@@ -228,6 +239,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       </div>
 
       {/* ── 3. ENGINE SPECS ────────────────────────────────────── */}
+      {hasEngine && (
       <div>
         <SectionHeader icon="⚙️" title="Engine Specifications" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
@@ -266,8 +278,10 @@ export default function VehicleForm({ values = {}, onChange }) {
 
         </div>
       </div>
+      )}
 
       {/* ── 4. TRANSMISSION & DRIVETRAIN ───────────────────────── */}
+      {hasEngine && (
       <div>
         <SectionHeader icon="🔧" title="Transmission & Drivetrain" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
@@ -282,13 +296,16 @@ export default function VehicleForm({ values = {}, onChange }) {
               options={['4', '5', '6', '7', '8', '9', '10']} />
           </Field>
 
-          <Field label="Drive Type" required>
-            <Select value={s.driveType} onChange={v => setSpec('driveType', v)}
-              options={['FWD', 'RWD', 'AWD', '4WD']} />
-          </Field>
+          {hasDriveType && (
+            <Field label="Drive Type" required>
+              <Select value={s.driveType} onChange={v => setSpec('driveType', v)}
+                options={['FWD', 'RWD', 'AWD', '4WD']} />
+            </Field>
+          )}
 
         </div>
       </div>
+      )}
 
       {/* ── 5. EXTERIOR ────────────────────────────────────────── */}
       <div>
@@ -304,10 +321,12 @@ export default function VehicleForm({ values = {}, onChange }) {
               options={['Solid', 'Metallic', 'Matte', 'Pearl']} />
           </Field>
 
-          <Field label="Number of Doors">
-            <Select value={s.numDoors} onChange={v => setSpec('numDoors', v)}
-              options={['2', '3', '4', '5']} />
-          </Field>
+          {hasDoors && (
+            <Field label="Number of Doors">
+              <Select value={s.numDoors} onChange={v => setSpec('numDoors', v)}
+                options={['2', '3', '4', '5']} />
+            </Field>
+          )}
 
           <Field label="Number of Seats">
             <Select value={s.numSeats} onChange={v => setSpec('numSeats', v)}
@@ -322,6 +341,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       </div>
 
       {/* ── 6. INTERIOR ────────────────────────────────────────── */}
+      {hasInterior && (
       <div>
         <SectionHeader icon="🪑" title="Interior" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
@@ -337,8 +357,10 @@ export default function VehicleForm({ values = {}, onChange }) {
 
         </div>
       </div>
+      )}
 
       {/* ── 7. COMFORT & CONVENIENCE — CHECKBOXES ──────────────── */}
+      {hasInterior && (
       <div>
         <SectionHeader icon="❄️" title="Comfort & Convenience" />
         <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
@@ -350,8 +372,10 @@ export default function VehicleForm({ values = {}, onChange }) {
           onChange={v => setSpec('comfortFeatures', v)}
         />
       </div>
+      )}
 
       {/* ── 8. INFOTAINMENT & CONNECTIVITY — CHECKBOXES ────────── */}
+      {hasInterior && (
       <div>
         <SectionHeader icon="📱" title="Infotainment & Connectivity" />
         <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
@@ -363,6 +387,7 @@ export default function VehicleForm({ values = {}, onChange }) {
           onChange={v => setSpec('infotainmentFeatures', v)}
         />
       </div>
+      )}
 
       {/* ── 9. SAFETY FEATURES — CHECKBOXES ────────────────────── */}
       <div>
