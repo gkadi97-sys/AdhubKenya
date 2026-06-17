@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import CATEGORY_ATTRIBUTES, { MANUFACTURE_YEARS, VEHICLE_SPECS } from '@/lib/categoryData';
+import CATEGORY_ATTRIBUTES, { MANUFACTURE_YEARS, VEHICLE_SPECS, VEHICLE_MAKES_BY_TYPE } from '@/lib/categoryData';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -106,22 +106,11 @@ const CheckboxGroup = ({ options, selected = [], onChange }) => {
  */
 export default function VehicleForm({ values = {}, onChange }) {
   const vehicleData = CATEGORY_ATTRIBUTES['vehicles']?.data || {};
-  const makeOptions = Object.keys(vehicleData);
 
   const [make, setMake]   = useState(values.make  || '');
   const [model, setModel] = useState(values.model || '');
   const [year, setYear]   = useState(values.year  || '');
   const [specs, setSpecs] = useState(values.specs || {});
-
-  const modelOptions = make ? (vehicleData[make] || []) : [];
-
-  // Reset model when make changes
-  useEffect(() => {
-    if (make && model && !vehicleData[make]?.includes(model)) {
-      setModel('');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [make]);
 
   const emit = (overrides = {}) => {
     onChange({
@@ -140,14 +129,39 @@ export default function VehicleForm({ values = {}, onChange }) {
 
   const s = specs; // shorthand
 
-  // Visibility logic
+  // ── Vehicle-type-aware Make / Model lookup ─────────────────────────────────
   const vType = s.vehicleType || '';
-  const isStandardCar = ['Car', 'SUV', 'Pickup / Truck', 'Van', 'Minivan', ''].includes(vType);
+  const isStandardCar = VEHICLE_MAKES_BY_TYPE._useMainData.includes(vType) || vType === '';
+
+  // Get the correct make→model map for the current vehicle type
+  const activeMakeMap = isStandardCar
+    ? vehicleData
+    : (VEHICLE_MAKES_BY_TYPE[vType] || {});
+
+  const makeOptions  = Object.keys(activeMakeMap);
+  const modelOptions = make ? (activeMakeMap[make] || []) : [];
+
+  // Reset make+model when vehicle type changes
+  useEffect(() => {
+    setMake('');
+    setModel('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vType]);
+
+  // Reset model when make changes
+  useEffect(() => {
+    if (make && model && !(activeMakeMap[make] || []).includes(model)) {
+      setModel('');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [make]);
+
+  // ── Visibility flags (hide irrelevant sections per vehicle type) ────────────
   const hasBodyStyle = isStandardCar;
-  const hasDoors = isStandardCar;
-  const hasInterior = !['Motorcycle', 'Tuk Tuk / 3-Wheeler', 'Trailer', 'Agricultural Equipment'].includes(vType);
-  const hasEngine = vType !== 'Trailer';
-  const hasDriveType = isStandardCar || vType === 'Heavy Truck' || vType === 'Construction Equipment' || vType === 'Agricultural Equipment';
+  const hasDoors     = isStandardCar;
+  const hasInterior  = !['Motorcycle', 'Tuk Tuk / 3-Wheeler', 'Trailer', 'Agricultural Equipment'].includes(vType);
+  const hasEngine    = vType !== 'Trailer';
+  const hasDriveType = isStandardCar || ['Heavy Truck', 'Construction Equipment', 'Agricultural Equipment'].includes(vType);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -158,7 +172,10 @@ export default function VehicleForm({ values = {}, onChange }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
           <Field label="Vehicle Type" required>
-            <Select value={s.vehicleType} onChange={v => setSpec('vehicleType', v)}
+            <Select value={s.vehicleType} onChange={v => {
+              setSpec('vehicleType', v);
+              // make/model reset is handled by the useEffect watching vType
+            }}
               options={VEHICLE_SPECS.vehicleTypes} />
           </Field>
 
@@ -169,19 +186,19 @@ export default function VehicleForm({ values = {}, onChange }) {
             </Field>
           )}
 
-          <Field label="Make (Brand)" required>
+          <Field label={isStandardCar ? 'Make (Brand)' : ['Bus','Heavy Truck','Construction Equipment','Agricultural Equipment','Trailer'].includes(vType) ? 'Manufacturer' : 'Make'} required>
             <select className="form-control" style={{ fontSize: '0.85rem' }} value={make}
               onChange={e => { setMake(e.target.value); setModel(''); emit({ make: e.target.value, model: '' }); }}>
-              <option value="">Select Make…</option>
+              <option value="">{vType ? `Select ${vType} Brand…` : 'Select Make…'}</option>
               {makeOptions.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </Field>
 
-          <Field label="Model" required>
+          <Field label={isStandardCar ? 'Model' : 'Model / Type'} required>
             <select className="form-control" style={{ fontSize: '0.85rem' }} value={model}
               onChange={e => { setModel(e.target.value); emit({ model: e.target.value }); }}
               disabled={!make}>
-              <option value="">Select Model…</option>
+              <option value="">{make ? `Select ${make} model…` : 'Select make first'}</option>
               {modelOptions.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </Field>

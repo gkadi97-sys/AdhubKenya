@@ -1201,6 +1201,169 @@ export const VEHICLE_SPECS = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// VEHICLE MAKES BY TYPE
+// Maps each vehicle type to the correct makes + models to display.
+// VehicleForm.jsx uses this to filter the Make dropdown.
+// ─────────────────────────────────────────────────────────────────────────────
+export const VEHICLE_MAKES_BY_TYPE = {
+
+  // ── STANDARD CARS / SUVs / VANS / PICKUPS ─────────────────────────────────
+  // Uses the main vehicles.data (all car brands) from CATEGORY_ATTRIBUTES
+  _useMainData: ['Car', 'SUV', 'Pickup / Truck', 'Van', 'Minivan'],
+
+  // ── MOTORCYCLES ────────────────────────────────────────────────────────────
+  'Motorcycle': {
+    'Honda (Motorcycles)': [
+      'CB125F','CB150R','CB190R','CB300R','CB500F','CB500X',
+      'CB650R','CB750 Hornet','CBR150R','CBR250R','CBR300R',
+      'CBR500R','CBR650R','CBR1000RR Fireblade','CG125',
+      'CT125 Hunter Cub','Shine 125','Unicorn 150','Livo 110',
+      'Dream Yuga','Navi','X-Blade','Other Honda Moto',
+    ],
+    'Yamaha (Motorcycles)': [
+      'YBR 125','YBR 250','FZ-S 150','FZN 150','FZ 16',
+      'FZ 25','MT-03','MT-07','MT-09','MT-10',
+      'R3','R7','R1','NMAX 155','Aerox 155',
+      'Fascino 125','Ray ZR 125','Saluto 125','SZ-RR',
+      'XT660Z Ténéré','XSR 700','Other Yamaha Moto',
+    ],
+    'Kawasaki': [
+      'Ninja 300','Ninja 400','Ninja 650','Ninja ZX-6R','Ninja ZX-10R',
+      'Z300','Z400','Z650','Z800','Z900','Z1000',
+      'Versys 300','Versys 650','Versys 1000',
+      'KLX 150','KLX 230','KLX 300','KLX 450R',
+      'W175','W800','Vulcan S','H2','Other Kawasaki',
+    ],
+    'Suzuki (Motorcycles)': [
+      'GSX-R150','GSX-R600','GSX-R750','GSX-R1000',
+      'GSX-S150','GSX-S750','GSX-S1000','V-Strom 250',
+      'V-Strom 650','V-Strom 1050','DR150','DR200',
+      'GN125','GS150R','Hayabusa','Burgman 400','Other Suzuki Moto',
+    ],
+    'Bajaj': [
+      'Pulsar 135','Pulsar 150','Pulsar 160NS','Pulsar 180',
+      'Pulsar 200NS','Pulsar 200RS','Pulsar 220F','Pulsar N250',
+      'Pulsar F250','Avenger Cruise 220','Avenger Street 220',
+      'Discover 100','Discover 125','Platina 100','CT100',
+      'Boxer 150','Boxer CT100','Other Bajaj',
+    ],
+    'TVS': [
+      'Apache RTR 160','Apache RTR 160 4V','Apache RTR 180',
+      'Apache RTR 200 4V','Apache RR 310','Raider 125',
+      'Ronin 225','Star City 125','Sport 110','Metro ES',
+      'HLX 125','HLX 150','Ntorq 125','Neo 110','Victor',
+      'Other TVS',
+    ],
+    'Hero MotoCorp': [
+      'Splendor Plus','Splendor Pro','Passion Pro','Passion XPro',
+      'Glamour','Glamour Xtec','HF 100','HF Deluxe',
+      'HF 100','Xtreme 160R','Xtreme 200R','Xtreme 200S',
+      'Maestro Edge 110','Maestro Edge 125','Destini 125',
+      'Xoom 110','Other Hero',
+    ],
+    'KTM': [
+      '125 Duke','200 Duke','250 Duke','390 Duke','790 Duke','890 Duke',
+      '125 RC','200 RC','250 RC','390 RC','390 Adventure',
+      '790 Adventure','890 Adventure','1090 Adventure',
+      '1190 Adventure','1290 Super Adventure','Other KTM',
+    ],
+    'Royal Enfield': [
+      'Bullet 350','Classic 350','Meteor 350','Hunter 350',
+      'Thunderbird 350','Thunderbird 500','Himalayan 450',
+      'Scram 411','Super Meteor 650','Interceptor 650',
+      'Continental GT 650','Other Royal Enfield',
+    ],
+    'Lifan': ['KP150','KP200','KPR 150','KPR 200','X-Pect 200','LF150-10S','Other Lifan'],
+    'Loncin': ['GP150','GP250','CR5','LX150GY','LX250GY','Other Loncin'],
+    'Haojue': ['DR160','HJ150-26','HJ150-2D','HJ125T-9','Other Haojue'],
+    'Other Motorcycle Brand': ['Other Brand / Model'],
+  },
+
+  // ── TUK TUKS / 3-WHEELERS ─────────────────────────────────────────────────
+  'Tuk Tuk / 3-Wheeler': {
+    'Bajaj (Tuk Tuk)': ['RE (Auto Rickshaw) 4S','RE Compact','RE Optima CNG','RE Optima LPG','Other Bajaj RE'],
+    'TVS (Tuk Tuk)': ['King Deluxe','King Duramax','XL100 Super Heavy','Other TVS King'],
+    'Piaggio': ['Ape City','Ape Truk','Ape Xtra LDX','Porter 700','Porter 1000','Other Piaggio'],
+    'Mahindra (3-Wheeler)': ['Alfa Plus','Alfa Load','Treo Yaari','Other Mahindra'],
+    'Qute (Bajaj)': ['Qute RE60','Other Qute'],
+    'Other 3-Wheeler Brand': ['Other Brand / Model'],
+  },
+
+  // ── BUSES ──────────────────────────────────────────────────────────────────
+  'Bus': {
+    'Toyota': ['HiAce (14-seater)','HiAce Commuter (18-seater)','HiAce Grand Cabin','Coaster 29-seater','Coaster 33-seater','Other Toyota Bus'],
+    'Isuzu': ['NQR Bus','NPR Bus','FRR Bus','FSR Bus','FVR Bus','Other Isuzu Bus'],
+    'Mercedes-Benz (Bus)': ['Sprinter Minibus','Tourismo','Travego','Intouro','Other MB Bus'],
+    'Higer': ['KLQ6119','KLQ6122','KLQ6128','Other Higer'],
+    'Yutong': ['ZK6122','ZK6128','ZK6119','ZK6999','Other Yutong'],
+    'King Long': ['XMQ6900','XMQ6120','XMQ6130','Other King Long'],
+    'Scania (Bus)': ['Touring HD','Interlink HD','Citywide LF','Other Scania Bus'],
+    'Volvo (Bus)': ['B8R','B11R','8900','9900','9700','Other Volvo Bus'],
+    'Rosa (Mitsubishi)': ['Rosa 28-seater','Rosa 33-seater','Other Rosa'],
+    'Nissan (Bus)': ['Civilian','Urvan (14-seater)','Other Nissan Bus'],
+    'Other Bus Brand': ['Other Brand / Model'],
+  },
+
+  // ── HEAVY TRUCKS ───────────────────────────────────────────────────────────
+  'Heavy Truck': {
+    'Isuzu (Trucks)': ['ELF NKR','ELF NPR','ELF NMR','Forward NQR','Forward FSR','Forward FRR','Forward FVR','GIGA FVZ','GIGA GXZ','Other Isuzu Truck'],
+    'Mercedes-Benz (Trucks)': ['Actros','Arocs','Atego','Axor','Econic','Unimog','Other MB Truck'],
+    'Volvo (Trucks)': ['FH','FM','FMX','FE','FL','VM','Other Volvo Truck'],
+    'Scania (Trucks)': ['R-Series','S-Series','P-Series','G-Series','L-Series','Other Scania'],
+    'MAN': ['TGS','TGX','TGM','TGE','CLA','Other MAN'],
+    'DAF': ['XF','XG','CF','LF','Other DAF'],
+    'Hino': ['500 Series','700 Series','300 Series','Ranger','Other Hino'],
+    'Mitsubishi Fuso': ['Canter','Fighter','Super Great','Other Fuso'],
+    'Nissan (Trucks)': ['Condor','Quon','NT500','Other Nissan Truck'],
+    'SINOTRUK (HOWO)': ['A7','T7H','HOWO-A7','CQ3317','Other HOWO'],
+    'Foton': ['Auman GTL','Auman EST','Aumark','Forland','Other Foton'],
+    'Dongfeng': ['Kinland DFH','Tianjin','Cummins Series','Other Dongfeng'],
+    'FAW': ['J6P','J7','Tiger V','Other FAW'],
+    'Other Truck Brand': ['Other Brand / Model'],
+  },
+
+  // ── TRAILERS ───────────────────────────────────────────────────────────────
+  'Trailer': {
+    'Wabash National': ['Dry Van','Flatbed','Reefer','Other Wabash'],
+    'Utility Trailer Mfg': ['Dry Van','Flatbed','Reefer','Other Utility'],
+    'Great Dane': ['Dry Van','Flatbed','Reefer','Other Great Dane'],
+    'Schmitz Cargobull': ['S.CS','S.KO COOL','S.CF','Other Schmitz'],
+    'Local Fabricated': ['Flatbed Trailer','Low Bed Trailer','Tanker','Tipper','Skeletal (Container)','Other Local'],
+    'Other Trailer Brand': ['Other Brand / Model'],
+  },
+
+  // ── CONSTRUCTION EQUIPMENT ─────────────────────────────────────────────────
+  'Construction Equipment': {
+    'Caterpillar (CAT)': ['Excavator 320','Excavator 330','Excavator 336','Wheel Loader 950','Wheel Loader 966','Bulldozer D6','Bulldozer D8','Motor Grader 140','Other CAT'],
+    'Komatsu': ['PC200','PC300','PC400','WA470','D85','GD655','HD465','Other Komatsu'],
+    'JCB': ['3CX Backhoe','4CX Backhoe','JS205','JS300','535-95 Telehandler','Other JCB'],
+    'Volvo (Construction)': ['EC220','EC300','EC480','L110','L150','A40','Other Volvo CE'],
+    'Hitachi': ['ZX200','ZX300','ZX450','EX1200','Other Hitachi'],
+    'Liebherr': ['R 920','R 936','R 9200','LTM 1100','Other Liebherr'],
+    'Doosan': ['DX225','DX300','DX480','Other Doosan'],
+    'Hyundai (Construction)': ['HX220','HX300','HL960','Other Hyundai CE'],
+    'Manitowoc (Crane)': ['Grove RT760E','Potain MDT 219','Other Manitowoc'],
+    'XCMG': ['XE215C','XE335C','XZ360','LW500FN','Other XCMG'],
+    'SANY': ['SY215','SY365','SY550','Other SANY'],
+    'Other Construction Brand': ['Other Brand / Model'],
+  },
+
+  // ── AGRICULTURAL EQUIPMENT ─────────────────────────────────────────────────
+  'Agricultural Equipment': {
+    'Massey Ferguson': ['MF 375','MF 385','MF 390','MF 1035','MF 4710','MF 7720','Other MF'],
+    'John Deere': ['5075E','5105','5310','6110M','6120M','8R 370','Other John Deere'],
+    'New Holland': ['TT75','TD5.110','T7.270','T8.435','TC5.80','Other New Holland'],
+    'Case IH': ['Farmall 75A','Farmall 95A','Maxxum 145','Puma 200','Other Case IH'],
+    'Kubota': ['M7040','M8540','M9540','M7-172','L3800','B2420','Other Kubota'],
+    'Deutz-Fahr': ['5100 G','5130 G','6180 TTV','7250 TTV','Other Deutz-Fahr'],
+    'Same': ['Dorado 70','Dorado 90','Iron 110','Other Same'],
+    'Sonalika': ['DI 42','DI 60','DI 75','RX 42','Other Sonalika'],
+    'Kioti': ['CK2610','DK5510','RX6620','Other Kioti'],
+    'Other Agriculture Brand': ['Other Brand / Model'],
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PROPERTY SPECS: All options used by PropertyForm.jsx
 // ─────────────────────────────────────────────────────────────────────────────
 export const PROPERTY_SPECS = {
