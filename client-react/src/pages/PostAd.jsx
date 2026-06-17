@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 
 const STANDARD_CONDITIONS = ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
 const VEHICLE_CONDITIONS = ['Brand New', 'Foreign Used', 'Locally Used', 'Accident Damaged', 'Rebuilt'];
+const AUTOSPARES_CONDITIONS = ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'];
 
 export default function PostAdPage() {
   const { user } = useAuth();
@@ -90,7 +91,7 @@ export default function PostAdPage() {
   const isProperty = form.category === 'property' || form.category === 'land-plots';
   const isAutoSpares = form.category === 'auto-spares';
   const CONDITION_CATEGORIES = ['phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids', 'auto-spares'];
-  const showStandardCondition = CONDITION_CATEGORIES.includes(form.category) && !isProperty;
+  const showStandardCondition = CONDITION_CATEGORIES.includes(form.category) && !isProperty && !isAutoSpares;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -155,6 +156,17 @@ export default function PostAdPage() {
                     <select className="form-control" name="condition" value={form.condition} onChange={handleChange} required>
                       <option value="">Select Condition</option>
                       {VEHICLE_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                )}
+
+                {/* Condition for auto spares */}
+                {isAutoSpares && (
+                  <div className="form-group">
+                    <label className="form-label">Condition *</label>
+                    <select className="form-control" name="condition" value={form.condition} onChange={handleChange} required>
+                      <option value="">Select Condition</option>
+                      {AUTOSPARES_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                 )}
