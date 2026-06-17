@@ -1396,7 +1396,7 @@ export const PROPERTY_SPECS = {
 // TV SPECS: Intelligent categorization for Televisions (TvForm.jsx)
 // ─────────────────────────────────────────────────────────────────────────────
 export const TV_SPECS = {
-  brands: ['Samsung', 'LG', 'Sony', 'Hisense', 'TCL', 'Skyworth', 'Toshiba', 'Panasonic', 'Philips', 'Sharp', 'Vitron', 'Vision Plus', 'Syinix', 'Haier', 'Nobel', 'Bruhm', 'Tornado'],
+  brands: ['Samsung', 'LG', 'Sony', 'Hisense', 'TCL', 'Skyworth', 'Panasonic', 'Philips', 'Toshiba', 'Sharp', 'Vitron', 'Vision Plus', 'Syinix', 'Nobel', 'Nobel Plus', 'Bruhm', 'Mika', 'Roch', 'SmartPro', 'Haier', 'Nunix', 'Icona', 'Ailyons', 'Beko', 'Changhong', 'Coocaa', 'Konka', 'JVC', 'Hitachi', 'Daewoo', 'Hyundai', 'AOC', 'Akai', 'Xiaomi', 'Redmi', 'Huawei', 'OnePlus', 'Realme', 'Nokia', 'Motorola', 'Thomson', 'Blaupunkt', 'Telefunken', 'Grundig', 'Vestel', 'Westinghouse', 'Polaroid', 'Element', 'Insignia', 'Sceptre', 'Onn', 'RCA', 'Sansui', 'Kodak', 'Lloyd', 'Vu', 'Tornado', 'Funai', 'NEC', 'Metz', 'Finlux', 'Continental Edison', 'Saba', 'Loewe'],
   sizes: ['19"', '22"', '24"', '28"', '32"', '40"', '43"', '50"', '55"', '58"', '60"', '65"', '70"', '75"', '77"', '83"', '85"', '98"'],
   techs: ['LED', 'QLED', 'Neo QLED', 'OLED', 'Mini LED', 'Crystal UHD', 'NanoCell', 'QNED', 'LCD'],
   os: ['Android TV', 'Google TV', 'WebOS', 'Tizen', 'VIDAA', 'Roku', 'Linux', 'Non Smart'],
