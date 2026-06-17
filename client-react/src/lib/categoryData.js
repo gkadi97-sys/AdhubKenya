@@ -1,3 +1,4 @@
+import { MASTER_SPARE_PARTS } from './autoSparesData';
 // ============================================================
 //  ADHUB KENYA — Category Attributes Data (Comprehensive Edition)
 // ============================================================
