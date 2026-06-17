@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MASTER_SPARE_PARTS, MOCK_VEHICLE_HIERARCHY, POSITIONS } from '@/lib/autoSparesData';
+import { CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
 
 export default function AutoSparesForm({ values = {}, onChange }) {
   const [category, setCategory] = useState(values.category || '');
@@ -64,11 +65,18 @@ export default function AutoSparesForm({ values = {}, onChange }) {
   const categories = Object.keys(MASTER_SPARE_PARTS);
   const partsList = category ? MASTER_SPARE_PARTS[category] : [];
   
-  const makes = Object.keys(MOCK_VEHICLE_HIERARCHY);
-  const models = make ? Object.keys(MOCK_VEHICLE_HIERARCHY[make] || {}) : [];
-  const generations = model ? Object.keys(MOCK_VEHICLE_HIERARCHY[make][model] || {}) : [];
-  const engines = generation ? Object.keys(MOCK_VEHICLE_HIERARCHY[make][model][generation] || {}) : [];
-  const years = engine ? (MOCK_VEHICLE_HIERARCHY[make][model][generation][engine] || []) : [];
+  const vehicleData = CATEGORY_ATTRIBUTES.vehicles.data;
+  const makes = Object.keys(vehicleData);
+  const models = make ? (vehicleData[make] || []) : [];
+  
+  const hierarchyModel = MOCK_VEHICLE_HIERARCHY[make]?.[model];
+  const generations = hierarchyModel ? Object.keys(hierarchyModel) : [];
+  const engines = (hierarchyModel && generation) ? Object.keys(hierarchyModel[generation] || {}) : [];
+  
+  const standardYears = Array.from({length: 36}, (_, i) => (new Date().getFullYear() + 1 - i).toString());
+  const years = (hierarchyModel && generation && engine && hierarchyModel[generation][engine]) 
+    ? hierarchyModel[generation][engine] 
+    : standardYears;
 
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
@@ -119,27 +127,41 @@ export default function AutoSparesForm({ values = {}, onChange }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
         {model && (
           <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-            <label className="form-label">Generation / Chassis</label>
-            <select className="form-control" value={generation} onChange={handleGenerationChange}>
-              <option value="">Select Generation</option>
-              {generations.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
+            <label className="form-label">Generation / Chassis (Optional)</label>
+            {generations.length > 0 ? (
+              <select className="form-control" value={generation} onChange={handleGenerationChange}>
+                <option value="">Select Generation</option>
+                {generations.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            ) : (
+              <input className="form-control" value={generation} onChange={(e) => {
+                setGeneration(e.target.value);
+                emit({ generation: e.target.value });
+              }} placeholder="e.g. XV50" />
+            )}
           </div>
         )}
 
-        {generation && (
+        {(model) && (
           <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-            <label className="form-label">Engine</label>
-            <select className="form-control" value={engine} onChange={handleEngineChange}>
-              <option value="">Select Engine</option>
-              {engines.map(e => <option key={e} value={e}>{e}</option>)}
-            </select>
+            <label className="form-label">Engine (Optional)</label>
+            {engines.length > 0 ? (
+              <select className="form-control" value={engine} onChange={handleEngineChange}>
+                <option value="">Select Engine</option>
+                {engines.map(e => <option key={e} value={e}>{e}</option>)}
+              </select>
+            ) : (
+              <input className="form-control" value={engine} onChange={(e) => {
+                setEngine(e.target.value);
+                emit({ engine: e.target.value });
+              }} placeholder="e.g. 1AZ" />
+            )}
           </div>
         )}
 
-        {engine && (
+        {(model) && (
           <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-            <label className="form-label">Year</label>
+            <label className="form-label">Year (Optional)</label>
             <select className="form-control" value={year} onChange={handleYearChange}>
               <option value="">Select Year</option>
               {years.map(y => <option key={y} value={y}>{y}</option>)}
