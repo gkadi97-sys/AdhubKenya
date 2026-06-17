@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 import CATEGORY_ATTRIBUTES, { MANUFACTURE_YEARS, getSpecs } from '@/lib/categoryData';
 
@@ -109,7 +109,7 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
-      {/* ── Level 1: Make / Type ─────────────────────────────── */}
+      {/* ΓöÇΓöÇ Level 1: Make / Type ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       <div className="form-group" style={{marginBottom:0}}>
         <label className="form-label">{attrs.level1Label}</label>
         <select className="form-control" value={make} onChange={handleMakeChange}>
@@ -120,7 +120,7 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
         </select>
       </div>
 
-      {/* ── Level 2: Brand / Item (or Model if not nested) ──── */}
+      {/* ΓöÇΓöÇ Level 2: Brand / Item (or Model if not nested) ΓöÇΓöÇΓöÇΓöÇ */}
       {make && (
         <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
           <label className="form-label">{isNested ? 'Brand' : attrs.level2Label}</label>
@@ -133,7 +133,7 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
         </div>
       )}
 
-      {/* ── Level 3: Model (Only if nested) ──────────────────── */}
+      {/* ΓöÇΓöÇ Level 3: Model (Only if nested) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       {isNested && brand && (
         <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
           <label className="form-label">Model</label>
@@ -146,7 +146,7 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
         </div>
       )}
 
-      {/* ── Year of Manufacture (vehicles only) ──────────────── */}
+      {/* ΓöÇΓöÇ Year of Manufacture (vehicles only) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       {attrs.hasYear && make && (
         <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
           <label className="form-label">Year of Manufacture</label>
@@ -159,7 +159,7 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
         </div>
       )}
 
-      {/* ── Compatible Vehicles (Auto Spares only) ───────────── */}
+      {/* ΓöÇΓöÇ Compatible Vehicles (Auto Spares only) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       {category === 'auto-spares' && make && (
         <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius)', border: '1px dashed var(--border)' }}>
           <label className="form-label" style={{marginBottom: 8}}>Compatible Vehicles</label>
@@ -194,7 +194,7 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
         </div>
       )}
 
-      {/* ── Extra Spec Fields ────────────────────────────────── */}
+      {/* ΓöÇΓöÇ Extra Spec Fields ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       {make && specFields.length > 0 && (
         <>
           <div style={{
@@ -242,7 +242,7 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
         </>
       )}
 
-      {/* ── Summary pill ─────────────────────────────────────── */}
+      {/* ΓöÇΓöÇ Summary pill ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       {(make || brand || model || year) && (
         <div style={{
           display:'flex', flexWrap:'wrap', gap:8,
@@ -250,10 +250,10 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
           border:'1px solid var(--primary)', borderRadius:'var(--radius)',
           fontSize:'0.82rem', color:'var(--primary-light)',
         }}>
-          {make  && <span>🏷️ <strong>{make}</strong></span>}
-          {brand && <span>› <strong>{brand}</strong></span>}
-          {model && <span>› <strong>{model}</strong></span>}
-          {year  && <span>› <strong>{year}</strong></span>}
+          {make  && <span>≡ƒÅ╖∩╕Å <strong>{make}</strong></span>}
+          {brand && <span>ΓÇ║ <strong>{brand}</strong></span>}
+          {model && <span>ΓÇ║ <strong>{model}</strong></span>}
+          {year  && <span>ΓÇ║ <strong>{year}</strong></span>}
           {Object.entries(specs).filter(([k,v])=> v && k !== 'brand').map(([k,v])=>(
             <span key={k} style={{background:'rgba(255,255,255,0.06)',padding:'2px 8px',borderRadius:20}}>
               {v}

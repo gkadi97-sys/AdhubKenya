@@ -1,12 +1,10 @@
-
+﻿
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { createListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
-import ItemAttributesSelect from '@/components/ItemAttributesSelect';
-import VehicleForm from '@/components/VehicleForm';
-import PropertyForm from '@/components/PropertyForm';
+import DynamicListingForm from '@/components/DynamicListingForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { Link } from 'react-router-dom';
 
@@ -23,14 +21,12 @@ export default function PostAdPage() {
   const [attrs, setAttrs] = useState({ make: '', model: '', year: '', specs: {} });
   const [images, setImages] = useState([]);
   const [previews, setPreviews] = useState([]);
-  const [processingImages, setProcessingImages] = useState(false);
-  const [blurStatus, setBlurStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   if (!user) return (
     <div className="empty-state" style={{ padding: '100px 20px' }}>
-      <div className="icon">🔐</div>
+      <div className="icon">≡ƒöÉ</div>
       <h3>Login Required</h3>
       <p>You need to be logged in to post an ad</p>
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -45,36 +41,15 @@ export default function PostAdPage() {
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleImages = async (e) => {
+  const handleImages = (e) => {
     const isVehicle = form.category === 'vehicles';
     const isProperty = form.category === 'property';
     const maxImages = isProperty ? 15 : (isVehicle ? 10 : 5);
-    const rawNewFiles = Array.from(e.target.files);
-    
-    if (rawNewFiles.length === 0) return;
-
-    let finalNewFiles = rawNewFiles;
-
-    if (isVehicle) {
-      setProcessingImages(true);
-      try {
-        const { autoBlurLicensePlate } = await import('@/lib/imageProcessing');
-        finalNewFiles = await Promise.all(rawNewFiles.map(file => 
-          autoBlurLicensePlate(file, setBlurStatus)
-        ));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setProcessingImages(false);
-        setBlurStatus('');
-      }
-    }
-
-    setImages(prev => {
-      const combined = [...prev, ...finalNewFiles].slice(0, maxImages);
-      setPreviews(combined.map(f => URL.createObjectURL(f)));
-      return combined;
-    });
+    const newFiles = Array.from(e.target.files);
+    const combined = [...images, ...newFiles].slice(0, maxImages);
+    setImages(combined);
+    const urls = combined.map(f => URL.createObjectURL(f));
+    setPreviews(urls);
   };
 
   const removeImage = (i) => {
@@ -106,13 +81,16 @@ export default function PostAdPage() {
       if (attrs.make)  listingData.make  = attrs.make;
       if (attrs.model) listingData.model = attrs.model;
       if (attrs.year)  listingData.year  = attrs.year;
-
       if (attrs.specs && Object.keys(attrs.specs).length) {
         listingData.specs = attrs.specs;
       } else {
         listingData.specs = {};
       }
       
+      // Save dynamic fields into the specs JSON column
+      if (attrs.transactionType) listingData.specs.transactionType = attrs.transactionType;
+      if (attrs.subcategory) listingData.specs.subcategory = attrs.subcategory;
+
       const listing = await createListing(listingData, images);
       navigate(`/listing/${listing.id}`);
     } catch (err) {
@@ -131,10 +109,10 @@ export default function PostAdPage() {
         <form onSubmit={handleSubmit}>
           {error && <div className="alert alert-error" style={{ marginBottom: 20 }}>{error}</div>}
 
-          {/* ── Category & Title ───────────────────────────────── */}
+          {/* ΓöÇΓöÇ Category & Title ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
           <div className="card" style={{ marginBottom: 20 }}>
             <div className="card-body">
-              <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>📋 Basic Information</h3>
+              <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>≡ƒôï Basic Information</h3>
 
               <div className="form-row">
                 <div className="form-group">
@@ -176,24 +154,10 @@ export default function PostAdPage() {
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>{form.title.length}/100 characters</div>
               </div>
 
-              {/* Vehicle-specific comprehensive form */}
-              {isVehicle && (
+              {/* ΓöÇΓöÇ Dynamic Intelligent Form Engine ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+              {form.category && (
                 <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
-                  <VehicleForm values={attrs} onChange={setAttrs} />
-                </div>
-              )}
-
-              {/* Property-specific comprehensive form */}
-              {isProperty && (
-                <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
-                  <PropertyForm values={attrs} onChange={setAttrs} />
-                </div>
-              )}
-
-              {/* Non-vehicle attributes */}
-              {!isVehicle && !isProperty && form.category && (
-                <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-                  <ItemAttributesSelect category={form.category} values={attrs} onChange={setAttrs} />
+                  <DynamicListingForm category={form.category} values={attrs} onChange={setAttrs} />
                 </div>
               )}
 
@@ -201,18 +165,18 @@ export default function PostAdPage() {
                 <label className="form-label">Description *</label>
                 <textarea className="form-control" name="description" value={form.description} onChange={handleChange}
                   placeholder={isVehicle
-                    ? 'Describe the vehicle — any extras, reason for selling, service history, etc.'
-                    : 'Describe your item in detail — condition, features, reason for selling...'
+                    ? 'Describe the vehicle ΓÇö any extras, reason for selling, service history, etc.'
+                    : 'Describe your item in detail ΓÇö condition, features, reason for selling...'
                   }
                   required rows={5} />
               </div>
             </div>
           </div>
 
-          {/* ── Pricing ────────────────────────────────────────── */}
+          {/* ΓöÇΓöÇ Pricing ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
           <div className="card" style={{ marginBottom: 20 }}>
             <div className="card-body">
-              <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>💰 Pricing</h3>
+              <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>≡ƒÆ░ Pricing</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 16, alignItems: 'start' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Asking Price (KES) *</label>
@@ -230,10 +194,10 @@ export default function PostAdPage() {
             </div>
           </div>
 
-          {/* ── Location ───────────────────────────────────────── */}
+          {/* ΓöÇΓöÇ Location ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
           <div className="card" style={{ marginBottom: 20 }}>
             <div className="card-body">
-              <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>📍 Location</h3>
+              <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>≡ƒôì Location</h3>
               <CountyTownSelect
                 value={form.location}
                 onChange={(loc) => setForm(f => ({ ...f, location: loc }))}
@@ -242,29 +206,29 @@ export default function PostAdPage() {
             </div>
           </div>
 
-          {/* ── Photos ─────────────────────────────────────────── */}
+          {/* ΓöÇΓöÇ Photos ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
           <div className="card" style={{ marginBottom: 20 }}>
             <div className="card-body">
               <h3 style={{ marginBottom: 8, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>
-                🖼️ Photos {isVehicle ? '(up to 10)' : '(up to 5)'}
+                ≡ƒû╝∩╕Å Photos {isVehicle ? '(up to 10)' : '(up to 5)'}
               </h3>
               {isVehicle && (
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 12 }}>
                   Include exterior, interior, engine bay, dashboard, and tyre photos for faster sales.
                 </p>
               )}
-              <div className="upload-area" onClick={() => !processingImages && document.getElementById('img-input').click()} style={{ opacity: processingImages ? 0.6 : 1, cursor: processingImages ? 'not-allowed' : 'pointer' }}>
-                <div className="icon">{processingImages ? '🔍' : '📷'}</div>
-                <p>{processingImages ? blurStatus || 'Scanning for number plates...' : 'Click to upload photos'}</p>
-                <p style={{ fontSize: '0.78rem', marginTop: 4 }}>JPG, PNG, WEBP — Max 5MB each</p>
-                <input id="img-input" type="file" accept="image/*" multiple onChange={handleImages} style={{ display: 'none' }} disabled={processingImages} />
+              <div className="upload-area" onClick={() => document.getElementById('img-input').click()}>
+                <div className="icon">≡ƒô╖</div>
+                <p>Click to upload photos</p>
+                <p style={{ fontSize: '0.78rem', marginTop: 4 }}>JPG, PNG, WEBP ΓÇö Max 5MB each</p>
+                <input id="img-input" type="file" accept="image/*" multiple onChange={handleImages} style={{ display: 'none' }} />
               </div>
               {previews.length > 0 && (
                 <div className="upload-previews">
                   {previews.map((src, i) => (
                     <div key={i} className="upload-preview">
                       <img src={src} alt="" />
-                      <div className="remove" onClick={() => removeImage(i)}>✕</div>
+                      <div className="remove" onClick={() => removeImage(i)}>Γ£ò</div>
                     </div>
                   ))}
                 </div>
@@ -272,10 +236,10 @@ export default function PostAdPage() {
             </div>
           </div>
 
-          {/* ── Contact ────────────────────────────────────────── */}
+          {/* ΓöÇΓöÇ Contact ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
           <div className="card" style={{ marginBottom: 32 }}>
             <div className="card-body">
-              <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>📱 Contact Details</h3>
+              <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>≡ƒô▒ Contact Details</h3>
               <div className="form-row">
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Phone Number *</label>
@@ -290,7 +254,7 @@ export default function PostAdPage() {
           </div>
 
           <button type="submit" className="btn btn-accent btn-full btn-lg" disabled={loading}>
-            {loading ? '⏳ Posting...' : '🚀 Post Ad for Free'}
+            {loading ? 'ΓÅ│ Posting...' : '≡ƒÜÇ Post Ad for Free'}
           </button>
         </form>
       </div>
