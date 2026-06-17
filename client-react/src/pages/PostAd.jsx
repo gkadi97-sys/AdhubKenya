@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { createListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
 import ItemAttributesSelect from '@/components/ItemAttributesSelect';
+import AutoSparesForm from '@/components/AutoSparesForm';
 import VehicleForm from '@/components/VehicleForm';
 import PropertyForm from '@/components/PropertyForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
@@ -46,8 +47,9 @@ export default function PostAdPage() {
   };
 
   const handleImages = async (e) => {
-    const isVehicle = form.category === 'vehicles';
-    const isProperty = form.category === 'property';
+    const isVehicle = form.category === 'vehicles' || form.category === 'commercial-vehicles';
+    const isProperty = form.category === 'property' || form.category === 'land-plots';
+    const isAutoSpares = form.category === 'auto-spares';
     const maxImages = isProperty ? 15 : (isVehicle ? 10 : 5);
     const rawNewFiles = Array.from(e.target.files);
     
@@ -84,9 +86,10 @@ export default function PostAdPage() {
     setPreviews(newPreviews);
   };
 
-  const isVehicle = form.category === 'vehicles';
-  const isProperty = form.category === 'property';
-  const CONDITION_CATEGORIES = ['phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids'];
+  const isVehicle = form.category === 'vehicles' || form.category === 'commercial-vehicles';
+  const isProperty = form.category === 'property' || form.category === 'land-plots';
+  const isAutoSpares = form.category === 'auto-spares';
+  const CONDITION_CATEGORIES = ['phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids', 'auto-spares'];
   const showStandardCondition = CONDITION_CATEGORIES.includes(form.category) && !isProperty;
 
   const handleSubmit = async (e) => {
@@ -190,8 +193,15 @@ export default function PostAdPage() {
                 </div>
               )}
 
+              {/* Auto Spares comprehensive form */}
+              {isAutoSpares && (
+                <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+                  <AutoSparesForm values={attrs} onChange={setAttrs} />
+                </div>
+              )}
+
               {/* Non-vehicle attributes */}
-              {!isVehicle && !isProperty && form.category && (
+              {!isVehicle && !isProperty && !isAutoSpares && form.category && (
                 <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                   <ItemAttributesSelect category={form.category} values={attrs} onChange={setAttrs} />
                 </div>

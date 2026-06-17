@@ -108,3 +108,94 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- ==============================================================================
+-- AUTO SPARES INTELLIGENT FILTERING SCHEMA
+-- ==============================================================================
+
+-- 1. Master Categories (e.g. Engine Parts, Fuel System)
+create table public.parts_categories (
+  id uuid default gen_random_uuid() primary key,
+  name text not null unique,
+  description text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 2. Specific Parts (e.g. Tie Rod End, Piston)
+create table public.parts (
+  id uuid default gen_random_uuid() primary key,
+  category_id uuid references public.parts_categories(id) on delete cascade not null,
+  name text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 3. Part Aliases (e.g. Tie Rod End -> Track Rod End)
+create table public.part_aliases (
+  id uuid default gen_random_uuid() primary key,
+  part_id uuid references public.parts(id) on delete cascade not null,
+  alias text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 4. Vehicle Makes (e.g. Toyota, Nissan)
+create table public.vehicle_makes (
+  id uuid default gen_random_uuid() primary key,
+  name text not null unique,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 5. Vehicle Models (e.g. Camry, Corolla)
+create table public.vehicle_models (
+  id uuid default gen_random_uuid() primary key,
+  make_id uuid references public.vehicle_makes(id) on delete cascade not null,
+  name text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 6. Vehicle Generations/Chassis (e.g. XV40, XV50)
+create table public.vehicle_generations (
+  id uuid default gen_random_uuid() primary key,
+  model_id uuid references public.vehicle_models(id) on delete cascade not null,
+  name text not null,
+  year_start integer,
+  year_end integer,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 7. Engine Codes (e.g. 1AZ, 2AR)
+create table public.engine_codes (
+  id uuid default gen_random_uuid() primary key,
+  generation_id uuid references public.vehicle_generations(id) on delete cascade,
+  model_id uuid references public.vehicle_models(id) on delete cascade,
+  code text not null,
+  displacement text,
+  fuel_type text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 8. Part Numbers (OEM and Aftermarket)
+create table public.part_numbers (
+  id uuid default gen_random_uuid() primary key,
+  part_id uuid references public.parts(id) on delete cascade not null,
+  part_number text not null,
+  type text default 'OEM' check (type in ('OEM', 'Aftermarket')),
+  brand text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 9. Compatibility Matrix (Junction Table)
+create table public.compatibility (
+  id uuid default gen_random_uuid() primary key,
+  part_id uuid references public.parts(id) on delete cascade not null,
+  make_id uuid references public.vehicle_makes(id) on delete cascade,
+  model_id uuid references public.vehicle_models(id) on delete cascade,
+  generation_id uuid references public.vehicle_generations(id) on delete cascade,
+  engine_id uuid references public.engine_codes(id) on delete cascade,
+  year_from integer,
+  year_to integer,
+  position text,
+  oem_number_id uuid references public.part_numbers(id) on delete set null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Note: The listings table already has a specs jsonb column which will store the selected compatibility tree.
