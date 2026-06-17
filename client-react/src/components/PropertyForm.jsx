@@ -1,7 +1,7 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import CATEGORY_ATTRIBUTES, { PROPERTY_SPECS } from '@/lib/categoryData';
 
-// ΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Helpers ────────────────────────────────────────────────────────────────
 
 const SectionHeader = ({ icon, title }) => (
   <div style={{
@@ -30,7 +30,7 @@ const Field = ({ label, required, children }) => (
 
 const Select = ({ value, onChange, options, placeholder }) => (
   <select className="form-control" style={{ fontSize: '0.85rem' }} value={value || ''} onChange={e => onChange(e.target.value)}>
-    <option value="">{placeholder || 'SelectΓÇª'}</option>
+    <option value="">{placeholder || 'Select…'}</option>
     {options.map(o => <option key={o} value={o}>{o}</option>)}
   </select>
 );
@@ -96,7 +96,7 @@ const CheckboxGroup = ({ options, selected = [], onChange }) => {
   );
 };
 
-// ΓöÇΓöÇ Main Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Main Component ─────────────────────────────────────────────────────────
 
 export default function PropertyForm({ values = {}, onChange }) {
   const propertyData = CATEGORY_ATTRIBUTES['property']?.data || {};
@@ -136,9 +136,9 @@ export default function PropertyForm({ values = {}, onChange }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-      {/* ΓöÇΓöÇ 1. PROPERTY IDENTITY ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 1. PROPERTY IDENTITY ────────────────────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒÅó" title="Property Details" />
+        <SectionHeader icon="🏢" title="Property Details" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
           <Field label="Listing Category" required>
@@ -149,7 +149,7 @@ export default function PropertyForm({ values = {}, onChange }) {
           <Field label="Property Category" required>
             <select className="form-control" style={{ fontSize: '0.85rem' }} value={category}
               onChange={e => { setCategory(e.target.value); setType(''); emit({ make: e.target.value, model: '' }); }}>
-              <option value="">Select CategoryΓÇª</option>
+              <option value="">Select Category…</option>
               {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </Field>
@@ -158,7 +158,7 @@ export default function PropertyForm({ values = {}, onChange }) {
             <select className="form-control" style={{ fontSize: '0.85rem' }} value={type}
               onChange={e => { setType(e.target.value); emit({ model: e.target.value }); }}
               disabled={!category}>
-              <option value="">Select TypeΓÇª</option>
+              <option value="">Select Type…</option>
               {typeOptions.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </Field>
@@ -180,9 +180,9 @@ export default function PropertyForm({ values = {}, onChange }) {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ 2. SIZE & DIMENSIONS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 2. SIZE & DIMENSIONS ───────────────────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒôÉ" title="Size & Dimensions" />
+        <SectionHeader icon="📐" title="Size & Dimensions" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
           <Field label="Land Size">
@@ -204,10 +204,10 @@ export default function PropertyForm({ values = {}, onChange }) {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ 3. RESIDENTIAL / COMMERCIAL LAYOUT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 3. RESIDENTIAL / COMMERCIAL LAYOUT ─────────────────── */}
       {['Residential Properties', 'Commercial Properties', 'Special-Purpose Properties'].includes(category) && (
         <div>
-          <SectionHeader icon="≡ƒ¢Å∩╕Å" title="Layout Details" />
+          <SectionHeader icon="🛏️" title="Layout Details" />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
             {category === 'Residential Properties' && (
@@ -236,10 +236,10 @@ export default function PropertyForm({ values = {}, onChange }) {
         </div>
       )}
 
-      {/* ΓöÇΓöÇ 4. RESIDENTIAL FEATURES ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 4. RESIDENTIAL FEATURES ────────────────────────────── */}
       {category === 'Residential Properties' && (
         <div>
-          <SectionHeader icon="Γ£¿" title="Residential Features" />
+          <SectionHeader icon="✨" title="Residential Features" />
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
             Select all that apply
           </p>
@@ -251,10 +251,10 @@ export default function PropertyForm({ values = {}, onChange }) {
         </div>
       )}
 
-      {/* ΓöÇΓöÇ 5. COMMERCIAL FEATURES ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 5. COMMERCIAL FEATURES ─────────────────────────────── */}
       {category === 'Commercial Properties' && (
         <div>
-          <SectionHeader icon="≡ƒÆ╝" title="Commercial Features" />
+          <SectionHeader icon="💼" title="Commercial Features" />
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
             Select all that apply
           </p>
@@ -266,10 +266,10 @@ export default function PropertyForm({ values = {}, onChange }) {
         </div>
       )}
 
-      {/* ΓöÇΓöÇ 6. AMENITIES & FACILITIES ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 6. AMENITIES & FACILITIES ──────────────────────────── */}
       {category !== 'Land and Plots' && (
         <div>
-          <SectionHeader icon="≡ƒÅèΓÇìΓÖé∩╕Å" title="Amenities & Facilities" />
+          <SectionHeader icon="🏊‍♂️" title="Amenities & Facilities" />
           <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
             Select all that apply
           </p>
@@ -281,9 +281,9 @@ export default function PropertyForm({ values = {}, onChange }) {
         </div>
       )}
 
-      {/* ΓöÇΓöÇ 7. LEGAL & COMPLIANCE ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 7. LEGAL & COMPLIANCE ──────────────────────────────── */}
       <div>
-        <SectionHeader icon="ΓÜû∩╕Å" title="Legal & Compliance" />
+        <SectionHeader icon="⚖️" title="Legal & Compliance" />
         <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
           Select all that apply
         </p>
@@ -294,9 +294,9 @@ export default function PropertyForm({ values = {}, onChange }) {
         />
       </div>
 
-      {/* ΓöÇΓöÇ 8. AGENT/OWNER INFO ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 8. AGENT/OWNER INFO ────────────────────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒæñ" title="Agent/Owner Info" />
+        <SectionHeader icon="👤" title="Agent/Owner Info" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
           <Field label="Agency / Company Name">
             <TextInput value={s.agencyName} onChange={v => setSpec('agencyName', v)} placeholder="e.g. ReMax Kenya" />

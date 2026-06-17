@@ -1,7 +1,7 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import CATEGORY_ATTRIBUTES, { MANUFACTURE_YEARS, VEHICLE_SPECS } from '@/lib/categoryData';
 
-// ΓöÇΓöÇ Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Helpers ────────────────────────────────────────────────────────────────
 
 const SectionHeader = ({ icon, title }) => (
   <div style={{
@@ -30,7 +30,7 @@ const Field = ({ label, required, children }) => (
 
 const Select = ({ value, onChange, options, placeholder }) => (
   <select className="form-control" style={{ fontSize: '0.85rem' }} value={value || ''} onChange={e => onChange(e.target.value)}>
-    <option value="">{placeholder || 'SelectΓÇª'}</option>
+    <option value="">{placeholder || 'Select…'}</option>
     {options.map(o => <option key={o} value={o}>{o}</option>)}
   </select>
 );
@@ -96,7 +96,7 @@ const CheckboxGroup = ({ options, selected = [], onChange }) => {
   );
 };
 
-// ΓöÇΓöÇ Main Component ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ── Main Component ─────────────────────────────────────────────────────────
 
 /**
  * VehicleForm
@@ -143,9 +143,9 @@ export default function VehicleForm({ values = {}, onChange }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-      {/* ΓöÇΓöÇ 1. VEHICLE IDENTITY ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 1. VEHICLE IDENTITY ────────────────────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒÜù" title="Vehicle Identity" />
+        <SectionHeader icon="🚗" title="Vehicle Identity" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
           <Field label="Vehicle Type" required>
@@ -161,7 +161,7 @@ export default function VehicleForm({ values = {}, onChange }) {
           <Field label="Make (Brand)" required>
             <select className="form-control" style={{ fontSize: '0.85rem' }} value={make}
               onChange={e => { setMake(e.target.value); setModel(''); emit({ make: e.target.value, model: '' }); }}>
-              <option value="">Select MakeΓÇª</option>
+              <option value="">Select Make…</option>
               {makeOptions.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </Field>
@@ -170,7 +170,7 @@ export default function VehicleForm({ values = {}, onChange }) {
             <select className="form-control" style={{ fontSize: '0.85rem' }} value={model}
               onChange={e => { setModel(e.target.value); emit({ model: e.target.value }); }}
               disabled={!make}>
-              <option value="">Select ModelΓÇª</option>
+              <option value="">Select Model…</option>
               {modelOptions.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </Field>
@@ -181,12 +181,12 @@ export default function VehicleForm({ values = {}, onChange }) {
 
           <Field label="Year of Manufacture" required>
             <Select value={year} onChange={v => { setYear(v); emit({ year: v }); }}
-              options={MANUFACTURE_YEARS.map(String)} placeholder="Select YearΓÇª" />
+              options={MANUFACTURE_YEARS.map(String)} placeholder="Select Year…" />
           </Field>
 
           <Field label="Year of Registration">
             <Select value={s.regYear} onChange={v => setSpec('regYear', v)}
-              options={MANUFACTURE_YEARS.map(String)} placeholder="Select YearΓÇª" />
+              options={MANUFACTURE_YEARS.map(String)} placeholder="Select Year…" />
           </Field>
 
           <Field label="Registration Number">
@@ -195,9 +195,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ 2. MILEAGE & USAGE ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 2. MILEAGE & USAGE ─────────────────────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒôì" title="Mileage & Usage" />
+        <SectionHeader icon="📍" title="Mileage & Usage" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
           <Field label="Mileage" required>
@@ -227,9 +227,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ 3. ENGINE SPECS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 3. ENGINE SPECS ────────────────────────────────────── */}
       <div>
-        <SectionHeader icon="ΓÜÖ∩╕Å" title="Engine Specifications" />
+        <SectionHeader icon="⚙️" title="Engine Specifications" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
           <Field label="Fuel Type" required>
@@ -267,9 +267,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ 4. TRANSMISSION & DRIVETRAIN ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 4. TRANSMISSION & DRIVETRAIN ───────────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒöº" title="Transmission & Drivetrain" />
+        <SectionHeader icon="🔧" title="Transmission & Drivetrain" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
           <Field label="Transmission" required>
@@ -290,9 +290,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ 5. EXTERIOR ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 5. EXTERIOR ────────────────────────────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒÄ¿" title="Exterior" />
+        <SectionHeader icon="🎨" title="Exterior" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
           <Field label="Exterior Colour">
@@ -321,9 +321,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ 6. INTERIOR ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 6. INTERIOR ────────────────────────────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒ¬æ" title="Interior" />
+        <SectionHeader icon="🪑" title="Interior" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
           <Field label="Interior Colour">
@@ -338,9 +338,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ 7. COMFORT & CONVENIENCE ΓÇö CHECKBOXES ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 7. COMFORT & CONVENIENCE — CHECKBOXES ──────────────── */}
       <div>
-        <SectionHeader icon="Γ¥ä∩╕Å" title="Comfort & Convenience" />
+        <SectionHeader icon="❄️" title="Comfort & Convenience" />
         <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
           Select all that apply
         </p>
@@ -351,9 +351,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         />
       </div>
 
-      {/* ΓöÇΓöÇ 8. INFOTAINMENT & CONNECTIVITY ΓÇö CHECKBOXES ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 8. INFOTAINMENT & CONNECTIVITY — CHECKBOXES ────────── */}
       <div>
-        <SectionHeader icon="≡ƒô▒" title="Infotainment & Connectivity" />
+        <SectionHeader icon="📱" title="Infotainment & Connectivity" />
         <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
           Select all that apply
         </p>
@@ -364,9 +364,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         />
       </div>
 
-      {/* ΓöÇΓöÇ 9. SAFETY FEATURES ΓÇö CHECKBOXES ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 9. SAFETY FEATURES — CHECKBOXES ────────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒ¢í∩╕Å" title="Safety Features" />
+        <SectionHeader icon="🛡️" title="Safety Features" />
         <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
           Select all that apply
         </p>
@@ -377,9 +377,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         />
       </div>
 
-      {/* ΓöÇΓöÇ 10. EXTERIOR FEATURES ΓÇö CHECKBOXES ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 10. EXTERIOR FEATURES — CHECKBOXES ─────────────────── */}
       <div>
-        <SectionHeader icon="Γ£¿" title="Exterior Features" />
+        <SectionHeader icon="✨" title="Exterior Features" />
         <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
           Select all that apply
         </p>
@@ -390,9 +390,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         />
       </div>
 
-      {/* ΓöÇΓöÇ 11. VEHICLE CONDITION & DOCUMENTS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 11. VEHICLE CONDITION & DOCUMENTS ──────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒôï" title="Vehicle Condition & Documents" />
+        <SectionHeader icon="📋" title="Vehicle Condition & Documents" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
 
           <Field label="Accident History">
@@ -439,9 +439,9 @@ export default function VehicleForm({ values = {}, onChange }) {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ 12. SELLER INFO ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── 12. SELLER INFO ────────────────────────────────────── */}
       <div>
-        <SectionHeader icon="≡ƒæñ" title="Seller Details" />
+        <SectionHeader icon="👤" title="Seller Details" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
           <Field label="Seller Type">
             <Select value={s.sellerType} onChange={v => setSpec('sellerType', v)}
