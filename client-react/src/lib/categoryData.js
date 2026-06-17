@@ -762,10 +762,7 @@ export const CATEGORY_ATTRIBUTES = {
         'Asus Laptops','Acer Laptops','Microsoft Surface',
         'Desktop Computers','Monitors','Printers & Scanners','Computer Accessories'
       ],
-      'Televisions': [
-        'Samsung TVs','LG TVs','Sony TVs','Hisense TVs',
-        'TCL TVs','Vitron TVs','Skyworth TVs','Other TVs'
-      ],
+      'Televisions': [], // Rendered dynamically via TvForm
       'Audio & Music': [
         'Soundbars','Home Theaters','Bluetooth Speakers',
         'Headphones & Earbuds','Microphones','Amplifiers & Receivers'
@@ -1393,6 +1390,121 @@ export const PROPERTY_SPECS = {
     'Title deed available', 'Sectional property title', 'Freehold', 'Leasehold',
     'Approved plans', 'NEMA approval', 'Change of user complete'
   ]
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TV SPECS: Intelligent categorization for Televisions (TvForm.jsx)
+// ─────────────────────────────────────────────────────────────────────────────
+export const TV_SPECS = {
+  brands: ['Samsung', 'LG', 'Sony', 'Hisense', 'TCL', 'Skyworth', 'Toshiba', 'Panasonic', 'Philips', 'Sharp', 'Vitron', 'Vision Plus', 'Syinix', 'Haier', 'Nobel', 'Bruhm', 'Tornado'],
+  sizes: ['19"', '22"', '24"', '28"', '32"', '40"', '43"', '50"', '55"', '58"', '60"', '65"', '70"', '75"', '77"', '83"', '85"', '98"'],
+  techs: ['LED', 'QLED', 'Neo QLED', 'OLED', 'Mini LED', 'Crystal UHD', 'NanoCell', 'QNED', 'LCD'],
+  os: ['Android TV', 'Google TV', 'WebOS', 'Tizen', 'VIDAA', 'Roku', 'Linux', 'Non Smart'],
+  resolutions: ['HD', 'Full HD', '4K UHD', '8K'],
+  conditions: ['New', 'Used', 'Refurbished'],
+
+  hierarchy: {
+    'Samsung': {
+      sizes: ['32"', '43"', '50"', '55"', '65"', '75"', '85"', '98"'],
+      techs: {
+        '32"': ['LED'],
+        '43"': ['LED', 'Crystal UHD', 'QLED'],
+        '50"': ['LED', 'Crystal UHD', 'QLED', 'Neo QLED'],
+        '55"': ['Crystal UHD', 'QLED', 'Neo QLED', 'OLED'],
+        '65"': ['Crystal UHD', 'QLED', 'Neo QLED', 'OLED'],
+        '75"': ['Crystal UHD', 'QLED', 'Neo QLED'],
+        '85"': ['Crystal UHD', 'QLED', 'Neo QLED'],
+        '98"': ['QLED', 'Neo QLED']
+      },
+      series: {
+        'LED': ['T5300', 'T5350'],
+        'Crystal UHD': ['AU7000', 'BU8000', 'CU7000', 'DU7000'],
+        'QLED': ['Q60', 'Q70', 'Q80', 'Q90'],
+        'Neo QLED': ['QN85', 'QN90', 'QN95'],
+        'OLED': ['S85', 'S90', 'S95']
+      }
+    },
+    'LG': {
+      sizes: ['32"', '43"', '50"', '55"', '65"', '75"', '77"', '83"'],
+      techs: {
+        '32"': ['LED'],
+        '43"': ['LED', 'NanoCell'],
+        '50"': ['LED', 'NanoCell', 'QNED'],
+        '55"': ['LED', 'NanoCell', 'QNED', 'OLED'],
+        '65"': ['LED', 'NanoCell', 'QNED', 'OLED'],
+        '75"': ['LED', 'NanoCell', 'QNED'],
+        '77"': ['OLED'],
+        '83"': ['OLED']
+      },
+      series: {
+        'LED': ['32LQ630', '43UR7800', '55UR8000'],
+        'NanoCell': ['50NANO75', '55NANO80'],
+        'QNED': ['55QNED75', '65QNED80'],
+        'OLED': ['OLED55B3', 'OLED55C3', 'OLED65C3', 'OLED77G3']
+      }
+    },
+    'Sony': {
+      sizes: ['43"', '50"', '55"', '65"', '75"', '85"'],
+      techs: {
+        '43"': ['LED'],
+        '50"': ['LED'],
+        '55"': ['LED', 'XR', 'OLED'],
+        '65"': ['LED', 'XR', 'OLED'],
+        '75"': ['LED', 'XR'],
+        '85"': ['XR']
+      },
+      series: {
+        'LED': ['43X75', '50X80', '65X85'],
+        'XR': ['65X90', '75X95'],
+        'OLED': ['55A80', '65A80', '65A95']
+      }
+    },
+    'Hisense': {
+      sizes: ['32"', '43"', '50"', '55"', '65"', '75"', '85"'],
+      techs: {
+        '32"': ['LED'],
+        '43"': ['LED'],
+        '50"': ['LED', 'ULED'],
+        '55"': ['LED', 'ULED'],
+        '65"': ['LED', 'ULED'],
+        '75"': ['ULED'],
+        '85"': ['ULED']
+      },
+      series: {
+        'LED': ['32A4', '43A6', '55A7'],
+        'ULED': ['55U6', '65U7', '75U8']
+      }
+    },
+    'TCL': {
+      sizes: ['32"', '43"', '50"', '55"', '65"', '75"', '85"'],
+      techs: {
+        '32"': ['LED'],
+        '43"': ['LED'],
+        '50"': ['LED', 'QLED'],
+        '55"': ['LED', 'QLED', 'Mini LED'],
+        '65"': ['LED', 'QLED', 'Mini LED'],
+        '75"': ['QLED', 'Mini LED'],
+        '85"': ['Mini LED']
+      },
+      series: {
+        'LED': ['43P635', '50P735'],
+        'QLED': ['55C645', '65C745'],
+        'Mini LED': ['75C845']
+      }
+    },
+    'Vitron': {
+      sizes: ['24"', '32"', '43"', '50"', '55"', '65"'],
+      series: {
+        'LED': ['32 Smart', '43 Smart', '50 Smart', '55 Smart', '65 Smart']
+      }
+    },
+    'Vision Plus': {
+      sizes: ['32"', '43"', '50"', '55"', '65"'],
+      series: {
+        'LED': ['32 VP8832', '43 VP8843', '50 VP8850', '65 VP8865']
+      }
+    }
+  }
 };
 
 export default CATEGORY_ATTRIBUTES;

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import CATEGORY_ATTRIBUTES, { MANUFACTURE_YEARS, getSpecs } from '@/lib/categoryData';
+import TvForm from './TvForm';
 
 /**
  * ItemAttributesSelect
@@ -120,8 +121,12 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
         </select>
       </div>
 
-      {/* ── Level 2: Brand / Item (or Model if not nested) ──── */}
-      {make && (
+      {make === 'Televisions' ? (
+        <TvForm values={values} onChange={emit} />
+      ) : (
+        <>
+          {/* ── Level 2: Brand / Item (or Model if not nested) ──── */}
+          {make && (
         <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
           <label className="form-label">{isNested ? 'Brand' : attrs.level2Label}</label>
           <select className="form-control" value={isNested ? brand : model} onChange={isNested ? handleBrandChange : handleModelChange}>
@@ -240,6 +245,8 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
             ))}
           </div>
         </>
+      )}
+      </>
       )}
 
       {/* ── Summary pill ─────────────────────────────────────── */}
