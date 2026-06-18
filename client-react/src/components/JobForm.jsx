@@ -123,7 +123,7 @@ export default function JobForm({ values = {}, onChange }) {
             className="form-control"
             style={{ fontSize: '0.85rem' }}
             value={category}
-            onChange={e => { setCategory(e.target.value); emit({ make: e.target.value }); setCategorySearch(''); }}
+            onChange={e => { setCategory(e.target.value); emit({ make: e.target.value }); setCategorySearch(e.target.value); }}
             required
             size={Math.min(filteredCategories.length + 1, 6)}
           >
@@ -146,7 +146,7 @@ export default function JobForm({ values = {}, onChange }) {
               className="form-control"
               style={{ fontSize: '0.85rem' }}
               value={role}
-              onChange={e => { setRole(e.target.value); emit({ model: e.target.value }); setRoleSearch(''); }}
+              onChange={e => { setRole(e.target.value); emit({ model: e.target.value }); setRoleSearch(e.target.value); }}
               required
               size={Math.min(filteredRoles.length + 1, 6)}
             >
