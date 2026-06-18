@@ -76,7 +76,7 @@ export default function HomePage() {
             {[['Growing','Community'],['New','Listings Daily'],['47','Counties Covered'],['100%','Free to Post']].map(([val,lbl]) => (
               <div key={lbl} style={{textAlign:'center',padding:'8px 4px'}}>
                 <div style={{fontSize:'1.5rem',fontWeight:800,fontFamily:'var(--font-display)',color:'var(--primary-light)'}}>{val}</div>
-                <div style={{fontSize:'0.78rem',color:'var(--text-muted)',marginTop:2,whiteSpace:'nowrap'}}>{lbl}</div>
+                <div style={{fontSize:'0.78rem',color:'var(--text-muted)',marginTop:2,whiteSpace:'normal',lineHeight:'1.2'}}>{lbl}</div>
               </div>
             ))}
           </div>

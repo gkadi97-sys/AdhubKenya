@@ -209,8 +209,8 @@ export default function PostAdPage() {
                   </select>
                 </div>
 
-                {/* Condition for vehicles */}
-                {isVehicle && (
+                {/* Condition for standard vehicles */}
+                {isVehicle && !isHeavyTruck && !isPickupTruck && (
                   <div className="form-group">
                     <label className="form-label">Condition *</label>
                     <select className="form-control" name="condition" value={form.condition} onChange={handleChange} required>
