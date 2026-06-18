@@ -1524,7 +1524,7 @@ export const AUDIO_SPECS = {
         'JBL': {
           series: ['Bar Series'],
           models: {
-            'Bar Series': ['JBL Bar 2.0', 'JBL Bar 2.1', 'JBL Bar 3.1', 'JBL Bar 5.0', 'JBL Bar 5.1', 'JBL Bar 800', 'JBL Bar 1000', 'JBL Bar 1300']
+            'Bar Series': ['JBL Bar 2.0 All-in-One', 'JBL Bar 2.1', 'JBL Bar 2.1 Deep Bass', 'JBL Bar 3.1', 'JBL Bar 5.0 MultiBeam', 'JBL Bar 5.1', 'JBL Bar 5.1 Surround', 'JBL Bar 9.1 True Wireless Surround', 'JBL Bar 300', 'JBL Bar 500', 'JBL Bar 700', 'JBL Bar 800', 'JBL Bar 1000', 'JBL Bar 1300', 'JBL Bar 1300X']
           }
         },
         'Samsung': {
@@ -1575,11 +1575,680 @@ export const AUDIO_SPECS = {
           models: {
             'Standard': ['Ray', 'Beam', 'Beam Gen 2', 'Arc', 'Arc Ultra']
           }
+        },
+        'Yamaha': {
+          series: ['YAS Series', 'SR Series'],
+          models: {
+            'YAS Series': ['YAS-109', 'YAS-209', 'YAS-209BL'],
+            'SR Series': ['SR-B20A', 'SR-C20A']
+          }
+        }
+      }
+    },
+
+    // ── HOME THEATRE ──────────────────────────────────────────────────────────
+    'Home Theatre': {
+      brands: ['Samsung', 'LG', 'Sony', 'JBL', 'Hisense', 'Yamaha', 'Denon', 'Marantz', 'Bose', 'Philips', 'Panasonic', 'Pioneer', 'Onkyo', 'Vision Plus', 'Vitron'],
+      brandData: {
+        'Samsung': {
+          series: ['HT Series'],
+          models: { 'HT Series': ['HT-J4500', 'HT-J5500', 'HT-J7750W', 'HT-H7500'] }
+        },
+        'LG': {
+          series: ['LHD Series', 'DH Series'],
+          models: {
+            'LHD Series': ['LHD625', 'LHD756', 'LHD857'],
+            'DH Series': ['DH6530T', 'DH7630T']
+          }
+        },
+        'Sony': {
+          series: ['BDV Series', 'HBD Series'],
+          models: {
+            'BDV Series': ['BDV-E190', 'BDV-E3200', 'BDV-N7200W', 'BDV-N9200W'],
+            'HBD Series': ['HBD-E190', 'HBD-E3200']
+          }
+        },
+        'JBL': {
+          series: ['Cinema Series'],
+          models: { 'Cinema Series': ['Cinema SB110', 'Cinema SB120', 'Cinema SB150', 'Cinema 510', 'Cinema 610'] }
+        },
+        'Philips': {
+          series: ['HTB Series'],
+          models: { 'HTB Series': ['HTB3520', 'HTB5570', 'HTB7250'] }
+        },
+        'Yamaha': {
+          series: ['YHT Series'],
+          models: { 'YHT Series': ['YHT-1840', 'YHT-3072', 'YHT-4950'] }
+        },
+        'Denon': {
+          series: ['DHT Series'],
+          models: { 'DHT Series': ['DHT-S217', 'DHT-S316', 'DHT-S517'] }
+        },
+        'Onkyo': {
+          series: ['HT-S Series'],
+          models: { 'HT-S Series': ['HT-S3910', 'HT-S5915', 'HT-S7805'] }
+        },
+        'Pioneer': {
+          series: ['HTP Series'],
+          models: { 'HTP Series': ['HTP-074', 'HTP-208', 'HTP-YL35'] }
+        }
+      }
+    },
+
+    // ── WOOFER ────────────────────────────────────────────────────────────────
+    'Woofer': {
+      brands: ['Sony', 'LG', 'Samsung', 'JBL', 'Vitron', 'Vision Plus', 'Syinix', 'Sayona', 'Bruhm', 'Mika', 'Amtec', 'Hisense', 'TCL'],
+      brandData: {
+        'Sony': {
+          series: ['GTK Series', 'MHC Series'],
+          models: {
+            'GTK Series': ['GTK-XB5', 'GTK-XB7', 'GTK-XB90'],
+            'MHC Series': ['MHC-V11', 'MHC-V21D', 'MHC-V41D', 'MHC-V71D', 'MHC-V81D', 'MHC-V90DW']
+          }
+        },
+        'LG': {
+          series: ['XBOOM Series'],
+          models: { 'XBOOM Series': ['XBOOM XL5', 'XBOOM XL7', 'XBOOM XL9', 'RN5', 'RN7', 'RN9'] }
+        },
+        'JBL': {
+          series: ['PartyBox Series'],
+          models: { 'PartyBox Series': ['PartyBox 110', 'PartyBox 310', 'PartyBox 710', 'PartyBox 1000'] }
+        },
+        'Vitron': {
+          series: ['Standard'],
+          models: { 'Standard': ['V-8500BT', 'V-8800BT', 'V-9000BT'] }
+        },
+        'Sayona': {
+          series: ['Standard'],
+          models: { 'Standard': ['SHT-1120BT', 'SHT-1152BT', 'SHT-1175BT', 'SHT-1178BT'] }
+        }
+      }
+    },
+
+    // ── SUBWOOFER ─────────────────────────────────────────────────────────────
+    'Subwoofer': {
+      brands: ['JBL', 'Sony', 'Samsung', 'LG', 'Bose', 'Klipsch', 'SVS', 'Polk Audio', 'Denon', 'Yamaha', 'KEF', 'REL'],
+      brandData: {
+        'JBL': {
+          series: ['Stage Series', 'Club Series'],
+          models: {
+            'Stage Series': ['Stage 200P', 'Stage 201P', 'Stage 210P'],
+            'Club Series': ['Club WS1000']
+          }
+        },
+        'Sony': {
+          series: ['SA-CS Series'],
+          models: { 'SA-CS Series': ['SA-CS9', 'SA-SW3', 'SA-SW5'] }
+        },
+        'Samsung': {
+          series: ['SWA Series'],
+          models: { 'SWA Series': ['SWA-9200S', 'SWA-9500S'] }
+        },
+        'Klipsch': {
+          series: ['R Series'],
+          models: { 'R Series': ['R-10SW', 'R-12SW', 'R-100SW', 'R-120SW', 'SPL-120SW'] }
+        },
+        'SVS': {
+          series: ['SB Series', 'PB Series'],
+          models: {
+            'SB Series': ['SB-1000 Pro', 'SB-2000 Pro', 'SB-3000'],
+            'PB Series': ['PB-1000 Pro', 'PB-2000 Pro', 'PB-3000']
+          }
+        },
+        'Polk Audio': {
+          series: ['HTS Series'],
+          models: { 'HTS Series': ['HTS 10', 'HTS 12'] }
+        }
+      }
+    },
+
+    // ── AMPLIFIER ─────────────────────────────────────────────────────────────
+    'Amplifier': {
+      brands: ['Yamaha', 'Denon', 'Marantz', 'Pioneer', 'Onkyo', 'Sony', 'Cambridge Audio', 'NAD', 'Crown', 'QSC', 'Harman Kardon', 'JBL'],
+      brandData: {
+        'Yamaha': {
+          series: ['A Series', 'RX Series (AV)'],
+          models: {
+            'A Series': ['A-S301', 'A-S501', 'A-S701', 'A-S1200', 'A-S2200'],
+            'RX Series (AV)': ['RX-V4A', 'RX-V6A', 'RX-A2A', 'RX-A4A', 'RX-A6A', 'RX-A8A']
+          }
+        },
+        'Denon': {
+          series: ['PMA Series', 'AVR Series'],
+          models: {
+            'PMA Series': ['PMA-600NE', 'PMA-800NE', 'PMA-1600NE', 'PMA-2500NE'],
+            'AVR Series': ['AVR-X1700H', 'AVR-X2700H', 'AVR-X3700H', 'AVR-X4700H', 'AVR-X6700H']
+          }
+        },
+        'Marantz': {
+          series: ['PM Series', 'SR Series'],
+          models: {
+            'PM Series': ['PM5005', 'PM6007', 'PM7000N', 'PM8006'],
+            'SR Series': ['SR5015', 'SR6015', 'SR7015', 'SR8015']
+          }
+        },
+        'Sony': {
+          series: ['STR Series'],
+          models: { 'STR Series': ['STR-DH590', 'STR-DH790', 'STR-AN1000'] }
+        },
+        'Cambridge Audio': {
+          series: ['AXA Series', 'CXA Series'],
+          models: {
+            'AXA Series': ['AXA25', 'AXA35'],
+            'CXA Series': ['CXA61', 'CXA81']
+          }
+        }
+      }
+    },
+
+    // ── BLUETOOTH SPEAKER ─────────────────────────────────────────────────────
+    'Bluetooth Speaker': {
+      brands: ['JBL', 'Bose', 'Sony', 'Marshall', 'Anker', 'Ultimate Ears', 'Harman Kardon', 'Tribit', 'Vitron', 'Vision Plus', 'Sayona', 'Mika'],
+      brandData: {
+        'JBL': {
+          series: ['Flip Series', 'Charge Series', 'Xtreme Series', 'Go Series', 'Clip Series', 'Boombox Series'],
+          models: {
+            'Flip Series': ['Flip 4', 'Flip 5', 'Flip 6', 'Flip 7'],
+            'Charge Series': ['Charge 4', 'Charge 5', 'Charge 5 Wi-Fi'],
+            'Xtreme Series': ['Xtreme 2', 'Xtreme 3', 'Xtreme 4'],
+            'Go Series': ['Go 3', 'Go 3 Eco', 'Go 4'],
+            'Clip Series': ['Clip 3', 'Clip 4', 'Clip 4 Eco', 'Clip 5'],
+            'Boombox Series': ['Boombox 2', 'Boombox 3']
+          }
+        },
+        'Bose': {
+          series: ['SoundLink Series'],
+          models: {
+            'SoundLink Series': ['SoundLink Flex', 'SoundLink Flex 2', 'SoundLink Max', 'SoundLink Mini II', 'SoundLink Revolve+']
+          }
+        },
+        'Sony': {
+          series: ['SRS-XB Series', 'SRS-XG Series'],
+          models: {
+            'SRS-XB Series': ['SRS-XB13', 'SRS-XB23', 'SRS-XB33', 'SRS-XB43', 'SRS-XB100'],
+            'SRS-XG Series': ['SRS-XG300', 'SRS-XG500']
+          }
+        },
+        'Marshall': {
+          series: ['Stockwell', 'Emberton', 'Kilburn', 'Tufton', 'Woburn'],
+          models: {
+            'Stockwell': ['Stockwell II', 'Stockwell III'],
+            'Emberton': ['Emberton', 'Emberton II', 'Emberton III'],
+            'Kilburn': ['Kilburn II'],
+            'Tufton': ['Tufton'],
+            'Woburn': ['Woburn II', 'Woburn III']
+          }
+        },
+        'Anker': {
+          series: ['Soundcore Series'],
+          models: { 'Soundcore Series': ['Motion Boom', 'Motion Boom Plus', 'Motion X600', 'Motion X500', 'Rave Neo 2', 'Flare 2'] }
+        },
+        'Ultimate Ears': {
+          series: ['BOOM Series', 'WONDERBOOM Series', 'HYPERBOOM Series'],
+          models: {
+            'BOOM Series': ['BOOM 3', 'MEGABOOM 3', 'BOOM 4', 'MEGABOOM 4'],
+            'WONDERBOOM Series': ['WONDERBOOM 3', 'WONDERBOOM 4'],
+            'HYPERBOOM Series': ['HYPERBOOM']
+          }
+        },
+        'Harman Kardon': {
+          series: ['Onyx Series', 'Aura Series'],
+          models: {
+            'Onyx Series': ['Onyx Studio 6', 'Onyx Studio 7', 'Onyx Studio 8'],
+            'Aura Series': ['Aura Studio 3', 'Aura Studio 4']
+          }
+        }
+      }
+    },
+
+    // ── HEADPHONES ────────────────────────────────────────────────────────────
+    'Headphones': {
+      brands: ['Sony', 'Bose', 'Apple', 'Samsung', 'Sennheiser', 'Audio-Technica', 'JBL', 'Beats', 'AKG', 'Jabra', 'Anker', 'Edifier'],
+      brandData: {
+        'Sony': {
+          series: ['WH Series', 'MDR Series'],
+          models: {
+            'WH Series': ['WH-1000XM4', 'WH-1000XM5', 'WH-CH520', 'WH-CH720N', 'WH-XB910N'],
+            'MDR Series': ['MDR-7506', 'MDR-ZX310', 'MDR-ZX770BN']
+          }
+        },
+        'Bose': {
+          series: ['QuietComfort Series'],
+          models: {
+            'QuietComfort Series': ['QuietComfort 45', 'QuietComfort Ultra', 'QuietComfort 35 II', 'Noise Cancelling 700']
+          }
+        },
+        'Apple': {
+          series: ['AirPods Max'],
+          models: { 'AirPods Max': ['AirPods Max (USB-C)', 'AirPods Max (Lightning)'] }
+        },
+        'Sennheiser': {
+          series: ['HD Series', 'Momentum Series', 'ACCENTUM Series'],
+          models: {
+            'HD Series': ['HD 200 Pro', 'HD 400S', 'HD 450BT', 'HD 560S', 'HD 600', 'HD 650', 'HD 660S2', 'HD 800 S'],
+            'Momentum Series': ['Momentum 3', 'Momentum 4', 'Momentum True Wireless 3', 'Momentum True Wireless 4'],
+            'ACCENTUM Series': ['ACCENTUM', 'ACCENTUM Plus', 'ACCENTUM True Wireless']
+          }
+        },
+        'JBL': {
+          series: ['Tune Series', 'Live Series'],
+          models: {
+            'Tune Series': ['Tune 510BT', 'Tune 520BT', 'Tune 710BT', 'Tune 770NC'],
+            'Live Series': ['Live 460NC', 'Live 660NC', 'Live 770NC']
+          }
+        },
+        'Beats': {
+          series: ['Studio Series', 'Solo Series'],
+          models: {
+            'Studio Series': ['Studio 3', 'Studio Pro'],
+            'Solo Series': ['Solo 3', 'Solo 4']
+          }
+        },
+        'Audio-Technica': {
+          series: ['ATH-M Series'],
+          models: { 'ATH-M Series': ['ATH-M20x', 'ATH-M30x', 'ATH-M40x', 'ATH-M50x', 'ATH-M50xBT2'] }
+        }
+      }
+    },
+
+    // ── EARPHONES ─────────────────────────────────────────────────────────────
+    'Earphones': {
+      brands: ['Apple', 'Samsung', 'Sony', 'JBL', 'Jabra', 'Sennheiser', 'Anker', 'Xiaomi', 'Huawei', 'OnePlus', 'Realme', 'Nothing', 'Beats'],
+      brandData: {
+        'Apple': {
+          series: ['AirPods Series', 'EarPods'],
+          models: {
+            'AirPods Series': ['AirPods 2', 'AirPods 3', 'AirPods 4', 'AirPods Pro 2'],
+            'EarPods': ['EarPods with USB-C', 'EarPods with Lightning', 'EarPods with 3.5mm']
+          }
+        },
+        'Samsung': {
+          series: ['Galaxy Buds Series'],
+          models: { 'Galaxy Buds Series': ['Galaxy Buds Live', 'Galaxy Buds Pro', 'Galaxy Buds 2', 'Galaxy Buds 2 Pro', 'Galaxy Buds FE', 'Galaxy Buds3', 'Galaxy Buds3 Pro'] }
+        },
+        'Sony': {
+          series: ['WF Series', 'LinkBuds Series'],
+          models: {
+            'WF Series': ['WF-1000XM4', 'WF-1000XM5', 'WF-C500', 'WF-C700N'],
+            'LinkBuds Series': ['LinkBuds', 'LinkBuds S', 'LinkBuds Open']
+          }
+        },
+        'JBL': {
+          series: ['Tune Series', 'Reflect Series'],
+          models: {
+            'Tune Series': ['Tune 115TWS', 'Tune 125TWS', 'Tune 130NC TWS', 'Tune 215TWS'],
+            'Reflect Series': ['Reflect Flow', 'Reflect Flow Pro', 'Reflect Mini NC']
+          }
+        },
+        'Anker': {
+          series: ['Soundcore Series'],
+          models: { 'Soundcore Series': ['Liberty 4', 'Liberty 4 NC', 'Liberty 4 Pro', 'Space A40', 'P30i', 'P40i'] }
+        },
+        'Jabra': {
+          series: ['Elite Series'],
+          models: { 'Elite Series': ['Elite 3', 'Elite 4', 'Elite 5', 'Elite 7 Pro', 'Elite 75t', 'Elite 85t'] }
+        },
+        'Nothing': {
+          series: ['Ear Series'],
+          models: { 'Ear Series': ['Ear (1)', 'Ear (2)', 'Ear (a)', 'Ear (open)'] }
+        }
+      }
+    },
+
+    // ── MICROPHONE ────────────────────────────────────────────────────────────
+    'Microphone': {
+      brands: ['Shure', 'Audio-Technica', 'Blue (Logitech)', 'Rode', 'Sennheiser', 'AKG', 'Behringer', 'Samson', 'HyperX', 'Razer', 'Fifine'],
+      brandData: {
+        'Shure': {
+          series: ['SM Series', 'MV Series', 'PGA Series'],
+          models: {
+            'SM Series': ['SM7B', 'SM7dB', 'SM58', 'SM57', 'SM86'],
+            'MV Series': ['MV7', 'MV7+', 'MV5', 'MV51'],
+            'PGA Series': ['PGA48', 'PGA58', 'PGA81', 'PGA27']
+          }
+        },
+        'Audio-Technica': {
+          series: ['AT Series', 'ATR Series'],
+          models: {
+            'AT Series': ['AT2020', 'AT2020USB+', 'AT2035', 'AT2050', 'AT4040', 'AT4050'],
+            'ATR Series': ['ATR2100x-USB', 'ATR2500x-USB']
+          }
+        },
+        'Rode': {
+          series: ['NT Series', 'Wireless Series'],
+          models: {
+            'NT Series': ['NT1', 'NT1 5th Gen', 'NT1-A', 'NT2-A', 'NT-USB', 'NT-USB+'],
+            'Wireless Series': ['Wireless GO II', 'Wireless ME', 'Wireless FILMMAKER KIT']
+          }
+        },
+        'Blue (Logitech)': {
+          series: ['Yeti Series', 'Snowball Series'],
+          models: {
+            'Yeti Series': ['Yeti', 'Yeti X', 'Yeti Nano', 'Yeti GX'],
+            'Snowball Series': ['Snowball', 'Snowball iCE']
+          }
+        },
+        'Fifine': {
+          series: ['USB Series', 'XLR Series'],
+          models: {
+            'USB Series': ['K669B', 'K678', 'K683A', 'AM8'],
+            'XLR Series': ['K688', 'AmpliGame A8']
+          }
+        }
+      }
+    },
+
+    // ── DJ EQUIPMENT ─────────────────────────────────────────────────────────
+    'DJ Equipment': {
+      brands: ['Pioneer DJ', 'Denon DJ', 'Numark', 'Rane', 'Reloop', 'Native Instruments', 'Allen & Heath', 'Hercules'],
+      brandData: {
+        'Pioneer DJ': {
+          series: ['CDJ Series', 'DDJ Series', 'XDJ Series', 'DJM Series'],
+          models: {
+            'CDJ Series': ['CDJ-2000NXS2', 'CDJ-3000'],
+            'DDJ Series': ['DDJ-200', 'DDJ-400', 'DDJ-800', 'DDJ-1000', 'DDJ-FLX4', 'DDJ-FLX6', 'DDJ-FLX10', 'DDJ-REV1', 'DDJ-REV5', 'DDJ-REV7'],
+            'XDJ Series': ['XDJ-RR', 'XDJ-RX3', 'XDJ-XZ'],
+            'DJM Series': ['DJM-250MK2', 'DJM-450', 'DJM-750MK2', 'DJM-900NXS2', 'DJM-A9', 'DJM-S9', 'DJM-S11']
+          }
+        },
+        'Denon DJ': {
+          series: ['SC Series', 'Prime Series'],
+          models: {
+            'SC Series': ['SC6000M', 'SC5000M'],
+            'Prime Series': ['Prime 2', 'Prime 4+', 'Prime GO']
+          }
+        },
+        'Numark': {
+          series: ['Mixtrack Series', 'NS Series'],
+          models: {
+            'Mixtrack Series': ['Mixtrack Platinum FX', 'Mixtrack Pro FX'],
+            'NS Series': ['NS6II', 'NS7III']
+          }
+        },
+        'Native Instruments': {
+          series: ['Traktor Series'],
+          models: { 'Traktor Series': ['Traktor Kontrol S2 MK3', 'Traktor Kontrol S3', 'Traktor Kontrol S4 MK3', 'Traktor Kontrol Z1 MK2'] }
+        }
+      }
+    },
+
+    // ── PA SYSTEM ─────────────────────────────────────────────────────────────
+    'PA System': {
+      brands: ['JBL', 'Yamaha', 'Bose', 'QSC', 'Electro-Voice', 'Mackie', 'Behringer', 'Alto Professional', 'Peavey'],
+      brandData: {
+        'JBL': {
+          series: ['EON Series', 'PRX Series', 'SRX Series'],
+          models: {
+            'EON Series': ['EON615', 'EON618S', 'EON712', 'EON718S', 'EON ONE Compact', 'EON ONE MK2'],
+            'PRX Series': ['PRX815W', 'PRX818XLFW', 'PRX835W'],
+            'SRX Series': ['SRX815P', 'SRX818SP', 'SRX835P']
+          }
+        },
+        'Yamaha': {
+          series: ['DXR Series', 'DBR Series', 'DSR Series'],
+          models: {
+            'DXR Series': ['DXR8', 'DXR10', 'DXR12', 'DXR15'],
+            'DBR Series': ['DBR10', 'DBR12', 'DBR15'],
+            'DSR Series': ['DSR112', 'DSR115', 'DSR118W', 'DSR215']
+          }
+        },
+        'QSC': {
+          series: ['K Series', 'CP Series'],
+          models: {
+            'K Series': ['K8.2', 'K10.2', 'K12.2', 'K Sub', 'KS118'],
+            'CP Series': ['CP8', 'CP12']
+          }
+        },
+        'Mackie': {
+          series: ['Thump Series', 'SRM Series'],
+          models: {
+            'Thump Series': ['Thump12A', 'Thump15A', 'Thump18S'],
+            'SRM Series': ['SRM450v3', 'SRM550', 'SRM650']
+          }
+        },
+        'Behringer': {
+          series: ['Eurolive Series'],
+          models: { 'Eurolive Series': ['B212D', 'B215D', 'B218XL', 'VP1220D', 'VP1520D', 'B1800D Pro'] }
+        }
+      }
+    },
+
+    // ── CAR AUDIO ─────────────────────────────────────────────────────────────
+    'Car Audio': {
+      brands: ['Pioneer', 'Sony', 'JVC', 'Kenwood', 'Alpine', 'JBL', 'Clarion', 'Boss Audio', 'Focal', 'Hertz', 'Rockford Fosgate'],
+      brandData: {
+        'Pioneer': {
+          series: ['AVH Series', 'DMH Series', 'MVH Series'],
+          models: {
+            'AVH Series': ['AVH-1550NEX', 'AVH-2550NEX', 'AVH-3550NEX', 'AVH-W4500NEX'],
+            'DMH Series': ['DMH-A345BT', 'DMH-A5100BT', 'DMH-W4660NEX'],
+            'MVH Series': ['MVH-S215BT', 'MVH-S315BT']
+          }
+        },
+        'Sony': {
+          series: ['XAV Series', 'DSX Series'],
+          models: {
+            'XAV Series': ['XAV-AX1000', 'XAV-AX3000', 'XAV-AX4000', 'XAV-AX5000', 'XAV-AX6000', 'XAV-AX8000'],
+            'DSX Series': ['DSX-GS80']
+          }
+        },
+        'Kenwood': {
+          series: ['DMX Series', 'DDX Series'],
+          models: {
+            'DMX Series': ['DMX125BT', 'DMX4707S', 'DMX5020S', 'DMX7706S', 'DMX8020S'],
+            'DDX Series': ['DDX9020DABS', 'DDX9020S']
+          }
+        },
+        'Alpine': {
+          series: ['iLX Series', 'INE Series'],
+          models: {
+            'iLX Series': ['iLX-W650', 'iLX-W690D', 'iLX-F115D', 'iLX-F511D'],
+            'INE Series': ['INE-W611DC', 'INE-W720D']
+          }
+        },
+        'JVC': {
+          series: ['KW Series', 'KD Series'],
+          models: {
+            'KW Series': ['KW-M560BT', 'KW-M780BT', 'KW-M900BW', 'KW-V960BW'],
+            'KD Series': ['KD-T716BT', 'KD-X472BT', 'KD-X282BT']
+          }
+        }
+      }
+    },
+
+    // ── MIXER ─────────────────────────────────────────────────────────────────
+    'Mixer': {
+      brands: ['Yamaha', 'Behringer', 'Mackie', 'Allen & Heath', 'Soundcraft', 'PreSonus', 'Tascam', 'Zoom', 'Roland'],
+      brandData: {
+        'Yamaha': {
+          series: ['MG Series', 'TF Series', 'CL Series'],
+          models: {
+            'MG Series': ['MG06X', 'MG10XU', 'MG12XU', 'MG16XU', 'MG20XU'],
+            'TF Series': ['TF1', 'TF3', 'TF5'],
+            'CL Series': ['CL1', 'CL3', 'CL5']
+          }
+        },
+        'Behringer': {
+          series: ['Xenyx Series', 'X-Air Series', 'Wing Series'],
+          models: {
+            'Xenyx Series': ['Xenyx 802S', 'Xenyx Q802USB', 'Xenyx Q1204USB', 'Xenyx X1832USB'],
+            'X-Air Series': ['XR12', 'XR16', 'XR18', 'X18'],
+            'Wing Series': ['WING', 'WING Rack', 'WING Compact']
+          }
+        },
+        'Mackie': {
+          series: ['ProFX Series', 'Mix Series', 'DL Series'],
+          models: {
+            'ProFX Series': ['ProFX6v3', 'ProFX10v3', 'ProFX12v3', 'ProFX16v3', 'ProFX22v3'],
+            'Mix Series': ['Mix5', 'Mix8', 'Mix12FX'],
+            'DL Series': ['DL16S', 'DL32S', 'DL32R']
+          }
+        },
+        'Allen & Heath': {
+          series: ['ZED Series', 'SQ Series', 'Avantis Series'],
+          models: {
+            'ZED Series': ['ZED-6', 'ZED-10FX', 'ZED-16FX', 'ZED-22FX'],
+            'SQ Series': ['SQ-5', 'SQ-6', 'SQ-7'],
+            'Avantis Series': ['Avantis', 'Avantis Solo']
+          }
+        }
+      }
+    },
+
+    // ── STUDIO EQUIPMENT ─────────────────────────────────────────────────────
+    'Studio Equipment': {
+      brands: ['Focusrite', 'Universal Audio', 'PreSonus', 'Native Instruments', 'Arturia', 'M-Audio', 'Audient', 'Roland'],
+      brandData: {
+        'Focusrite': {
+          series: ['Scarlett Series', 'Clarett Series'],
+          models: {
+            'Scarlett Series': ['Scarlett Solo', 'Scarlett 2i2', 'Scarlett 4i4', 'Scarlett 8i6', 'Scarlett 18i20'],
+            'Clarett Series': ['Clarett+ 2Pre', 'Clarett+ 4Pre', 'Clarett+ 8Pre']
+          }
+        },
+        'Universal Audio': {
+          series: ['Apollo Series'],
+          models: { 'Apollo Series': ['Apollo Solo', 'Apollo Twin X Duo', 'Apollo Twin X Quad', 'Apollo x4', 'Apollo x6', 'Apollo x8', 'Apollo x16'] }
+        },
+        'PreSonus': {
+          series: ['AudioBox Series', 'Studio Series'],
+          models: {
+            'AudioBox Series': ['AudioBox USB 96', 'AudioBox iTwo'],
+            'Studio Series': ['Studio 24c', 'Studio 26c', 'Studio 68c', 'Studio 192']
+          }
+        },
+        'Native Instruments': {
+          series: ['Komplete Audio', 'Maschine Series'],
+          models: {
+            'Komplete Audio': ['Komplete Audio 1', 'Komplete Audio 2', 'Komplete Audio 6 MK2'],
+            'Maschine Series': ['Maschine+', 'Maschine MK3', 'Maschine Mikro MK3']
+          }
+        },
+        'M-Audio': {
+          series: ['Air Series'],
+          models: { 'Air Series': ['AIR 192|4', 'AIR 192|6', 'AIR 192|8', 'AIR 192|14'] }
+        }
+      }
+    },
+
+    // ── RECEIVER ─────────────────────────────────────────────────────────────
+    'Receiver': {
+      brands: ['Yamaha', 'Denon', 'Marantz', 'Sony', 'Onkyo', 'Pioneer', 'Harman Kardon', 'NAD'],
+      brandData: {
+        'Yamaha': {
+          series: ['RX-V Series', 'RX-A Aventage Series'],
+          models: {
+            'RX-V Series': ['RX-V4A', 'RX-V6A', 'RX-V8A'],
+            'RX-A Aventage Series': ['RX-A2A', 'RX-A4A', 'RX-A6A', 'RX-A8A']
+          }
+        },
+        'Denon': {
+          series: ['AVR-X Series', 'AVR-S Series'],
+          models: {
+            'AVR-X Series': ['AVR-X1700H', 'AVR-X2700H', 'AVR-X3700H', 'AVR-X4700H', 'AVR-X6700H'],
+            'AVR-S Series': ['AVR-S570BT', 'AVR-S660H', 'AVR-S760H', 'AVR-S970H']
+          }
+        },
+        'Marantz': {
+          series: ['SR Series', 'Cinema Series'],
+          models: {
+            'SR Series': ['SR5015', 'SR6015', 'SR7015', 'SR8015'],
+            'Cinema Series': ['Cinema 60', 'Cinema 70s', 'Cinema 80s']
+          }
+        },
+        'Sony': {
+          series: ['STR-AN Series', 'STR-DH Series'],
+          models: {
+            'STR-AN Series': ['STR-AN1000'],
+            'STR-DH Series': ['STR-DH590', 'STR-DH790']
+          }
+        },
+        'Harman Kardon': {
+          series: ['AVR Series'],
+          models: { 'AVR Series': ['AVR 151S', 'AVR 161S', 'AVR 171S', 'AVR 271', 'AVR 370'] }
+        }
+      }
+    },
+
+    // ── TURNTABLE ─────────────────────────────────────────────────────────────
+    'Turntable': {
+      brands: ['Audio-Technica', 'Rega', 'Pro-Ject', 'Denon', 'Pioneer DJ', 'Technics', 'Crosley', 'Victrola', 'U-Turn'],
+      brandData: {
+        'Audio-Technica': {
+          series: ['AT-LP Series'],
+          models: { 'AT-LP Series': ['AT-LP60X', 'AT-LP60XBT', 'AT-LP120XBT-USB', 'AT-LP120XUSB', 'AT-LP140XP', 'AT-LP5x', 'AT-LP7', 'AT-LPW30TK', 'AT-LPW50BT-RW'] }
+        },
+        'Rega': {
+          series: ['Planar Series'],
+          models: { 'Planar Series': ['Planar 1', 'Planar 1 Plus', 'Planar 2', 'Planar 3', 'Planar 6', 'Planar 8', 'Planar 10'] }
+        },
+        'Pro-Ject': {
+          series: ['Debut Series', 'T Series', 'X Series'],
+          models: {
+            'Debut Series': ['Debut Carbon EVO', 'Debut EVO', 'Debut PRO'],
+            'T Series': ['T1 Phono SB', 'T1 BT'],
+            'X Series': ['X1', 'X2 B', 'X8 Evolution']
+          }
+        },
+        'Pioneer DJ': {
+          series: ['PLX Series'],
+          models: { 'PLX Series': ['PLX-500', 'PLX-1000'] }
+        },
+        'Technics': {
+          series: ['SL Series'],
+          models: { 'SL Series': ['SL-1200MK7', 'SL-1210MK7', 'SL-1500C', 'SL-1000R'] }
+        },
+        'Crosley': {
+          series: ['Cruiser Series', 'C Series'],
+          models: {
+            'Cruiser Series': ['Cruiser Plus', 'Cruiser Deluxe'],
+            'C Series': ['C6', 'C8', 'C62', 'C100']
+          }
+        }
+      }
+    },
+
+    // ── SPEAKER ───────────────────────────────────────────────────────────────
+    'Speaker': {
+      brands: ['JBL', 'Bose', 'Klipsch', 'KEF', 'Sony', 'Polk Audio', 'Sonos', 'Yamaha', 'Wharfedale', 'Vitron', 'Vision Plus'],
+      brandData: {
+        'JBL': {
+          series: ['Studio Series', 'L Series', 'HDI Series'],
+          models: {
+            'Studio Series': ['Studio 220', 'Studio 230', 'Studio 520C', 'Studio 530', 'Studio 590'],
+            'L Series': ['L52 Classic', 'L82 Classic', 'L100 Classic'],
+            'HDI Series': ['HDI-1600', 'HDI-3600', 'HDI-4500']
+          }
+        },
+        'Klipsch': {
+          series: ['RP Series', 'R Series'],
+          models: {
+            'RP Series': ['RP-500M', 'RP-600M', 'RP-8000F', 'RP-500C', 'RP-504C'],
+            'R Series': ['R-14M', 'R-15M', 'R-41M', 'R-51M', 'R-51PM', 'R-41PM']
+          }
+        },
+        'Sony': {
+          series: ['SS Series'],
+          models: { 'SS Series': ['SS-CS3', 'SS-CS5', 'SS-CS8', 'SS-NA2ES', 'SS-NA5ES'] }
+        },
+        'Polk Audio': {
+          series: ['Signature Elite', 'Reserve Series'],
+          models: {
+            'Signature Elite': ['ES10', 'ES15', 'ES20', 'ES60', 'ES90'],
+            'Reserve Series': ['R100', 'R200', 'R400', 'R600', 'R700']
+          }
+        },
+        'Sonos': {
+          series: ['Standard'],
+          models: { 'Standard': ['Era 100', 'Era 300', 'Five', 'Move 2'] }
         }
       }
     }
+
   }
 };
 
 export default CATEGORY_ATTRIBUTES;
+
+
 
