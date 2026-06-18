@@ -194,8 +194,18 @@ export default function PostAdPage() {
     <div style={{ padding: '40px 0 80px' }}>
       <div className="container" style={{ maxWidth: (isVehicle || isProperty) ? 960 : 780 }}>
         <div style={{ marginBottom: 32 }}>
-          <h1 style={{ fontSize: '1.8rem', marginBottom: 8 }}>Post a Free Ad</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Fill in the details below to list your item for sale</p>
+          <h1 style={{ fontSize: '1.8rem', marginBottom: 8 }}>
+            {form.category === 'jobs' ? 'Post a Job' :
+             form.category === 'seeking-work' ? 'Post Your CV / Profile' :
+             'Post a Free Ad'}
+          </h1>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            {form.category === 'jobs'
+              ? 'Fill in the job details below to attract the right candidates'
+              : form.category === 'seeking-work'
+              ? 'Share your skills and experience to connect with employers'
+              : 'Fill in the details below to list your item for sale'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -360,9 +370,14 @@ export default function PostAdPage() {
               <div className="form-group" style={{ marginTop: 20 }}>
                 <label className="form-label">Description *</label>
                 <textarea className="form-control" name="description" value={form.description} onChange={handleChange}
-                  placeholder={isVehicle
-                    ? 'Describe the vehicle — any extras, reason for selling, service history, etc.'
-                    : 'Describe your item in detail — condition, features, reason for selling...'
+                  placeholder={
+                    isVehicle
+                      ? 'Describe the vehicle — any extras, reason for selling, service history, etc.'
+                      : isJob
+                      ? 'Describe the role, key responsibilities, requirements, and any benefits offered...'
+                      : form.category === 'seeking-work'
+                      ? 'Describe your skills, experience, and what kind of work you are looking for...'
+                      : 'Describe your item in detail — condition, features, reason for selling...'
                   }
                   required rows={5} />
               </div>
