@@ -1082,7 +1082,7 @@ export const CATEGORY_ATTRIBUTES = {
 };
 
 export const CATEGORY_ICONS = [
-  { slug: 'auto-spares',          name: 'Auto Spares',                  icon: '⚙️' },
+  { slug: 'auto-spares',          name: 'Auto Spares & Accessories',    icon: '⚙️' },
   { slug: 'vehicles',             name: 'Vehicles',                     icon: '🚗' },
   { slug: 'property',             name: 'Property',                     icon: '🏠' },
   { slug: 'phones-tablets',       name: 'Phones & Tablets',             icon: '📱' },

@@ -61,9 +61,6 @@ export const MASTER_SPARE_PARTS = {
   ],
   'Sensors': [
     'Speed Sensor', 'ABS Sensor', 'Oxygen Sensor', 'MAF Sensor', 'MAP Sensor', 'Parking Sensor', 'TPMS Sensor'
-  ],
-  'Accessories': [
-    'Roof Rack', 'Bull Bar', 'Tow Bar', 'Dash Camera', 'Reverse Camera', 'Tracker', 'Alarm', 'Multimedia System', 'Speaker', 'Amplifier'
   ]
 };
 
