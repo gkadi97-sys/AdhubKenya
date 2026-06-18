@@ -186,7 +186,7 @@ export default function PostAdPage() {
               <div className="form-group">
                 <label className="form-label">Ad Title *</label>
                 <input className="form-control" name="title" value={form.title} onChange={handleChange}
-                  placeholder={isVehicle ? 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White' : (isProperty ? 'e.g. 4 Bedroom Villa in Karen with Pool' : 'e.g. iPhone 13 Pro Max - 256GB')}
+                  placeholder={isVehicle ? 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White' : (isProperty ? 'e.g. 4 Bedroom Villa in Karen with Pool' : (isAutoSpares ? 'e.g. Toyota Fielder NZE141 Front Bumper' : 'e.g. iPhone 13 Pro Max - 256GB'))}
                   maxLength={100} required />
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>{form.title.length}/100 characters</div>
               </div>
