@@ -55,12 +55,14 @@ export const HEAVY_TRUCK_DATA = {
 
     // ── ISUZU ────────────────────────────────────────────────────────────────
     'Isuzu': {
-      series: ['N Series (Light)', 'F Series (Medium)', 'C Series (Heavy)', 'Giga (Extra Heavy)'],
+      series: ['N-Series (ELF)', 'ELF Range', 'F-Series', 'C & E Series', 'GIGA Range', 'Commercial Vans'],
       models: {
-        'N Series (Light)':        ['NHR', 'NPR', 'NPR-HD', 'NQR', 'NQR75', 'NMR'],
-        'F Series (Medium)':       ['FRR', 'FSR', 'FTR', 'FVR'],
-        'C Series (Heavy)':        ['CYZ', 'CXZ'],
-        'Giga (Extra Heavy)':      ['Giga CYH', 'Giga EXZ'],
+        'N-Series (ELF)':          ['Isuzu NKR', 'Isuzu NPR', 'Isuzu NQR', 'Isuzu NHR', 'Isuzu NLR', 'Isuzu NMR', 'Isuzu NPS', 'Isuzu NRR', 'Isuzu NQR 75', 'Isuzu NPR HD', 'Isuzu NPR-XD', 'Standard Cab', 'Crew Cab', 'Wide Cab', '4x2', '4x4'],
+        'ELF Range':               ['Isuzu ELF 100', 'Isuzu ELF 150', 'Isuzu ELF 250', 'Isuzu ELF 350', 'Isuzu ELF 450', 'Isuzu ELF 500'],
+        'F-Series':                ['Isuzu FRR', 'Isuzu FSR', 'Isuzu FTR', 'Isuzu FVR', 'Isuzu FVM', 'Isuzu FVZ', 'Cargo', 'Tipper', 'Mixer', 'Box Body', 'Flatbed', 'Tractor Head'],
+        'C & E Series':            ['Isuzu CY', 'Isuzu CXZ', 'Isuzu CYJ', 'Isuzu EXR', 'Isuzu EXZ', 'Isuzu EXD', 'Isuzu EXY'],
+        'GIGA Range':              ['Isuzu GIGA EXZ', 'Isuzu GIGA EXR', 'Isuzu GIGA CYZ', 'Isuzu GIGA CXZ', 'Isuzu GIGA Tractor Head', 'Isuzu GIGA Cargo'],
+        'Commercial Vans':         ['Isuzu Journey Bus', 'Isuzu Como'],
       },
     },
 
@@ -277,9 +279,10 @@ export const PICKUP_DATA = {
       },
     },
     'Isuzu': {
-      series: ['D-Max'],
+      series: ['D-Max', 'Older Pickup Ranges'],
       models: {
-        'D-Max':                    ['D-Max Single Cab 4×2', 'D-Max Space Cab 4×2', 'D-Max Space Cab 4×4', 'D-Max Double Cab 4×2', 'D-Max Double Cab 4×4', 'D-Max V-Cross 4×4', 'D-Max LS-Terrain'],
+        'D-Max':                    ['Isuzu D-Max', 'Isuzu D-Max Single Cab', 'Isuzu D-Max Space Cab', 'Isuzu D-Max Double Cab', 'Isuzu D-Max Hi-Rider', 'Isuzu D-Max X-Terrain', 'Isuzu D-Max LS', 'Isuzu D-Max LS-M', 'Isuzu D-Max LS-U', 'Isuzu D-Max SX', 'Isuzu D-Max Blade', 'Isuzu D-Max V-Cross', 'Isuzu D-Max AT35', 'Isuzu D-Max Utility', 'Isuzu D-Max 4x2', 'Isuzu D-Max 4x4'],
+        'Older Pickup Ranges':      ['Isuzu KB', 'Isuzu KB200', 'Isuzu KB250', 'Isuzu KB300', 'Isuzu Faster', 'Isuzu TF Pickup', 'Isuzu Rodeo', 'Isuzu Hombre'],
       },
     },
     'Mitsubishi': {
