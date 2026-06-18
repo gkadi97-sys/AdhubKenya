@@ -85,19 +85,6 @@ export default function JobForm({ values = {}, onChange }) {
   const categories = Object.keys(JOB_CATEGORIES);
   const roles = category ? JOB_CATEGORIES[category] : [];
 
-  const [categorySearch, setCategorySearch] = useState('');
-  const [roleSearch, setRoleSearch] = useState('');
-  const [categoryExpanded, setCategoryExpanded] = useState(false);
-  const [roleExpanded, setRoleExpanded] = useState(false);
-
-  const filteredCategories = categorySearch
-    ? categories.filter(c => c.toLowerCase().includes(categorySearch.toLowerCase()))
-    : categories;
-
-  const filteredRoles = roleSearch
-    ? roles.filter(r => r.toLowerCase().includes(roleSearch.toLowerCase()))
-    : roles;
-
   // Reset role when category changes
   useEffect(() => {
     if (category && !JOB_CATEGORIES[category]?.includes(role)) {
@@ -113,60 +100,16 @@ export default function JobForm({ values = {}, onChange }) {
       <SectionLabel icon="💼" text="Job Classification" />
       <div style={GRID}>
         <Field label="Job Category" required>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="🔍 Search or select category..."
-            value={categorySearch}
-            onChange={e => { setCategorySearch(e.target.value); setCategoryExpanded(true); }}
-            onFocus={() => { setCategoryExpanded(true); setCategorySearch(''); }}
-            style={{ fontSize: '0.85rem' }}
-          />
-          {categoryExpanded && (
-            <select
-              className="form-control"
-              style={{ fontSize: '0.85rem', marginTop: 4 }}
-              value={category}
-              onChange={e => {
-                const v = e.target.value;
-                setCategory(v); emit({ make: v }); setCategorySearch(v); setCategoryExpanded(false);
-              }}
-              size={Math.min(filteredCategories.length + 1, 7)}
-              autoFocus
-            >
-              <option value="">-- Select Category --</option>
-              {filteredCategories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          )}
+          <Sel value={category} onChange={v => { setCategory(v); emit({ make: v }); }} placeholder="-- Select Category --">
+            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          </Sel>
         </Field>
 
         {category && roles.length > 0 && (
           <Field label="Role / Position" required>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="🔍 Search or select role..."
-              value={roleSearch}
-              onChange={e => { setRoleSearch(e.target.value); setRoleExpanded(true); }}
-              onFocus={() => { setRoleExpanded(true); setRoleSearch(''); }}
-              style={{ fontSize: '0.85rem' }}
-            />
-            {roleExpanded && (
-              <select
-                className="form-control"
-                style={{ fontSize: '0.85rem', marginTop: 4 }}
-                value={role}
-                onChange={e => {
-                  const v = e.target.value;
-                  setRole(v); emit({ model: v }); setRoleSearch(v); setRoleExpanded(false);
-                }}
-                size={Math.min(filteredRoles.length + 1, 7)}
-                autoFocus
-              >
-                <option value="">-- Select Role --</option>
-                {filteredRoles.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
-            )}
+            <Sel value={role} onChange={v => { setRole(v); emit({ model: v }); }} placeholder="-- Select Role --">
+              {roles.map(r => <option key={r} value={r}>{r}</option>)}
+            </Sel>
           </Field>
         )}
       </div>
