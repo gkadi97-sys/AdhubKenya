@@ -7,10 +7,12 @@ import CountyTownSelect from '@/components/CountyTownSelect';
 import ItemAttributesSelect from '@/components/ItemAttributesSelect';
 import AutoSparesForm from '@/components/AutoSparesForm';
 import VehicleForm from '@/components/VehicleForm';
+import TruckForm from '@/components/TruckForm';
 import PropertyForm from '@/components/PropertyForm';
 import LaptopForm from '@/components/LaptopForm';
 import PhoneForm from '@/components/PhoneForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
+import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { Link } from 'react-router-dom';
 
 const STANDARD_CONDITIONS = ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
@@ -92,13 +94,15 @@ export default function PostAdPage() {
     setPreviews(newPreviews);
   };
 
-  const isVehicle   = form.category === 'vehicles' || form.category === 'commercial-vehicles';
-  const isProperty  = form.category === 'property' || form.category === 'land-plots';
+  const isVehicle    = form.category === 'vehicles' || form.category === 'commercial-vehicles';
+  const isProperty   = form.category === 'property' || form.category === 'land-plots';
   const isAutoSpares = form.category === 'auto-spares';
-  const isAudio     = attrs.make === 'Audio & Music';
-  const isLaptop    = attrs.specs?.deviceType === 'laptop' ||
-                      (form.category === 'electronics' && attrs.specs?.brand && ['HP','Dell','Lenovo','Apple','Asus','Acer','Microsoft','MSI','Razer','Samsung','Huawei','LG'].includes(attrs.specs?.brand));
-  const isPhone     = form.category === 'phones-tablets';
+  const isAudio      = attrs.make === 'Audio & Music';
+  const isHeavyTruck = form.category === 'commercial-vehicles';
+  const isPickupTruck = form.category === 'vehicles' && attrs.specs?.vehicleType === 'Pickup / Truck';
+  const isLaptop     = attrs.specs?.deviceType === 'laptop' ||
+                       (form.category === 'electronics' && attrs.specs?.brand && ['HP','Dell','Lenovo','Apple','Asus','Acer','Microsoft','MSI','Razer','Samsung','Huawei','LG'].includes(attrs.specs?.brand));
+  const isPhone      = form.category === 'phones-tablets';
   const CONDITION_CATEGORIES = ['phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids', 'auto-spares'];
   const showStandardCondition = CONDITION_CATEGORIES.includes(form.category) && !isProperty && !isAutoSpares && !isAudio && !isPhone;
 
@@ -106,7 +110,9 @@ export default function PostAdPage() {
     switch (cat) {
       case 'vehicles':
       case 'commercial-vehicles':
-        return 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White';
+        return isHeavyTruck
+          ? 'e.g. Isuzu NQR – 4×2 Dropside – 2020'
+          : 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White';
       case 'property':
       case 'land-plots':
         return 'e.g. 4 Bedroom Villa in Karen with Pool';
@@ -258,6 +264,17 @@ export default function PostAdPage() {
                   </div>
                 )}
 
+                {/* Condition for trucks (heavy & pickup) */}
+                {(isHeavyTruck || isPickupTruck) && (
+                  <div className="form-group">
+                    <label className="form-label">Condition *</label>
+                    <select className="form-control" name="condition" value={form.condition} onChange={handleChange} required>
+                      <option value="">Select Condition</option>
+                      {TRUCK_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                )}
+
                 {/* Condition for non-vehicle categories */}
                 {showStandardCondition && (
                   <div className="form-group">
@@ -278,10 +295,24 @@ export default function PostAdPage() {
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>{form.title.length}/100 characters</div>
               </div>
 
-              {/* Vehicle-specific comprehensive form */}
-              {isVehicle && (
+              {/* Commercial vehicles (heavy trucks) → TruckForm */}
+              {isHeavyTruck && (
+                <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+                  <TruckForm truckMode="heavy" values={attrs} onChange={setAttrs} />
+                </div>
+              )}
+
+              {/* Standard vehicles (cars, SUV, motorcycles) but NOT pickups and NOT heavy trucks → VehicleForm */}
+              {isVehicle && !isHeavyTruck && !isPickupTruck && (
                 <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
                   <VehicleForm values={attrs} onChange={setAttrs} />
+                </div>
+              )}
+
+              {/* Pickup / Truck inside vehicles category → TruckForm pickup mode */}
+              {isPickupTruck && (
+                <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+                  <TruckForm truckMode="pickup" values={attrs} onChange={setAttrs} />
                 </div>
               )}
 
