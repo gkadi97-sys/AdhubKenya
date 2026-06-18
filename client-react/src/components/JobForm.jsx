@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { JOB_CATEGORIES, JOB_FILTERS } from '@/lib/jobsData';
+import SearchableSelect from './SearchableSelect';
 
 const GRID = {
   display: 'grid',
@@ -100,16 +101,24 @@ export default function JobForm({ values = {}, onChange }) {
       <SectionLabel icon="💼" text="Job Classification" />
       <div style={GRID}>
         <Field label="Job Category" required>
-          <Sel value={category} onChange={v => { setCategory(v); emit({ make: v }); }} placeholder="Select Category">
-            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-          </Sel>
+          <SearchableSelect 
+            value={category} 
+            onChange={v => { setCategory(v); emit({ make: v }); }} 
+            placeholder="Search or select category"
+            options={categories}
+            required
+          />
         </Field>
 
         {category && roles.length > 0 && (
           <Field label="Role / Position" required>
-            <Sel value={role} onChange={v => { setRole(v); emit({ model: v }); }} placeholder="Select Role">
-              {roles.map(r => <option key={r} value={r}>{r}</option>)}
-            </Sel>
+            <SearchableSelect 
+              value={role} 
+              onChange={v => { setRole(v); emit({ model: v }); }} 
+              placeholder="Search or select role"
+              options={roles}
+              required
+            />
           </Field>
         )}
       </div>
