@@ -158,6 +158,47 @@ export default function PostAdPage() {
     }
   };
 
+  const getDescriptionPlaceholder = (cat) => {
+    if (isVehicle) return 'Describe the vehicle — any extras, reason for selling, service history, etc.';
+    if (isJob) return 'Describe the role, key responsibilities, requirements, and any benefits offered...';
+    
+    switch (cat) {
+      case 'property':
+      case 'land-plots':
+        return 'Describe the property — amenities, exact location details, title deed status, viewing arrangements...';
+      case 'auto-spares':
+        return 'Describe the spare part — compatibility, condition, brand, reason for selling...';
+      case 'phones-tablets':
+        return 'Describe the device — battery health, storage, included accessories, condition...';
+      case 'electronics':
+        return 'Describe the item — brand, model, condition, accessories included, reason for selling...';
+      case 'home-furniture':
+        return 'Describe the item — material, dimensions, condition, reason for selling...';
+      case 'fashion':
+        return 'Describe the item — size, material, brand, condition...';
+      case 'beauty':
+        return 'Describe the product — brand, quantity/volume, skin/hair type, condition...';
+      case 'services':
+        return 'Describe the service — your expertise, what\'s included, coverage area, pricing structure...';
+      case 'repair-construction':
+        return 'Describe the materials or tools — quantity, condition, brand...';
+      case 'commercial-equipment':
+        return 'Describe the equipment — capacity, condition, brand, power requirements...';
+      case 'leisure':
+        return 'Describe the item — condition, accessories included, brand...';
+      case 'babies-kids':
+        return 'Describe the item — age range, condition, safety features...';
+      case 'food-agriculture':
+        return 'Describe the produce/product — quantity, freshness, origin, delivery options...';
+      case 'animals-pets':
+        return 'Describe the pet/animal — breed, age, vaccination status, temperament...';
+      case 'seeking-work':
+        return 'Describe your skills, experience, and what kind of work you are looking for...';
+      default:
+        return 'Describe your item in detail — condition, features, reason for selling...';
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -370,15 +411,7 @@ export default function PostAdPage() {
               <div className="form-group" style={{ marginTop: 20 }}>
                 <label className="form-label">Description *</label>
                 <textarea className="form-control" name="description" value={form.description} onChange={handleChange}
-                  placeholder={
-                    isVehicle
-                      ? 'Describe the vehicle — any extras, reason for selling, service history, etc.'
-                      : isJob
-                      ? 'Describe the role, key responsibilities, requirements, and any benefits offered...'
-                      : form.category === 'seeking-work'
-                      ? 'Describe your skills, experience, and what kind of work you are looking for...'
-                      : 'Describe your item in detail — condition, features, reason for selling...'
-                  }
+                  placeholder={getDescriptionPlaceholder(form.category)}
                   required rows={5} />
               </div>
             </div>
