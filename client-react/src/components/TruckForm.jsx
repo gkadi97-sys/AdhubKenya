@@ -4,7 +4,7 @@ import {
   TRUCK_BODY_TYPES, TRUCK_DRIVE_TYPES,
   TRUCK_FUELS, TRUCK_TRANSMISSIONS,
 } from '@/lib/truckData';
-import { MANUFACTURE_YEARS as YEARS, CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
+import { MANUFACTURE_YEARS as YEARS, VEHICLE_SPECS } from '@/lib/categoryData';
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -115,7 +115,7 @@ export default function TruckForm({ truckMode = 'heavy', values = {}, onChange }
               setSpec('vehicleType', v);
               // PostAd.jsx will automatically switch back to VehicleForm when this changes
             }} placeholder="Select Vehicle Type">
-              {CATEGORY_ATTRIBUTES.vehicles.specs.vehicleTypes.map(vt => <option key={vt} value={vt}>{vt}</option>)}
+              {VEHICLE_SPECS.vehicleTypes.map(vt => <option key={vt} value={vt}>{vt}</option>)}
             </Sel>
           </Field>
         )}
