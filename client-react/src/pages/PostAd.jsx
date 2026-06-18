@@ -132,7 +132,7 @@ export default function PostAdPage() {
       case 'seeking-work':
         return 'e.g. Experienced Driver with Class B, C, E License';
       default:
-        return 'e.g. iPhone 13 Pro Max - 256GB';
+        return '';
     }
   };
 
