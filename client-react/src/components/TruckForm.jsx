@@ -164,9 +164,19 @@ export default function TruckForm({ truckMode = 'heavy', values = {}, onChange }
           <div style={GRID}>
 
             <Field label="Body Type">
-              <Sel value={specs.bodyType} onChange={v => setSpec('bodyType', v)} placeholder="Select Body Type">
-                {TRUCK_BODY_TYPES.map(b => <option key={b} value={b}>{b}</option>)}
-              </Sel>
+              <select
+                className="form-control"
+                style={{ fontSize: '0.85rem' }}
+                value={specs.bodyType || ''}
+                onChange={e => setSpec('bodyType', e.target.value)}
+              >
+                <option value="">Select Body Type…</option>
+                {Object.entries(TRUCK_BODY_TYPES).map(([group, types]) => (
+                  <optgroup key={group} label={group}>
+                    {types.map(t => <option key={t} value={t}>{t}</option>)}
+                  </optgroup>
+                ))}
+              </select>
             </Field>
 
             <Field label="Drive / Axle Configuration">

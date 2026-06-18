@@ -4,10 +4,42 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const TRUCK_CONDITIONS    = ['Brand New', 'Ex-Japan', 'Ex-UK', 'Foreign Used', 'Locally Used', 'Refurbished'];
-export const TRUCK_BODY_TYPES    = ['Box Truck', 'Curtainsider', 'Dropside', 'Flatbed', 'Tipper', 'Refrigerated', 'Tanker', 'Container Carrier', 'Car Carrier', 'Recovery Truck', 'Prime Mover', 'Mixer', 'Garbage Truck', 'Crane Truck', 'Livestock Carrier'];
 export const TRUCK_DRIVE_TYPES   = ['4×2', '4×4', '6×2', '6×4', '8×4', '10×4'];
 export const TRUCK_FUELS         = ['Diesel', 'Petrol', 'Hybrid', 'Electric'];
 export const TRUCK_TRANSMISSIONS = ['Manual', 'Automatic', 'AMT (Automated Manual)'];
+
+// Grouped body types — used to render <optgroup> in the form
+export const TRUCK_BODY_TYPES = {
+  '🔒 Enclosed / Closed': [
+    'Box / Van Body',
+    'Refrigerated (Reefer)',
+    'Tanker – Liquid',
+    'Tanker – Bulk / Powder',
+    'Curtainsider',
+    'Garbage / Compactor',
+  ],
+  '🔓 Open / Flatbed': [
+    'Flatbed',
+    'Dropside',
+    'Tipper / Dump',
+    'Livestock Carrier',
+    'Log / Timber Carrier',
+    'Skip Loader',
+  ],
+  '🔧 Specialised': [
+    'Prime Mover / Tractor Unit',
+    'Container Carrier',
+    'Car Carrier / Auto Transporter',
+    'Crane Truck',
+    'Concrete Mixer',
+    'Recovery / Wrecker',
+    'Fuel Bowser',
+    'Water Bowser',
+    'Ambulance / Medical',
+    'Fire Truck',
+    'Other',
+  ],
+};
 
 // ── HEAVY TRUCK HIERARCHY ─────────────────────────────────────────────────────
 export const HEAVY_TRUCK_DATA = {
