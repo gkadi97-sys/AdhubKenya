@@ -1044,19 +1044,10 @@ export const CATEGORY_ATTRIBUTES = {
 
   'jobs': {
     level1Label: 'Category',
-    level2Label: 'Industry',
+    level2Label: 'Role',
     hasYear: false,
-    data: {
-      'IT & Software': ['Software Engineering','Data Science','IT Support','Web Design'],
-      'Sales & Marketing': ['Sales Executive','Digital Marketing','Brand Ambassador','Retail Sales'],
-      'Accounting & Finance': ['Accountant','Auditor','Financial Analyst','Bank Teller'],
-      'Healthcare': ['Nurse','Doctor','Pharmacist','Lab Technician'],
-      'Driving & Logistics': ['Driver','Delivery Rider','Warehouse Manager','Supply Chain'],
-      'Customer Service': ['Call Center Agent','Receptionist','Customer Care'],
-      'Engineering & Construction': ['Civil Engineer','Electrical Engineer','Architect','Site Supervisor'],
-      'Hospitality & Tourism': ['Chef/Cook','Waiter/Waitress','Hotel Manager','Tour Guide'],
-      'Teaching & Education': ['Teacher','Tutor','Lecturer','School Administrator']
-    }
+    hasCustomForm: true, // Tells PostAd to use JobForm
+    data: {} // Data is now handled inside jobsData.js and JobForm.jsx
   },
 
   'seeking-work': {

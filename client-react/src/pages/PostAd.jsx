@@ -11,6 +11,7 @@ import TruckForm from '@/components/TruckForm';
 import PropertyForm from '@/components/PropertyForm';
 import LaptopForm from '@/components/LaptopForm';
 import PhoneForm from '@/components/PhoneForm';
+import JobForm from '@/components/JobForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { Link } from 'react-router-dom';
@@ -104,6 +105,7 @@ export default function PostAdPage() {
   const isLaptop     = attrs.specs?.deviceType === 'laptop' ||
                        (form.category === 'electronics' && attrs.specs?.brand && ['HP','Dell','Lenovo','Apple','Asus','Acer','Microsoft','MSI','Razer','Samsung','Huawei','LG'].includes(attrs.specs?.brand));
   const isPhone      = form.category === 'phones-tablets';
+  const isJob        = form.category === 'jobs';
   const CONDITION_CATEGORIES = ['phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids', 'auto-spares'];
   const showStandardCondition = CONDITION_CATEGORIES.includes(form.category) && !isProperty && !isAutoSpares && !isAudio && !isPhone;
 
@@ -127,6 +129,8 @@ export default function PostAdPage() {
           : 'e.g. Samsung 65" QLED 4K Smart TV';
       case 'home-furniture':
         return 'e.g. 6-Seater Mahogany Dining Table Set';
+      case 'jobs':
+        return 'e.g. Senior Software Engineer - Remote';
       case 'fashion':
         return 'e.g. Men\'s Official Leather Shoes - Size 42';
       case 'beauty':
@@ -157,7 +161,7 @@ export default function PostAdPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!form.title || !form.description || !form.price || !form.category || !form.location || !form.phone) {
+    if (!form.title || !form.description || (!isJob && !form.price) || !form.category || !form.location || !form.phone) {
       setError('Please fill in all required fields'); return;
     }
     if (isVehicle && !form.condition) {
@@ -166,6 +170,7 @@ export default function PostAdPage() {
     setLoading(true);
     try {
       const listingData = { ...form };
+      if (isJob) listingData.price = 0; // price isn't used for jobs, salary range is in specs
       if (!showStandardCondition && !isVehicle) delete listingData.condition;
 
       if (attrs.make)  listingData.make  = attrs.make;
@@ -338,8 +343,15 @@ export default function PostAdPage() {
                 </div>
               )}
 
+              {/* Jobs smart form */}
+              {isJob && (
+                <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+                  <JobForm values={attrs} onChange={setAttrs} />
+                </div>
+              )}
+
               {/* Other non-vehicle attributes (delegates smart forms internally) */}
-              {!isVehicle && !isProperty && !isAutoSpares && !isPhone && form.category && (
+              {!isVehicle && !isProperty && !isAutoSpares && !isPhone && !isJob && form.category && (
                 <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                   <ItemAttributesSelect category={form.category} values={attrs} onChange={setAttrs} />
                 </div>
@@ -358,6 +370,7 @@ export default function PostAdPage() {
           </div>
 
           {/* ── Pricing ────────────────────────────────────────── */}
+          {!isJob && (
           <div className="card" style={{ marginBottom: 20 }}>
             <div className="card-body">
               <h3 style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>💰 Pricing</h3>
@@ -377,6 +390,7 @@ export default function PostAdPage() {
               </div>
             </div>
           </div>
+          )}
 
           {/* ── Location ───────────────────────────────────────── */}
           <div className="card" style={{ marginBottom: 20 }}>
