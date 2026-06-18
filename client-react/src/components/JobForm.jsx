@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { JOB_CATEGORIES, JOB_FILTERS } from '@/lib/jobsData';
-import SearchableSelect from './SearchableSelect';
 
 const GRID = {
   display: 'grid',
@@ -86,6 +85,17 @@ export default function JobForm({ values = {}, onChange }) {
   const categories = Object.keys(JOB_CATEGORIES);
   const roles = category ? JOB_CATEGORIES[category] : [];
 
+  const [categorySearch, setCategorySearch] = useState('');
+  const [roleSearch, setRoleSearch] = useState('');
+
+  const filteredCategories = categorySearch
+    ? categories.filter(c => c.toLowerCase().includes(categorySearch.toLowerCase()))
+    : categories;
+
+  const filteredRoles = roleSearch
+    ? roles.filter(r => r.toLowerCase().includes(roleSearch.toLowerCase()))
+    : roles;
+
   // Reset role when category changes
   useEffect(() => {
     if (category && !JOB_CATEGORIES[category]?.includes(role)) {
@@ -101,24 +111,48 @@ export default function JobForm({ values = {}, onChange }) {
       <SectionLabel icon="💼" text="Job Classification" />
       <div style={GRID}>
         <Field label="Job Category" required>
-          <SearchableSelect 
-            value={category} 
-            onChange={v => { setCategory(v); emit({ make: v }); }} 
-            placeholder="Search or select category"
-            options={categories}
-            required
+          <input
+            type="text"
+            className="form-control"
+            placeholder="🔍 Filter categories..."
+            value={categorySearch}
+            onChange={e => setCategorySearch(e.target.value)}
+            style={{ fontSize: '0.82rem', marginBottom: 6 }}
           />
+          <select
+            className="form-control"
+            style={{ fontSize: '0.85rem' }}
+            value={category}
+            onChange={e => { setCategory(e.target.value); emit({ make: e.target.value }); setCategorySearch(''); }}
+            required
+            size={Math.min(filteredCategories.length + 1, 6)}
+          >
+            <option value="">-- Select Category --</option>
+            {filteredCategories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
         </Field>
 
         {category && roles.length > 0 && (
           <Field label="Role / Position" required>
-            <SearchableSelect 
-              value={role} 
-              onChange={v => { setRole(v); emit({ model: v }); }} 
-              placeholder="Search or select role"
-              options={roles}
-              required
+            <input
+              type="text"
+              className="form-control"
+              placeholder="🔍 Filter roles..."
+              value={roleSearch}
+              onChange={e => setRoleSearch(e.target.value)}
+              style={{ fontSize: '0.82rem', marginBottom: 6 }}
             />
+            <select
+              className="form-control"
+              style={{ fontSize: '0.85rem' }}
+              value={role}
+              onChange={e => { setRole(e.target.value); emit({ model: e.target.value }); setRoleSearch(''); }}
+              required
+              size={Math.min(filteredRoles.length + 1, 6)}
+            >
+              <option value="">-- Select Role --</option>
+              {filteredRoles.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
           </Field>
         )}
       </div>
