@@ -108,17 +108,14 @@ export default function TruckForm({ truckMode = 'heavy', values = {}, onChange }
       <SectionLabel icon={truckMode === 'heavy' ? '🚛' : '🛻'} text={truckMode === 'heavy' ? 'Truck Details' : 'Pickup Truck Details'} />
       <div style={GRID}>
 
-        {/* Vehicle Type (Allows user to switch back to Car/SUV/Motorcycle) */}
-        {truckMode === 'pickup' && (
-          <Field label="Vehicle Type" required>
-            <Sel value={specs.vehicleType || 'Pickup / Truck'} onChange={v => {
-              setSpec('vehicleType', v);
-              // PostAd.jsx will automatically switch back to VehicleForm when this changes
-            }} placeholder="Select Vehicle Type">
-              {VEHICLE_SPECS.vehicleTypes.map(vt => <option key={vt} value={vt}>{vt}</option>)}
-            </Sel>
-          </Field>
-        )}
+        {/* Vehicle Type (always visible so user can switch type without refreshing) */}
+        <Field label="Vehicle Type" required>
+          <Sel value={specs.vehicleType || (truckMode === 'pickup' ? 'Pickup / Truck' : 'Heavy Truck')} onChange={v => {
+            setSpec('vehicleType', v);
+          }} placeholder="Select Vehicle Type">
+            {VEHICLE_SPECS.vehicleTypes.map(vt => <option key={vt} value={vt}>{vt}</option>)}
+          </Sel>
+        </Field>
 
         {/* Brand */}
         <Field label="Brand" required>

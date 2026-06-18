@@ -98,7 +98,8 @@ export default function PostAdPage() {
   const isProperty   = form.category === 'property' || form.category === 'land-plots';
   const isAutoSpares = form.category === 'auto-spares';
   const isAudio      = attrs.make === 'Audio & Music';
-  const isHeavyTruck = form.category === 'commercial-vehicles';
+  const HEAVY_TRUCK_TYPES = ['Heavy Truck', 'Bus', 'Construction Equipment', 'Agricultural Equipment', 'Trailer'];
+  const isHeavyTruck = form.category === 'commercial-vehicles' || (form.category === 'vehicles' && HEAVY_TRUCK_TYPES.includes(attrs.specs?.vehicleType));
   const isPickupTruck = form.category === 'vehicles' && attrs.specs?.vehicleType === 'Pickup / Truck';
   const isLaptop     = attrs.specs?.deviceType === 'laptop' ||
                        (form.category === 'electronics' && attrs.specs?.brand && ['HP','Dell','Lenovo','Apple','Asus','Acer','Microsoft','MSI','Razer','Samsung','Huawei','LG'].includes(attrs.specs?.brand));
