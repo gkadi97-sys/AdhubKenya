@@ -8,6 +8,8 @@ import ItemAttributesSelect from '@/components/ItemAttributesSelect';
 import AutoSparesForm from '@/components/AutoSparesForm';
 import VehicleForm from '@/components/VehicleForm';
 import PropertyForm from '@/components/PropertyForm';
+import LaptopForm from '@/components/LaptopForm';
+import PhoneForm from '@/components/PhoneForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { Link } from 'react-router-dom';
 
@@ -15,6 +17,8 @@ const STANDARD_CONDITIONS = ['New', 'Used - Like New', 'Used - Good', 'Used - Fa
 const VEHICLE_CONDITIONS = ['Brand New', 'Foreign Used', 'Locally Used', 'Accident Damaged', 'Rebuilt'];
 const AUTOSPARES_CONDITIONS = ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'];
 const AUDIO_CONDITIONS = ['Brand New', 'Open Box', 'Ex-UK', 'Foreign Used', 'Locally Used', 'Refurbished'];
+const LAPTOP_CONDITIONS = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
+const PHONE_CONDITIONS  = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
 
 export default function PostAdPage() {
   const { user } = useAuth();
@@ -88,12 +92,15 @@ export default function PostAdPage() {
     setPreviews(newPreviews);
   };
 
-  const isVehicle = form.category === 'vehicles' || form.category === 'commercial-vehicles';
-  const isProperty = form.category === 'property' || form.category === 'land-plots';
+  const isVehicle   = form.category === 'vehicles' || form.category === 'commercial-vehicles';
+  const isProperty  = form.category === 'property' || form.category === 'land-plots';
   const isAutoSpares = form.category === 'auto-spares';
-  const isAudio = attrs.make === 'Audio & Music';
+  const isAudio     = attrs.make === 'Audio & Music';
+  const isLaptop    = attrs.specs?.deviceType === 'laptop' ||
+                      (form.category === 'electronics' && attrs.specs?.brand && ['HP','Dell','Lenovo','Apple','Asus','Acer','Microsoft','MSI','Razer','Samsung','Huawei','LG'].includes(attrs.specs?.brand));
+  const isPhone     = form.category === 'phones-tablets';
   const CONDITION_CATEGORIES = ['phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids', 'auto-spares'];
-  const showStandardCondition = CONDITION_CATEGORIES.includes(form.category) && !isProperty && !isAutoSpares && !isAudio;
+  const showStandardCondition = CONDITION_CATEGORIES.includes(form.category) && !isProperty && !isAutoSpares && !isAudio && !isPhone;
 
   const getTitlePlaceholder = (cat) => {
     switch (cat) {
@@ -106,9 +113,11 @@ export default function PostAdPage() {
       case 'auto-spares':
         return 'e.g. Toyota Fielder NZE141 Front Bumper';
       case 'phones-tablets':
-        return 'e.g. iPhone 13 Pro Max - 256GB';
+        return 'e.g. Samsung Galaxy S24 Ultra 512GB - Titanium Black';
       case 'electronics':
-        return 'e.g. Samsung 65" QLED 4K Smart TV';
+        return attrs.specs?.brand && ['HP','Dell','Lenovo','Apple','Asus','Acer','Microsoft'].includes(attrs.specs.brand)
+          ? `e.g. ${attrs.specs.brand} ${attrs.model || 'Laptop'} - ${attrs.specs.ram || ''} ${attrs.specs.storageSize || ''}`.trim()
+          : 'e.g. Samsung 65" QLED 4K Smart TV';
       case 'home-furniture':
         return 'e.g. 6-Seater Mahogany Dining Table Set';
       case 'fashion':
@@ -227,6 +236,28 @@ export default function PostAdPage() {
                   </div>
                 )}
 
+                {/* Condition for phones & tablets */}
+                {isPhone && (
+                  <div className="form-group">
+                    <label className="form-label">Condition *</label>
+                    <select className="form-control" name="condition" value={form.condition} onChange={handleChange} required>
+                      <option value="">Select Condition</option>
+                      {PHONE_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                )}
+
+                {/* Condition for laptops */}
+                {isLaptop && !isPhone && (
+                  <div className="form-group">
+                    <label className="form-label">Condition *</label>
+                    <select className="form-control" name="condition" value={form.condition} onChange={handleChange} required>
+                      <option value="">Select Condition</option>
+                      {LAPTOP_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                )}
+
                 {/* Condition for non-vehicle categories */}
                 {showStandardCondition && (
                   <div className="form-group">
@@ -268,8 +299,24 @@ export default function PostAdPage() {
                 </div>
               )}
 
-              {/* Non-vehicle attributes */}
-              {!isVehicle && !isProperty && !isAutoSpares && form.category && (
+              {/* Phones & Tablets smart form */}
+              {isPhone && (
+                <div style={{ marginTop: 8, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+                  <PhoneForm values={attrs} onChange={setAttrs} />
+                </div>
+              )}
+
+              {/* Laptops smart form (inside Electronics) */}
+              {!isVehicle && !isProperty && !isAutoSpares && !isPhone && form.category === 'electronics' && (
+                <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                  <LaptopForm values={attrs} onChange={(v) => {
+                    setAttrs(v);
+                  }} />
+                </div>
+              )}
+
+              {/* Other non-vehicle attributes */}
+              {!isVehicle && !isProperty && !isAutoSpares && !isPhone && form.category !== 'electronics' && form.category && (
                 <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                   <ItemAttributesSelect category={form.category} values={attrs} onChange={setAttrs} />
                 </div>
