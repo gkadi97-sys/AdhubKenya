@@ -93,6 +93,49 @@ export default function PostAdPage() {
   const CONDITION_CATEGORIES = ['phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids', 'auto-spares'];
   const showStandardCondition = CONDITION_CATEGORIES.includes(form.category) && !isProperty && !isAutoSpares;
 
+  const getTitlePlaceholder = (cat) => {
+    switch (cat) {
+      case 'vehicles':
+      case 'commercial-vehicles':
+        return 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White';
+      case 'property':
+      case 'land-plots':
+        return 'e.g. 4 Bedroom Villa in Karen with Pool';
+      case 'auto-spares':
+        return 'e.g. Toyota Fielder NZE141 Front Bumper';
+      case 'phones-tablets':
+        return 'e.g. iPhone 13 Pro Max - 256GB';
+      case 'electronics':
+        return 'e.g. Samsung 65" QLED 4K Smart TV';
+      case 'home-furniture':
+        return 'e.g. 6-Seater Mahogany Dining Table Set';
+      case 'fashion':
+        return 'e.g. Men\'s Official Leather Shoes - Size 42';
+      case 'beauty':
+        return 'e.g. Bath & Body Works Vanilla Bean Lotion';
+      case 'services':
+        return 'e.g. Professional Plumbing & Pipe Repair Services';
+      case 'repair-construction':
+        return 'e.g. 50kg Bamburi Portland Cement';
+      case 'commercial-equipment':
+        return 'e.g. 2-Door Commercial Display Fridge';
+      case 'leisure':
+        return 'e.g. Yamaha Acoustic Guitar - Like New';
+      case 'babies-kids':
+        return 'e.g. Baby Cot with Mattress and Mosquito Net';
+      case 'food-agriculture':
+        return 'e.g. 90kg Bag of Fresh Nyandarua Potatoes';
+      case 'animals-pets':
+        return 'e.g. 2-Month-Old Purebred German Shepherd Puppy';
+      case 'jobs':
+        return 'e.g. Senior Frontend Developer (React)';
+      case 'seeking-work':
+        return 'e.g. Experienced Driver with Class B, C, E License';
+      default:
+        return 'e.g. iPhone 13 Pro Max - 256GB';
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -186,7 +229,7 @@ export default function PostAdPage() {
               <div className="form-group">
                 <label className="form-label">Ad Title *</label>
                 <input className="form-control" name="title" value={form.title} onChange={handleChange}
-                  placeholder={isVehicle ? 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White' : (isProperty ? 'e.g. 4 Bedroom Villa in Karen with Pool' : (isAutoSpares ? 'e.g. Toyota Fielder NZE141 Front Bumper' : 'e.g. iPhone 13 Pro Max - 256GB'))}
+                  placeholder={getTitlePlaceholder(form.category)}
                   maxLength={100} required />
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 4 }}>{form.title.length}/100 characters</div>
               </div>
