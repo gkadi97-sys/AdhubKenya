@@ -4,7 +4,7 @@ import {
   TRUCK_BODY_TYPES, TRUCK_DRIVE_TYPES,
   TRUCK_FUELS, TRUCK_TRANSMISSIONS,
 } from '@/lib/truckData';
-import { MANUFACTURE_YEARS as YEARS } from '@/lib/categoryData';
+import { MANUFACTURE_YEARS as YEARS, CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -107,6 +107,18 @@ export default function TruckForm({ truckMode = 'heavy', values = {}, onChange }
       {/* ── 1. IDENTITY ─────────────────────────────────────────── */}
       <SectionLabel icon={truckMode === 'heavy' ? '🚛' : '🛻'} text={truckMode === 'heavy' ? 'Truck Details' : 'Pickup Truck Details'} />
       <div style={GRID}>
+
+        {/* Vehicle Type (Allows user to switch back to Car/SUV/Motorcycle) */}
+        {truckMode === 'pickup' && (
+          <Field label="Vehicle Type" required>
+            <Sel value={specs.vehicleType || 'Pickup / Truck'} onChange={v => {
+              setSpec('vehicleType', v);
+              // PostAd.jsx will automatically switch back to VehicleForm when this changes
+            }} placeholder="Select Vehicle Type">
+              {CATEGORY_ATTRIBUTES.vehicles.specs.vehicleTypes.map(vt => <option key={vt} value={vt}>{vt}</option>)}
+            </Sel>
+          </Field>
+        )}
 
         {/* Brand */}
         <Field label="Brand" required>
