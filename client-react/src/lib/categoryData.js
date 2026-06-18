@@ -763,10 +763,7 @@ export const CATEGORY_ATTRIBUTES = {
         'Desktop Computers','Monitors','Printers & Scanners','Computer Accessories'
       ],
       'Televisions': [], // Rendered dynamically via TvForm
-      'Audio & Music': [
-        'Soundbars','Home Theaters','Bluetooth Speakers',
-        'Headphones & Earbuds','Microphones','Amplifiers & Receivers'
-      ],
+      'Audio & Music': [], // Rendered dynamically via AudioForm
       'Gaming': [
         'PlayStation Consoles','Xbox Consoles','Nintendo Consoles',
         'Video Games','Gaming Accessories','VR Headsets'
@@ -1502,6 +1499,83 @@ export const TV_SPECS = {
       sizes: ['32"', '43"', '50"', '55"', '65"'],
       series: {
         'LED': ['32 VP8832', '43 VP8843', '50 VP8850', '65 VP8865']
+      }
+    }
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUDIO SPECS: Intelligent categorization for Audio Equipment (AudioForm.jsx)
+// ─────────────────────────────────────────────────────────────────────────────
+export const AUDIO_SPECS = {
+  equipmentTypes: [
+    'Soundbar', 'Home Theatre', 'Woofer', 'Subwoofer', 'Amplifier', 'Speaker',
+    'Bluetooth Speaker', 'Headphones', 'Earphones', 'Microphone', 'DJ Equipment',
+    'PA System', 'Car Audio', 'Mixer', 'Studio Equipment', 'Receiver', 'Turntable'
+  ],
+  channels: ['2.0', '2.1', '3.1', '5.0', '5.1', '7.1', '9.1', '11.1'],
+  connectivity: ['Bluetooth', 'Wi-Fi', 'HDMI', 'HDMI ARC', 'HDMI eARC', 'USB', 'Optical', 'AUX'],
+  conditions: ['Brand New', 'Open Box', 'Ex-UK', 'Foreign Used', 'Locally Used', 'Refurbished'],
+  
+  hierarchy: {
+    'Soundbar': {
+      brands: ['Samsung', 'LG', 'Sony', 'JBL', 'Hisense', 'TCL', 'Skyworth', 'Vision Plus', 'Vitron', 'Bose', 'Sonos', 'Yamaha', 'Panasonic', 'Philips'],
+      brandData: {
+        'JBL': {
+          series: ['Bar Series'],
+          models: {
+            'Bar Series': ['JBL Bar 2.0', 'JBL Bar 2.1', 'JBL Bar 3.1', 'JBL Bar 5.0', 'JBL Bar 5.1', 'JBL Bar 800', 'JBL Bar 1000', 'JBL Bar 1300']
+          }
+        },
+        'Samsung': {
+          series: ['B Series', 'Q Series', 'S Series'],
+          models: {
+            'B Series': ['HW-B450', 'HW-B550'],
+            'Q Series': ['HW-Q600', 'HW-Q700', 'HW-Q800', 'HW-Q930', 'HW-Q990'],
+            'S Series': ['HW-S50', 'HW-S60', 'HW-S800']
+          }
+        },
+        'LG': {
+          series: ['SN Series', 'SP Series', 'SC Series', 'SG Series', 'S Series'],
+          models: {
+            'SN Series': ['SN4', 'SN5'],
+            'SP Series': ['SP8', 'SP9'],
+            'SC Series': ['SC9'],
+            'SG Series': ['SG10'],
+            'S Series': ['S40', 'S60']
+          }
+        },
+        'Sony': {
+          series: ['HT Series'],
+          models: {
+            'HT Series': ['HT-S20', 'HT-S40', 'HT-G700', 'HT-A3000', 'HT-A5000', 'HT-A7000']
+          }
+        },
+        'Hisense': {
+          series: ['Standard'],
+          models: {
+            'Standard': ['HS2100', 'HS214', 'HS218', 'AX3100']
+          }
+        },
+        'TCL': {
+          series: ['TS Series', 'S Series'],
+          models: {
+            'TS Series': ['TS3010', 'TS6100', 'TS8132'],
+            'S Series': ['S643W']
+          }
+        },
+        'Bose': {
+          series: ['Smart Soundbar'],
+          models: {
+            'Smart Soundbar': ['Smart Soundbar 300', 'Smart Soundbar 600', 'Smart Soundbar 900', 'Ultra Soundbar']
+          }
+        },
+        'Sonos': {
+          series: ['Standard'],
+          models: {
+            'Standard': ['Ray', 'Beam', 'Beam Gen 2', 'Arc', 'Arc Ultra']
+          }
+        }
       }
     }
   }

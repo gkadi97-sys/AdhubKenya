@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import CATEGORY_ATTRIBUTES, { MANUFACTURE_YEARS, getSpecs } from '@/lib/categoryData';
 import TvForm from './TvForm';
+import AudioForm from './AudioForm';
 
 /**
  * ItemAttributesSelect
@@ -123,6 +124,8 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
 
       {make === 'Televisions' ? (
         <TvForm values={values} onChange={emit} />
+      ) : make === 'Audio & Music' ? (
+        <AudioForm values={values} onChange={emit} />
       ) : (
         <>
           {/* ── Level 2: Brand / Item (or Model if not nested) ──── */}
