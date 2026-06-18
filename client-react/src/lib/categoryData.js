@@ -1218,9 +1218,96 @@ export const VEHICLE_SPECS = {
 // ─────────────────────────────────────────────────────────────────────────────
 export const VEHICLE_MAKES_BY_TYPE = {
 
-  // ── STANDARD CARS / SUVs / VANS / PICKUPS ─────────────────────────────────
-  // Uses the main vehicles.data (all car brands) from CATEGORY_ATTRIBUTES
-  _useMainData: ['Car', 'SUV', 'Pickup / Truck', 'Van', 'Minivan'],
+  // ── STANDARD CARS / SUVs ONLY use the main vehicle data ───────────────────
+  _useMainData: ['Car', 'SUV'],
+
+  // ── PICKUP / TRUCK ─────────────────────────────────────────────────────────
+  'Pickup / Truck': {
+    'Toyota': [
+      'Hilux Single Cab', 'Hilux Extra Cab', 'Hilux Double Cab',
+      'Hilux Revo Single Cab', 'Hilux Revo Extra Cab', 'Hilux Revo Double Cab',
+      'Hilux Champ', 'Land Cruiser 70 Pick Up', 'Dyna',
+    ],
+    'Ford': [
+      'Ranger XL', 'Ranger XLS', 'Ranger XLT', 'Ranger Wildtrak',
+      'Ranger Raptor', 'F-150', 'F-250', 'F-350',
+    ],
+    'Isuzu': [
+      'D-Max Single Cab', 'D-Max Space Cab', 'D-Max Double Cab',
+      'D-Max V-Cross', 'TFR Single Cab', 'TFR Double Cab',
+      'NKR', 'NPR', 'NQR', 'FRR', 'FTR', 'FSR',
+    ],
+    'Mitsubishi': [
+      'L200 Single Cab', 'L200 Club Cab', 'L200 Double Cab', 'L200 Triton',
+      'Triton Single Cab', 'Triton Double Cab',
+    ],
+    'Nissan': [
+      'Navara Single Cab', 'Navara King Cab', 'Navara Double Cab',
+      'Frontier', 'Titan', 'NP300',
+    ],
+    'Mazda': [
+      'BT-50 Single Cab', 'BT-50 Freestyle Cab', 'BT-50 Double Cab',
+    ],
+    'Volkswagen': [
+      'Amarok Single Cab', 'Amarok Double Cab', 'Amarok V6',
+    ],
+    'Mercedes-Benz': [
+      'X-Class 220d', 'X-Class 250d', 'X-Class 350d', 'Sprinter Chassis',
+    ],
+    'Renault': ['Alaskan Single Cab', 'Alaskan Double Cab'],
+    'GWM': ['Steed Single Cab', 'Steed Double Cab', 'Cannon'],
+    'Chery': ['Tiggo Pickup', 'QQ Pickup'],
+    'JAC': ['JAC T8 Pro', 'JAC T9'],
+    'Foton': ['Foton Tunland', 'Foton Thunder'],
+    'DFSK': ['DFSK Glory Pickup', 'DFSK C32'],
+    'Hino': ['Hino 300 Series', 'Hino 500 Series', 'Hino 700 Series'],
+    'Other': ['Other Pickup / Truck'],
+  },
+
+  // ── VAN ────────────────────────────────────────────────────────────────────
+  'Van': {
+    'Toyota': [
+      'HiAce (Panel Van)', 'HiAce (Window Van)', 'HiAce High Roof',
+      'ProAce', 'HiAce H100',
+    ],
+    'Nissan': [
+      'Urvan NV350', 'Urvan E25', 'NV200', 'NV400',
+    ],
+    'Mercedes-Benz': [
+      'Sprinter Panel Van', 'Sprinter Crew Van', 'Vito', 'Metris',
+    ],
+    'Ford': ['Transit', 'Transit Custom', 'Transit Connect', 'E-Transit'],
+    'Volkswagen': ['Transporter T5', 'Transporter T6', 'Crafter', 'Caddy'],
+    'Peugeot': ['Partner', 'Expert', 'Boxer'],
+    'Renault': ['Trafic', 'Master', 'Kangoo'],
+    'Mitsubishi': ['L300', 'Delica Cargo', 'Canter'],
+    'Isuzu': ['N-Series Cargo'],
+    'Fiat': ['Ducato', 'Scudo', 'Doblo Cargo'],
+    'Hyundai': ['H350', 'Staria Load', 'H-1 Van'],
+    'Kia': ['K2500', 'K2700'],
+    'DFSK': ['DFSK C35 Van', 'DFSK V21 Van', 'DFSK V27 Van'],
+    'Other': ['Other Van'],
+  },
+
+  // ── MINIVAN ────────────────────────────────────────────────────────────────
+  'Minivan': {
+    'Toyota': [
+      'Sienna', 'Hiace Commuter', 'HiAce 9-Seater',
+      'Noah', 'Voxy', 'Wish', 'Isis', 'Alphard',
+    ],
+    'Honda': ['Odyssey', 'Stepwgn', 'Freed'],
+    'Nissan': ['Serena', 'Elgrand', 'Quest'],
+    'Mazda': ['MPV', 'Biante'],
+    'Hyundai': ['Staria', 'H-1', 'Starex'],
+    'Kia': ['Carnival', 'Sedona'],
+    'Ford': ['S-Max', 'Galaxy'],
+    'Volkswagen': ['Sharan', 'Caravelle', 'Multivan'],
+    'Mercedes-Benz': ['Viano', 'V-Class'],
+    'Chrysler': ['Pacifica', 'Grand Caravan'],
+    'Mitsubishi': ['Delica', 'Grandis'],
+    'Subaru': ['Exiga'],
+    'Other': ['Other Minivan'],
+  },
 
   // ── MOTORCYCLES ────────────────────────────────────────────────────────────
   'Motorcycle': {
