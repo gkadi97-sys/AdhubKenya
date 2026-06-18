@@ -1127,11 +1127,28 @@ export const VEHICLE_SPECS = {
     'Trailer', 'Construction Equipment', 'Agricultural Equipment',
   ],
 
+  // Flat list kept for fallback
   bodyStyles: [
     'Sedan', 'Hatchback', 'Wagon / Estate', 'Coupe', 'Convertible',
     'SUV', 'Crossover', 'Pickup', 'Van', 'Minivan', 'Limousine',
     'Bus', 'Truck', 'MPV', 'Fastback', 'Liftback',
   ],
+
+  // Per-vehicle-type body style filter
+  bodyStylesByType: {
+    'Car':                    ['Sedan', 'Hatchback', 'Wagon / Estate', 'Coupe', 'Convertible', 'Fastback', 'Liftback', 'MPV', 'Limousine'],
+    'SUV':                    ['SUV', 'Crossover', 'Off-Road 4×4'],
+    'Pickup / Truck':         ['Single Cab', 'Extra Cab', 'Double Cab / Crew Cab', 'Flatbed', 'Tipper'],
+    'Van':                    ['Panel Van', 'Cargo Van', 'High-Roof Van', 'Window Van', 'Crew Van'],
+    'Minivan':                ['Minivan', 'MPV', 'People Carrier'],
+    'Bus':                    ['Minibus', 'Midibus', 'Full-Size Bus', 'School Bus', 'Coach'],
+    'Heavy Truck':            ['Box Truck', 'Flatbed Truck', 'Tipper / Dump Truck', 'Tanker', 'Refrigerator Truck', 'Curtain-Side Truck', 'Low Loader'],
+    'Motorcycle':             ['Standard / Naked', 'Sport / Supersport', 'Cruiser', 'Adventure / Dual-Sport', 'Dirt / Off-Road', 'Scooter', 'Moped', 'Touring'],
+    'Tuk Tuk / 3-Wheeler':   ['Passenger Tuk Tuk', 'Cargo Tuk Tuk'],
+    'Trailer':                ['Flatbed Trailer', 'Box Trailer', 'Tanker Trailer', 'Low-Loader Trailer', 'Refrigerated Trailer', 'Car Transporter'],
+    'Construction Equipment': ['Excavator', 'Bulldozer', 'Grader', 'Loader', 'Compactor / Roller', 'Crane', 'Forklift', 'Concrete Mixer'],
+    'Agricultural Equipment': ['Tractor', 'Combine Harvester', 'Plough', 'Sprayer', 'Irrigation Equipment', 'Baler'],
+  },
 
   fuelTypes: [
     'Petrol', 'Diesel', 'Hybrid', 'Plug-in Hybrid',

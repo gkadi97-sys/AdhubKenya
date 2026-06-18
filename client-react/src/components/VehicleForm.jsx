@@ -141,10 +141,16 @@ export default function VehicleForm({ values = {}, onChange }) {
   const makeOptions  = Object.keys(activeMakeMap);
   const modelOptions = make ? (activeMakeMap[make] || []) : [];
 
-  // Reset make+model when vehicle type changes
+  // Reset make+model+bodyStyle when vehicle type changes
   useEffect(() => {
     setMake('');
     setModel('');
+    // Clear body style so stale value from previous type doesn't persist
+    if (specs.bodyStyle) {
+      const next = { ...specs, bodyStyle: '' };
+      setSpecs(next);
+      emit({ make: '', model: '', specs: next });
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vType]);
 
@@ -157,8 +163,12 @@ export default function VehicleForm({ values = {}, onChange }) {
   }, [make]);
 
   // ── Visibility flags (hide irrelevant sections per vehicle type) ────────────
-  const hasBodyStyle = isStandardCar;
-  const hasDoors     = isStandardCar;
+  // Body style is shown for any type that has a mapped list
+  const bodyStyleOptions = vType && VEHICLE_SPECS.bodyStylesByType[vType]
+    ? VEHICLE_SPECS.bodyStylesByType[vType]
+    : VEHICLE_SPECS.bodyStyles;
+  const hasBodyStyle = !!vType; // show for all types once one is selected
+  const hasDoors     = ['Car', 'SUV', 'Van', 'Minivan'].includes(vType) || vType === '';
   const hasInterior  = !['Motorcycle', 'Tuk Tuk / 3-Wheeler', 'Trailer', 'Agricultural Equipment'].includes(vType);
   const hasEngine    = vType !== 'Trailer';
   const hasDriveType = isStandardCar || ['Heavy Truck', 'Construction Equipment', 'Agricultural Equipment'].includes(vType);
@@ -182,7 +192,8 @@ export default function VehicleForm({ values = {}, onChange }) {
           {hasBodyStyle && (
             <Field label="Body Style">
               <Select value={s.bodyStyle} onChange={v => setSpec('bodyStyle', v)}
-                options={VEHICLE_SPECS.bodyStyles} />
+                options={bodyStyleOptions}
+                placeholder="Select Body Style…" />
             </Field>
           )}
 
