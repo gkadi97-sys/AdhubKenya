@@ -45,7 +45,7 @@ export const TRUCK_BODY_TYPES = {
 export const HEAVY_TRUCK_DATA = {
 
   brands: [
-    'Isuzu', 'Hino', 'Mitsubishi Fuso', 'Toyota', 'Nissan / UD',
+    'Isuzu', 'Hino', 'Mitsubishi', 'Toyota', 'Nissan / UD',
     'Mercedes-Benz', 'Scania', 'Volvo', 'MAN', 'Iveco',
     'DAF', 'Ford', 'Hyundai', 'Ashok Leyland',
     'FAW', 'Sinotruk', 'JAC', 'Foton', 'DFSK',
@@ -74,13 +74,15 @@ export const HEAVY_TRUCK_DATA = {
       },
     },
 
-    // ── MITSUBISHI FUSO ──────────────────────────────────────────────────────
-    'Mitsubishi Fuso': {
-      series: ['Canter (Light)', 'Fighter (Medium)', 'Super Great (Heavy)'],
+    // ── MITSUBISHI ──────────────────────────────────────────────────────
+    'Mitsubishi': {
+      series: ['Canter', 'Fuso Canter', 'Fighter', 'Super Great', 'Delica (Commercial Van)'],
       models: {
-        'Canter (Light)':          ['FE71', 'FE84', 'FE85'],
-        'Fighter (Medium)':        ['FK', 'FM'],
-        'Super Great (Heavy)':     ['FP', 'FU'],
+        'Canter':                  ['Canter FE', 'Canter FG', 'Canter TF', 'Canter TFG', 'Canter Wide Cab', 'Canter Standard Cab', 'Canter Crew Cab', 'Canter Eco Hybrid', 'Canter 4x4', 'Canter 3 Ton', 'Canter 4 Ton', 'Canter 5 Ton', 'Canter 7 Ton', 'Canter 8 Ton'],
+        'Fuso Canter':             ['Fuso Canter FE71', 'Fuso Canter FE73', 'Fuso Canter FE83', 'Fuso Canter FE84', 'Fuso Canter FE85', 'Fuso Canter FE125', 'Fuso Canter FE160'],
+        'Fighter':                 ['Fuso Fighter FK', 'Fuso Fighter FM', 'Fuso Fighter FN', 'Fuso Fighter FV', 'Fighter 6', 'Fighter 8', 'Fighter 10', 'Fighter 12', 'Fighter Cargo', 'Fighter Dump', 'Fighter Mixer'],
+        'Super Great':             ['Fuso Super Great FP', 'Fuso Super Great FS', 'Fuso Super Great FV', 'Fuso Super Great FU', 'Tractor Head', 'Cargo', 'Tipper', 'Flatbed'],
+        'Delica (Commercial Van)': ['Delica Van', 'Delica Cargo', 'Delica D:3', 'Delica D:5'],
       },
     },
 
@@ -281,9 +283,14 @@ export const PICKUP_DATA = {
       },
     },
     'Mitsubishi': {
-      series: ['Triton / L200'],
+      series: ['Triton', 'L200', 'Strada', 'Forte', 'Mighty Max', 'Raider'],
       models: {
-        'Triton / L200':            ['Triton Single Cab', 'Triton Club Cab', 'Triton Double Cab', 'Triton GLS', 'Triton Athlete', 'L200 Club Cab', 'L200 Double Cab'],
+        'Triton':                   ['Mitsubishi Triton', 'Mitsubishi Triton GL', 'Mitsubishi Triton GLS', 'Mitsubishi Triton Athlete', 'Mitsubishi Triton Adventure', 'Mitsubishi Triton Quest', 'Mitsubishi Triton Single Cab', 'Mitsubishi Triton Club Cab', 'Mitsubishi Triton Double Cab', 'Mitsubishi Triton 4x2', 'Mitsubishi Triton 4x4', 'Triton MK', 'Triton ML', 'Triton MN', 'Triton MQ', 'Triton MR', 'Triton MV'],
+        'L200':                     ['Mitsubishi L200', 'Mitsubishi L200 GL', 'Mitsubishi L200 GLS', 'Mitsubishi L200 Barbarian', 'Mitsubishi L200 Warrior', 'Mitsubishi L200 Trojan', 'Mitsubishi L200 Animal', 'Mitsubishi L200 Double Cab', 'Mitsubishi L200 Club Cab', 'Mitsubishi L200 Single Cab'],
+        'Strada':                   ['Mitsubishi Strada', 'Mitsubishi Strada GL', 'Mitsubishi Strada GLS', 'Mitsubishi Strada Athlete', 'Mitsubishi Strada Single Cab', 'Mitsubishi Strada Double Cab'],
+        'Forte':                    ['Mitsubishi Forte Pickup'],
+        'Mighty Max':               ['Mitsubishi Mighty Max', 'Mitsubishi Mighty Max Single Cab'],
+        'Raider':                   ['Mitsubishi Raider'],
       },
     },
     'Nissan': {
