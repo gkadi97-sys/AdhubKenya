@@ -338,17 +338,8 @@ export default function PostAdPage() {
                 </div>
               )}
 
-              {/* Laptops smart form (inside Electronics) */}
-              {!isVehicle && !isProperty && !isAutoSpares && !isPhone && form.category === 'electronics' && (
-                <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
-                  <LaptopForm values={attrs} onChange={(v) => {
-                    setAttrs(v);
-                  }} />
-                </div>
-              )}
-
-              {/* Other non-vehicle attributes */}
-              {!isVehicle && !isProperty && !isAutoSpares && !isPhone && form.category !== 'electronics' && form.category && (
+              {/* Other non-vehicle attributes (delegates smart forms internally) */}
+              {!isVehicle && !isProperty && !isAutoSpares && !isPhone && form.category && (
                 <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                   <ItemAttributesSelect category={form.category} values={attrs} onChange={setAttrs} />
                 </div>
