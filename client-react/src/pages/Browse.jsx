@@ -31,6 +31,7 @@ function BrowseContent() {
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
   const [activeKeyword, setActiveKeyword] = useState(searchParams.get('keyword') || '');
   const [category, setCategory] = useState(searchParams.get('category') || '');
+  const [make, setMake] = useState(searchParams.get('make') || '');
   const [hoveredCat, setHoveredCat] = useState(null);
   const [location, setLocation] = useState(searchParams.get('location') || '');
   const [selectedCounty, setSelectedCounty] = useState('');
@@ -51,12 +52,13 @@ function BrowseContent() {
     const k = searchParams.get('keyword') || '';
     const c = searchParams.get('category') || '';
     const l = searchParams.get('location') || '';
-    
+    const m = searchParams.get('make') || '';
+
     setKeyword(k);
     setActiveKeyword(k);
     setCategory(c);
+    setMake(m);
     setLocation(l);
-    // Parse location string (Area, Town, County) or (Town, County) or (County)
     if (l) {
       const parts = l.split(',').map(s => s.trim());
       if (parts.length === 3) {
@@ -75,6 +77,7 @@ function BrowseContent() {
       const params = { page };
       if (activeKeyword) params.keyword = activeKeyword;
       if (category) params.category = category;
+      if (make)     params.make = make;
       if (location) params.location = location;
       if (minPrice) params.minPrice = minPrice;
       if (maxPrice) params.maxPrice = maxPrice;
@@ -88,7 +91,7 @@ function BrowseContent() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchListings(); }, [category, location, sort, page, activeKeyword]);
+  useEffect(() => { fetchListings(); }, [category, make, location, sort, page, activeKeyword]);
 
   const handleSearch = (e) => { e.preventDefault(); setPage(1); setActiveKeyword(keyword); };
 
@@ -130,41 +133,51 @@ function BrowseContent() {
                       {Object.values(catCounts).reduce((a,b)=>a+b,0) || ''}
                     </span>
                   </div>
-                  {CATEGORIES.map(c=>{
+                  {CATEGORIES.map(c => {
                     const subItems = getCategoryContents(c.slug);
                     const count = catCounts[c.slug];
                     return (
+                      // Outer wrapper holds BOTH trigger + popup — hover never leaves
                       <div
                         key={c.slug}
-                        className={`sidebar-cat-item ${category===c.slug?'active':''}`}
-                        style={{position:'relative'}}
-                        onClick={()=>{setCategory(c.slug);setPage(1);}}
-                        onMouseEnter={()=>setHoveredCat(c.slug)}
-                        onMouseLeave={()=>setHoveredCat(null)}
+                        style={{ position: 'relative' }}
+                        onMouseEnter={() => subItems.length > 0 && setHoveredCat(c.slug)}
+                        onMouseLeave={() => setHoveredCat(null)}
                       >
-                        <span className="sidebar-cat-icon">{c.icon}</span>
-                        <span style={{flex:1}}>{c.name}</span>
-                        <span className="sidebar-cat-count">{count || ''}</span>
-                        {subItems.length > 0 && <span style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>›</span>}
+                        {/* Trigger row */}
+                        <div
+                          className={`sidebar-cat-item ${category === c.slug ? 'active' : ''}`}
+                          onClick={() => { setCategory(c.slug); setMake(''); setPage(1); }}
+                        >
+                          <span className="sidebar-cat-icon">{c.icon}</span>
+                          <span style={{flex:1}}>{c.name}</span>
+                          <span className="sidebar-cat-count">{count || ''}</span>
+                          {subItems.length > 0 && <span style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>›</span>}
+                        </div>
 
-                        {/* 2-column flyout popup */}
+                        {/* Popup — inline below trigger, zero gap */}
                         {subItems.length > 0 && hoveredCat === c.slug && (
-                          <div className="sidebar-cat-popup" onClick={e=>e.stopPropagation()}>
+                          <div className="sidebar-cat-popup" onClick={e => e.stopPropagation()}>
                             <div className="sidebar-popup-header">
                               <span>{c.icon} {c.name}</span>
                             </div>
                             <div className="sidebar-popup-grid">
-                              {subItems.map(item=>(
+                              {subItems.map(item => (
                                 <div
                                   key={item}
                                   className="sidebar-popup-cell"
-                                  onClick={()=>{setCategory(c.slug);setPage(1);}}
+                                  onClick={() => {
+                                    setCategory(c.slug);
+                                    setMake(item);   // ← sets the make filter
+                                    setPage(1);
+                                    setHoveredCat(null);
+                                  }}
                                 >{item}</div>
                               ))}
                             </div>
                             <div
                               className="sidebar-popup-footer"
-                              onClick={()=>{setCategory(c.slug);setPage(1);}}
+                              onClick={() => { setCategory(c.slug); setMake(''); setPage(1); setHoveredCat(null); }}
                             >Browse all {c.name} →</div>
                           </div>
                         )}
