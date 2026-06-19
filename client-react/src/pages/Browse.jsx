@@ -21,7 +21,7 @@ function getCategoryContents(slug) {
 const CATEGORIES = CATEGORY_ICONS;
 
 function BrowseContent() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,18 +47,40 @@ function BrowseContent() {
   // Load category counts once on mount
   useEffect(() => { getCategoryCounts().then(setCatCounts).catch(() => {}); }, []);
 
+  // Helper to update search params and URL
+  const updateSearchParams = (newParams) => {
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev);
+      Object.entries(newParams).forEach(([key, val]) => {
+        if (val === null || val === undefined || val === '') {
+          params.delete(key);
+        } else {
+          params.set(key, val);
+        }
+      });
+      // Always delete page when filters change unless page is explicitly set
+      if (!newParams.hasOwnProperty('page')) {
+        params.delete('page');
+      }
+      return params;
+    });
+  };
+
   // Sync state when URL search params change (e.g. from Navbar search)
   useEffect(() => {
     const k = searchParams.get('keyword') || '';
     const c = searchParams.get('category') || '';
     const l = searchParams.get('location') || '';
     const m = searchParams.get('make') || '';
+    const p = parseInt(searchParams.get('page')) || 1;
 
     setKeyword(k);
     setActiveKeyword(k);
     setCategory(c);
     setMake(m);
     setLocation(l);
+    setPage(p);
+
     if (l) {
       const parts = l.split(',').map(s => s.trim());
       if (parts.length === 3) {
@@ -68,6 +90,10 @@ function BrowseContent() {
       } else if (COUNTIES.includes(parts[0])) {
         setSelectedCounty(parts[0]); setSelectedTown(''); setSelectedArea('');
       }
+    } else {
+      setSelectedCounty('');
+      setSelectedTown('');
+      setSelectedArea('');
     }
   }, [searchParams]);
 
@@ -93,7 +119,10 @@ function BrowseContent() {
 
   useEffect(() => { fetchListings(); }, [category, make, location, sort, page, activeKeyword]);
 
-  const handleSearch = (e) => { e.preventDefault(); setPage(1); setActiveKeyword(keyword); };
+  const handleSearch = (e) => {
+    e.preventDefault();
+    updateSearchParams({ keyword });
+  };
 
   return (
     <div>
@@ -125,7 +154,7 @@ function BrowseContent() {
                 <div style={{display:'flex',flexDirection:'column',gap:2}}>
                   <div
                     className={`sidebar-cat-item ${category===''?'active':''}`}
-                    onClick={()=>{setCategory('');setPage(1);}}
+                    onClick={() => updateSearchParams({ category: '', make: '' })}
                   >
                     <span className="sidebar-cat-icon">🏷️</span>
                     <span style={{flex:1}}>All Categories</span>
@@ -147,7 +176,7 @@ function BrowseContent() {
                         {/* Trigger row */}
                         <div
                           className={`sidebar-cat-item ${category === c.slug ? 'active' : ''}`}
-                          onClick={() => { setCategory(c.slug); setMake(''); setPage(1); }}
+                          onClick={() => updateSearchParams({ category: c.slug, make: '' })}
                         >
                           <span className="sidebar-cat-icon">{c.icon}</span>
                           <span style={{flex:1}}>{c.name}</span>
@@ -167,9 +196,7 @@ function BrowseContent() {
                                   key={item}
                                   className="sidebar-popup-cell"
                                   onClick={() => {
-                                    setCategory(c.slug);
-                                    setMake(item);   // ← sets the make filter
-                                    setPage(1);
+                                    updateSearchParams({ category: c.slug, make: item });
                                     setHoveredCat(null);
                                   }}
                                 >{item}</div>
@@ -177,7 +204,10 @@ function BrowseContent() {
                             </div>
                             <div
                               className="sidebar-popup-footer"
-                              onClick={() => { setCategory(c.slug); setMake(''); setPage(1); setHoveredCat(null); }}
+                              onClick={() => {
+                                updateSearchParams({ category: c.slug, make: '' });
+                                setHoveredCat(null);
+                              }}
                             >Browse all {c.name} →</div>
                           </div>
                         )}
@@ -192,11 +222,7 @@ function BrowseContent() {
                 <h4>County</h4>
                 <select className="form-control" value={selectedCounty} onChange={e => {
                   const c = e.target.value;
-                  setSelectedCounty(c);
-                  setSelectedTown('');
-                  setSelectedArea('');
-                  setLocation(c);
-                  setPage(1);
+                  updateSearchParams({ location: c });
                 }}>
                   <option value="">All Counties</option>
                   {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -208,10 +234,8 @@ function BrowseContent() {
                   <h4>Town / City</h4>
                   <select className="form-control" value={selectedTown} onChange={e => {
                     const t = e.target.value;
-                    setSelectedTown(t);
-                    setSelectedArea('');
-                    setLocation(t ? `${t}, ${selectedCounty}` : selectedCounty);
-                    setPage(1);
+                    const loc = t ? `${t}, ${selectedCounty}` : selectedCounty;
+                    updateSearchParams({ location: loc });
                   }}>
                     <option value="">All of {selectedCounty}</option>
                     {getTowns(selectedCounty).map(t => <option key={t} value={t}>{t}</option>)}
@@ -224,9 +248,8 @@ function BrowseContent() {
                   <h4>Area / Estate</h4>
                   <select className="form-control" value={selectedArea} onChange={e => {
                     const a = e.target.value;
-                    setSelectedArea(a);
-                    setLocation(a ? `${a}, ${selectedTown}, ${selectedCounty}` : `${selectedTown}, ${selectedCounty}`);
-                    setPage(1);
+                    const loc = a ? `${a}, ${selectedTown}, ${selectedCounty}` : `${selectedTown}, ${selectedCounty}`;
+                    updateSearchParams({ location: loc });
                   }}>
                     <option value="">All of {selectedTown}</option>
                     {getAreas(selectedCounty, selectedTown).map(a => <option key={a} value={a}>{a}</option>)}
@@ -280,7 +303,7 @@ function BrowseContent() {
                 {pages > 1 && (
                   <div style={{display:'flex',justifyContent:'center',gap:8,marginTop:40}}>
                     {[...Array(pages)].map((_,i) => (
-                      <button key={i} onClick={()=>setPage(i+1)}
+                      <button key={i} onClick={()=>updateSearchParams({ page: i+1 })}
                         className={`btn btn-sm ${page===i+1?'btn-primary':'btn-ghost'}`}>
                         {i+1}
                       </button>
@@ -293,7 +316,7 @@ function BrowseContent() {
                 <div className="icon">🔍</div>
                 <h3>No listings found</h3>
                 <p>Try adjusting your search or filters</p>
-                <button onClick={()=>{setKeyword('');setCategory('');setLocation('');setMinPrice('');setMaxPrice('');setPage(1);fetchListings();}} className="btn btn-primary">Clear Filters</button>
+                <button onClick={()=>{setKeyword('');setMinPrice('');setMaxPrice('');setSearchParams(new URLSearchParams());}} className="btn btn-primary">Clear Filters</button>
               </div>
             )}
           </div>
