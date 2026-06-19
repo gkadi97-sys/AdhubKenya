@@ -3,13 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "client-react",
-    "server"
+    "client-react"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client-react\"",
-    "dev:server": "npm --workspace=server run dev",
-    "dev:client-react": "npm --workspace=client-react run dev",
+    "dev": "npm --workspace=client-react run dev",
     "build": "npm --workspace=client-react run build",
     "install:all": "npm install"
   },
