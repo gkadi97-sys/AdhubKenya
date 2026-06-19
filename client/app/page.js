@@ -3,6 +3,7 @@ import { getFeaturedListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
 import CategoryGrid from '@/components/CategoryGrid';
 import HomeSearchBar from '@/components/HomeSearchBar';
+export const runtime = 'edge';
 
 export const metadata = {
   title: "Buy & Sell Online in Kenya | Free Classified Ads | AdHubKenya",

@@ -2,6 +2,7 @@ import { getListing, formatPrice, timeAgo } from '@/lib/api';
 import Link from 'next/link';
 import ListingGallery from '@/components/ListingGallery';
 
+export const runtime = 'edge';
 export async function generateMetadata({ params }) {
   try {
     const listing = await getListing(params.id);

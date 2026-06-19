@@ -2,6 +2,8 @@ import { getListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
 import Link from 'next/link';
 
+export const runtime = 'edge';
+
 const CATEGORY_META = {
   electronics: { name:'Electronics', icon:'📱', desc:'Phones, laptops, TVs, cameras & accessories' },
   vehicles:    { name:'Vehicles',    icon:'🚗', desc:'Cars, motorcycles, trucks & spare parts' },
