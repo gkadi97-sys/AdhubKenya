@@ -25,7 +25,7 @@ export default function ListingCard({ listing }) {
             </svg>
             {listing.location}
           </span>
-          <span>{timeAgo(listing.createdAt)}</span>
+          <span>{timeAgo(listing.created_at)}</span>
         </div>
       </div>
     </Link>
