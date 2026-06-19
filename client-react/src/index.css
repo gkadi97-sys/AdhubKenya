@@ -594,7 +594,7 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 .sidebar-cat-popup {
   position: absolute;
   top: 0;
-  left: calc(100% + 8px);
+  left: 100%;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -604,6 +604,16 @@ textarea.form-control { resize: vertical; min-height: 120px; }
   max-width: 250px;
   z-index: 300;
   animation: popIn 0.15s ease;
+}
+/* Transparent bridge to prevent hover loss */
+.sidebar-cat-popup::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -20px;
+  width: 20px;
+  height: 100%;
+  background: transparent;
 }
 /* Left-side triangle pointer */
 .sidebar-cat-popup::before {
