@@ -76,7 +76,7 @@ export default function CategoryFlyout({ category, onSelect }) {
                 {subKeys.map((sub) => (
                   <Link
                     key={sub}
-                    href={`/browse?category=${cat.slug}&keyword=${encodeURIComponent(sub)}`}
+                    href={`/browse?category=${cat.slug}&make=${encodeURIComponent(sub)}`}
                     onClick={() => setOpenSlug(null)}
                     style={{
                       display: 'block',

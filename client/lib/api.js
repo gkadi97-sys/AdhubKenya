@@ -1,5 +1,6 @@
-// API base URL
+// API base URL — internal Next.js API routes take priority for listings
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const INTERNAL_API = '/api'; // Next.js internal route, always available
 
 // Auth helpers
 export const getToken = () => {
@@ -48,7 +49,9 @@ export const submitBusinessVerification = (data) => apiFetch('/auth/verify-busin
 // Listings API
 export const getListings = (params = {}) => {
   const qs = new URLSearchParams(params).toString();
-  return apiFetch(`/listings?${qs}`);
+  // Use the internal Next.js API route so make/keyword/category filtering
+  // goes straight to Supabase with full field-level control.
+  return fetch(`${INTERNAL_API}/listings?${qs}`).then(r => r.json());
 };
 export const getFeaturedListings = () => apiFetch('/listings/featured');
 export const getListing = (id) => apiFetch(`/listings/${id}`);

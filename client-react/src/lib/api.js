@@ -25,6 +25,7 @@ export const getListings = async (params = {}) => {
   // Filters
   if (params.category) query = query.eq('category', params.category);
   if (params.location) query = query.eq('location', params.location);
+  if (params.make)    query = query.ilike('make', params.make);
   if (params.keyword) query = query.or(`title.ilike.%${params.keyword}%,description.ilike.%${params.keyword}%`);
   if (params.minPrice) query = query.gte('price', params.minPrice);
   if (params.maxPrice) query = query.lte('price', params.maxPrice);

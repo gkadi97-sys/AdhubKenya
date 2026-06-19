@@ -41,6 +41,7 @@ function BrowseContent() {
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
   const [activeKeyword, setActiveKeyword] = useState(searchParams.get('keyword') || '');
   const [category, setCategory] = useState(searchParams.get('category') || '');
+  const [make, setMake] = useState(searchParams.get('make') || '');
   const [location, setLocation] = useState(searchParams.get('location') || '');
   const [selectedCounty, setSelectedCounty] = useState('');
 
@@ -49,15 +50,17 @@ function BrowseContent() {
   const [sort, setSort] = useState('createdAt');
   const [page, setPage] = useState(1);
 
-  // Sync state when URL search params change (e.g. from Navbar search)
+  // Sync state when URL search params change (e.g. from Navbar search or CategoryFlyout)
   useEffect(() => {
     const k = searchParams.get('keyword') || '';
     const c = searchParams.get('category') || '';
     const l = searchParams.get('location') || '';
-    
+    const m = searchParams.get('make') || '';
+
     setKeyword(k);
     setActiveKeyword(k);
     setCategory(c);
+    setMake(m);
     setLocation(l);
     if (COUNTIES.includes(l)) setSelectedCounty(l);
   }, [searchParams]);
@@ -68,6 +71,7 @@ function BrowseContent() {
       const params = { page };
       if (activeKeyword) params.keyword = activeKeyword;
       if (category) params.category = category;
+      if (make)     params.make = make;
       if (location) params.location = location;
       if (minPrice) params.minPrice = minPrice;
       if (maxPrice) params.maxPrice = maxPrice;
@@ -81,7 +85,7 @@ function BrowseContent() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchListings(); }, [category, location, sort, page, activeKeyword]);
+  useEffect(() => { fetchListings(); }, [category, make, location, sort, page, activeKeyword]);
 
   const handleSearch = (e) => { e.preventDefault(); setPage(1); setActiveKeyword(keyword); };
 
