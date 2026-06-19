@@ -1,58 +1,43 @@
 'use client';
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
 
 /**
- * CategoryFlyout – sidebar category list with a reliable subcategory flyout.
+ * CategoryFlyout – accordion-style sidebar category list.
  *
- * Uses React state (not CSS :hover) so there is ZERO gap problem.
- * The flyout stays open while the mouse is over either the trigger or the panel.
+ * Subcategories expand INLINE below the parent (no flyout, no gap problem).
+ * Hovering the parent opens the sub-list; moving away collapses it.
+ * Clicking a subcategory applies it as a keyword filter.
  */
 export default function CategoryFlyout({ category, onSelect }) {
   const [openSlug, setOpenSlug] = useState(null);
-  const closeTimer = useRef(null);
-
-  // Clear any pending close
-  const cancelClose = () => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-  };
-
-  // Schedule a close with a 120 ms delay so the mouse can travel the gap
-  const scheduleClose = useCallback(() => {
-    cancelClose();
-    closeTimer.current = setTimeout(() => setOpenSlug(null), 120);
-  }, []);
-
-  const openFor = (slug) => {
-    cancelClose();
-    setOpenSlug(slug);
-  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {SIDEBAR_CATEGORIES.map((cat) => {
         const subKeys = CATEGORY_ATTRIBUTES[cat.slug]?.data
-          ? Object.keys(CATEGORY_ATTRIBUTES[cat.slug].data).slice(0, 8)
+          ? Object.keys(CATEGORY_ATTRIBUTES[cat.slug].data).slice(0, 10)
           : [];
         const hasChildren = subKeys.length > 0;
         const isOpen = openSlug === cat.slug;
         const isActive = category === cat.slug;
 
         return (
-          <div
-            key={cat.slug}
-            style={{ position: 'relative' }}
-            onMouseEnter={() => hasChildren && openFor(cat.slug)}
-            onMouseLeave={() => hasChildren && scheduleClose()}
-          >
-            {/* Trigger chip */}
+          <div key={cat.slug}>
+            {/* Trigger row */}
             <div
               className={`filter-chip ${isActive ? 'active' : ''}`}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 0,
+              }}
+              onMouseEnter={() => hasChildren && setOpenSlug(cat.slug)}
+              onMouseLeave={() => hasChildren && setOpenSlug(null)}
               onClick={() => {
                 onSelect(cat.slug === category ? '' : cat.slug);
-                setOpenSlug(null);
               }}
             >
               <span>{cat.icon} {cat.name}</span>
@@ -60,32 +45,31 @@ export default function CategoryFlyout({ category, onSelect }) {
                 <svg
                   width="10" height="10" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2.5"
-                  style={{ opacity: 0.6, flexShrink: 0, marginLeft: 6 }}
+                  style={{
+                    opacity: 0.5,
+                    flexShrink: 0,
+                    marginLeft: 6,
+                    transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s',
+                  }}
                 >
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               )}
             </div>
 
-            {/* Flyout panel */}
+            {/* Inline sub-list — expands below the trigger, no gap */}
             {hasChildren && isOpen && (
               <div
-                onMouseEnter={cancelClose}
-                onMouseLeave={scheduleClose}
+                onMouseEnter={() => setOpenSlug(cat.slug)}
+                onMouseLeave={() => setOpenSlug(null)}
                 style={{
-                  position: 'absolute',
-                  left: 'calc(100% + 6px)',
-                  top: 0,
-                  zIndex: 200,
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border-strong)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '10px 0',
-                  minWidth: 180,
-                  boxShadow: 'var(--shadow-lg)',
-                  // Invisible left extension so mouse can cross the gap without losing hover
-                  marginLeft: -6,
-                  paddingLeft: 6,
+                  background: 'var(--bg-3)',
+                  border: '1px solid var(--border)',
+                  borderTop: 'none',
+                  borderRadius: '0 0 var(--radius) var(--radius)',
+                  overflow: 'hidden',
+                  marginBottom: 2,
                 }}
               >
                 {subKeys.map((sub) => (
@@ -95,11 +79,11 @@ export default function CategoryFlyout({ category, onSelect }) {
                     onClick={() => setOpenSlug(null)}
                     style={{
                       display: 'block',
-                      padding: '7px 18px',
-                      fontSize: '0.84rem',
+                      padding: '6px 14px',
+                      fontSize: '0.82rem',
                       color: 'var(--text-secondary)',
+                      borderBottom: '1px solid var(--border)',
                       transition: 'background 0.15s, color 0.15s',
-                      whiteSpace: 'nowrap',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = 'var(--primary-glow)';
@@ -113,21 +97,19 @@ export default function CategoryFlyout({ category, onSelect }) {
                     {sub}
                   </Link>
                 ))}
-                <div style={{ borderTop: '1px solid var(--border)', marginTop: 6, paddingTop: 6 }}>
-                  <Link
-                    href={`/browse?category=${cat.slug}`}
-                    onClick={() => { onSelect(cat.slug); setOpenSlug(null); }}
-                    style={{
-                      display: 'block',
-                      padding: '7px 18px',
-                      fontSize: '0.82rem',
-                      color: 'var(--primary)',
-                      fontWeight: 600,
-                    }}
-                  >
-                    Browse all {cat.name} →
-                  </Link>
-                </div>
+                <Link
+                  href={`/browse?category=${cat.slug}`}
+                  onClick={() => { onSelect(cat.slug); setOpenSlug(null); }}
+                  style={{
+                    display: 'block',
+                    padding: '7px 14px',
+                    fontSize: '0.8rem',
+                    color: 'var(--primary)',
+                    fontWeight: 600,
+                  }}
+                >
+                  Browse all {cat.name} →
+                </Link>
               </div>
             )}
           </div>
