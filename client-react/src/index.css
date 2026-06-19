@@ -525,16 +525,85 @@ textarea.form-control { resize: vertical; min-height: 120px; }
    ============================================ */
 .category-card {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 24px 16px; text-align: center;
-  transition: var(--transition); cursor: pointer;
+  border-radius: var(--radius-lg); padding: 20px;
+  text-align: center; cursor: pointer;
+  transition: all 0.2s ease; text-decoration: none; display: block;
+  position: relative;
 }
 .category-card:hover {
-  background: var(--surface-2); border-color: var(--primary);
-  transform: translateY(-3px); box-shadow: var(--shadow-glow);
+  border-color: var(--primary); background: var(--primary-glow);
+  transform: translateY(-2px);
 }
 .category-card .icon { font-size: 2rem; margin-bottom: 10px; }
 .category-card .name { font-weight: 600; font-size: 0.875rem; color: var(--text); }
 .category-card .count { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+/* Category Hover Popup */
+.category-popup {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  padding: 12px;
+  width: max-content;
+  min-width: 200px;
+  max-width: 250px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  margin-top: 10px;
+  text-align: left;
+}
+/* Little triangle pointer for the popup */
+.category-popup::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+.category-card:hover .category-popup {
+  opacity: 1;
+  visibility: visible;
+  margin-top: 5px;
+}
+.category-popup-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 6px;
+  padding: 0 8px;
+  letter-spacing: 0.5px;
+}
+.category-popup-item {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  display: block;
+}
+.category-popup-item:hover {
+  background: var(--surface-hover);
+  color: var(--primary);
+}
 
 /* ============================================
    NAVBAR
