@@ -49,21 +49,19 @@ function BrowseContent() {
 
   // Helper to update search params and URL
   const updateSearchParams = (newParams) => {
-    setSearchParams(prev => {
-      const params = new URLSearchParams(prev);
-      Object.entries(newParams).forEach(([key, val]) => {
-        if (val === null || val === undefined || val === '') {
-          params.delete(key);
-        } else {
-          params.set(key, val);
-        }
-      });
-      // Always delete page when filters change unless page is explicitly set
-      if (!newParams.hasOwnProperty('page')) {
-        params.delete('page');
+    const params = new URLSearchParams(searchParams);
+    Object.entries(newParams).forEach(([key, val]) => {
+      if (val === null || val === undefined || val === '') {
+        params.delete(key);
+      } else {
+        params.set(key, val);
       }
-      return params;
     });
+    // Always delete page when filters change unless page is explicitly set
+    if (!newParams.hasOwnProperty('page')) {
+      params.delete('page');
+    }
+    setSearchParams(params);
   };
 
   // Sync state when URL search params change (e.g. from Navbar search)
