@@ -1,8 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-    bundler: 'webpack',
-  },
-};
+const nextConfig = {};
 
 export default nextConfig;
