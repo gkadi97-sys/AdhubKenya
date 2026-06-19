@@ -4,6 +4,14 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
 import { COUNTIES, getTowns, getAreas } from '@/lib/countyData';
+import { CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
+import { JOB_CATEGORIES } from '@/lib/jobsData';
+
+function getCategoryContents(slug) {
+  if (slug === 'jobs') return Object.keys(JOB_CATEGORIES || {}).slice(0, 8);
+  if (CATEGORY_ATTRIBUTES[slug]?.data) return Object.keys(CATEGORY_ATTRIBUTES[slug].data).slice(0, 8);
+  return [];
+}
 
 
 
@@ -40,6 +48,7 @@ function BrowseContent() {
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
   const [activeKeyword, setActiveKeyword] = useState(searchParams.get('keyword') || '');
   const [category, setCategory] = useState(searchParams.get('category') || '');
+  const [hoveredCat, setHoveredCat] = useState(null);
   const [location, setLocation] = useState(searchParams.get('location') || '');
   const [selectedCounty, setSelectedCounty] = useState('');
   const [selectedTown, setSelectedTown] = useState('');
@@ -131,16 +140,41 @@ function BrowseContent() {
                     <span className="sidebar-cat-icon">🏷️</span>
                     All Categories
                   </div>
-                  {CATEGORIES.map(c=>(
-                    <div
-                      key={c.slug}
-                      className={`sidebar-cat-item ${category===c.slug?'active':''}`}
-                      onClick={()=>{setCategory(c.slug);setPage(1);}}
-                    >
-                      <span className="sidebar-cat-icon">{c.icon}</span>
-                      {c.name}
-                    </div>
-                  ))}
+                  {CATEGORIES.map(c=>{
+                    const subItems = getCategoryContents(c.slug);
+                    return (
+                      <div
+                        key={c.slug}
+                        className={`sidebar-cat-item ${category===c.slug?'active':''}`}
+                        style={{position:'relative'}}
+                        onClick={()=>{setCategory(c.slug);setPage(1);}}
+                        onMouseEnter={()=>setHoveredCat(c.slug)}
+                        onMouseLeave={()=>setHoveredCat(null)}
+                      >
+                        <span className="sidebar-cat-icon">{c.icon}</span>
+                        <span style={{flex:1}}>{c.name}</span>
+                        {subItems.length > 0 && <span style={{fontSize:'0.65rem',color:'var(--text-muted)',marginLeft:'auto'}}>›</span>}
+
+                        {/* Right-side popup */}
+                        {subItems.length > 0 && hoveredCat === c.slug && (
+                          <div className="sidebar-cat-popup" onClick={e=>e.stopPropagation()}>
+                            <div className="cat-pill-popup-title">{c.name}</div>
+                            {subItems.map(item=>(
+                              <div
+                                key={item}
+                                className="cat-pill-popup-item"
+                                onClick={()=>{setCategory(c.slug);setPage(1);}}
+                              >{item}</div>
+                            ))}
+                            <div
+                              className="cat-pill-popup-item cat-pill-popup-more"
+                              onClick={()=>{setCategory(c.slug);setPage(1);}}
+                            >See all in {c.name} →</div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
