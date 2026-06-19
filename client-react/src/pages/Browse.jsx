@@ -1,5 +1,4 @@
-
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getListings, getCategoryCounts } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
@@ -13,113 +12,84 @@ function getCategoryContents(slug) {
   return [];
 }
 
-
-
-
-
-// Use the single source of truth from categoryData.js
 const CATEGORIES = CATEGORY_ICONS;
 
 function BrowseContent() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
-
-  const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
-  const [activeKeyword, setActiveKeyword] = useState(searchParams.get('keyword') || '');
-  const [category, setCategory] = useState(searchParams.get('category') || '');
-  const [make, setMake] = useState(searchParams.get('make') || '');
-  const [hoveredCat, setHoveredCat] = useState(null);
-  const [location, setLocation] = useState(searchParams.get('location') || '');
-  const [selectedCounty, setSelectedCounty] = useState('');
-  const [selectedTown, setSelectedTown] = useState('');
-  const [selectedArea, setSelectedArea] = useState('');
-
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [sort, setSort] = useState('createdAt');
-  const [page, setPage] = useState(1);
   const [catCounts, setCatCounts] = useState({});
 
+  // ── Single source of truth: read everything from the URL ──────────────────
+  const category = searchParams.get('category') || '';
+  const make     = searchParams.get('make')     || '';
+  const location = searchParams.get('location') || '';
+  const keyword  = searchParams.get('keyword')  || '';
+  const sort     = searchParams.get('sort')     || 'createdAt';
+  const page     = parseInt(searchParams.get('page')) || 1;
+
+  // Local-only UI state (not filters)
+  const [keywordInput, setKeywordInput] = useState(keyword);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+
+  // Derive location display helpers from URL
+  const locationParts = location ? location.split(',').map(s => s.trim()) : [];
+  const selectedCounty = locationParts.length >= 1 ? locationParts[locationParts.length - 1] : '';
+  const selectedTown   = locationParts.length >= 2 ? locationParts[locationParts.length - 2] : '';
+
   // Load category counts once on mount
-  useEffect(() => { getCategoryCounts().then(setCatCounts).catch(() => {}); }, []);
-
-  // Helper to update search params and URL
-  const updateSearchParams = (newParams) => {
-    const params = new URLSearchParams(searchParams);
-    Object.entries(newParams).forEach(([key, val]) => {
-      if (val === null || val === undefined || val === '') {
-        params.delete(key);
-      } else {
-        params.set(key, val);
-      }
-    });
-    // Always delete page when filters change unless page is explicitly set
-    if (!newParams.hasOwnProperty('page')) {
-      params.delete('page');
-    }
-    setSearchParams(params);
-  };
-
-  // Sync state when URL search params change (e.g. from Navbar search)
   useEffect(() => {
-    const k = searchParams.get('keyword') || '';
-    const c = searchParams.get('category') || '';
-    const l = searchParams.get('location') || '';
-    const m = searchParams.get('make') || '';
-    const p = parseInt(searchParams.get('page')) || 1;
+    getCategoryCounts().then(setCatCounts).catch(() => {});
+  }, []);
 
-    setKeyword(k);
-    setActiveKeyword(k);
-    setCategory(c);
-    setMake(m);
-    setLocation(l);
-    setPage(p);
-
-    if (l) {
-      const parts = l.split(',').map(s => s.trim());
-      if (parts.length === 3) {
-        setSelectedCounty(parts[2]); setSelectedTown(parts[1]); setSelectedArea(parts[0]);
-      } else if (parts.length === 2) {
-        setSelectedCounty(parts[1]); setSelectedTown(parts[0]); setSelectedArea('');
-      } else if (COUNTIES.includes(parts[0])) {
-        setSelectedCounty(parts[0]); setSelectedTown(''); setSelectedArea('');
+  // ── Fetch listings whenever the URL changes — reads directly from searchParams ──
+  useEffect(() => {
+    const doFetch = async () => {
+      setLoading(true);
+      try {
+        const params = { page };
+        if (keyword)  params.keyword  = keyword;
+        if (category) params.category = category;
+        if (make)     params.make     = make;
+        if (location) params.location = location;
+        if (minPrice) params.minPrice = minPrice;
+        if (maxPrice) params.maxPrice = maxPrice;
+        if (sort)     params.sort     = sort;
+        const data = await getListings(params);
+        setListings(data.listings || []);
+        setTotal(data.total || 0);
+        setPages(data.pages || 1);
+      } catch (e) {
+        setListings([]);
+      } finally {
+        setLoading(false);
       }
-    } else {
-      setSelectedCounty('');
-      setSelectedTown('');
-      setSelectedArea('');
-    }
-  }, [searchParams]);
+    };
+    doFetch();
+  }, [searchParams]); // runs every time the URL changes — no stale state
 
-  const fetchListings = async () => {
-    setLoading(true);
-    try {
-      const params = { page };
-      if (activeKeyword) params.keyword = activeKeyword;
-      if (category) params.category = category;
-      if (make)     params.make = make;
-      if (location) params.location = location;
-      if (minPrice) params.minPrice = minPrice;
-      if (maxPrice) params.maxPrice = maxPrice;
-      if (sort) params.sort = sort;
-      const data = await getListings(params);
-      setListings(data.listings || []);
-      setTotal(data.total || 0);
-      setPages(data.pages || 1);
-    } catch (e) {
-      setListings([]);
-    } finally { setLoading(false); }
-  };
-
-  useEffect(() => { fetchListings(); }, [category, make, location, sort, page, activeKeyword]);
+  // ── Navigation helpers ────────────────────────────────────────────────────
+  const applyFilter = useCallback((overrides) => {
+    const next = {};
+    if (category) next.category = category;
+    if (make)     next.make     = make;
+    if (location) next.location = location;
+    if (keyword)  next.keyword  = keyword;
+    if (sort !== 'createdAt') next.sort = sort;
+    Object.assign(next, overrides);
+    // Remove falsy / page-reset
+    Object.keys(next).forEach(k => { if (!next[k] && next[k] !== 0) delete next[k]; });
+    navigate(`/browse?${new URLSearchParams(next).toString()}`);
+  }, [category, make, location, keyword, sort, navigate]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    updateSearchParams({ keyword });
+    applyFilter({ keyword: keywordInput, page: undefined });
   };
 
   return (
@@ -127,7 +97,11 @@ function BrowseContent() {
       {/* Page Header */}
       <div className="page-header">
         <div className="container">
-          <h1>Browse Ads {category && `— ${CATEGORIES.find(c=>c.slug===category)?.name}`}</h1>
+          <h1>
+            Browse Ads
+            {category && ` — ${CATEGORIES.find(c => c.slug === category)?.name || category}`}
+            {make     && ` › ${make}`}
+          </h1>
           <p style={{color:'var(--text-muted)',marginTop:6}}>{total.toLocaleString()} listings found</p>
         </div>
       </div>
@@ -137,45 +111,47 @@ function BrowseContent() {
           {/* Filters Sidebar */}
           <aside>
             <div className="filters-wrap">
+
               {/* Search */}
               <div className="filter-section">
                 <h4>Search</h4>
                 <form onSubmit={handleSearch} style={{display:'flex',gap:8}}>
-                  <input className="form-control" placeholder="Keywords..." value={keyword} onChange={e=>setKeyword(e.target.value)} style={{flex:1,padding:'10px 12px'}}/>
+                  <input
+                    className="form-control"
+                    placeholder="Keywords..."
+                    value={keywordInput}
+                    onChange={e => setKeywordInput(e.target.value)}
+                    style={{flex:1,padding:'10px 12px'}}
+                  />
                   <button type="submit" className="btn btn-primary btn-sm">Go</button>
                 </form>
               </div>
 
-              {/* Category */}
+              {/* Category list with flyout */}
               <div className="filter-section">
                 <h4>Category</h4>
                 <div style={{display:'flex',flexDirection:'column',gap:2}}>
+                  {/* All Categories */}
                   <div
                     className={`sidebar-cat-item ${category===''?'active':''}`}
-                    onClick={() => updateSearchParams({ category: '', make: '' })}
+                    onClick={() => navigate('/browse')}
                   >
                     <span className="sidebar-cat-icon">🏷️</span>
                     <span style={{flex:1}}>All Categories</span>
                     <span className="sidebar-cat-count">
-                      {Object.values(catCounts).reduce((a,b)=>a+b,0) || ''}
+                      {Object.values(catCounts).reduce((a,b) => a+b, 0) || ''}
                     </span>
                   </div>
+
                   {CATEGORIES.map(c => {
                     const subItems = getCategoryContents(c.slug);
                     const count = catCounts[c.slug];
                     return (
-                      // Outer wrapper holds BOTH trigger + popup — CSS handles hover
-                      <div
-                        key={c.slug}
-                        className="sidebar-cat-wrapper"
-                      >
-                        {/* Trigger row */}
+                      <div key={c.slug} className="sidebar-cat-wrapper">
+                        {/* Category trigger */}
                         <div
                           className={`sidebar-cat-item ${category === c.slug ? 'active' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/browse?category=${encodeURIComponent(c.slug)}`);
-                          }}
+                          onClick={() => navigate(`/browse?category=${c.slug}`)}
                         >
                           <span className="sidebar-cat-icon">{c.icon}</span>
                           <span style={{flex:1}}>{c.name}</span>
@@ -183,7 +159,7 @@ function BrowseContent() {
                           {subItems.length > 0 && <span style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>›</span>}
                         </div>
 
-                        {/* Popup — shown by CSS hover on wrapper */}
+                        {/* Flyout popup — shown by pure CSS :hover */}
                         {subItems.length > 0 && (
                           <div className="sidebar-cat-popup">
                             <div className="sidebar-popup-header">
@@ -194,20 +170,18 @@ function BrowseContent() {
                                 <div
                                   key={item}
                                   className="sidebar-popup-cell"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/browse?category=${encodeURIComponent(c.slug)}&make=${encodeURIComponent(item)}`);
-                                  }}
-                                >{item}</div>
+                                  onClick={() => navigate(`/browse?category=${c.slug}&make=${encodeURIComponent(item)}`)}
+                                >
+                                  {item}
+                                </div>
                               ))}
                             </div>
                             <div
                               className="sidebar-popup-footer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/browse?category=${encodeURIComponent(c.slug)}`);
-                              }}
-                            >Browse all {c.name} →</div>
+                              onClick={() => navigate(`/browse?category=${c.slug}`)}
+                            >
+                              Browse all {c.name} →
+                            </div>
                           </div>
                         )}
                       </div>
@@ -216,13 +190,14 @@ function BrowseContent() {
                 </div>
               </div>
 
-              {/* Location — County → Town → Area cascading */}
+              {/* Location — County → Town cascading */}
               <div className="filter-section">
                 <h4>County</h4>
-                <select className="form-control" value={selectedCounty} onChange={e => {
-                  const c = e.target.value;
-                  updateSearchParams({ location: c });
-                }}>
+                <select
+                  className="form-control"
+                  value={selectedCounty}
+                  onChange={e => applyFilter({ location: e.target.value })}
+                >
                   <option value="">All Counties</option>
                   {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -231,27 +206,16 @@ function BrowseContent() {
               {selectedCounty && getTowns(selectedCounty).length > 0 && (
                 <div className="filter-section" style={{ animation: 'fadeIn 0.2s ease' }}>
                   <h4>Town / City</h4>
-                  <select className="form-control" value={selectedTown} onChange={e => {
-                    const t = e.target.value;
-                    const loc = t ? `${t}, ${selectedCounty}` : selectedCounty;
-                    updateSearchParams({ location: loc });
-                  }}>
+                  <select
+                    className="form-control"
+                    value={selectedTown}
+                    onChange={e => {
+                      const t = e.target.value;
+                      applyFilter({ location: t ? `${t}, ${selectedCounty}` : selectedCounty });
+                    }}
+                  >
                     <option value="">All of {selectedCounty}</option>
                     {getTowns(selectedCounty).map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-              )}
-
-              {selectedTown && getAreas(selectedCounty, selectedTown).length > 0 && (
-                <div className="filter-section" style={{ animation: 'fadeIn 0.2s ease' }}>
-                  <h4>Area / Estate</h4>
-                  <select className="form-control" value={selectedArea} onChange={e => {
-                    const a = e.target.value;
-                    const loc = a ? `${a}, ${selectedTown}, ${selectedCounty}` : `${selectedTown}, ${selectedCounty}`;
-                    updateSearchParams({ location: loc });
-                  }}>
-                    <option value="">All of {selectedTown}</option>
-                    {getAreas(selectedCounty, selectedTown).map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
               )}
@@ -260,20 +224,25 @@ function BrowseContent() {
               <div className="filter-section">
                 <h4>Price Range (KES)</h4>
                 <div className="price-range">
-                  <input className="form-control" type="number" placeholder="Min" value={minPrice} onChange={e=>setMinPrice(e.target.value)} style={{padding:'10px 12px'}}/>
-                  <input className="form-control" type="number" placeholder="Max" value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} style={{padding:'10px 12px'}}/>
+                  <input className="form-control" type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)} style={{padding:'10px 12px'}}/>
+                  <input className="form-control" type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} style={{padding:'10px 12px'}}/>
                 </div>
-                <button onClick={()=>{setPage(1);fetchListings();}} className="btn btn-primary btn-sm btn-full" style={{marginTop:10}}>Apply</button>
+                <button onClick={() => applyFilter({})} className="btn btn-primary btn-sm btn-full" style={{marginTop:10}}>Apply</button>
               </div>
+
             </div>
           </aside>
 
-          {/* Listings */}
+          {/* Listings panel */}
           <div>
-            {/* Sort bar */}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20}}>
               <span style={{color:'var(--text-muted)',fontSize:'0.9rem'}}>{total} results</span>
-              <select className="form-control" style={{width:'auto',padding:'8px 12px'}} value={sort} onChange={e=>setSort(e.target.value)}>
+              <select
+                className="form-control"
+                style={{width:'auto',padding:'8px 12px'}}
+                value={sort}
+                onChange={e => applyFilter({ sort: e.target.value })}
+              >
                 <option value="createdAt">Newest First</option>
                 <option value="price_asc">Price: Low to High</option>
                 <option value="price_desc">Price: High to Low</option>
@@ -298,12 +267,14 @@ function BrowseContent() {
                 <div className="listings-grid">
                   {listings.map(l => <ListingCard key={l.id} listing={l} />)}
                 </div>
-                {/* Pagination */}
                 {pages > 1 && (
                   <div style={{display:'flex',justifyContent:'center',gap:8,marginTop:40}}>
                     {[...Array(pages)].map((_,i) => (
-                      <button key={i} onClick={()=>updateSearchParams({ page: i+1 })}
-                        className={`btn btn-sm ${page===i+1?'btn-primary':'btn-ghost'}`}>
+                      <button
+                        key={i}
+                        onClick={() => applyFilter({ page: i+1 })}
+                        className={`btn btn-sm ${page===i+1?'btn-primary':'btn-ghost'}`}
+                      >
                         {i+1}
                       </button>
                     ))}
@@ -315,7 +286,7 @@ function BrowseContent() {
                 <div className="icon">🔍</div>
                 <h3>No listings found</h3>
                 <p>Try adjusting your search or filters</p>
-                <button onClick={()=>{setKeyword('');setMinPrice('');setMaxPrice('');setSearchParams(new URLSearchParams());}} className="btn btn-primary">Clear Filters</button>
+                <button onClick={() => navigate('/browse')} className="btn btn-primary">Clear Filters</button>
               </div>
             )}
           </div>
@@ -326,5 +297,5 @@ function BrowseContent() {
 }
 
 export default function BrowsePage() {
-  return <Suspense fallback={<div style={{textAlign:'center',padding:80,color:'var(--text-muted)'}}>Loading...</div>}><BrowseContent/></Suspense>;
+  return <BrowseContent />;
 }
