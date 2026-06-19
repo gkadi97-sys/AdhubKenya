@@ -1,6 +1,7 @@
 import { getListing, formatPrice, timeAgo } from '@/lib/api';
 import Link from 'next/link';
 import ListingGallery from '@/components/ListingGallery';
+import ListingContactButtons from '@/components/ListingContactButtons';
 
 export const runtime = 'edge';
 export async function generateMetadata({ params }) {
@@ -190,7 +191,14 @@ export default async function ListingDetailPage({ params }) {
                   {listing.seller?.name?.[0]?.toUpperCase() || 'S'}
                 </div>
                 <div>
-                  <div className="seller-name">{listing.seller?.name || 'Seller'}</div>
+                  <div className="seller-name" style={{display:'flex',alignItems:'center',gap:6}}>
+                    {listing.seller?.name || 'Seller'}
+                    {(listing.seller?.is_phone_verified || listing.seller?.is_business_verified) && (
+                      <span style={{color:'var(--primary)',display:'flex',alignItems:'center'}} title="Verified Seller">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      </span>
+                    )}
+                  </div>
                   <div className="seller-info">📍 {listing.seller?.location || listing.location}</div>
                   <div className="seller-info">Member since {new Date(listing.seller?.createdAt || listing.createdAt).getFullYear()}</div>
                 </div>
@@ -199,21 +207,11 @@ export default async function ListingDetailPage({ params }) {
               <div style={{fontSize:'1.5rem',fontWeight:800,color:'var(--primary-light)',marginBottom:4}}>{formatPrice(listing.price)}</div>
               {listing.negotiable && <div style={{fontSize:'0.8rem',color:'var(--text-muted)',marginBottom:16}}>Price is negotiable</div>}
 
-              <div className="contact-btns">
-                {(listing.whatsapp || listing.phone) && (
-                  <a href={waLink} target="_blank" rel="noopener noreferrer"
-                    className="btn btn-primary btn-full btn-lg"
-                    style={{background:'#25D366',boxShadow:'0 4px 15px rgba(37,211,102,0.3)'}}>
-                    <span>💬</span> WhatsApp Seller
-                  </a>
-                )}
-                <a href={`tel:${listing.phone}`} className="btn btn-ghost btn-full btn-lg">
-                  <span>📞</span> Call Seller
-                </a>
-                <div style={{background:'var(--bg-3)',borderRadius:'var(--radius)',padding:'12px 16px',textAlign:'center',fontSize:'0.85rem',color:'var(--text-muted)',border:'1px solid var(--border)'}}>
-                  📱 {listing.phone}
-                </div>
-              </div>
+              <ListingContactButtons 
+                listingId={listing._id || params.id} 
+                waLink={(listing.whatsapp || listing.phone) ? waLink : null} 
+                phone={listing.phone} 
+              />
 
               <div style={{marginTop:20,padding:'12px',background:'var(--primary-glow)',borderRadius:'var(--radius)',border:'1px solid var(--primary)',fontSize:'0.78rem',color:'var(--primary-light)'}}>
                 ⚠️ Safety tip: Meet in a public place. Never send money in advance. Always inspect before buying.

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getListings } from '@/lib/api';
+import { getListings, saveSearch } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
 import { COUNTIES, getTowns } from '@/lib/countyData';
 
@@ -35,6 +35,7 @@ function BrowseContent() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(1);
+  const [saveSearchStatus, setSaveSearchStatus] = useState('');
 
   const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
   const [activeKeyword, setActiveKeyword] = useState(searchParams.get('keyword') || '');
@@ -83,13 +84,34 @@ function BrowseContent() {
 
   const handleSearch = (e) => { e.preventDefault(); setPage(1); setActiveKeyword(keyword); };
 
+  const handleSaveSearch = async () => {
+    try {
+      setSaveSearchStatus('Saving...');
+      const filters = { category, location, minPrice, maxPrice };
+      await saveSearch(activeKeyword, filters, true);
+      setSaveSearchStatus('Saved & Alert enabled!');
+      setTimeout(() => setSaveSearchStatus(''), 3000);
+    } catch (err) {
+      setSaveSearchStatus('Error saving search');
+      setTimeout(() => setSaveSearchStatus(''), 3000);
+    }
+  };
+
   return (
     <div>
       {/* Page Header */}
       <div className="page-header">
-        <div className="container">
-          <h1>Browse Ads {category && `— ${CATEGORIES.find(c=>c.slug===category)?.name}`}</h1>
-          <p style={{color:'var(--text-muted)',marginTop:6}}>{total.toLocaleString()} listings found</p>
+        <div className="container" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div>
+            <h1>Browse Ads {category && `— ${CATEGORIES.find(c=>c.slug===category)?.name}`}</h1>
+            <p style={{color:'var(--text-muted)',marginTop:6}}>{total.toLocaleString()} listings found</p>
+          </div>
+          <div>
+            <button onClick={handleSaveSearch} className="btn btn-ghost" style={{borderColor:'var(--border)'}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight:6,verticalAlign:'middle'}}><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              {saveSearchStatus || 'Save Search / Alert Me'}
+            </button>
+          </div>
         </div>
       </div>
 

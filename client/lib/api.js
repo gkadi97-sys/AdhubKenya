@@ -37,10 +37,13 @@ const apiFetch = async (endpoint, options = {}) => {
   return data;
 };
 
-// Auth API
+// Auth & Verification API
 export const register = (body) => apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(body) });
 export const login = (body) => apiFetch('/auth/login', { method: 'POST', body: JSON.stringify(body) });
 export const getMe = () => apiFetch('/auth/me');
+export const verifyPhone = (phoneCode) => apiFetch('/auth/verify-phone', { method: 'POST', body: JSON.stringify({ code: phoneCode }) });
+export const verifyEmail = (emailCode) => apiFetch('/auth/verify-email', { method: 'POST', body: JSON.stringify({ code: emailCode }) });
+export const submitBusinessVerification = (data) => apiFetch('/auth/verify-business', { method: 'POST', body: JSON.stringify(data) });
 
 // Listings API
 export const getListings = (params = {}) => {
@@ -56,6 +59,12 @@ export const deleteListing = (id) => apiFetch(`/listings/${id}`, { method: 'DELE
 
 // Categories API
 export const getCategories = () => apiFetch('/categories');
+
+// Retention & Analytics API (Phase 1)
+export const saveSearch = (query, filters, isAlertEnabled) => apiFetch('/saved-searches', { method: 'POST', body: JSON.stringify({ query, filters, isAlertEnabled }) });
+export const getSavedSearches = () => apiFetch('/saved-searches');
+export const logListingEvent = (listingId, eventType) => apiFetch('/analytics/events', { method: 'POST', body: JSON.stringify({ listingId, eventType }) });
+export const getListingAnalytics = (listingId) => apiFetch(`/analytics/listings/${listingId}`);
 
 // Image URL helper
 export const imageUrl = (path) => {

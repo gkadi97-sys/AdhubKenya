@@ -19,6 +19,12 @@ export default function ListingCard({ listing }) {
       <div className="content">
         <div className="price">{formatPrice(listing.price)}</div>
         <div className="title">{listing.title}</div>
+        {(listing.seller?.is_phone_verified || listing.seller?.is_business_verified) && (
+          <div style={{fontSize:'0.75rem',color:'var(--primary)',marginBottom:4,display:'flex',alignItems:'center',gap:4}}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            Verified Seller
+          </div>
+        )}
         <div className="meta">
           <span className="location">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--text-muted)" stroke="none">

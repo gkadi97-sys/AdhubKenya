@@ -40,8 +40,14 @@ export default function MyAdsPage() {
       <div className="container">
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:32}}>
           <div>
-            <h1 style={{fontSize:'1.8rem'}}>My Ads</h1>
+            <h1 style={{fontSize:'1.8rem'}}>My Dashboard</h1>
             <p style={{color:'var(--text-secondary)',marginTop:4}}>Welcome, {user.name} 👋</p>
+            <div style={{display:'flex',gap:16,marginTop:16}}>
+              <Link href="/my-ads" style={{color:'var(--primary-light)',fontWeight:600,textDecoration:'underline'}}>My Ads</Link>
+              <Link href="/my-alerts" style={{color:'var(--text-muted)'}}>Saved Searches</Link>
+              <Link href="/analytics" style={{color:'var(--text-muted)'}}>Analytics</Link>
+              <Link href="/verify" style={{color:'var(--text-muted)'}}>Verify Account</Link>
+            </div>
           </div>
           <Link href="/post-ad" className="btn btn-accent">+ Post New Ad</Link>
         </div>
