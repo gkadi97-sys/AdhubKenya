@@ -123,11 +123,22 @@ function BrowseContent() {
               {/* Category */}
               <div className="filter-section">
                 <h4>Category</h4>
-                <div style={{display:'flex',flexDirection:'column',gap:4}}>
-                  <div className={`filter-chip ${category===''?'active':''}`} onClick={()=>{setCategory('');setPage(1);}}>All Categories</div>
+                <div style={{display:'flex',flexDirection:'column',gap:2}}>
+                  <div
+                    className={`sidebar-cat-item ${category===''?'active':''}`}
+                    onClick={()=>{setCategory('');setPage(1);}}
+                  >
+                    <span className="sidebar-cat-icon">🏷️</span>
+                    All Categories
+                  </div>
                   {CATEGORIES.map(c=>(
-                    <div key={c.slug} className={`filter-chip ${category===c.slug?'active':''}`} onClick={()=>{setCategory(c.slug);setPage(1);}}>
-                      {c.icon} {c.name}
+                    <div
+                      key={c.slug}
+                      className={`sidebar-cat-item ${category===c.slug?'active':''}`}
+                      onClick={()=>{setCategory(c.slug);setPage(1);}}
+                    >
+                      <span className="sidebar-cat-icon">{c.icon}</span>
+                      {c.name}
                     </div>
                   ))}
                 </div>

@@ -1,16 +1,25 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getFeaturedListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
-import CategoryGrid from '@/components/CategoryGrid';
-import { TOP_CATEGORIES } from '@/lib/categoryData';
+import { TOP_CATEGORIES, CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
+import { JOB_CATEGORIES } from '@/lib/jobsData';
+
+function getCategoryContents(slug) {
+  if (slug === 'jobs') return Object.keys(JOB_CATEGORIES || {}).slice(0, 6);
+  if (CATEGORY_ATTRIBUTES[slug]?.data) {
+    return Object.keys(CATEGORY_ATTRIBUTES[slug].data).slice(0, 6);
+  }
+  return [];
+}
+
 export default function HomePage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [hoveredCat, setHoveredCat] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,7 +37,6 @@ export default function HomePage() {
     navigate(`/browse?${params.toString()}`);
   };
 
-
   return (
     <>
       {/* HERO */}
@@ -39,7 +47,7 @@ export default function HomePage() {
               🇰🇪 Kenya's #1 Classified Ads Platform
             </div>
             <h1>
-              Buy & Sell Anything<br/>
+              Buy &amp; Sell Anything<br/>
               <span className="text-gradient">In Kenya</span>
             </h1>
             <p>Join thousands of Kenyans buying and selling electronics, vehicles, property, and more — completely free.</p>
@@ -53,9 +61,7 @@ export default function HomePage() {
                 type="text" placeholder="What are you looking for?"
                 value={search} onChange={e => setSearch(e.target.value)}
               />
-              <select
-                value={category} onChange={e => setCategory(e.target.value)}
-              >
+              <select value={category} onChange={e => setCategory(e.target.value)}>
                 <option value="">All Categories</option>
                 {TOP_CATEGORIES.map(c => (
                   <option key={c.slug} value={c.slug}>{c.name}</option>
@@ -63,8 +69,6 @@ export default function HomePage() {
               </select>
               <button type="submit">Search</button>
             </form>
-
-
           </div>
         </div>
       </section>
@@ -83,22 +87,57 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <section className="section">
+      {/* CATEGORY STRIP */}
+      <section className="cat-strip-section">
         <div className="container">
-          <div className="section-header">
-            <div>
-              <h2 style={{fontSize:'1.5rem'}}>Browse by Category</h2>
-              <p style={{color:'var(--text-secondary)',marginTop:4,fontSize:'0.9rem'}}>Find exactly what you're looking for</p>
-            </div>
-            <Link to="/browse" className="btn btn-ghost btn-sm" style={{whiteSpace:'nowrap'}}>View All →</Link>
+          <div className="cat-strip-header">
+            <span className="cat-strip-title">Browse by Category</span>
+            <Link to="/browse" className="cat-strip-viewall">View all →</Link>
           </div>
-          <CategoryGrid />
+          <div className="cat-strip">
+            {TOP_CATEGORIES.map(cat => {
+              const items = getCategoryContents(cat.slug);
+              return (
+                <div
+                  key={cat.slug}
+                  className="cat-pill"
+                  onMouseEnter={() => setHoveredCat(cat.slug)}
+                  onMouseLeave={() => setHoveredCat(null)}
+                  onClick={() => navigate(`/browse?category=${cat.slug}`)}
+                >
+                  <span className="cat-pill-icon">{cat.icon}</span>
+                  <span className="cat-pill-name">{cat.name}</span>
+
+                  {/* Hover popup */}
+                  {items.length > 0 && hoveredCat === cat.slug && (
+                    <div className="cat-pill-popup" onClick={e => e.stopPropagation()}>
+                      <div className="cat-pill-popup-title">{cat.name}</div>
+                      {items.map(item => (
+                        <div
+                          key={item}
+                          className="cat-pill-popup-item"
+                          onClick={() => navigate(`/browse?category=${cat.slug}`)}
+                        >
+                          {item}
+                        </div>
+                      ))}
+                      <div
+                        className="cat-pill-popup-item cat-pill-popup-more"
+                        onClick={() => navigate(`/browse?category=${cat.slug}`)}
+                      >
+                        See all in {cat.name} →
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
       {/* LATEST LISTINGS */}
-      <section className="section" style={{paddingTop:0}}>
+      <section className="section" style={{paddingTop:32}}>
         <div className="container">
           <div className="section-header">
             <div>
