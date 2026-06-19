@@ -3,23 +3,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getCategories } from '@/lib/api';
 
-import { CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
+import { CATEGORY_ATTRIBUTES, CATEGORY_ICONS } from '@/lib/categoryData';
 import { JOB_CATEGORIES } from '@/lib/jobsData';
-
-const fallbackCategories = [
-  { slug:'electronics',name:'Electronics',icon:'📱' },
-  { slug:'vehicles',name:'Vehicles',icon:'🚗' },
-  { slug:'property',name:'Property',icon:'🏠' },
-  { slug:'fashion',name:'Fashion',icon:'👗' },
-  { slug:'services',name:'Services',icon:'🔧' },
-  { slug:'jobs',name:'Jobs',icon:'💼' },
-  { slug:'agriculture',name:'Agriculture',icon:'🌱' },
-  { slug:'furniture',name:'Furniture',icon:'🛋️' },
-  { slug:'sports',name:'Sports',icon:'⚽' },
-  { slug:'kids',name:'Kids',icon:'👶' },
-  { slug:'food',name:'Food',icon:'🍽️' },
-  { slug:'health',name:'Health',icon:'💊' },
-];
 
 function getCategoryContents(slug) {
   if (slug === 'jobs') return Object.keys(JOB_CATEGORIES || {}).slice(0, 7);
@@ -30,10 +15,12 @@ function getCategoryContents(slug) {
 }
 
 export default function CategoryGrid({ onSelect, selected }) {
-  const [categories, setCategories] = useState(fallbackCategories);
+  const [categories, setCategories] = useState(CATEGORY_ICONS);
 
   useEffect(() => {
-    getCategories().then(setCategories).catch(() => {});
+    getCategories().then(res => {
+      if (res && res.length > 0) setCategories(res);
+    }).catch(() => {});
   }, []);
 
   const renderPopup = (slug) => {

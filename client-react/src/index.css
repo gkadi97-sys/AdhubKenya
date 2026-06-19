@@ -533,6 +533,7 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 .category-card:hover {
   border-color: var(--primary); background: var(--primary-glow);
   transform: translateY(-2px);
+  z-index: 101;
 }
 .category-card .icon { font-size: 2rem; margin-bottom: 10px; }
 .category-card .name { font-weight: 600; font-size: 0.875rem; color: var(--text); }
