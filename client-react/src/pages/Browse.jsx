@@ -4,7 +4,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
 import { COUNTIES, getTowns, getAreas } from '@/lib/countyData';
-import { CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
+import { CATEGORY_ATTRIBUTES, CATEGORY_ICONS } from '@/lib/categoryData';
 import { JOB_CATEGORIES } from '@/lib/jobsData';
 
 function getCategoryContents(slug) {
@@ -17,25 +17,8 @@ function getCategoryContents(slug) {
 
 
 
-const CATEGORIES = [
-  { slug: 'vehicles',             name: 'Vehicles',                     icon: '🚗' },
-  { slug: 'auto-spares',          name: 'Auto Spares',                  icon: '⚙️' },
-  { slug: 'property',             name: 'Property',                     icon: '🏠' },
-  { slug: 'phones-tablets',       name: 'Phones & Tablets',             icon: '📱' },
-  { slug: 'electronics',          name: 'Electronics',                  icon: '💻' },
-  { slug: 'home-furniture',       name: 'Home, Furniture & Appliances', icon: '🛋️' },
-  { slug: 'fashion',              name: 'Fashion',                      icon: '👗' },
-  { slug: 'beauty',               name: 'Beauty & Personal Care',       icon: '✨' },
-  { slug: 'services',             name: 'Services',                     icon: '🔧' },
-  { slug: 'repair-construction',  name: 'Repair & Construction',        icon: '🔨' },
-  { slug: 'commercial-equipment', name: 'Commercial Equipment & Tools', icon: '🚜' },
-  { slug: 'leisure',              name: 'Leisure & Activities',         icon: '⚽' },
-  { slug: 'babies-kids',          name: 'Babies & Kids',                icon: '👶' },
-  { slug: 'food-agriculture',     name: 'Food, Agriculture & Farming',  icon: '🌱' },
-  { slug: 'animals-pets',         name: 'Animals & Pets',               icon: '🐶' },
-  { slug: 'jobs',                 name: 'Jobs',                         icon: '💼' },
-  { slug: 'seeking-work',         name: 'Seeking Work - CVs',           icon: '📄' },
-];
+// Use the single source of truth from categoryData.js
+const CATEGORIES = CATEGORY_ICONS;
 
 function BrowseContent() {
   const [searchParams] = useSearchParams();
