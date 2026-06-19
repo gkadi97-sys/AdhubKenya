@@ -160,10 +160,20 @@ export const deleteListing = async (id) => {
 
 // Categories API (hardcoded in Supabase world since it's usually static data)
 export const getCategories = async () => {
-  // If we wanted dynamic categories, we'd fetch from a `categories` table.
-  // For now, return a placeholder empty array if any component expects this, 
-  // as categoryData.js handles this mostly.
   return [];
+};
+
+// Count active listings per category (for sidebar display)
+export const getCategoryCounts = async () => {
+  const { data, error } = await supabase
+    .from('listings')
+    .select('category');
+  if (error) return {};
+  const counts = {};
+  (data || []).forEach(r => {
+    if (r.category) counts[r.category] = (counts[r.category] || 0) + 1;
+  });
+  return counts;
 };
 
 // Image URL helper

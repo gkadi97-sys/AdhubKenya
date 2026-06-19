@@ -1,7 +1,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { getListings } from '@/lib/api';
+import { getListings, getCategoryCounts } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
 import { COUNTIES, getTowns, getAreas } from '@/lib/countyData';
 import { CATEGORY_ATTRIBUTES, CATEGORY_ICONS } from '@/lib/categoryData';
@@ -41,6 +41,10 @@ function BrowseContent() {
   const [maxPrice, setMaxPrice] = useState('');
   const [sort, setSort] = useState('createdAt');
   const [page, setPage] = useState(1);
+  const [catCounts, setCatCounts] = useState({});
+
+  // Load category counts once on mount
+  useEffect(() => { getCategoryCounts().then(setCatCounts).catch(() => {}); }, []);
 
   // Sync state when URL search params change (e.g. from Navbar search)
   useEffect(() => {
@@ -121,10 +125,14 @@ function BrowseContent() {
                     onClick={()=>{setCategory('');setPage(1);}}
                   >
                     <span className="sidebar-cat-icon">🏷️</span>
-                    All Categories
+                    <span style={{flex:1}}>All Categories</span>
+                    <span className="sidebar-cat-count">
+                      {Object.values(catCounts).reduce((a,b)=>a+b,0) || ''}
+                    </span>
                   </div>
                   {CATEGORIES.map(c=>{
                     const subItems = getCategoryContents(c.slug);
+                    const count = catCounts[c.slug];
                     return (
                       <div
                         key={c.slug}
@@ -136,23 +144,28 @@ function BrowseContent() {
                       >
                         <span className="sidebar-cat-icon">{c.icon}</span>
                         <span style={{flex:1}}>{c.name}</span>
-                        {subItems.length > 0 && <span style={{fontSize:'0.65rem',color:'var(--text-muted)',marginLeft:'auto'}}>›</span>}
+                        <span className="sidebar-cat-count">{count || ''}</span>
+                        {subItems.length > 0 && <span style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>›</span>}
 
-                        {/* Right-side popup */}
+                        {/* 2-column flyout popup */}
                         {subItems.length > 0 && hoveredCat === c.slug && (
                           <div className="sidebar-cat-popup" onClick={e=>e.stopPropagation()}>
-                            <div className="cat-pill-popup-title">{c.name}</div>
-                            {subItems.map(item=>(
-                              <div
-                                key={item}
-                                className="cat-pill-popup-item"
-                                onClick={()=>{setCategory(c.slug);setPage(1);}}
-                              >{item}</div>
-                            ))}
+                            <div className="sidebar-popup-header">
+                              <span>{c.icon} {c.name}</span>
+                            </div>
+                            <div className="sidebar-popup-grid">
+                              {subItems.map(item=>(
+                                <div
+                                  key={item}
+                                  className="sidebar-popup-cell"
+                                  onClick={()=>{setCategory(c.slug);setPage(1);}}
+                                >{item}</div>
+                              ))}
+                            </div>
                             <div
-                              className="cat-pill-popup-item cat-pill-popup-more"
+                              className="sidebar-popup-footer"
                               onClick={()=>{setCategory(c.slug);setPage(1);}}
-                            >See all in {c.name} →</div>
+                            >Browse all {c.name} →</div>
                           </div>
                         )}
                       </div>

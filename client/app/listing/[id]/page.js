@@ -1,29 +1,37 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { getListing, imageUrl, formatPrice, timeAgo } from '@/lib/api';
+import { getListing, formatPrice, timeAgo } from '@/lib/api';
 import Link from 'next/link';
+import ListingGallery from '@/components/ListingGallery';
 
-export default function ListingDetailPage() {
-  const { id } = useParams();
-  const [listing, setListing] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [activeImg, setActiveImg] = useState(0);
+export async function generateMetadata({ params }) {
+  try {
+    const listing = await getListing(params.id);
+    if (!listing) return { title: 'Not Found' };
+    
+    const title = `${listing.title} for sale in ${listing.location} - KES ${listing.price} | AdHubKenya`;
+    const description = listing.description?.substring(0, 160) || `Buy ${listing.title} in ${listing.location} on AdHubKenya.`;
+    
+    return {
+      title,
+      description,
+      alternates: { canonical: `https://adhubkenya.co.ke/listing/${params.id}` },
+      openGraph: {
+        title,
+        description,
+        images: listing.images?.length > 0 ? [{ url: listing.images[0] }] : []
+      }
+    };
+  } catch (err) {
+    return { title: 'Listing | AdHubKenya' };
+  }
+}
 
-  useEffect(() => {
-    if (id) {
-      getListing(id).then(setListing).catch(()=>setListing(null)).finally(()=>setLoading(false));
-    }
-  }, [id]);
-
-  if (loading) return (
-    <div className="container" style={{padding:'60px 20px'}}>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 360px',gap:32}}>
-        <div><div className="skeleton" style={{aspectRatio:'4/3',borderRadius:'var(--radius-lg)'}}/></div>
-        <div><div className="skeleton" style={{height:300,borderRadius:'var(--radius-lg)'}}/></div>
-      </div>
-    </div>
-  );
+export default async function ListingDetailPage({ params }) {
+  let listing = null;
+  try {
+    listing = await getListing(params.id);
+  } catch (err) {
+    console.error("Listing not found", err);
+  }
 
   if (!listing) return (
     <div className="empty-state" style={{padding:'100px 20px'}}>
@@ -39,8 +47,30 @@ export default function ListingDetailPage() {
   const waNumber = listing.whatsapp?.replace(/\D/g,'') || listing.phone?.replace(/\D/g,'');
   const waLink = `https://wa.me/${waNumber.startsWith('0') ? '254' + waNumber.slice(1) : waNumber}?text=${whatsappMsg}`;
 
+  // JSON-LD Schema
+  const jsonLd = {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    'name': listing.title,
+    'image': images.map(img => img.startsWith('http') ? img : `https://adhubkenya.co.ke${img}`),
+    'description': listing.description,
+    'offers': {
+      '@type': 'Offer',
+      'url': `https://adhubkenya.co.ke/listing/${listing._id || params.id}`,
+      'priceCurrency': 'KES',
+      'price': listing.price,
+      'itemCondition': listing.condition === 'New' ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition',
+      'availability': 'https://schema.org/InStock',
+      'seller': {
+        '@type': 'Organization',
+        'name': listing.seller?.name || 'Seller'
+      }
+    }
+  };
+
   return (
     <div style={{padding:'32px 0 60px'}}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="container">
         {/* Breadcrumb */}
         <nav style={{display:'flex',gap:8,alignItems:'center',marginBottom:24,fontSize:'0.85rem',color:'var(--text-muted)'}}>
@@ -48,37 +78,15 @@ export default function ListingDetailPage() {
           <span>/</span>
           <Link href="/browse" style={{color:'var(--text-muted)'}}>Browse</Link>
           <span>/</span>
-          <Link href={`/category/${listing.category}`} style={{color:'var(--text-muted)',textTransform:'capitalize'}}>{listing.category}</Link>
+          <Link href={`/${listing.category}`} style={{color:'var(--text-muted)',textTransform:'capitalize'}}>{listing.category}</Link>
           <span>/</span>
           <span style={{color:'var(--text)',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{listing.title}</span>
         </nav>
 
         <div className="listing-detail-grid">
-          {/* LEFT: Images + Details */}
           <div>
-            {/* Image gallery */}
-            <div className="image-gallery">
-              {images.length > 0 ? (
-                <>
-                  <img className="main-image" src={imageUrl(images[activeImg])} alt={listing.title}
-                    style={{borderRadius:'var(--radius-lg)',width:'100%',aspectRatio:'4/3',objectFit:'cover'}}
-                    onError={e=>{e.target.src=`https://placehold.co/800x600/1a2b1e/00d168?text=AdHub`;}}
-                  />
-                  {images.length > 1 && (
-                    <div className="thumb-strip" style={{marginTop:8}}>
-                      {images.map((img,i) => (
-                        <img key={i} src={imageUrl(img)} alt="" className={i===activeImg?'active':''}
-                          onClick={()=>setActiveImg(i)}
-                          onError={e=>{e.target.src=`https://placehold.co/72x72/1a2b1e/00d168?text=img`;}}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div style={{aspectRatio:'4/3',background:'var(--surface)',borderRadius:'var(--radius-lg)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'4rem'}}>🖼️</div>
-              )}
-            </div>
+            {/* Gallery Component */}
+            <ListingGallery images={images} title={listing.title} />
 
             {/* Details */}
             <div className="card" style={{marginTop:24,padding:28}}>
@@ -87,9 +95,7 @@ export default function ListingDetailPage() {
                   <h1 style={{fontSize:'1.6rem',marginBottom:8}}>{listing.title}</h1>
                   <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                     <span className="badge badge-primary" style={{textTransform:'capitalize'}}>{listing.category}</span>
-                    {['vehicles', 'phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids'].includes(listing.category) && listing.condition && (
-                      <span className="badge badge-gray">{listing.condition}</span>
-                    )}
+                    {listing.condition && <span className="badge badge-gray">{listing.condition}</span>}
                     {listing.negotiable && <span className="badge badge-accent">Negotiable</span>}
                   </div>
                 </div>
@@ -98,7 +104,6 @@ export default function ListingDetailPage() {
                 </div>
               </div>
 
-              {/* Make / Model / Year attributes */}
               {(listing.make || listing.model || listing.year) && (
                 <div style={{
                   display:'flex',gap:10,flexWrap:'wrap',marginBottom:16,
@@ -132,10 +137,8 @@ export default function ListingDetailPage() {
                 <span>🕐 {timeAgo(listing.createdAt)}</span>
               </div>
 
-
               <hr style={{border:'none',borderTop:'1px solid var(--border)',margin:'0 0 24px'}}/>
 
-              {/* Additional Specifications table */}
               {listing.specs && Object.keys(listing.specs).filter(k => listing.specs[k]).length > 0 && (
                 <div style={{marginBottom:28}}>
                   <h3 style={{marginBottom:14,fontSize:'1rem'}}>Specifications</h3>
@@ -176,11 +179,9 @@ export default function ListingDetailPage() {
 
               <h3 style={{marginBottom:12,fontSize:'1rem'}}>Description</h3>
               <p style={{color:'var(--text-secondary)',lineHeight:1.8,whiteSpace:'pre-wrap'}}>{listing.description}</p>
-
             </div>
           </div>
 
-          {/* RIGHT: Contact Card */}
           <aside>
             <div className="contact-card">
               <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20,paddingBottom:20,borderBottom:'1px solid var(--border)'}}>

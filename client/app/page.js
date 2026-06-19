@@ -1,38 +1,70 @@
-'use client';
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { getFeaturedListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
 import CategoryGrid from '@/components/CategoryGrid';
-import { TOP_CATEGORIES } from '@/lib/categoryData';
-export default function HomePage() {
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('');
-  const router = useRouter();
+import HomeSearchBar from '@/components/HomeSearchBar';
 
-  useEffect(() => {
-    getFeaturedListings()
-      .then(setListings)
-      .catch(() => setListings([]))
-      .finally(() => setLoading(false));
-  }, []);
+export const metadata = {
+  title: "Buy & Sell Online in Kenya | Free Classified Ads | AdHubKenya",
+  description: "Kenya's #1 marketplace to buy and sell electronics, cars, property, and fashion. Post free classified ads and connect with local buyers today. Start selling!",
+  alternates: {
+    canonical: "https://adhubkenya.co.ke",
+  },
+  openGraph: {
+    title: "AdHubKenya: Buy & Sell Anything in Kenya",
+    description: "Join thousands of Kenyans buying and selling on AdHubKenya.",
+    url: "https://adhubkenya.co.ke",
+    siteName: "AdHubKenya",
+    type: "website",
+  }
+};
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (search) params.set('keyword', search);
-    if (category) params.set('category', category);
-    router.push(`/browse?${params.toString()}`);
-  };
+export default async function HomePage() {
+  let listings = [];
+  try {
+    listings = await getFeaturedListings();
+  } catch (err) {
+    console.error("Error fetching featured listings", err);
+  }
 
   const counties = ['Nairobi','Mombasa','Kwale','Kilifi','Tana River','Lamu','Taita-Taveta','Garissa','Wajir','Mandera','Marsabit','Isiolo','Meru','Tharaka-Nithi','Embu','Kitui','Machakos','Makueni','Nyandarua','Nyeri','Kirinyaga',"Murang'a",'Kiambu','Turkana','West Pokot','Samburu','Trans Nzoia','Uasin Gishu','Elgeyo-Marakwet','Nandi','Baringo','Laikipia','Nakuru','Narok','Kajiado','Kericho','Bomet','Kakamega','Vihiga','Bungoma','Busia','Siaya','Kisumu','Homa Bay','Migori','Kisii','Nyamira'];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://adhubkenya.co.ke/#website",
+        "url": "https://adhubkenya.co.ke/",
+        "name": "AdHubKenya",
+        "description": "Buy & Sell Online in Kenya | Free Classified Ads",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://adhubkenya.co.ke/browse?keyword={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://adhubkenya.co.ke/#organization",
+        "name": "AdHubKenya",
+        "url": "https://adhubkenya.co.ke/",
+        "logo": "https://adhubkenya.co.ke/logo.png",
+        "sameAs": [
+          "https://www.facebook.com/adhubkenya",
+          "https://twitter.com/adhubkenya"
+        ]
+      }
+    ]
+  };
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      
       {/* HERO */}
       <section className="hero">
         <div className="container">
@@ -40,43 +72,24 @@ export default function HomePage() {
             <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'var(--primary-glow)',border:'1px solid var(--primary)',borderRadius:'var(--radius-full)',padding:'6px 16px',fontSize:'0.8rem',color:'var(--primary-light)',marginBottom:20,fontWeight:600}}>
               🇰🇪 Kenya's #1 Classified Ads Platform
             </div>
-            <h1>
-              Buy & Sell Anything<br/>
-              <span className="text-gradient">In Kenya</span>
+            <h1 style={{fontSize:'3rem', marginBottom:16}}>
+              Buy & Sell Anything Online<br/>
+              <span className="text-gradient">in Kenya</span>
             </h1>
-            <p>Join thousands of Kenyans buying and selling electronics, vehicles, property, and more — completely free.</p>
+            <p>Join over 50,000 Kenyans on the fastest growing online marketplace. Whether you are looking for affordable cars in Nairobi, cheap apartments in Mombasa, or the latest electronics, AdHubKenya connects you directly with verified sellers. Post your classified ad for free.</p>
 
-            {/* Search bar */}
-            <form className="search-bar" onSubmit={handleSearch}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5c8065" strokeWidth="2" style={{flexShrink:0}}>
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input
-                type="text" placeholder="What are you looking for?"
-                value={search} onChange={e => setSearch(e.target.value)}
-              />
-              <select
-                value={category} onChange={e => setCategory(e.target.value)}
-              >
-                <option value="">All Categories</option>
-                {TOP_CATEGORIES.map(c => (
-                  <option key={c.slug} value={c.slug}>{c.name}</option>
-                ))}
-              </select>
-              <button type="submit">Search</button>
-            </form>
+            <HomeSearchBar />
 
             {/* Quick county links */}
             <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',marginTop:20}}>
-              {counties.map(c => (
-                <Link key={c} href={`/browse?location=${c}`}
+              {counties.slice(0, 10).map(c => (
+                <Link key={c} href={`/browse?location=${c}`} title={`Classifieds in ${c}`}
                   style={{fontSize:'0.8rem',color:'var(--text-muted)',padding:'4px 12px',borderRadius:'var(--radius-full)',border:'1px solid var(--border)',background:'var(--surface)',transition:'var(--transition)'}}
-                  onMouseEnter={e => { e.target.style.color='var(--primary-light)'; e.target.style.borderColor='var(--primary)'; }}
-                  onMouseLeave={e => { e.target.style.color='var(--text-muted)'; e.target.style.borderColor='var(--border)'; }}
                 >
                   {c}
                 </Link>
               ))}
+              <Link href="/browse" title="All locations in Kenya" style={{fontSize:'0.8rem',color:'var(--primary-light)',padding:'4px 12px',borderRadius:'var(--radius-full)',border:'1px solid var(--primary)',background:'var(--primary-glow)',transition:'var(--transition)'}}>+ More</Link>
             </div>
           </div>
         </div>
@@ -101,7 +114,7 @@ export default function HomePage() {
         <div className="container">
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:28}}>
             <div>
-              <h2 style={{fontSize:'1.5rem'}}>Browse by Category</h2>
+              <h2 style={{fontSize:'1.5rem'}}>Browse Top Classified Categories in Kenya</h2>
               <p style={{color:'var(--text-secondary)',marginTop:4,fontSize:'0.9rem'}}>Find exactly what you're looking for</p>
             </div>
             <Link href="/browse" className="btn btn-ghost btn-sm">View All →</Link>
@@ -115,26 +128,13 @@ export default function HomePage() {
         <div className="container">
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:28}}>
             <div>
-              <h2 style={{fontSize:'1.5rem'}}>Latest Listings</h2>
+              <h2 style={{fontSize:'1.5rem'}}>Latest Classified Ads Near You</h2>
               <p style={{color:'var(--text-secondary)',marginTop:4,fontSize:'0.9rem'}}>Fresh ads posted by sellers near you</p>
             </div>
             <Link href="/browse" className="btn btn-ghost btn-sm">See all →</Link>
           </div>
 
-          {loading ? (
-            <div className="listings-grid">
-              {[...Array(8)].map((_,i) => (
-                <div key={i} className="listing-card">
-                  <div className="skeleton" style={{aspectRatio:'4/3'}}/>
-                  <div className="card-body">
-                    <div className="skeleton" style={{height:20,width:'60%',marginBottom:8}}/>
-                    <div className="skeleton" style={{height:14,width:'90%',marginBottom:6}}/>
-                    <div className="skeleton" style={{height:12,width:'40%'}}/>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : listings.length > 0 ? (
+          {listings && listings.length > 0 ? (
             <div className="listings-grid">
               {listings.map(l => <ListingCard key={l._id} listing={l} />)}
             </div>
@@ -152,7 +152,7 @@ export default function HomePage() {
       {/* CTA BANNER */}
       <section style={{background:'linear-gradient(135deg, var(--bg-3), #0d2215)',borderTop:'1px solid var(--border)',borderBottom:'1px solid var(--border)',padding:'64px 0'}}>
         <div className="container" style={{textAlign:'center'}}>
-          <h2 style={{fontSize:'2rem',marginBottom:12}}>Ready to Sell Something?</h2>
+          <h2 style={{fontSize:'2rem',marginBottom:12}}>Start Selling in Kenya Today</h2>
           <p style={{color:'var(--text-secondary)',marginBottom:28,maxWidth:480,margin:'0 auto 28px'}}>Posting your first ad is completely free. Reach thousands of buyers across Kenya in minutes.</p>
           <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
             <Link href="/post-ad" className="btn btn-accent btn-lg">Post Free Ad Now</Link>

@@ -87,6 +87,38 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ONBOARDING CARDS */}
+      <section style={{background:'var(--bg-2)',borderBottom:'1px solid var(--border)',paddingBottom:20}}>
+        <div className="container">
+          <div className="onboard-cards">
+            <Link to="/browse" className="onboard-card">
+              <span className="onboard-icon">🛍️</span>
+              <div>
+                <div className="onboard-title">How to buy</div>
+                <div className="onboard-sub">Browse thousands of ads near you</div>
+              </div>
+              <span className="onboard-arrow">›</span>
+            </Link>
+            <Link to="/post-ad" className="onboard-card">
+              <span className="onboard-icon">💰</span>
+              <div>
+                <div className="onboard-title">How to sell</div>
+                <div className="onboard-sub">Post your free ad in 2 minutes</div>
+              </div>
+              <span className="onboard-arrow">›</span>
+            </Link>
+            <Link to="/browse?category=jobs" className="onboard-card">
+              <span className="onboard-icon">💼</span>
+              <div>
+                <div className="onboard-title">Find a job</div>
+                <div className="onboard-sub">Jobs across all 47 counties</div>
+              </div>
+              <span className="onboard-arrow">›</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* CATEGORY STRIP */}
       <section className="cat-strip-section">
         <div className="container">

@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import { imageUrl, formatPrice, timeAgo } from '@/lib/api';
 
