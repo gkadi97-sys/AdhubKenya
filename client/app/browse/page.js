@@ -3,6 +3,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getListings, saveSearch } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
+import CategoryFlyout from '@/components/CategoryFlyout';
 import { COUNTIES, getTowns } from '@/lib/countyData';
 
 
@@ -118,8 +119,8 @@ function BrowseContent() {
       <div className="container" style={{padding:'32px 20px'}}>
         <div style={{display:'grid',gridTemplateColumns:'260px 1fr',gap:28,alignItems:'start'}}>
           {/* Filters Sidebar */}
-          <aside>
-            <div className="filters-wrap">
+          <aside style={{ overflow: 'visible' }}>
+            <div className="filters-wrap" style={{ overflow: 'visible' }}>
               {/* Search */}
               <div className="filter-section">
                 <h4>Search</h4>
@@ -132,13 +133,23 @@ function BrowseContent() {
               {/* Category */}
               <div className="filter-section">
                 <h4>Category</h4>
-                <div style={{display:'flex',flexDirection:'column',gap:4}}>
-                  <div className={`filter-chip ${category===''?'active':''}`} onClick={()=>{setCategory('');setPage(1);}}>All Categories</div>
-                  {CATEGORIES.map(c=>(
-                    <div key={c.slug} className={`filter-chip ${category===c.slug?'active':''}`} onClick={()=>{setCategory(c.slug);setPage(1);}}>
-                      {c.icon} {c.name}
-                    </div>
-                  ))}
+                <div
+                  style={{
+                    display: 'flex', flexDirection: 'column', gap: 4,
+                    // Overflow visible so flyout panel is not clipped
+                    overflow: 'visible',
+                  }}
+                >
+                  <div
+                    className={`filter-chip ${category === '' ? 'active' : ''}`}
+                    onClick={() => { setCategory(''); setPage(1); }}
+                  >
+                    All Categories
+                  </div>
+                  <CategoryFlyout
+                    category={category}
+                    onSelect={(slug) => { setCategory(slug); setPage(1); }}
+                  />
                 </div>
               </div>
 
