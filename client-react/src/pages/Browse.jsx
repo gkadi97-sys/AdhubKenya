@@ -172,7 +172,10 @@ function BrowseContent() {
                         {/* Trigger row */}
                         <div
                           className={`sidebar-cat-item ${category === c.slug ? 'active' : ''}`}
-                          onClick={() => updateSearchParams({ category: c.slug, make: '' })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/browse?category=${encodeURIComponent(c.slug)}`);
+                          }}
                         >
                           <span className="sidebar-cat-icon">{c.icon}</span>
                           <span style={{flex:1}}>{c.name}</span>
@@ -182,7 +185,7 @@ function BrowseContent() {
 
                         {/* Popup — shown by CSS hover on wrapper */}
                         {subItems.length > 0 && (
-                          <div className="sidebar-cat-popup" onClick={e => e.stopPropagation()}>
+                          <div className="sidebar-cat-popup">
                             <div className="sidebar-popup-header">
                               <span>{c.icon} {c.name}</span>
                             </div>
@@ -191,16 +194,18 @@ function BrowseContent() {
                                 <div
                                   key={item}
                                   className="sidebar-popup-cell"
-                                  onClick={() => {
-                                    updateSearchParams({ category: c.slug, make: item });
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/browse?category=${encodeURIComponent(c.slug)}&make=${encodeURIComponent(item)}`);
                                   }}
                                 >{item}</div>
                               ))}
                             </div>
                             <div
                               className="sidebar-popup-footer"
-                              onClick={() => {
-                                updateSearchParams({ category: c.slug, make: '' });
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/browse?category=${encodeURIComponent(c.slug)}`);
                               }}
                             >Browse all {c.name} →</div>
                           </div>
