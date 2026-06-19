@@ -166,12 +166,10 @@ function BrowseContent() {
                     const subItems = getCategoryContents(c.slug);
                     const count = catCounts[c.slug];
                     return (
-                      // Outer wrapper holds BOTH trigger + popup — hover never leaves
+                      // Outer wrapper holds BOTH trigger + popup — CSS handles hover
                       <div
                         key={c.slug}
-                        style={{ position: 'relative' }}
-                        onMouseEnter={() => subItems.length > 0 && setHoveredCat(c.slug)}
-                        onMouseLeave={() => setHoveredCat(null)}
+                        className="sidebar-cat-wrapper"
                       >
                         {/* Trigger row */}
                         <div
@@ -184,8 +182,8 @@ function BrowseContent() {
                           {subItems.length > 0 && <span style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>›</span>}
                         </div>
 
-                        {/* Popup — inline below trigger, zero gap */}
-                        {subItems.length > 0 && hoveredCat === c.slug && (
+                        {/* Popup — shown by CSS hover on wrapper */}
+                        {subItems.length > 0 && (
                           <div className="sidebar-cat-popup" onClick={e => e.stopPropagation()}>
                             <div className="sidebar-popup-header">
                               <span>{c.icon} {c.name}</span>
@@ -197,7 +195,6 @@ function BrowseContent() {
                                   className="sidebar-popup-cell"
                                   onClick={() => {
                                     updateSearchParams({ category: c.slug, make: item });
-                                    setHoveredCat(null);
                                   }}
                                 >{item}</div>
                               ))}
@@ -206,7 +203,6 @@ function BrowseContent() {
                               className="sidebar-popup-footer"
                               onClick={() => {
                                 updateSearchParams({ category: c.slug, make: '' });
-                                setHoveredCat(null);
                               }}
                             >Browse all {c.name} →</div>
                           </div>

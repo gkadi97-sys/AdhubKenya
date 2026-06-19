@@ -590,6 +590,10 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 }
 .sidebar-cat-icon { font-size: 1rem; width: 22px; text-align: center; flex-shrink: 0; }
 
+.sidebar-cat-wrapper {
+  position: relative;
+}
+
 /* Sidebar hover popup — flies out to the RIGHT */
 .sidebar-cat-popup {
   position: absolute;
@@ -603,7 +607,13 @@ textarea.form-control { resize: vertical; min-height: 120px; }
   min-width: 210px;
   max-width: 250px;
   z-index: 300;
+  display: none;
   animation: popIn 0.15s ease;
+}
+
+/* Show popup purely on CSS hover to prevent React unmounting */
+.sidebar-cat-wrapper:hover .sidebar-cat-popup {
+  display: block;
 }
 /* Transparent bridge to prevent hover loss */
 .sidebar-cat-popup::after {
