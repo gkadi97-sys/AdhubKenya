@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
 
 /**
- * CategoryFlyout – accordion-style sidebar category list.
+ * CategoryFlyout – accordion sidebar with hover on the OUTER wrapper.
  *
- * Subcategories expand INLINE below the parent (no flyout, no gap problem).
- * Hovering the parent opens the sub-list; moving away collapses it.
- * Clicking a subcategory applies it as a keyword filter.
+ * onMouseEnter/Leave is on the <div> that wraps BOTH the trigger chip
+ * and the expanded sub-list, so moving the mouse between them never
+ * triggers a close.
  */
 export default function CategoryFlyout({ category, onSelect }) {
   const [openSlug, setOpenSlug] = useState(null);
@@ -24,21 +24,25 @@ export default function CategoryFlyout({ category, onSelect }) {
         const isActive = category === cat.slug;
 
         return (
-          <div key={cat.slug}>
-            {/* Trigger row */}
+          // ← hover handlers are HERE, wrapping everything
+          <div
+            key={cat.slug}
+            onMouseEnter={() => hasChildren && setOpenSlug(cat.slug)}
+            onMouseLeave={() => setOpenSlug(null)}
+          >
+            {/* Trigger chip */}
             <div
               className={`filter-chip ${isActive ? 'active' : ''}`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                borderRadius: isOpen
+                  ? 'var(--radius-full) var(--radius-full) 0 0'
+                  : 'var(--radius-full)',
                 marginBottom: 0,
               }}
-              onMouseEnter={() => hasChildren && setOpenSlug(cat.slug)}
-              onMouseLeave={() => hasChildren && setOpenSlug(null)}
-              onClick={() => {
-                onSelect(cat.slug === category ? '' : cat.slug);
-              }}
+              onClick={() => onSelect(cat.slug === category ? '' : cat.slug)}
             >
               <span>{cat.icon} {cat.name}</span>
               {hasChildren && (
@@ -58,18 +62,15 @@ export default function CategoryFlyout({ category, onSelect }) {
               )}
             </div>
 
-            {/* Inline sub-list — expands below the trigger, no gap */}
+            {/* Inline sub-list — directly below, zero gap */}
             {hasChildren && isOpen && (
               <div
-                onMouseEnter={() => setOpenSlug(cat.slug)}
-                onMouseLeave={() => setOpenSlug(null)}
                 style={{
                   background: 'var(--bg-3)',
                   border: '1px solid var(--border)',
                   borderTop: 'none',
                   borderRadius: '0 0 var(--radius) var(--radius)',
                   overflow: 'hidden',
-                  marginBottom: 2,
                 }}
               >
                 {subKeys.map((sub) => (
@@ -79,7 +80,7 @@ export default function CategoryFlyout({ category, onSelect }) {
                     onClick={() => setOpenSlug(null)}
                     style={{
                       display: 'block',
-                      padding: '6px 14px',
+                      padding: '7px 14px',
                       fontSize: '0.82rem',
                       color: 'var(--text-secondary)',
                       borderBottom: '1px solid var(--border)',
@@ -106,6 +107,12 @@ export default function CategoryFlyout({ category, onSelect }) {
                     fontSize: '0.8rem',
                     color: 'var(--primary)',
                     fontWeight: 600,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--primary-glow)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '';
                   }}
                 >
                   Browse all {cat.name} →
