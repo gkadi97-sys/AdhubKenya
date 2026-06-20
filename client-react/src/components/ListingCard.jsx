@@ -53,6 +53,13 @@ export default function ListingCard({ listing }) {
         
         {/* Status Badges */}
         <div className="card-badges">
+          {/* Mock urgency badges based on ID for visual variety */}
+          {listing.id.endsWith('1') || listing.id.endsWith('5') ? (
+            <span className="badge" style={{ background: '#ff3366', color: '#fff', borderColor: '#ff3366' }}>🔥 HOT</span>
+          ) : listing.id.endsWith('2') || listing.id.endsWith('7') ? (
+            <span className="badge" style={{ background: '#ffcc00', color: '#000', borderColor: '#ffcc00' }}>⭐ FEATURED</span>
+          ) : null}
+
           {listing.condition === 'New' || listing.condition === 'Brand New' ? (
             <span className="badge badge-new">New</span>
           ) : listing.negotiable ? (

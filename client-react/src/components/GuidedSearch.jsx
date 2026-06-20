@@ -197,7 +197,7 @@ export default function GuidedSearch({ compact = false }) {
               onClick={() => setShowMore(true)}
               style={{ width: '100%' }}
             >
-              + Filters
+              + Advanced Filters
             </button>
           ) : (
             <div className="gs2-quick-filters">
