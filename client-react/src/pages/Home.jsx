@@ -13,7 +13,8 @@ const MOCK_COUNTS = {
   Property: '1,874',
   Electronics: '829',
   Fashion: '1,204',
-  Furniture: '532',
+  'Home & Furniture': '532',
+  'Phones & Tablets': '671',
   Jobs: '312'
 };
 

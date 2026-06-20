@@ -1073,23 +1073,23 @@ export const CATEGORY_ATTRIBUTES = {
 };
 
 export const CATEGORY_ICONS = [
-  { slug: 'auto-spares',          name: 'Auto Spares & Accessories',    icon: '⚙️' },
+  { slug: 'auto-spares',          name: 'Auto Spares',                  icon: '⚙️' },
   { slug: 'vehicles',             name: 'Vehicles',                     icon: '🚗' },
   { slug: 'property',             name: 'Property',                     icon: '🏠' },
   { slug: 'phones-tablets',       name: 'Phones & Tablets',             icon: '📱' },
   { slug: 'electronics',          name: 'Electronics',                  icon: '💻' },
-  { slug: 'home-furniture',       name: 'Home, Furniture & Appliances', icon: '🛋️' },
+  { slug: 'home-furniture',       name: 'Home & Furniture',             icon: '🛋️' },
   { slug: 'fashion',              name: 'Fashion',                      icon: '👗' },
   { slug: 'beauty',               name: 'Beauty & Personal Care',       icon: '✨' },
   { slug: 'services',             name: 'Services',                     icon: '🔧' },
   { slug: 'repair-construction',  name: 'Repair & Construction',        icon: '🛠️' },
-  { slug: 'commercial-equipment', name: 'Commercial Equipment & Tools', icon: '🚜' },
-  { slug: 'leisure',              name: 'Leisure & Activities',         icon: '⚽' },
+  { slug: 'commercial-equipment', name: 'Commercial Equipment',         icon: '🚜' },
+  { slug: 'leisure',              name: 'Leisure & Sports',             icon: '⚽' },
   { slug: 'babies-kids',          name: 'Babies & Kids',                icon: '🧸' },
-  { slug: 'food-agriculture',     name: 'Food, Agriculture & Farming',  icon: '🍎' },
+  { slug: 'food-agriculture',     name: 'Agriculture & Food',           icon: '🍎' },
   { slug: 'animals-pets',         name: 'Animals & Pets',               icon: '🐶' },
   { slug: 'jobs',                 name: 'Jobs',                         icon: '💼' },
-  { slug: 'seeking-work',         name: 'Seeking Work - CVs',           icon: '📄' },
+  { slug: 'seeking-work',         name: 'CVs & Resumes',                icon: '📄' },
 ];
 
 export const TOP_CATEGORIES = CATEGORY_ICONS;
