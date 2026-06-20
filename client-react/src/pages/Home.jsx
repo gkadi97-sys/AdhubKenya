@@ -5,6 +5,7 @@ import { getFeaturedListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
 import { TOP_CATEGORIES, CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
 import { JOB_CATEGORIES } from '@/lib/jobsData';
+import { useSEO } from '@/lib/useSEO';
 
 function getCategoryContents(slug) {
   if (slug === 'jobs') return Object.keys(JOB_CATEGORIES || {}).slice(0, 6);
@@ -21,6 +22,12 @@ export default function HomePage() {
   const [category, setCategory] = useState('');
   const [hoveredCat, setHoveredCat] = useState(null);
   const navigate = useNavigate();
+
+  useSEO({
+    title: 'AdHub Kenya – Buy & Sell Anything in Kenya',
+    description: "AdHub Kenya is Kenya's free classifieds marketplace. Buy and sell cars, property, electronics, phones, fashion, and jobs across all 47 counties.",
+    canonicalPath: '/'
+  });
 
   useEffect(() => {
     getFeaturedListings()

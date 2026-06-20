@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /my-ads
+Disallow: /post-ad
+
+Sitemap: https://adhubkenya.co.ke/sitemap.xml

@@ -2,8 +2,14 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useSEO } from '@/lib/useSEO';
 
 export default function LoginPage() {
+  useSEO({
+    title: 'Sign In | AdHub Kenya',
+    description: 'Sign in to your AdHub Kenya account to post ads, manage your listings, and connect with buyers and sellers across Kenya.',
+    canonicalPath: '/login'
+  });
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

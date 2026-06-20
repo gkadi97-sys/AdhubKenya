@@ -3,11 +3,17 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import CountyTownSelect from '@/components/CountyTownSelect';
+import { useSEO } from '@/lib/useSEO';
 
 
 const COUNTIES = ['Nairobi','Mombasa','Kwale','Kilifi','Tana River','Lamu','Taita-Taveta','Garissa','Wajir','Mandera','Marsabit','Isiolo','Meru','Tharaka-Nithi','Embu','Kitui','Machakos','Makueni','Nyandarua','Nyeri','Kirinyaga',"Murang'a",'Kiambu','Turkana','West Pokot','Samburu','Trans Nzoia','Uasin Gishu','Elgeyo-Marakwet','Nandi','Baringo','Laikipia','Nakuru','Narok','Kajiado','Kericho','Bomet','Kakamega','Vihiga','Bungoma','Busia','Siaya','Kisumu','Homa Bay','Migori','Kisii','Nyamira'];
 
 export default function RegisterPage() {
+  useSEO({
+    title: 'Create an Account | AdHub Kenya',
+    description: 'Join AdHub Kenya for free. Create an account to post free ads, sell your items, and connect with buyers across all 47 counties in Kenya.',
+    canonicalPath: '/register'
+  });
   const { register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { createListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
@@ -14,16 +14,21 @@ import PhoneForm from '@/components/PhoneForm';
 import JobForm from '@/components/JobForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { TRUCK_CONDITIONS } from '@/lib/truckData';
-import { Link } from 'react-router-dom';
+import { useSEO } from '@/lib/useSEO';
 
-const STANDARD_CONDITIONS = ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
-const VEHICLE_CONDITIONS = ['Brand New', 'Foreign Used', 'Locally Used', 'Accident Damaged', 'Rebuilt'];
+const STANDARD_CONDITIONS   = ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
+const VEHICLE_CONDITIONS    = ['Brand New', 'Foreign Used', 'Locally Used', 'Accident Damaged', 'Rebuilt'];
 const AUTOSPARES_CONDITIONS = ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'];
-const AUDIO_CONDITIONS = ['Brand New', 'Open Box', 'Ex-UK', 'Foreign Used', 'Locally Used', 'Refurbished'];
-const LAPTOP_CONDITIONS = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
-const PHONE_CONDITIONS  = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
+const AUDIO_CONDITIONS      = ['Brand New', 'Open Box', 'Ex-UK', 'Foreign Used', 'Locally Used', 'Refurbished'];
+const LAPTOP_CONDITIONS     = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
+const PHONE_CONDITIONS      = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
 
 export default function PostAdPage() {
+  useSEO({
+    title: 'Post a Free Ad | AdHub Kenya',
+    description: 'Post your free classified ad on AdHub Kenya. Sell cars, property, electronics, clothes, and more to buyers across all 47 counties in Kenya.',
+    canonicalPath: '/post-ad'
+  });
   const { user } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({

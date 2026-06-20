@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getListing, imageUrl, formatPrice, timeAgo } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { SCHEMA_ATTRIBUTES } from '@/lib/schemaEngine';
+import { useSEO } from '@/lib/useSEO';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -11,6 +12,41 @@ export default function ListingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
   const [showLoginHint, setShowLoginHint] = useState(false);
+
+  // Dynamic SEO: updates as listing loads
+  useSEO({
+    title: listing ? `${listing.title} – ${formatPrice(listing.price)} | AdHub Kenya` : 'View Listing | AdHub Kenya',
+    description: listing
+      ? `${listing.title} for ${formatPrice(listing.price)} in ${listing.location || 'Kenya'}. ${listing.description ? listing.description.slice(0, 120) + '...' : 'View this listing on AdHub Kenya.'}`
+      : 'View this listing on AdHub Kenya.',
+    canonicalPath: `/listing/${id}`
+  });
+
+  // JSON-LD Product structured data for Google rich results
+  useEffect(() => {
+    if (!listing) return;
+    const scriptId = 'listing-jsonld';
+    let el = document.getElementById(scriptId);
+    if (!el) { el = document.createElement('script'); el.id = scriptId; el.type = 'application/ld+json'; document.head.appendChild(el); }
+    const firstImage = listing.images?.[0] ? imageUrl(listing.images[0]) : '';
+    el.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      'name': listing.title,
+      'description': listing.description || listing.title,
+      'image': firstImage ? [firstImage] : [],
+      'offers': {
+        '@type': 'Offer',
+        'priceCurrency': 'KES',
+        'price': listing.price,
+        'itemCondition': 'https://schema.org/UsedCondition',
+        'availability': 'https://schema.org/InStock',
+        'url': `https://adhubkenya.co.ke/listing/${listing.id}`,
+        'seller': { '@type': 'Person', 'name': listing.seller?.name || 'Seller on AdHub Kenya' }
+      }
+    });
+    return () => { const s = document.getElementById(scriptId); if (s) s.remove(); };
+  }, [listing, id]);
 
   useEffect(() => {
     if (id) {

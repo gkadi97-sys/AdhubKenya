@@ -5,6 +5,7 @@ import ListingCard from '@/components/ListingCard';
 import { COUNTIES, getTowns, getAreas } from '@/lib/countyData';
 import { CATEGORY_ATTRIBUTES, CATEGORY_ICONS } from '@/lib/categoryData';
 import { JOB_CATEGORIES } from '@/lib/jobsData';
+import { useSEO } from '@/lib/useSEO';
 
 function getCategoryContents(slug) {
   if (slug === 'jobs') return Object.keys(JOB_CATEGORIES || {}).slice(0, 8);
@@ -32,15 +33,21 @@ function BrowseContent() {
   const sort     = searchParams.get('sort')     || 'createdAt';
   const page     = parseInt(searchParams.get('page')) || 1;
 
-  // Local-only UI state (not filters)
-  const [keywordInput, setKeywordInput] = useState(keyword);
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-
   // Derive location display helpers from URL
   const locationParts = location ? location.split(',').map(s => s.trim()) : [];
   const selectedCounty = locationParts.length >= 1 ? locationParts[locationParts.length - 1] : '';
   const selectedTown   = locationParts.length >= 2 ? locationParts[locationParts.length - 2] : '';
+
+  // SEO
+  useSEO({
+    title: `${category ? `${category.charAt(0).toUpperCase() + category.slice(1)} | ` : ''}Browse Listings`,
+    description: `Browse ${total} ads in Kenya. Find the best deals on cars, property, jobs, and services near you.`
+  });
+
+  // Local-only UI state (not filters)
+  const [keywordInput, setKeywordInput] = useState(keyword);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
   // Load category counts once on mount
   useEffect(() => {
