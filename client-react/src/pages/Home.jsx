@@ -7,16 +7,7 @@ import { useSEO } from '@/lib/useSEO';
 import GuidedSearch from '@/components/GuidedSearch';
 import { POPULAR_SEARCHES } from '@/lib/filterConfig';
 
-// Mock inventory counts for visual density
-const MOCK_COUNTS = {
-  Vehicles: '4,321',
-  Property: '1,874',
-  Electronics: '829',
-  Fashion: '1,204',
-  'Home & Furniture': '532',
-  'Phones & Tablets': '671',
-  Jobs: '312'
-};
+
 
 const LOCATIONS = {
   'Major Cities': ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'],
@@ -84,7 +75,7 @@ export default function HomePage() {
                     className="trending-action-chip"
                     onClick={() => navigate(`/browse?keyword=${encodeURIComponent(s)}`)}
                   >
-                    {s} <span style={{ opacity: 0.5, fontSize: '0.75rem', marginLeft: '4px' }}>({Math.floor(Math.random() * 300) + 50})</span>
+                    {s}
                   </button>
                 ))}
               </div>
@@ -104,7 +95,6 @@ export default function HomePage() {
               >
                 <span className="cat-scroll-icon">{cat.icon}</span>
                 <span className="cat-scroll-name">{cat.name}</span>
-                <span className="cat-scroll-count">{MOCK_COUNTS[cat.name] || '400+'}</span>
               </div>
             ))}
             <Link to="/browse" className="cat-scroll-item cat-scroll-more">
@@ -209,7 +199,7 @@ export default function HomePage() {
                       {towns.map(t => (
                         <li key={t}>
                           <Link to={`/browse?location=${t}`} style={{ color: 'var(--text)', textDecoration: 'none', fontWeight: 500, transition: 'var(--transition)' }} onMouseOver={e => e.target.style.color = 'var(--primary)'} onMouseOut={e => e.target.style.color = 'var(--text)'}>
-                            {t} <span style={{ opacity: 0.4, fontSize: '0.8rem', marginLeft: '4px' }}>({Math.floor(Math.random() * 500) + 10})</span>
+                            {t}
                           </Link>
                         </li>
                       ))}
