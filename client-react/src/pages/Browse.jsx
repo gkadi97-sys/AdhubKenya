@@ -1,270 +1,196 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { getListings, getCategoryCounts } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
-import { COUNTIES, getTowns, getAreas } from '@/lib/countyData';
-import { CATEGORY_ATTRIBUTES, CATEGORY_ICONS } from '@/lib/categoryData';
-import { JOB_CATEGORIES } from '@/lib/jobsData';
+import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
-
-function getCategoryContents(slug) {
-  if (slug === 'jobs') return Object.keys(JOB_CATEGORIES || {}).slice(0, 8);
-  if (CATEGORY_ATTRIBUTES[slug]?.data) return Object.keys(CATEGORY_ATTRIBUTES[slug].data).slice(0, 8);
-  return [];
-}
+import FilterSidebar from '@/components/FilterSidebar';
+import { FILTER_CONFIG } from '@/lib/filterConfig';
 
 const CATEGORIES = CATEGORY_ICONS;
 
 function BrowseContent() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const [listings, setListings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
-  const [pages, setPages] = useState(1);
+  const [loading, setLoading]   = useState(true);
+  const [total, setTotal]       = useState(0);
+  const [pages, setPages]       = useState(1);
   const [catCounts, setCatCounts] = useState({});
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // ── Single source of truth: read everything from the URL ──────────────────
+  // ── URL as single source of truth ─────────────────────────
   const category = searchParams.get('category') || '';
-  const make     = searchParams.get('make')     || '';
-  const location = searchParams.get('location') || '';
   const keyword  = searchParams.get('keyword')  || '';
-  const sort     = searchParams.get('sort')     || 'createdAt';
+  const sort     = searchParams.get('sort')      || 'createdAt';
   const page     = parseInt(searchParams.get('page')) || 1;
 
-  // Derive location display helpers from URL
-  const locationParts = location ? location.split(',').map(s => s.trim()) : [];
-  const selectedCounty = locationParts.length >= 1 ? locationParts[locationParts.length - 1] : '';
-  const selectedTown   = locationParts.length >= 2 ? locationParts[locationParts.length - 2] : '';
-
   // SEO
+  const catEntry = CATEGORIES?.find(c => c.slug === category);
+  const catLabel = catEntry?.name || (category ? category.replace(/-/g, ' ') : null);
   useSEO({
-    title: `${category ? `${category.charAt(0).toUpperCase() + category.slice(1)} | ` : ''}Browse Listings`,
-    description: `Browse ${total} ads in Kenya. Find the best deals on cars, property, jobs, and services near you.`
+    title: catLabel ? `${catLabel} for Sale in Kenya | AdHub Kenya` : 'Browse Ads in Kenya | AdHub Kenya',
+    description: catLabel
+      ? `Browse ${total} ${catLabel} listings across Kenya. Find the best deals from sellers in Nairobi, Mombasa, Nakuru and all 47 counties.`
+      : `Browse ${total} classified ads in Kenya. Find cars, property, electronics, jobs, phones and more.`,
+    canonicalPath: `/browse${category ? `?category=${category}` : ''}`
   });
 
-  // Local-only UI state (not filters)
-  const [keywordInput, setKeywordInput] = useState(keyword);
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
+  // Count active non-structural filters
+  const ignoredKeys = new Set(['category', 'keyword', 'sort', 'page']);
+  const activeFilterCount = [...searchParams.keys()].filter(k => !ignoredKeys.has(k)).length;
 
-  // Load category counts once on mount
+  // Category counts for sidebar
   useEffect(() => {
     getCategoryCounts().then(setCatCounts).catch(() => {});
   }, []);
 
-  // ── Fetch listings whenever the URL changes — reads directly from searchParams ──
+  // Fetch whenever URL changes
   useEffect(() => {
     const doFetch = async () => {
       setLoading(true);
       try {
-        const params = { page };
-        if (keyword)  params.keyword  = keyword;
-        if (category) params.category = category;
-        if (make)     params.make     = make;
-        if (location) params.location = location;
-        if (minPrice) params.minPrice = minPrice;
-        if (maxPrice) params.maxPrice = maxPrice;
-        if (sort)     params.sort     = sort;
+        const params = { page, sort };
+        for (const [k, v] of searchParams.entries()) {
+          if (v) params[k] = v;
+        }
         const data = await getListings(params);
         setListings(data.listings || []);
-        setTotal(data.total || 0);
-        setPages(data.pages || 1);
-      } catch (e) {
+        setTotal(data.total   || 0);
+        setPages(data.pages   || 1);
+      } catch {
         setListings([]);
       } finally {
         setLoading(false);
       }
     };
     doFetch();
-  }, [searchParams]); // runs every time the URL changes — no stale state
+  }, [searchParams]);
 
-  // ── Navigation helpers ────────────────────────────────────────────────────
+  // ── Navigation helpers ─────────────────────────────────────
   const applyFilter = useCallback((overrides) => {
-    const next = {};
-    if (category) next.category = category;
-    if (make)     next.make     = make;
-    if (location) next.location = location;
-    if (keyword)  next.keyword  = keyword;
-    if (sort !== 'createdAt') next.sort = sort;
-    Object.assign(next, overrides);
-    // Remove falsy / page-reset
-    Object.keys(next).forEach(k => { if (!next[k] && next[k] !== 0) delete next[k]; });
-    navigate(`/browse?${new URLSearchParams(next).toString()}`);
-  }, [category, make, location, keyword, sort, navigate]);
+    const next = new URLSearchParams(searchParams);
+    Object.entries(overrides).forEach(([k, v]) => {
+      if (v) next.set(k, v); else next.delete(k);
+    });
+    next.delete('page');
+    navigate(`/browse?${next.toString()}`);
+  }, [searchParams, navigate]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    applyFilter({ keyword: keywordInput, page: undefined });
+  const clearAll = () => {
+    const next = new URLSearchParams();
+    if (category) next.set('category', category);
+    navigate(`/browse?${next.toString()}`);
   };
+
+  // ── Active filter chips ────────────────────────────────────
+  const activeChips = [];
+  for (const [k, v] of searchParams.entries()) {
+    if (ignoredKeys.has(k) || !v) continue;
+    activeChips.push({ key: k, value: v });
+  }
 
   return (
     <div>
-      {/* Page Header */}
+      {/* ── Page Header ─────────────────────────────── */}
       <div className="page-header">
         <div className="container">
-          <h1>
-            Browse Ads
-            {category && ` — ${CATEGORIES.find(c => c.slug === category)?.name || category}`}
-            {make     && ` › ${make}`}
-          </h1>
-          <p style={{color:'var(--text-muted)',marginTop:6}}>{total.toLocaleString()} listings found</p>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+            <div>
+              <h1>
+                {catLabel ? `${catLabel}` : 'Browse Ads'}
+                {keyword && <span style={{ color:'var(--text-muted)', fontWeight:400 }}> — "{keyword}"</span>}
+              </h1>
+              <p style={{ color:'var(--text-muted)', marginTop:4 }}>
+                {total.toLocaleString()} listing{total !== 1 ? 's' : ''} found
+              </p>
+            </div>
+            {/* Mobile filter button */}
+            <button
+              className="btn btn-outline btn-sm mobile-filter-btn"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="4" y1="6" x2="20" y2="6"/>
+                <line x1="4" y1="12" x2="14" y2="12"/>
+                <line x1="4" y1="18" x2="10" y2="18"/>
+              </svg>
+              Filters
+              {activeFilterCount > 0 && <span className="filter-count-badge" style={{ marginLeft:4 }}>{activeFilterCount}</span>}
+            </button>
+          </div>
+
+          {/* Active filter chips */}
+          {activeChips.length > 0 && (
+            <div className="active-filter-chips">
+              {activeChips.map(chip => (
+                <span key={chip.key} className="active-chip">
+                  <span style={{ textTransform:'capitalize' }}>{chip.key.replace(/_/g,' ')}: </span>
+                  {chip.value}
+                  <button
+                    className="active-chip-remove"
+                    onClick={() => applyFilter({ [chip.key]: '' })}
+                    aria-label={`Remove ${chip.key} filter`}
+                  >✕</button>
+                </span>
+              ))}
+              <button className="btn btn-ghost btn-sm" onClick={clearAll} style={{ fontSize:'0.8rem' }}>
+                Clear all
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="container" style={{padding:'32px 20px'}}>
-        <div className="browse-layout">
-          {/* Filters Sidebar */}
-          <aside>
-            <div className="filters-wrap">
+      <div className="container" style={{ padding:'24px 20px' }}>
+        <div className="browse-layout-v2">
 
-              {/* Search */}
-              <div className="filter-section">
-                <h4>Search</h4>
-                <form onSubmit={handleSearch} style={{display:'flex',gap:8}}>
-                  <input
-                    className="form-control"
-                    placeholder="Keywords..."
-                    value={keywordInput}
-                    onChange={e => setKeywordInput(e.target.value)}
-                    style={{flex:1,padding:'10px 12px'}}
-                  />
-                  <button type="submit" className="btn btn-primary btn-sm">Go</button>
-                </form>
+          {/* ── Desktop Sidebar ──────────────────────── */}
+          <div className="browse-sidebar-col">
+            <FilterSidebar />
+          </div>
+
+          {/* ── Mobile Drawer ────────────────────────── */}
+          {drawerOpen && (
+            <>
+              <div className="filter-drawer-overlay" onClick={() => setDrawerOpen(false)} />
+              <div className="filter-drawer">
+                <FilterSidebar onClose={() => setDrawerOpen(false)} />
               </div>
+            </>
+          )}
 
-              {/* Category list with flyout */}
-              <div className="filter-section">
-                <h4>Category</h4>
-                <div style={{display:'flex',flexDirection:'column',gap:2}}>
-                  {/* All Categories */}
-                  <div
-                    className={`sidebar-cat-item ${category===''?'active':''}`}
-                    onClick={() => navigate('/browse')}
-                  >
-                    <span className="sidebar-cat-icon">🏷️</span>
-                    <span style={{flex:1}}>All Categories</span>
-                    <span className="sidebar-cat-count">
-                      {Object.values(catCounts).reduce((a,b) => a+b, 0) || ''}
-                    </span>
-                  </div>
+          {/* ── Results column ───────────────────────── */}
+          <div className="browse-results-col">
 
-                  {CATEGORIES.map(c => {
-                    const subItems = getCategoryContents(c.slug);
-                    const count = catCounts[c.slug];
-                    return (
-                      <div key={c.slug} className="sidebar-cat-wrapper">
-                        {/* Category trigger */}
-                        <div
-                          className={`sidebar-cat-item ${category === c.slug ? 'active' : ''}`}
-                          onClick={() => navigate(`/browse?category=${c.slug}`)}
-                        >
-                          <span className="sidebar-cat-icon">{c.icon}</span>
-                          <span style={{flex:1}}>{c.name}</span>
-                          <span className="sidebar-cat-count">{count || ''}</span>
-                          {subItems.length > 0 && <span style={{fontSize:'0.6rem',color:'var(--text-muted)'}}>›</span>}
-                        </div>
-
-                        {/* Flyout popup — shown by pure CSS :hover */}
-                        {subItems.length > 0 && (
-                          <div className="sidebar-cat-popup">
-                            <div className="sidebar-popup-header">
-                              <span>{c.icon} {c.name}</span>
-                            </div>
-                            <div className="sidebar-popup-grid">
-                              {subItems.map(item => (
-                                <div
-                                  key={item}
-                                  className="sidebar-popup-cell"
-                                  onClick={() => navigate(`/browse?category=${c.slug}&make=${encodeURIComponent(item)}`)}
-                                >
-                                  {item}
-                                </div>
-                              ))}
-                            </div>
-                            <div
-                              className="sidebar-popup-footer"
-                              onClick={() => navigate(`/browse?category=${c.slug}`)}
-                            >
-                              Browse all {c.name} →
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Location — County → Town cascading */}
-              <div className="filter-section">
-                <h4>County</h4>
-                <select
-                  className="form-control"
-                  value={selectedCounty}
-                  onChange={e => applyFilter({ location: e.target.value })}
-                >
-                  <option value="">All Counties</option>
-                  {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-
-              {selectedCounty && getTowns(selectedCounty).length > 0 && (
-                <div className="filter-section" style={{ animation: 'fadeIn 0.2s ease' }}>
-                  <h4>Town / City</h4>
-                  <select
-                    className="form-control"
-                    value={selectedTown}
-                    onChange={e => {
-                      const t = e.target.value;
-                      applyFilter({ location: t ? `${t}, ${selectedCounty}` : selectedCounty });
-                    }}
-                  >
-                    <option value="">All of {selectedCounty}</option>
-                    {getTowns(selectedCounty).map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-              )}
-
-              {/* Price Range */}
-              <div className="filter-section">
-                <h4>Price Range (KES)</h4>
-                <div className="price-range">
-                  <input className="form-control" type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)} style={{padding:'10px 12px'}}/>
-                  <input className="form-control" type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} style={{padding:'10px 12px'}}/>
-                </div>
-                <button onClick={() => applyFilter({})} className="btn btn-primary btn-sm btn-full" style={{marginTop:10}}>Apply</button>
-              </div>
-
-            </div>
-          </aside>
-
-          {/* Listings panel */}
-          <div>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20}}>
-              <span style={{color:'var(--text-muted)',fontSize:'0.9rem'}}>{total} results</span>
+            {/* Sort + count bar */}
+            <div className="browse-results-bar">
+              <span style={{ color:'var(--text-muted)', fontSize:'0.9rem' }}>
+                {total.toLocaleString()} result{total !== 1 ? 's' : ''}
+              </span>
               <select
                 className="form-control"
-                style={{width:'auto',padding:'8px 12px'}}
+                style={{ width:'auto', padding:'8px 12px', fontSize:'0.85rem' }}
                 value={sort}
                 onChange={e => applyFilter({ sort: e.target.value })}
               >
                 <option value="createdAt">Newest First</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
+                <option value="price_asc">Price: Low → High</option>
+                <option value="price_desc">Price: High → Low</option>
               </select>
             </div>
 
+            {/* Results */}
             {loading ? (
               <div className="listings-grid">
                 {[...Array(12)].map((_,i) => (
-                  <div key={i} style={{borderRadius:'var(--radius-lg)',overflow:'hidden',background:'var(--surface)'}}>
-                    <div className="skeleton" style={{aspectRatio:'4/3'}}/>
-                    <div style={{padding:16}}>
-                      <div className="skeleton" style={{height:18,width:'60%',marginBottom:8}}/>
-                      <div className="skeleton" style={{height:14,width:'90%',marginBottom:6}}/>
-                      <div className="skeleton" style={{height:12,width:'40%'}}/>
+                  <div key={i} style={{ borderRadius:'var(--radius-lg)', overflow:'hidden', background:'var(--surface)' }}>
+                    <div className="skeleton" style={{ aspectRatio:'4/3' }}/>
+                    <div style={{ padding:16 }}>
+                      <div className="skeleton" style={{ height:18, width:'60%', marginBottom:8 }}/>
+                      <div className="skeleton" style={{ height:14, width:'90%', marginBottom:6 }}/>
+                      <div className="skeleton" style={{ height:12, width:'40%' }}/>
                     </div>
                   </div>
                 ))}
@@ -275,25 +201,69 @@ function BrowseContent() {
                   {listings.map(l => <ListingCard key={l.id} listing={l} />)}
                 </div>
                 {pages > 1 && (
-                  <div style={{display:'flex',justifyContent:'center',gap:8,marginTop:40}}>
-                    {[...Array(pages)].map((_,i) => (
-                      <button
-                        key={i}
-                        onClick={() => applyFilter({ page: i+1 })}
-                        className={`btn btn-sm ${page===i+1?'btn-primary':'btn-ghost'}`}
-                      >
-                        {i+1}
-                      </button>
-                    ))}
+                  <div style={{ display:'flex', justifyContent:'center', gap:8, marginTop:40 }}>
+                    {page > 1 && (
+                      <button className="btn btn-ghost btn-sm" onClick={() => applyFilter({ page: page - 1 })}>← Prev</button>
+                    )}
+                    {[...Array(Math.min(pages, 7))].map((_,i) => {
+                      const p = i + 1;
+                      return (
+                        <button
+                          key={p}
+                          onClick={() => applyFilter({ page: p })}
+                          className={`btn btn-sm ${page === p ? 'btn-primary' : 'btn-ghost'}`}
+                        >{p}</button>
+                      );
+                    })}
+                    {page < pages && (
+                      <button className="btn btn-ghost btn-sm" onClick={() => applyFilter({ page: page + 1 })}>Next →</button>
+                    )}
                   </div>
                 )}
               </>
             ) : (
-              <div className="empty-state">
-                <div className="icon">🔍</div>
-                <h3>No listings found</h3>
-                <p>Try adjusting your search or filters</p>
-                <button onClick={() => navigate('/browse')} className="btn btn-primary">Clear Filters</button>
+              /* ── Improved Empty State ── */
+              <div className="empty-state-recovery">
+                <div className="esr-icon">🔍</div>
+                <h3>No exact matches found</h3>
+                <p>Try widening your search with these suggestions:</p>
+                <div className="esr-suggestions">
+                  {activeChips.map(chip => (
+                    <button key={chip.key} className="esr-suggestion-btn" onClick={() => applyFilter({ [chip.key]: '' })}>
+                      ✓ Remove "{chip.value}" filter
+                    </button>
+                  ))}
+                  {searchParams.get('minPrice') || searchParams.get('maxPrice') ? (
+                    <button className="esr-suggestion-btn" onClick={() => {
+                      applyFilter({ minPrice: '', maxPrice: '' });
+                    }}>
+                      ✓ Expand price range
+                    </button>
+                  ) : null}
+                  {searchParams.get('county') && (
+                    <button className="esr-suggestion-btn" onClick={() => applyFilter({ county: '', location: '' })}>
+                      ✓ Search all of Kenya
+                    </button>
+                  )}
+                </div>
+                <div style={{ marginTop:24, display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+                  <button className="btn btn-primary" onClick={clearAll}>Clear All Filters</button>
+                  <Link to="/post-ad" className="btn btn-ghost">Post an Ad</Link>
+                </div>
+
+                {/* Similar category suggestions */}
+                {category && (
+                  <div style={{ marginTop:32 }}>
+                    <p style={{ color:'var(--text-muted)', marginBottom:12, fontSize:'0.9rem' }}>Browse similar categories:</p>
+                    <div style={{ display:'flex', gap:8, flexWrap:'wrap', justifyContent:'center' }}>
+                      {CATEGORIES.filter(c => c.slug !== category).slice(0, 5).map(c => (
+                        <Link key={c.slug} to={`/browse?category=${c.slug}`} className="btn btn-outline btn-sm">
+                          {c.icon} {c.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

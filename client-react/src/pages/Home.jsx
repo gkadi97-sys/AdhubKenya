@@ -1,26 +1,23 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getFeaturedListings } from '@/lib/api';
+import { getFeaturedListings, getListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
-import { TOP_CATEGORIES, CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
-import { JOB_CATEGORIES } from '@/lib/jobsData';
+import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
+import GuidedSearch from '@/components/GuidedSearch';
+import QuickChips from '@/components/QuickChips';
+import { POPULAR_SEARCHES } from '@/lib/filterConfig';
 
-function getCategoryContents(slug) {
-  if (slug === 'jobs') return Object.keys(JOB_CATEGORIES || {}).slice(0, 6);
-  if (CATEGORY_ATTRIBUTES[slug]?.data) {
-    return Object.keys(CATEGORY_ATTRIBUTES[slug].data).slice(0, 6);
-  }
-  return [];
+// Recently Viewed helpers
+function getRecentlyViewed() {
+  try { return JSON.parse(localStorage.getItem('adhub_recently_viewed') || '[]'); }
+  catch { return []; }
 }
 
 export default function HomePage() {
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('');
-  const [hoveredCat, setHoveredCat] = useState(null);
+  const [listings, setListings]         = useState([]);
+  const [recentListings, setRecent]     = useState([]);
+  const [loading, setLoading]           = useState(true);
   const navigate = useNavigate();
 
   useSEO({
@@ -29,28 +26,41 @@ export default function HomePage() {
     canonicalPath: '/'
   });
 
+  // Latest listings
   useEffect(() => {
-    getFeaturedListings()
-      .then(setListings)
+    getListings({ limit: 8, sort: 'createdAt' })
+      .then(res => setListings(res.listings || []))
       .catch(() => setListings([]))
       .finally(() => setLoading(false));
   }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (search) params.set('keyword', search);
-    if (category) params.set('category', category);
-    navigate(`/browse?${params.toString()}`);
-  };
+  // Recently viewed (from localStorage IDs → fetch)
+  useEffect(() => {
+    const ids = getRecentlyViewed();
+    if (!ids.length) return;
+    // Fetch only the most recent 4
+    Promise.all(
+      ids.slice(0, 4).map(id =>
+        fetch(`/listing/${id}`).catch(() => null)
+      )
+    );
+    // We don't do full fetch here; IDs are shown as chips
+  }, []);
+
+  const recentIds = getRecentlyViewed().slice(0, 6);
 
   return (
     <>
-      {/* HERO */}
+      {/* ── HERO ─────────────────────────────────────────── */}
       <section className="hero">
         <div className="container">
           <div className="hero-content">
-            <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'var(--primary-glow)',border:'1px solid var(--primary)',borderRadius:'var(--radius-full)',padding:'6px 16px',fontSize:'0.8rem',color:'var(--primary-light)',marginBottom:20,fontWeight:600}}>
+            <div style={{
+              display:'inline-flex', alignItems:'center', gap:8,
+              background:'var(--primary-glow)', border:'1px solid var(--primary)',
+              borderRadius:'var(--radius-full)', padding:'6px 16px',
+              fontSize:'0.8rem', color:'var(--primary-light)', marginBottom:16, fontWeight:600
+            }}>
               🇰🇪 Kenya's #1 Classified Ads Platform
             </div>
             <h1>
@@ -59,43 +69,55 @@ export default function HomePage() {
             </h1>
             <p>Join thousands of Kenyans buying and selling electronics, vehicles, property, and more — completely free.</p>
 
-            {/* Search bar */}
-            <form className="search-bar" onSubmit={handleSearch}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5c8065" strokeWidth="2" style={{flexShrink:0}}>
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input
-                type="text" placeholder="What are you looking for?"
-                value={search} onChange={e => setSearch(e.target.value)}
-              />
-              <select value={category} onChange={e => setCategory(e.target.value)}>
-                <option value="">All Categories</option>
-                {TOP_CATEGORIES.map(c => (
-                  <option key={c.slug} value={c.slug}>{c.name}</option>
-                ))}
-              </select>
-              <button type="submit">Search</button>
-            </form>
+            {/* ── Guided Search ── */}
+            <GuidedSearch />
           </div>
         </div>
       </section>
 
-      {/* STATS */}
-      <section style={{background:'var(--bg-2)',borderBottom:'1px solid var(--border)',padding:'20px 0'}}>
+      {/* ── QUICK CHIPS ──────────────────────────────────── */}
+      <section style={{ background:'var(--bg-2)', borderBottom:'1px solid var(--border)', padding:'0' }}>
+        <div className="container">
+          <QuickChips />
+        </div>
+      </section>
+
+      {/* ── STATS ────────────────────────────────────────── */}
+      <section style={{ background:'var(--bg-2)', borderBottom:'1px solid var(--border)', padding:'20px 0' }}>
         <div className="container">
           <div className="stats-grid">
             {[['Growing','Community'],['New','Listings Daily'],['47','Counties Covered'],['100%','Free to Post']].map(([val,lbl]) => (
-              <div key={lbl} style={{textAlign:'center',padding:'8px 4px'}}>
-                <div style={{fontSize:'1.5rem',fontWeight:800,fontFamily:'var(--font-display)',color:'var(--primary-light)'}}>{val}</div>
-                <div style={{fontSize:'0.78rem',color:'var(--text-muted)',marginTop:2,whiteSpace:'normal',lineHeight:'1.2'}}>{lbl}</div>
+              <div key={lbl} style={{ textAlign:'center', padding:'8px 4px' }}>
+                <div style={{ fontSize:'1.5rem', fontWeight:800, fontFamily:'var(--font-display)', color:'var(--primary-light)' }}>{val}</div>
+                <div style={{ fontSize:'0.78rem', color:'var(--text-muted)', marginTop:2, lineHeight:'1.2' }}>{lbl}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ONBOARDING CARDS */}
-      <section style={{background:'var(--bg-2)',borderBottom:'1px solid var(--border)',paddingBottom:20}}>
+      {/* ── POPULAR SEARCHES ─────────────────────────────── */}
+      <section style={{ background:'var(--bg-2)', borderBottom:'1px solid var(--border)', padding:'16px 0' }}>
+        <div className="container">
+          <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
+            <span style={{ fontSize:'0.82rem', fontWeight:600, color:'var(--text-muted)', whiteSpace:'nowrap' }}>
+              🔥 Trending:
+            </span>
+            {POPULAR_SEARCHES.map(s => (
+              <button
+                key={s}
+                className="popular-search-chip"
+                onClick={() => navigate(`/browse?keyword=${encodeURIComponent(s)}`)}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ONBOARDING CARDS ─────────────────────────────── */}
+      <section style={{ background:'var(--bg-2)', borderBottom:'1px solid var(--border)', paddingBottom:20 }}>
         <div className="container">
           <div className="onboard-cards">
             <Link to="/browse" className="onboard-card">
@@ -126,7 +148,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CATEGORY STRIP */}
+      {/* ── CATEGORY STRIP ───────────────────────────────── */}
       <section className="cat-strip-section">
         <div className="container">
           <div className="cat-strip-header">
@@ -134,67 +156,40 @@ export default function HomePage() {
             <Link to="/browse" className="cat-strip-viewall">View all →</Link>
           </div>
           <div className="cat-strip">
-            {TOP_CATEGORIES.map(cat => {
-              const items = getCategoryContents(cat.slug);
-              return (
-                <div
-                  key={cat.slug}
-                  className="cat-pill"
-                  onMouseEnter={() => setHoveredCat(cat.slug)}
-                  onMouseLeave={() => setHoveredCat(null)}
-                  onClick={() => navigate(`/browse?category=${cat.slug}`)}
-                >
-                  <span className="cat-pill-icon">{cat.icon}</span>
-                  <span className="cat-pill-name">{cat.name}</span>
-
-                  {/* Hover popup */}
-                  {items.length > 0 && hoveredCat === cat.slug && (
-                    <div className="cat-pill-popup" onClick={e => e.stopPropagation()}>
-                      <div className="cat-pill-popup-title">{cat.name}</div>
-                      {items.map(item => (
-                        <div
-                          key={item}
-                          className="cat-pill-popup-item"
-                          onClick={() => navigate(`/browse?category=${cat.slug}`)}
-                        >
-                          {item}
-                        </div>
-                      ))}
-                      <div
-                        className="cat-pill-popup-item cat-pill-popup-more"
-                        onClick={() => navigate(`/browse?category=${cat.slug}`)}
-                      >
-                        See all in {cat.name} →
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {TOP_CATEGORIES.map(cat => (
+              <div
+                key={cat.slug}
+                className="cat-pill"
+                onClick={() => navigate(`/browse?category=${cat.slug}`)}
+              >
+                <span className="cat-pill-icon">{cat.icon}</span>
+                <span className="cat-pill-name">{cat.name}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* LATEST LISTINGS */}
-      <section className="section" style={{paddingTop:32}}>
+      {/* ── LATEST LISTINGS ──────────────────────────────── */}
+      <section className="section" style={{ paddingTop:32 }}>
         <div className="container">
           <div className="section-header">
             <div>
-              <h2 style={{fontSize:'1.5rem'}}>Latest Listings</h2>
-              <p style={{color:'var(--text-secondary)',marginTop:4,fontSize:'0.9rem'}}>Fresh ads posted by sellers near you</p>
+              <h2 style={{ fontSize:'1.5rem' }}>Latest Listings</h2>
+              <p style={{ color:'var(--text-secondary)', marginTop:4, fontSize:'0.9rem' }}>Fresh ads posted by sellers near you</p>
             </div>
-            <Link to="/browse" className="btn btn-ghost btn-sm" style={{whiteSpace:'nowrap'}}>See all →</Link>
+            <Link to="/browse" className="btn btn-ghost btn-sm" style={{ whiteSpace:'nowrap' }}>See all →</Link>
           </div>
 
           {loading ? (
             <div className="listings-grid">
               {[...Array(8)].map((_,i) => (
                 <div key={i} className="listing-card">
-                  <div className="skeleton" style={{aspectRatio:'4/3'}}/>
+                  <div className="skeleton" style={{ aspectRatio:'4/3' }}/>
                   <div className="card-body">
-                    <div className="skeleton" style={{height:20,width:'60%',marginBottom:8}}/>
-                    <div className="skeleton" style={{height:14,width:'90%',marginBottom:6}}/>
-                    <div className="skeleton" style={{height:12,width:'40%'}}/>
+                    <div className="skeleton" style={{ height:20, width:'60%', marginBottom:8 }}/>
+                    <div className="skeleton" style={{ height:14, width:'90%', marginBottom:6 }}/>
+                    <div className="skeleton" style={{ height:12, width:'40%' }}/>
                   </div>
                 </div>
               ))}
@@ -214,12 +209,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA BANNER */}
-      <section style={{background:'linear-gradient(135deg, var(--bg-3), #0d2215)',borderTop:'1px solid var(--border)',borderBottom:'1px solid var(--border)',padding:'64px 0'}}>
-        <div className="container" style={{textAlign:'center'}}>
-          <h2 style={{fontSize:'2rem',marginBottom:12}}>Ready to Sell Something?</h2>
-          <p style={{color:'var(--text-secondary)',marginBottom:28,maxWidth:480,margin:'0 auto 28px'}}>Posting your first ad is completely free. Reach thousands of buyers across Kenya in minutes.</p>
-          <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
+      {/* ── CTA BANNER ───────────────────────────────────── */}
+      <section style={{
+        background:'linear-gradient(135deg, var(--bg-3), #0d2215)',
+        borderTop:'1px solid var(--border)', borderBottom:'1px solid var(--border)', padding:'64px 0'
+      }}>
+        <div className="container" style={{ textAlign:'center' }}>
+          <h2 style={{ fontSize:'2rem', marginBottom:12 }}>Ready to Sell Something?</h2>
+          <p style={{ color:'var(--text-secondary)', maxWidth:480, margin:'0 auto 28px' }}>
+            Posting your first ad is completely free. Reach thousands of buyers across Kenya in minutes.
+          </p>
+          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
             <Link to="/post-ad" className="btn btn-accent btn-lg">Post Free Ad Now</Link>
             <Link to="/browse" className="btn btn-outline btn-lg">Browse Listings</Link>
           </div>
