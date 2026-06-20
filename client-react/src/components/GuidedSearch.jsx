@@ -3,123 +3,152 @@ import { useNavigate } from 'react-router-dom';
 import { FILTER_CONFIG, POPULAR_SEARCHES } from '@/lib/filterConfig';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { supabase } from '@/lib/supabase';
+import { COUNTIES } from '@/lib/countyData';
+import { getTowns } from '@/lib/countyData';
 
-const COUNTIES = [
-  'Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Thika','Malindi','Kitale','Garissa',
-  'Kakamega','Machakos','Meru','Nyeri','Kisii','Kericho','Narok','Kajiado','Kiambu',
-  'Muranga',"Murang'a",'Embu','Mombasa','Kilifi','Lamu','Taita-Taveta','Laikipia',
-  'Nyandarua','Kirinyaga','Tharaka-Nithi','Makueni','Kitui','Nandi','Baringo',
-  'West Pokot','Trans Nzoia','Uasin Gishu','Elgeyo-Marakwet','Bungoma','Busia',
-  'Siaya','Homa Bay','Migori','Bomet','Kericho','Nyamira','Vihiga','Marsabit',
-  'Isiolo','Samburu','Mandera','Wajir','Tana River','Turkana'
-];
+// Category-specific quick filter definitions (shown inline under search row)
+const QUICK_FILTERS = {
+  vehicles:          [{ id: 'make', label: 'Brand', type: 'select', options: ['Toyota','Nissan','Mitsubishi','Mazda','Honda','Subaru','Isuzu','Suzuki','Land Rover','Mercedes-Benz','BMW','Volkswagen','Ford','Hyundai','Kia'] }, { id: 'vehicle_type', label: 'Type', type: 'select', options: ['Cars','SUVs','Pickups','Vans','Buses','Motorcycles'] }, { id: 'year_min', label: 'Year from', type: 'select', options: Array.from({length:26},(_,i)=>String(2025-i)) }, { id: 'minPrice', label: 'Min Price', type: 'number', placeholder: '0' }, { id: 'maxPrice', label: 'Max Price', type: 'number', placeholder: 'Any' }],
+  property:          [{ id: 'purpose', label: 'Purpose', type: 'select', options: ['Rent','Sale'] }, { id: 'property_type', label: 'Type', type: 'select', options: ['Apartment','House','Studio','Bedsitter','Maisonette','Land','Office'] }, { id: 'bedrooms', label: 'Bedrooms', type: 'select', options: ['1','2','3','4','5+'] }, { id: 'minPrice', label: 'Min Price', type: 'number', placeholder: '0' }, { id: 'maxPrice', label: 'Max Price', type: 'number', placeholder: 'Any' }],
+  'phones-tablets':  [{ id: 'make', label: 'Brand', type: 'select', options: ['Apple','Samsung','Tecno','Infinix','Itel','Huawei','Nokia','Xiaomi'] }, { id: 'condition', label: 'Condition', type: 'select', options: ['Brand New','Ex-UK','Ex-USA','Locally Used','Refurbished'] }, { id: 'maxPrice', label: 'Max Price', type: 'number', placeholder: 'Any' }],
+  electronics:       [{ id: 'condition', label: 'Condition', type: 'select', options: ['New','Used - Like New','Used - Good','Used - Fair'] }, { id: 'maxPrice', label: 'Max Price', type: 'number', placeholder: 'Any' }],
+  'home-furniture':  [{ id: 'condition', label: 'Condition', type: 'select', options: ['New','Used - Like New','Used - Good'] }, { id: 'maxPrice', label: 'Max Price', type: 'number', placeholder: 'Any' }],
+  jobs:              [{ id: 'job_type', label: 'Job Type', type: 'select', options: ['Full Time','Part Time','Contract','Internship','Freelance','Remote'] }, { id: 'industry', label: 'Industry', type: 'select', options: ['IT & Tech','Finance','Healthcare','Education','NGO','Transport','Construction','Sales'] }],
+  'auto-spares':     [{ id: 'make', label: 'Compatible Brand', type: 'select', options: ['Toyota','Nissan','Mitsubishi','Mazda','Honda','Subaru','Isuzu','Universal'] }, { id: 'condition', label: 'Condition', type: 'select', options: ['New','Ex-Japan','Locally Used','OEM','Aftermarket'] }],
+};
 
-export default function GuidedSearch() {
-  const [keyword, setKeyword] = useState('');
-  const [category, setCategory] = useState('');
-  const [location, setLocation] = useState('');
-  const [extraFilters, setExtraFilters] = useState({});
-  const [minPrice, setMinPrice]   = useState('');
-  const [maxPrice, setMaxPrice]   = useState('');
-  const [suggestions, setSuggestions] = useState([]);
+// Saved recent searches
+function getRecentSearches() {
+  try { return JSON.parse(localStorage.getItem('adhub_recent_searches') || '[]'); }
+  catch { return []; }
+}
+function saveRecentSearch(term) {
+  if (!term?.trim()) return;
+  const prev = getRecentSearches().filter(s => s !== term);
+  localStorage.setItem('adhub_recent_searches', JSON.stringify([term, ...prev].slice(0, 6)));
+}
+
+export default function GuidedSearch({ compact = false }) {
+  const [keyword, setKeyword]     = useState('');
+  const [category, setCategory]   = useState('');
+  const [county, setCounty]       = useState('');
+  const [town, setTown]           = useState('');
+  const [extraFilters, setExtra]  = useState({});
+  const [showMore, setShowMore]   = useState(false);
+  const [suggestions, setSugg]    = useState([]);
   const [showSugg, setShowSugg]   = useState(false);
+  const [focused, setFocused]     = useState(false);
   const debounceRef = useRef(null);
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
 
-  const catConfig = category ? FILTER_CONFIG[category] : null;
+  const quickFilters = category ? (QUICK_FILTERS[category] || []) : [];
+  const towns        = county ? getTowns(county) : [];
+  const recentSearch = getRecentSearches();
 
-  // Autocomplete — debounced Supabase query
+  // Autocomplete — Supabase + popular fallback
   useEffect(() => {
-    if (!keyword.trim() || keyword.length < 2) { setSuggestions([]); return; }
+    if (!keyword.trim() || keyword.length < 2) { setSugg([]); return; }
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
-      const { data } = await supabase
-        .from('listings')
-        .select('title')
-        .ilike('title', `%${keyword}%`)
-        .limit(6);
-      if (data) {
-        const unique = [...new Set(data.map(d => d.title))];
-        setSuggestions(unique);
-        setShowSugg(true);
-      }
-    }, 300);
+      const { data } = await supabase.from('listings').select('title').ilike('title', `%${keyword}%`).limit(5);
+      const live     = (data || []).map(d => d.title);
+      const popular  = POPULAR_SEARCHES.filter(s => s.toLowerCase().includes(keyword.toLowerCase()));
+      const combined = [...new Set([...live, ...popular])].slice(0, 6);
+      setSugg(combined);
+      setShowSugg(true);
+    }, 280);
   }, [keyword]);
 
-  const handleSearch = (e) => {
-    e?.preventDefault();
+  const buildLocation = () => {
+    if (town && county) return `${town}, ${county}`;
+    if (county) return county;
+    return '';
+  };
+
+  const handleSearch = (term) => {
+    const kw = (term !== undefined ? term : keyword).trim();
+    saveRecentSearch(kw);
     const params = new URLSearchParams();
-    if (keyword.trim()) params.set('keyword', keyword.trim());
-    if (category)       params.set('category', category);
-    if (location)       params.set('location', location);
-    if (minPrice)       params.set('minPrice', minPrice);
-    if (maxPrice)       params.set('maxPrice', maxPrice);
-    Object.entries(extraFilters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    if (kw)           params.set('keyword', kw);
+    if (category)     params.set('category', category);
+    const loc = buildLocation();
+    if (loc)          params.set('location', loc);
+    if (county)       params.set('county', county);
+    if (town)         params.set('town', town);
+    Object.entries(extraFilters).forEach(([k,v]) => { if (v) params.set(k, v); });
     navigate(`/browse?${params.toString()}`);
   };
 
-  const setFilter = (id, value) =>
-    setExtraFilters(prev => ({ ...prev, [id]: value === prev[id] ? '' : value }));
+  const setFilter = (id, val) => setExtra(prev => ({ ...prev, [id]: val }));
 
-  const selectSuggestion = (s) => { setKeyword(s); setShowSugg(false); };
+  const showSuggestions = showSugg && focused && (suggestions.length > 0 || recentSearch.length > 0);
 
   return (
-    <form className="guided-search" onSubmit={handleSearch}>
+    <div className="gs2-wrap">
+      {/* ── Row 1: Keyword ── */}
+      <div className="gs2-keyword-row">
+        <div className="gs2-keyword-field">
+          <svg className="gs2-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            className="gs2-keyword-input"
+            type="text"
+            placeholder="Search anything in Kenya…"
+            value={keyword}
+            onChange={e => setKeyword(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setTimeout(() => { setFocused(false); setShowSugg(false); }, 170)}
+            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+            autoComplete="off"
+          />
+          {keyword && (
+            <button className="gs2-clear-btn" onClick={() => { setKeyword(''); setSugg([]); }} type="button">✕</button>
+          )}
 
-      {/* ── Keyword ───────────────────────────────────── */}
-      <div className="gs-keyword-wrap">
-        <svg className="gs-kw-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
-        <input
-          className="gs-kw-input"
-          type="text"
-          placeholder="Search products, vehicles, property..."
-          value={keyword}
-          onChange={e => setKeyword(e.target.value)}
-          onFocus={() => suggestions.length && setShowSugg(true)}
-          onBlur={() => setTimeout(() => setShowSugg(false), 160)}
-          autoComplete="off"
-        />
-        {showSugg && suggestions.length > 0 && (
-          <div className="gs-suggestions">
-            {suggestions.map((s, i) => (
-              <div key={i} className="gs-sugg-item" onMouseDown={() => selectSuggestion(s)}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                </svg>
-                {s}
-              </div>
-            ))}
-          </div>
-        )}
+          {/* Suggestions dropdown */}
+          {showSuggestions && (
+            <div className="gs2-suggestions">
+              {recentSearch.length > 0 && !keyword && (
+                <>
+                  <div className="gs2-sugg-group">Recent</div>
+                  {recentSearch.map(s => (
+                    <div key={s} className="gs2-sugg-item" onMouseDown={() => { setKeyword(s); handleSearch(s); }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      {s}
+                    </div>
+                  ))}
+                </>
+              )}
+              {keyword && suggestions.length > 0 && (
+                <>
+                  {suggestions.map(s => (
+                    <div key={s} className="gs2-sugg-item" onMouseDown={() => { setKeyword(s); handleSearch(s); }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                      {s}
+                    </div>
+                  ))}
+                </>
+              )}
+              {!keyword && POPULAR_SEARCHES.slice(0, 4).map(s => (
+                <div key={s} className="gs2-sugg-item gs2-sugg-popular" onMouseDown={() => { setKeyword(s); handleSearch(s); }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                  {s}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ── Popular searches (empty state) ───────────── */}
-      {!keyword && !category && (
-        <div className="gs-popular">
-          <span className="gs-popular-label">Trending:</span>
-          {POPULAR_SEARCHES.slice(0, 6).map(s => (
-            <button
-              key={s}
-              type="button"
-              className="gs-popular-chip"
-              onClick={() => { setKeyword(s); handleSearch(); }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* ── Category + Location ───────────────────────── */}
-      <div className="gs-row">
-        <div className="gs-field">
-          <label className="gs-label">Category</label>
+      {/* ── Row 2: Category + Location + Search ── */}
+      <div className="gs2-main-row">
+        <div className="gs2-field">
+          <label className="gs2-label">Category</label>
           <select
-            className="gs-select"
+            className="gs2-select"
             value={category}
-            onChange={e => { setCategory(e.target.value); setExtraFilters({}); }}
+            onChange={e => { setCategory(e.target.value); setExtra({}); setShowMore(false); }}
           >
             <option value="">All Categories</option>
             {TOP_CATEGORIES.map(c => (
@@ -128,80 +157,74 @@ export default function GuidedSearch() {
           </select>
         </div>
 
-        <div className="gs-field">
-          <label className="gs-label">Location</label>
-          <select className="gs-select" value={location} onChange={e => setLocation(e.target.value)}>
+        <div className="gs2-field">
+          <label className="gs2-label">County</label>
+          <select className="gs2-select" value={county} onChange={e => { setCounty(e.target.value); setTown(''); }}>
             <option value="">All Kenya</option>
             {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-      </div>
 
-      {/* ── Dynamic category-specific filters ─────────── */}
-      {catConfig && catConfig.filters.length > 0 && (
-        <div className="gs-dynamic">
-          {catConfig.filters.slice(0, 4).map(f => (
-            <div className="gs-field" key={f.id}>
-              <label className="gs-label">{f.label}</label>
-              {f.type === 'text' ? (
-                <input
-                  className="gs-select"
-                  type="text"
-                  placeholder={f.placeholder || f.label}
-                  value={extraFilters[f.urlParam] || ''}
-                  onChange={e => setFilter(f.urlParam, e.target.value)}
-                />
-              ) : (
-                <select
-                  className="gs-select"
-                  value={extraFilters[f.urlParam] || ''}
-                  onChange={e => setFilter(f.urlParam, e.target.value)}
-                >
-                  <option value="">Any {f.label}</option>
-                  {(f.options || []).map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+        {/* Town — only when county selected */}
+        {county && towns.length > 0 && (
+          <div className="gs2-field gs2-field-town">
+            <label className="gs2-label">Town</label>
+            <select className="gs2-select" value={town} onChange={e => setTown(e.target.value)}>
+              <option value="">All of {county}</option>
+              {towns.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        )}
 
-      {/* ── Price + Submit ────────────────────────────── */}
-      <div className="gs-row gs-bottom-row">
-        <div className="gs-field">
-          <label className="gs-label">Min Price (KES)</label>
-          <input
-            className="gs-select"
-            type="number"
-            min="0"
-            placeholder="0"
-            value={minPrice}
-            onChange={e => setMinPrice(e.target.value)}
-          />
-        </div>
-        <div className="gs-field">
-          <label className="gs-label">Max Price (KES)</label>
-          <input
-            className="gs-select"
-            type="number"
-            min="0"
-            placeholder="No limit"
-            value={maxPrice}
-            onChange={e => setMaxPrice(e.target.value)}
-          />
-        </div>
-        <div className="gs-field gs-submit-wrap">
-          <label className="gs-label">&nbsp;</label>
-          <button type="submit" className="gs-submit-btn">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <div className="gs2-field gs2-field-btn">
+          <label className="gs2-label">&nbsp;</label>
+          <button className="gs2-search-btn" type="button" onClick={() => handleSearch()}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
             </svg>
             Search
           </button>
         </div>
       </div>
-    </form>
+
+      {/* ── Row 3: Category-specific quick filters (shown when category selected) ── */}
+      {quickFilters.length > 0 && (
+        <div className="gs2-quick-filters">
+          {quickFilters.slice(0, showMore ? quickFilters.length : 3).map(f => (
+            <div className="gs2-qf-field" key={f.id}>
+              <label className="gs2-label">{f.label}</label>
+              {f.type === 'select' ? (
+                <select
+                  className="gs2-select gs2-select-sm"
+                  value={extraFilters[f.id] || ''}
+                  onChange={e => setFilter(f.id, e.target.value)}
+                >
+                  <option value="">Any</option>
+                  {f.options.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              ) : (
+                <input
+                  type="number"
+                  className="gs2-select gs2-select-sm"
+                  placeholder={f.placeholder}
+                  value={extraFilters[f.id] || ''}
+                  onChange={e => setFilter(f.id, e.target.value)}
+                  min="0"
+                />
+              )}
+            </div>
+          ))}
+          {quickFilters.length > 3 && (
+            <button
+              className="gs2-more-btn"
+              type="button"
+              onClick={() => setShowMore(v => !v)}
+            >
+              {showMore ? '↑ Fewer' : `+ ${quickFilters.length - 3} more`}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
