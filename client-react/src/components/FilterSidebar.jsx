@@ -84,7 +84,7 @@ export default function FilterSidebar({ onClose }) {
   const ignoredKeys = new Set(['category', 'keyword', 'location', 'sort', 'page']);
   const activeCount = [...searchParams.keys()].filter(k => !ignoredKeys.has(k)).length;
 
-  const countyList = Object.keys(COUNTIES || {});
+  const countyList = COUNTIES || [];
 
   return (
     <aside className="filter-sidebar">
