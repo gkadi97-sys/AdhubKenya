@@ -34,23 +34,16 @@ export default function HomePage() {
     canonicalPath: '/'
   });
 
-  // Fetch and duplicate listings to simulate deep inventory
+  // Fetch latest listings
   useEffect(() => {
-    getListings({ limit: 12, sort: 'createdAt' })
-      .then(res => {
-        const fetched = res.listings || [];
-        // Duplicate data to mock 20-40 listings if needed
-        let expanded = [...fetched];
-        if (fetched.length > 0 && fetched.length < 24) {
-          while(expanded.length < 24) {
-            expanded = [...expanded, ...fetched.map(f => ({...f, id: f.id + Math.random().toString()}))];
-          }
-        }
-        setListings(expanded);
-      })
+    getListings({ limit: 40, sort: 'createdAt' })
+      .then(res => setListings(res.listings || []))
       .catch(() => setListings([]))
       .finally(() => setLoading(false));
   }, []);
+
+  const totalAds = listings.length;
+  const showDeepSections = totalAds >= 12;
 
   return (
     <>
@@ -156,46 +149,53 @@ export default function HomePage() {
               <div className="listings-grid">
                 {listings.slice(0, 8).map(l => <ListingCard key={l.id} listing={l} />)}
               </div>
-            ) : null}
+            ) : (
+              <div className="empty-state" style={{ padding: '40px 20px' }}>
+                <div className="icon">🏪</div>
+                <h3 style={{ fontSize: '1.2rem' }}>No listings yet</h3>
+                <p>Be the first to post an ad on AdHub Kenya!</p>
+                <Link to="/post-ad" className="btn btn-primary btn-sm" style={{ marginTop: '12px' }}>Post Free Ad</Link>
+              </div>
+            )}
           </div>
 
-          {/* TRENDING LISTINGS */}
-          <div className="feed-section" style={{ marginBottom: '48px' }}>
-            <div className="section-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.6rem' }}>⭐ Trending Listings</h2>
-            </div>
-            {loading ? null : (
+          {/* TRENDING LISTINGS - Hidden if inventory low */}
+          {showDeepSections && (
+            <div className="feed-section" style={{ marginBottom: '48px' }}>
+              <div className="section-header" style={{ marginBottom: '20px' }}>
+                <h2 style={{ fontSize: '1.6rem' }}>⭐ Trending Listings</h2>
+              </div>
               <div className="listings-grid">
                 {listings.slice(8, 16).map(l => <ListingCard key={l.id} listing={l} />)}
               </div>
-            )}
-          </div>
-
-          {/* NEAR YOU */}
-          <div className="feed-section" style={{ marginBottom: '48px' }}>
-            <div className="section-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.6rem' }}>📍 Near You</h2>
-              <Link to="/browse?location=Nairobi" className="btn btn-ghost btn-sm">Update location →</Link>
             </div>
-            {loading ? null : (
+          )}
+
+          {/* NEAR YOU - Hidden if inventory low */}
+          {showDeepSections && (
+            <div className="feed-section" style={{ marginBottom: '48px' }}>
+              <div className="section-header" style={{ marginBottom: '20px' }}>
+                <h2 style={{ fontSize: '1.6rem' }}>📍 Near You</h2>
+                <Link to="/browse?location=Nairobi" className="btn btn-ghost btn-sm">Update location →</Link>
+              </div>
               <div className="listings-grid">
                 {listings.slice(16, 24).map(l => <ListingCard key={l.id} listing={l} />)}
               </div>
-            )}
-          </div>
-
-          {/* CONTINUE BROWSING (Moved down) */}
-          <div className="feed-section" style={{ padding: '32px', background: 'var(--surface-2)', borderRadius: 'var(--radius-lg)', marginBottom: '48px' }}>
-            <div className="section-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.4rem' }}>Continue Browsing</h2>
-              <Link to="/saved" className="btn btn-outline btn-sm">View Saved</Link>
             </div>
-            {loading ? null : (
+          )}
+
+          {/* CONTINUE BROWSING - Hidden if inventory low */}
+          {showDeepSections && (
+            <div className="feed-section" style={{ padding: '32px', background: 'var(--surface-2)', borderRadius: 'var(--radius-lg)', marginBottom: '48px' }}>
+              <div className="section-header" style={{ marginBottom: '20px' }}>
+                <h2 style={{ fontSize: '1.4rem' }}>Continue Browsing</h2>
+                <Link to="/saved" className="btn btn-outline btn-sm">View Saved</Link>
+              </div>
               <div className="listings-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
                 {listings.slice(0, 4).map(l => <ListingCard key={l.id + 'cont'} listing={l} />)}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* BROWSE BY LOCATION */}
           <div className="feed-section" style={{ marginBottom: '24px' }}>
