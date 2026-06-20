@@ -17,11 +17,22 @@ export default function ListingCard({ listing }) {
   const [saved, setSaved] = useState(false);
   useEffect(() => { setSaved(getSaved().includes(listing.id)); }, [listing.id]);
 
-  const handleSave = (e) => {
+  const handleAction = (e, action) => {
     e.preventDefault();
     e.stopPropagation();
-    const isNowSaved = toggleSaved(listing.id);
-    setSaved(isNowSaved);
+    if (action === 'save') {
+      const isNowSaved = toggleSaved(listing.id);
+      setSaved(isNowSaved);
+    } else if (action === 'share') {
+      if (navigator.share) {
+        navigator.share({ title: listing.title, url: `${window.location.origin}/listing/${listing.id}` }).catch(()=>{});
+      } else {
+        navigator.clipboard.writeText(`${window.location.origin}/listing/${listing.id}`);
+        alert('Link copied!');
+      }
+    } else if (action === 'compare') {
+      alert('Added to comparison (coming soon!)');
+    }
   };
 
   const isVerified = listing.seller &&
@@ -34,31 +45,31 @@ export default function ListingCard({ listing }) {
         <img
           src={listing.images?.[0]
             ? imageUrl(listing.images[0])
-            : `https://placehold.co/400x300/1a2b1e/00d168?text=${encodeURIComponent(listing.category || 'Ad')}`}
+            : `https://placehold.co/400x500/1a2b1e/00d168?text=${encodeURIComponent(listing.category || 'Ad')}`}
           alt={listing.title}
           loading="lazy"
-          onError={e => { e.target.src = `https://placehold.co/400x300/1a2b1e/00d168?text=AdHub`; }}
+          onError={e => { e.target.src = `https://placehold.co/400x500/1a2b1e/00d168?text=AdHub`; }}
         />
-        {/* Condition badge */}
-        {listing.condition === 'New' || listing.condition === 'Brand New' ? (
-          <span className="badge badge-new">New</span>
-        ) : listing.negotiable ? (
-          <span className="badge badge-neg">Negotiable</span>
-        ) : null}
+        
+        {/* Status Badges */}
+        <div className="card-badges">
+          {listing.condition === 'New' || listing.condition === 'Brand New' ? (
+            <span className="badge badge-new">New</span>
+          ) : listing.negotiable ? (
+            <span className="badge badge-neg">Negotiable</span>
+          ) : null}
+        </div>
 
-        {/* Save / Heart button */}
-        <button
-          className={`card-save-btn ${saved ? 'saved' : ''}`}
-          onClick={handleSave}
-          aria-label={saved ? 'Remove from saved' : 'Save listing'}
-          title={saved ? 'Saved' : 'Save'}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24"
-            fill={saved ? 'currentColor' : 'none'}
-            stroke="currentColor" strokeWidth="2">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-        </button>
+        {/* Micro-actions Overlay */}
+        <div className="card-micro-actions">
+          <button className="card-action-btn" onClick={(e) => handleAction(e, 'compare')} title="Compare">⚖</button>
+          <button className="card-action-btn" onClick={(e) => handleAction(e, 'share')} title="Share">📤</button>
+          <button className={`card-action-btn ${saved ? 'saved' : ''}`} onClick={(e) => handleAction(e, 'save')} title={saved ? 'Saved' : 'Save'}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
 
         {/* Image count */}
         {listing.images?.length > 1 && (

@@ -189,39 +189,53 @@ export default function GuidedSearch({ compact = false }) {
 
       {/* ── Row 3: Category-specific quick filters (shown when category selected) ── */}
       {quickFilters.length > 0 && (
-        <div className="gs2-quick-filters">
-          {quickFilters.slice(0, showMore ? quickFilters.length : 3).map(f => (
-            <div className="gs2-qf-field" key={f.id}>
-              <label className="gs2-label">{f.label}</label>
-              {f.type === 'select' ? (
-                <select
-                  className="gs2-select gs2-select-sm"
-                  value={extraFilters[f.id] || ''}
-                  onChange={e => setFilter(f.id, e.target.value)}
-                >
-                  <option value="">Any</option>
-                  {f.options.map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              ) : (
-                <input
-                  type="number"
-                  className="gs2-select gs2-select-sm"
-                  placeholder={f.placeholder}
-                  value={extraFilters[f.id] || ''}
-                  onChange={e => setFilter(f.id, e.target.value)}
-                  min="0"
-                />
-              )}
-            </div>
-          ))}
-          {quickFilters.length > 3 && (
+        <div className="gs2-filters-container" style={{ marginTop: '12px' }}>
+          {!showMore ? (
             <button
-              className="gs2-more-btn"
+              className="btn btn-outline btn-sm"
               type="button"
-              onClick={() => setShowMore(v => !v)}
+              onClick={() => setShowMore(true)}
+              style={{ width: '100%' }}
             >
-              {showMore ? '↑ Fewer' : `+ ${quickFilters.length - 3} more`}
+              + Filters
             </button>
+          ) : (
+            <div className="gs2-quick-filters">
+              <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Advanced Filters</span>
+                <button
+                  type="button"
+                  onClick={() => setShowMore(false)}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem' }}
+                >
+                  Close ✕
+                </button>
+              </div>
+              {quickFilters.map(f => (
+                <div className="gs2-qf-field" key={f.id}>
+                  <label className="gs2-label">{f.label}</label>
+                  {f.type === 'select' ? (
+                    <select
+                      className="gs2-select gs2-select-sm"
+                      value={extraFilters[f.id] || ''}
+                      onChange={e => setFilter(f.id, e.target.value)}
+                    >
+                      <option value="">Any</option>
+                      {f.options.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  ) : (
+                    <input
+                      type="number"
+                      className="gs2-select gs2-select-sm"
+                      placeholder={f.placeholder}
+                      value={extraFilters[f.id] || ''}
+                      onChange={e => setFilter(f.id, e.target.value)}
+                      min="0"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
