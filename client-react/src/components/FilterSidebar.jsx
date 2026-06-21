@@ -13,7 +13,7 @@ import {
   getCascadeConfig,
   CASCADE_URL_PARAMS,
 } from '@/lib/filterEngine';
-import { COUNTIES } from '@/lib/countyData';
+import { COUNTIES, getTowns, getAreas } from '@/lib/countyData';
 import { ChevronDown, GitBranch, ChevronLeft } from 'lucide-react';
 
 // ─── Primitives ──────────────────────────────────────────────────────────────
@@ -450,14 +450,59 @@ export default function FilterSidebar({ onClose }) {
               <div className="animate-in fade-in slide-in-from-top-4 duration-300">
                 {/* ── Location ── */}
                 <FilterGroup label="Location">
-                  <select
-                    className={inputClass}
-                    value={get('county')}
-                    onChange={e => set('county', e.target.value)}
-                  >
-                    <option value="">All Kenya</option>
-                    {countyList.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <div className="flex flex-col gap-2">
+                    <select
+                      className={inputClass}
+                      value={get('county')}
+                      onChange={e => {
+                        const next = new URLSearchParams(searchParams);
+                        if (e.target.value) next.set('county', e.target.value);
+                        else next.delete('county');
+                        next.delete('town');
+                        next.delete('area');
+                        next.delete('page');
+                        setParam(next);
+                      }}
+                    >
+                      <option value="">All Kenya</option>
+                      {countyList.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+
+                    {get('county') && getTowns(get('county')).length > 0 && (
+                      <select
+                        className={inputClass}
+                        value={get('town')}
+                        onChange={e => {
+                          const next = new URLSearchParams(searchParams);
+                          if (e.target.value) next.set('town', e.target.value);
+                          else next.delete('town');
+                          next.delete('area');
+                          next.delete('page');
+                          setParam(next);
+                        }}
+                      >
+                        <option value="">All of {get('county')}</option>
+                        {getTowns(get('county')).map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    )}
+
+                    {get('town') && getAreas(get('county'), get('town')).length > 0 && (
+                      <select
+                        className={inputClass}
+                        value={get('area')}
+                        onChange={e => {
+                          const next = new URLSearchParams(searchParams);
+                          if (e.target.value) next.set('area', e.target.value);
+                          else next.delete('area');
+                          next.delete('page');
+                          setParam(next);
+                        }}
+                      >
+                        <option value="">All of {get('town')}</option>
+                        {getAreas(get('county'), get('town')).map(a => <option key={a} value={a}>{a}</option>)}
+                      </select>
+                    )}
+                  </div>
                 </FilterGroup>
 
                 {/* ── Price Range ── */}
