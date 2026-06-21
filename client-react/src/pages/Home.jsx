@@ -125,18 +125,19 @@ function CategorySidebar({ onNavigate }) {
                       <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
                         {selectedSlug === 'vehicles' ? 'Vehicle Type' : labels.level1Label || 'Subcategory'}
                       </p>
-                      <ul className="flex flex-wrap gap-1.5 mt-1">
+                      <ul className="grid grid-cols-2 gap-1.5 mt-1">
                         {subcategories.map(sub => (
                           <li key={sub}>
                             <button
                               onClick={() => setSelectedSub(selectedSub === sub ? '' : sub)}
-                              className={`inline-flex items-center rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer border ${
+                              className={`w-full inline-flex items-center justify-center rounded-lg px-1.5 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer border text-center ${
                                 selectedSub === sub
                                   ? 'border-primary bg-primary text-primary-foreground shadow-sm'
                                   : 'border-border bg-background hover:border-primary/40 text-foreground hover:bg-secondary/50'
                               }`}
+                              title={sub}
                             >
-                              {sub}
+                              <span className="truncate">{sub}</span>
                             </button>
                           </li>
                         ))}
