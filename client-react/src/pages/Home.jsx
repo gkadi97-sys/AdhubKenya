@@ -125,18 +125,17 @@ function CategorySidebar({ onNavigate }) {
                       <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
                         {selectedSlug === 'vehicles' ? 'Vehicle Type' : labels.level1Label || 'Subcategory'}
                       </p>
-                      <ul className="flex flex-col gap-0.5">
+                      <ul className="flex flex-wrap gap-1.5 mt-1">
                         {subcategories.map(sub => (
                           <li key={sub}>
                             <button
                               onClick={() => setSelectedSub(selectedSub === sub ? '' : sub)}
-                              className={`w-full flex items-center gap-2 rounded-xl px-3 py-2 text-left text-[13px] transition-colors cursor-pointer ${
+                              className={`inline-flex items-center rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer border ${
                                 selectedSub === sub
-                                  ? 'bg-primary/10 text-primary font-semibold'
-                                  : 'text-foreground hover:bg-secondary/70 font-medium'
+                                  ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                                  : 'border-border bg-background hover:border-primary/40 text-foreground hover:bg-secondary/50'
                               }`}
                             >
-                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${selectedSub === sub ? 'bg-primary' : 'bg-border'}`} />
                               {sub}
                             </button>
                           </li>
