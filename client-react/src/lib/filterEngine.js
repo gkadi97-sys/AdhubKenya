@@ -8,7 +8,7 @@
  * No duplication. When categoryData.js gets a new brand/model, filters update automatically.
  */
 
-import { CATEGORY_ATTRIBUTES, TV_SPECS, AUDIO_SPECS } from './categoryData';
+import { CATEGORY_ATTRIBUTES, TV_SPECS, AUDIO_SPECS, VEHICLE_MAKES_BY_TYPE } from './categoryData';
 import { LAPTOP_DATA } from './laptopPhoneData';
 
 /**
@@ -35,6 +35,13 @@ export function getLevel1Options(categorySlug, subcategory) {
     const tree = getElectronicsTree(subcategory);
     if (tree) return Object.keys(tree);
   }
+
+  if (categorySlug === 'vehicles') {
+    if (subcategory && VEHICLE_MAKES_BY_TYPE[subcategory]) {
+      return Object.keys(VEHICLE_MAKES_BY_TYPE[subcategory]);
+    }
+  }
+
   const tree = CATEGORY_ATTRIBUTES[categorySlug];
   if (!tree || !tree.data) return [];
   return Object.keys(tree.data);
@@ -52,6 +59,12 @@ export function getLevel2Options(categorySlug, level1Value, subcategory) {
     } else {
       // Laptops & TVs: level1 is brand, level2 is series
       return tree[level1Value]?.series || [];
+    }
+  }
+
+  if (categorySlug === 'vehicles') {
+    if (subcategory && VEHICLE_MAKES_BY_TYPE[subcategory]) {
+      return VEHICLE_MAKES_BY_TYPE[subcategory][level1Value] || [];
     }
   }
 
