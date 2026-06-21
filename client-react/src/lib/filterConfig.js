@@ -174,37 +174,43 @@ export const FILTER_CONFIG = {
     label: 'Electronics',
     filters: [
       // All electronics — detect sub-type to narrow filters
-      { id: 'equipmentType', label: 'Equipment Type', type: 'dynamic-select', urlParam: 'equipmentType' },
       { id: 'brand',  label: 'Brand',  type: 'dynamic-select', urlParam: 'brand' },
       // TV-specific (TvForm saves as screenSize / displayTech)
-      { id: 'tv_size', label: 'TV Screen Size', type: 'dynamic-select', urlParam: 'tv_size' },
-      { id: 'tv_tech', label: 'Display Technology', type: 'dynamic-select', urlParam: 'tv_tech' },
+      { id: 'tv_size', label: 'TV Screen Size', type: 'dynamic-select', urlParam: 'tv_size', dependsOn: { field: 'subcategory', values: ['Televisions'] } },
+      { id: 'tv_tech', label: 'Display Technology', type: 'dynamic-select', urlParam: 'tv_tech', dependsOn: { field: 'subcategory', values: ['Televisions'] } },
       {
         id: 'resolution', label: 'Resolution', type: 'multicheck', urlParam: 'resolution',
-        options: ['HD','Full HD','4K UHD','8K']
+        options: ['HD','Full HD','4K UHD','8K'],
+        dependsOn: { field: 'subcategory', values: ['Televisions'] }
       },
       {
         id: 'smartPlatform', label: 'Smart Platform', type: 'multicheck', urlParam: 'smartPlatform',
-        options: ['Android TV','Google TV','WebOS','Tizen','VIDAA','Roku','Non Smart']
+        options: ['Android TV','Google TV','WebOS','Tizen','VIDAA','Roku','Non Smart'],
+        dependsOn: { field: 'subcategory', values: ['Televisions'] }
       },
       // Audio-specific (AudioForm saves as channels / connectivity)
+      { id: 'equipmentType', label: 'Equipment Type', type: 'dynamic-select', urlParam: 'equipmentType', dependsOn: { field: 'subcategory', values: ['Audio & Music'] } },
       {
         id: 'channels', label: 'Channels', type: 'multicheck', urlParam: 'channels',
-        options: ['2.0','2.1','3.1','5.0','5.1','7.1','9.1','11.1']
+        options: ['2.0','2.1','3.1','5.0','5.1','7.1','9.1','11.1'],
+        dependsOn: { field: 'subcategory', values: ['Audio & Music'] }
       },
       {
         id: 'connectivity', label: 'Connectivity', type: 'multicheck', urlParam: 'connectivity',
-        options: ['Bluetooth','Wi-Fi','HDMI','HDMI ARC','HDMI eARC','USB','Optical','AUX']
+        options: ['Bluetooth','Wi-Fi','HDMI','HDMI ARC','HDMI eARC','USB','Optical','AUX'],
+        dependsOn: { field: 'subcategory', values: ['Audio & Music'] }
       },
       // Laptop-specific
-      { id: 'cpuBrand', label: 'Processor Brand', type: 'dynamic-select', urlParam: 'cpuBrand' },
+      { id: 'cpuBrand', label: 'Processor Brand', type: 'dynamic-select', urlParam: 'cpuBrand', dependsOn: { field: 'subcategory', values: ['Laptops & Computers'] } },
       {
         id: 'ram', label: 'RAM', type: 'multicheck', urlParam: 'ram',
-        options: ['4GB','8GB','16GB','32GB','64GB']
+        options: ['4GB','8GB','16GB','32GB','64GB'],
+        dependsOn: { field: 'subcategory', values: ['Laptops & Computers'] }
       },
       {
         id: 'os', label: 'Operating System', type: 'multicheck', urlParam: 'os',
-        options: ['Windows','macOS','Linux','Chrome OS']
+        options: ['Windows','macOS','Linux','Chrome OS'],
+        dependsOn: { field: 'subcategory', values: ['Laptops & Computers'] }
       },
       // Series/Model (all sub-categories)
       { id: 'series', label: 'Series', type: 'dynamic-select', urlParam: 'series' },

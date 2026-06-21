@@ -530,11 +530,17 @@ export default function FilterSidebar({ onClose }) {
                 </FilterGroup>
 
                 {/* ── Advanced Category-specific flat filters ── */}
-                {advancedFlatFilters.map(f => (
-                  <FilterGroup key={f.id} label={f.label}>
-                    {renderFlatFilter(f)}
-                  </FilterGroup>
-                ))}
+                {advancedFlatFilters.map(f => {
+                  if (f.dependsOn) {
+                    const dependentValue = get(f.dependsOn.field);
+                    if (!f.dependsOn.values.includes(dependentValue)) return null;
+                  }
+                  return (
+                    <FilterGroup key={f.id} label={f.label}>
+                      {renderFlatFilter(f)}
+                    </FilterGroup>
+                  );
+                })}
 
                 {/* ── Condition (Universal) ── */}
                 {(() => {
