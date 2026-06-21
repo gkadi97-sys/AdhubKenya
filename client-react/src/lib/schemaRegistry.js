@@ -32,7 +32,7 @@ export const SCHEMA_REGISTRY = {
       
       // Spare Part Specific
       { id: 'partCategory', label: 'Part Category', type: 'dynamic-cascade', cascadeLevel: 1, dependsOn: { field: 'listingType', value: 'spare-part' } },
-      { id: 'part', label: 'Spare Part', type: 'dynamic-cascade', cascadeLevel: 2, dependsOn: { field: 'listingType', value: 'spare-part' } },
+      { id: 'part', label: 'Spare Part', type: 'dynamic-cascade', cascadeParent: 'partCategory', dependsOn: { field: 'listingType', value: 'spare-part' } },
       { id: 'make', label: 'Vehicle Make', type: 'dynamic-cascade', cascadeLevel: 1, dependsOn: { field: 'listingType', value: 'spare-part' } },
       { id: 'model', label: 'Vehicle Model', type: 'dynamic-cascade', cascadeParent: 'make', dependsOn: { field: 'listingType', value: 'spare-part' } },
       { id: 'generation', label: 'Generation / Chassis', type: 'text', dependsOn: { field: 'listingType', value: 'spare-part' } },
@@ -43,8 +43,8 @@ export const SCHEMA_REGISTRY = {
 
       // Accessories Specific
       { id: 'category', label: 'Accessory Category', type: 'dynamic-cascade', cascadeLevel: 1, dependsOn: { field: 'listingType', value: 'accessory' } },
-      { id: 'subcategory', label: 'Subcategory', type: 'dynamic-cascade', cascadeLevel: 2, dependsOn: { field: 'listingType', value: 'accessory' } },
-      { id: 'item', label: 'Accessory Item', type: 'dynamic-cascade', cascadeLevel: 3, dependsOn: { field: 'listingType', value: 'accessory' } },
+      { id: 'subcategory', label: 'Subcategory', type: 'dynamic-cascade', cascadeParent: 'category', dependsOn: { field: 'listingType', value: 'accessory' } },
+      { id: 'item', label: 'Accessory Item', type: 'dynamic-cascade', cascadeParent: 'subcategory', cascadeGrandparent: 'category', dependsOn: { field: 'listingType', value: 'accessory' } },
       { id: 'universal', label: 'Universal Fit', type: 'radio', options: ['Yes', 'No'], dependsOn: { field: 'listingType', value: 'accessory' } },
       { id: 'vehicleType', label: 'Vehicle Type', type: 'select', options: ['Car', 'SUV', 'Pickup', 'Truck', 'Motorcycle'], dependsOn: { field: 'listingType', value: 'accessory' } },
       
