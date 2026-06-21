@@ -102,15 +102,24 @@ export default function ListingCard({ listing }) {
           </span>
           <span>{timeAgo(listing.created_at)}</span>
         </div>
-        {isVerified && (
-          <div className="card-verified">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            Verified Seller
+        {/* Seller Info & Trust Signals */}
+        <div className="card-seller-info" style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.6rem' }}>
+              {listing.seller?.name?.charAt(0) || 'U'}
+            </div>
+            <span style={{ color: 'var(--text-secondary)' }}>⭐ 4.8</span>
           </div>
-        )}
+          
+          {isVerified && (
+            <div className="card-verified" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--primary-light)', fontWeight: 600 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              Verified
+            </div>
+          )}
+        </div>
       </div>
     </Link>
   );

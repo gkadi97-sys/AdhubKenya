@@ -24,9 +24,9 @@ export default function Navbar() {
     <>
       {/* Top announcement bar */}
       <div style={{
-        background: 'var(--accent)', color: '#fff', textAlign: 'center',
+        background: 'var(--bg-2)', color: 'var(--text-secondary)', textAlign: 'center',
         padding: '8px 16px', fontSize: '0.82rem', fontWeight: 600,
-        letterSpacing: '0.3px', lineHeight: 1.4,
+        letterSpacing: '0.3px', lineHeight: 1.4, borderBottom: '1px solid var(--border)'
       }}>
         <span className="breath-text">🚧 Welcome to AdHub Kenya! Our devs are still tinkering</span>
       </div>
@@ -57,7 +57,7 @@ export default function Navbar() {
           {/* Desktop actions */}
           <div className="navbar-actions">
             <ThemeSwitcher />
-            <Link to="/post-ad" className="btn btn-accent btn-sm">+ Post Ad</Link>
+            <Link to="/post-ad" className="btn btn-accent btn-sm" style={{ fontWeight: 700, padding: '8px 20px' }}>+ Post Ad Free</Link>
             {user ? (
               <>
                 <Link to="/my-ads" className="btn btn-ghost btn-sm navbar-desktop-only">My Ads</Link>

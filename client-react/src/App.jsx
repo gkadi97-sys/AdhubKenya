@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
 import Navbar from '@/components/Navbar.jsx';
 import Footer from '@/components/Footer.jsx';
+import MobileBottomNav from '@/components/MobileBottomNav.jsx';
 import Home from '@/pages/Home.jsx';
 import Browse from '@/pages/Browse.jsx';
 import Category from '@/pages/Category.jsx';
@@ -36,6 +37,7 @@ function AppLayout() {
         </Routes>
       </main>
       <Footer />
+      <MobileBottomNav />
     </>
   );
 }

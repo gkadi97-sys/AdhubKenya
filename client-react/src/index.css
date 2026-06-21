@@ -4,14 +4,14 @@
    DESIGN TOKENS
    ============================================ */
 :root {
-  --primary: #00A550;
-  --primary-dark: #007a3a;
-  --primary-light: #00d168;
-  --primary-glow: rgba(0, 165, 80, 0.2);
-  --accent: #FF6B00;
-  --accent-dark: #cc5500;
-  --accent-light: #ff8c3a;
-  --accent-glow: rgba(255, 107, 0, 0.2);
+  --primary: #0B8A42;
+  --primary-dark: #086631;
+  --primary-light: #0d9e4c;
+  --primary-glow: rgba(11, 138, 66, 0.2);
+  --accent: #FF7A00;
+  --accent-dark: #cc6200;
+  --accent-light: #ff9433;
+  --accent-glow: rgba(255, 122, 0, 0.2);
 
   --bg: #0a0f0d;
   --bg-2: #111a14;
@@ -499,7 +499,7 @@ textarea.form-control { resize: vertical; min-height: 120px; }
   z-index: 50;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
-  padding: 24px 0 16px;
+  padding: 16px 0 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
 
@@ -889,6 +889,69 @@ textarea.form-control { resize: vertical; min-height: 120px; }
 .navbar-user {
   display: flex; align-items: center; gap: 8px;
   font-size: 0.9rem; color: var(--text-secondary);
+}
+
+/* ============================================
+   MOBILE BOTTOM NAV
+   ============================================ */
+.mobile-bottom-nav {
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 70px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+  }
+  .mobile-bottom-nav .nav-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.65rem;
+    font-weight: 500;
+    flex: 1;
+    height: 100%;
+    transition: var(--transition);
+  }
+  .mobile-bottom-nav .nav-item.active {
+    color: var(--primary-light);
+  }
+  .mobile-bottom-nav .nav-item .icon-wrapper {
+    margin-bottom: 4px;
+    transition: var(--transition);
+  }
+  .mobile-bottom-nav .nav-item.active .icon-wrapper {
+    transform: translateY(-2px);
+  }
+  .mobile-bottom-nav .primary-item {
+    color: var(--text);
+  }
+  .mobile-bottom-nav .primary-item .icon-wrapper {
+    background: var(--primary);
+    color: #fff;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: -24px; /* Pop out effect */
+    box-shadow: var(--shadow-glow);
+    border: 3px solid var(--bg);
+  }
+  .mobile-bottom-nav .primary-item.active .icon-wrapper {
+    background: var(--primary-light);
+  }
+  
+  /* Add padding to body so content isn't hidden behind the nav */
+  body {
+    padding-bottom: 70px;
+  }
 }
 
 /* ============================================
@@ -1653,9 +1716,10 @@ details[open] .filter-group-header svg { transform: rotate(180deg); }
   text-decoration: none;
 }
 .cat-scroll-item:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  background: var(--surface-hover);
 }
 .cat-scroll-icon {
   font-size: 1.8rem;

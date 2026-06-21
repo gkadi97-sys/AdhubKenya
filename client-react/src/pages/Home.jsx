@@ -43,7 +43,7 @@ export default function HomePage() {
       <section className="hero-sticky">
         <div className="container">
           <div className="hero-content-compressed" style={{ textAlign: 'center' }}>
-            <h1 className="hero-title-compressed" style={{ fontSize: '2.4rem', marginBottom: '12px' }}>
+            <h1 className="hero-title-compressed" style={{ fontSize: '2.2rem', marginBottom: '10px' }}>
               Buy &amp; Sell Anything <span className="text-gradient">in Kenya</span>
             </h1>
 
@@ -51,37 +51,47 @@ export default function HomePage() {
             <div style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
               <GuidedSearch compact={true} />
               
+              {/* Popular Searches */}
+              <div className="trending-chips-wrap" style={{ justifyContent: 'center', marginTop: '12px' }}>
+                <span className="trending-label" style={{ fontSize: '0.85rem' }}>Popular:</span>
+                <div className="trending-chips-scroll" style={{ paddingBottom: '4px' }}>
+                  {POPULAR_SEARCHES.slice(0, 5).map((s, i) => (
+                    <button
+                      key={s}
+                      className="trending-action-chip"
+                      style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+                      onClick={() => navigate(`/browse?keyword=${encodeURIComponent(s)}`)}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Trust Signals */}
-              <div className="trust-signals" style={{ marginTop: '12px' }}>
+              <div className="trust-signals" style={{ marginTop: '10px', gap: '16px' }}>
                 <span>✓ 12,000+ Active Listings</span>
                 <span>✓ Verified Sellers</span>
                 <span>✓ Free Posting</span>
-                <span>✓ Kenya Wide</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── TRENDING CHIPS ───────────────────────────────── */}
-      <section style={{ padding: '16px 0', borderBottom: '1px solid var(--border)' }}>
-        <div className="container" style={{ maxWidth: '800px' }}>
-           <div className="trending-chips-wrap">
-              <span className="trending-label">🔥 Trending:</span>
-              <div className="trending-chips-scroll">
-                {POPULAR_SEARCHES.map((s, i) => (
-                  <button
-                    key={s}
-                    className="trending-action-chip"
-                    onClick={() => navigate(`/browse?keyword=${encodeURIComponent(s)}`)}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-           </div>
-        </div>
-      </section>
+      {/* ── FEATURED ADS (ABOVE THE FOLD) ───────────────────────────────── */}
+      {showDeepSections && (
+        <section style={{ padding: '24px 0 16px', background: 'var(--bg-1)' }}>
+          <div className="container" style={{ maxWidth: '1440px' }}>
+            <div className="section-header" style={{ marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '1.4rem' }}>🔥 Featured Ads</h2>
+            </div>
+            <div className="listings-grid">
+              {listings.slice(0, 4).map(l => <ListingCard key={l.id + 'feat'} listing={l} featured={true} />)}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── CATEGORY QUICK-ACCESS (SCROLLABLE ROW) ───────────────────────── */}
       <section style={{ background: 'var(--bg-1)', borderBottom: '1px solid var(--border)' }}>
