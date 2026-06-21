@@ -47,13 +47,20 @@ function CategorySidebar({ onNavigate }) {
 
   const selectCategory = (slug) => { setSelectedSlug(slug); setFilters({}); };
 
-  const evaluateDependsOn = (dependsOn) => {
+  const evaluateDependsOn = (dependsOn, currentFilters) => {
     if (!dependsOn) return true;
     const { field, value } = dependsOn;
-    const currentVal = filters[field];
+    const currentVal = currentFilters[field];
     if (!currentVal) return false;
     return Array.isArray(value) ? value.includes(currentVal) : currentVal === value;
   };
+
+  const visibleAttrs = schema ? (schema.attributes || []).filter(attr => evaluateDependsOn(attr.dependsOn, filters)) : [];
+  
+  const activeFilters = {};
+  visibleAttrs.forEach(attr => {
+    if (filters[attr.id]) activeFilters[attr.id] = filters[attr.id];
+  });
 
   const setFilter = (key, val) => {
     setFilters(prev => {
@@ -85,11 +92,11 @@ function CategorySidebar({ onNavigate }) {
   const browse = () => {
     const p = new URLSearchParams();
     p.set('category', selectedSlug);
-    Object.entries(filters).forEach(([k, v]) => { if (v) p.set(k, v); });
+    Object.entries(activeFilters).forEach(([k, v]) => p.set(k, v));
     onNavigate(`/browse?${p.toString()}`);
   };
 
-  const activeCount = Object.values(filters).filter(Boolean).length;
+  const activeCount = Object.keys(activeFilters).length;
 
   // ── ACCORDION CATEGORIES LIST ──────────────────────────────────────────────
   return (
@@ -207,7 +214,7 @@ function CategorySidebar({ onNavigate }) {
                     {/* Active pills */}
                     {activeCount > 0 && (
                       <div className="flex flex-wrap gap-1.5 border-t border-border pt-3">
-                        {Object.entries(filters).filter(([,v]) => v).map(([k, v]) => (
+                        {Object.entries(activeFilters).map(([k, v]) => (
                           <span key={k} className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[10px] font-semibold text-primary">
                             {v} <button onClick={() => clearFilter(k)} className="cursor-pointer"><X className="w-2.5 h-2.5" /></button>
                           </span>
