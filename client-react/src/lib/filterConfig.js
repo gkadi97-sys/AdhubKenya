@@ -264,6 +264,14 @@ export const FILTER_CONFIG = {
       {
         id: 'industry', label: 'Industry', type: 'select', urlParam: 'industry',
         options: ['IT & Technology','Finance & Banking','Healthcare','Education','NGO','Hospitality','Transport & Logistics','Agriculture','Construction','Media & Marketing','Sales','Admin & HR','Legal','Government','Other']
+      },
+      {
+        id: 'salaryMin_min', label: 'Min Salary', type: 'select', urlParam: 'salaryMin_min',
+        options: ['10000','20000','30000','50000','80000','100000','150000','200000+']
+      },
+      {
+        id: 'salaryMax_max', label: 'Max Salary', type: 'select', urlParam: 'salaryMax_max',
+        options: ['30000','50000','80000','100000','150000','200000','300000','500000+']
       }
     ]
   },
@@ -279,6 +287,81 @@ export const FILTER_CONFIG = {
         id: 'condition', label: 'Status', type: 'radio', urlParam: 'condition',
         options: ['For Sale','For Adoption']
       }
+    ]
+  },
+
+  beauty: {
+    label: 'Health & Beauty',
+    filters: [
+      { id: 'productType', label: 'Product Type', type: 'select', urlParam: 'productType', options: ['Makeup', 'Skincare', 'Haircare', 'Fragrance', 'Bath & Body', 'Tools & Accessories', 'Other'] },
+      { id: 'brand', label: 'Brand', type: 'dynamic-select', urlParam: 'brand' },
+      { id: 'skinType', label: 'Skin Type', type: 'select', urlParam: 'skinType', options: ['Normal', 'Oily', 'Dry', 'Combination', 'Sensitive', 'All Skin Types'] },
+      { id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition', options: ['New', 'Used'] }
+    ]
+  },
+
+  services: {
+    label: 'Services',
+    filters: [
+      { id: 'serviceType', label: 'Service Type', type: 'select', urlParam: 'serviceType', options: ['Cleaning', 'Plumbing', 'Electrical', 'Catering', 'Moving', 'IT & Web', 'Design', 'Legal', 'Financial', 'Other'] },
+      { id: 'availability', label: 'Availability', type: 'radio', urlParam: 'availability', options: ['Full Time', 'Part Time', 'Weekends Only', 'On Demand'] },
+      { id: 'experience', label: 'Experience', type: 'radio', urlParam: 'experience', options: ['Less than 1 Year', '1-3 Years', '3-5 Years', '5+ Years'] }
+    ]
+  },
+
+  'repair-construction': {
+    label: 'Repair & Construction',
+    filters: [
+      { id: 'tradeType', label: 'Trade Type', type: 'select', urlParam: 'tradeType', options: ['Building Materials', 'Tools', 'Plumbing', 'Electrical', 'Hardware', 'Other'] },
+      { id: 'areaCovered', label: 'Area Covered', type: 'text', urlParam: 'areaCovered', placeholder: 'e.g. Nairobi Area' },
+      { id: 'certification', label: 'Certification', type: 'radio', urlParam: 'certification', options: ['Certified', 'Non-Certified'] }
+    ]
+  },
+
+  'commercial-equipment': {
+    label: 'Commercial Equipment',
+    filters: [
+      { id: 'equipmentType', label: 'Equipment Type', type: 'select', urlParam: 'equipmentType', options: ['Restaurant', 'Medical', 'Industrial', 'Office', 'Salon', 'Other'] },
+      { id: 'brand', label: 'Brand', type: 'dynamic-select', urlParam: 'brand' },
+      { id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition', options: ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'] },
+      { id: 'hoursUsed_max', label: 'Max Hours Used', type: 'select', urlParam: 'hoursUsed_max', options: ['100', '500', '1000', '5000', '10000+'] }
+    ]
+  },
+
+  leisure: {
+    label: 'Sports, Arts & Outdoors',
+    filters: [
+      { id: 'activityType', label: 'Activity', type: 'select', urlParam: 'activityType', options: ['Cycling', 'Fitness & Gym', 'Camping', 'Musical Instruments', 'Books & Games', 'Other'] },
+      { id: 'brand', label: 'Brand', type: 'dynamic-select', urlParam: 'brand' },
+      { id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition', options: ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'] }
+    ]
+  },
+
+  'babies-kids': {
+    label: 'Babies & Kids',
+    filters: [
+      { id: 'ageGroup', label: 'Age Group', type: 'select', urlParam: 'ageGroup', options: ['0-6 Months', '6-12 Months', '1-2 Years', '3-5 Years', '6-10 Years', '11+ Years'] },
+      { id: 'gender', label: 'Gender', type: 'radio', urlParam: 'gender', options: ['Boys', 'Girls', 'Unisex'] },
+      { id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition', options: ['New', 'Used'] }
+    ]
+  },
+
+  'food-agriculture': {
+    label: 'Agriculture & Food',
+    filters: [
+      { id: 'productType', label: 'Product Type', type: 'select', urlParam: 'productType', options: ['Farm Produce', 'Livestock Feed', 'Seeds & Plants', 'Farming Tools', 'Agrochemicals', 'Other'] },
+      { id: 'organic', label: 'Organic', type: 'radio', urlParam: 'organic', options: ['Yes', 'No'] },
+      { id: 'quantityUnit', label: 'Unit', type: 'select', urlParam: 'quantityUnit', options: ['Kgs', 'Tons', 'Liters', 'Pieces', 'Bags'] }
+    ]
+  },
+
+  'seeking-work': {
+    label: 'CVs & Seeking Work',
+    filters: [
+      { id: 'jobTitle', label: 'Target Job Title', type: 'text', urlParam: 'jobTitle', placeholder: 'e.g. Accountant, Driver' },
+      { id: 'experienceLevel', label: 'Experience Level', type: 'radio', urlParam: 'experienceLevel', options: ['Entry Level', '1-3 Years', '3-5 Years', '5-10 Years', '10+ Years'] },
+      { id: 'educationLevel', label: 'Education Level', type: 'radio', urlParam: 'educationLevel', options: ['KCSE / O-Level', 'Certificate', 'Diploma', 'Bachelor\'s Degree', 'Master\'s Degree', 'PhD'] },
+      { id: 'availability', label: 'Availability', type: 'radio', urlParam: 'availability', options: ['Immediate', '1 Week', '1 Month'] }
     ]
   }
 };

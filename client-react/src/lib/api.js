@@ -79,7 +79,7 @@ export const getListings = async (params = {}) => {
   let query = supabase.from('listings').select('*, seller:profiles!seller_id(name, location, created_at)', { count: 'exact' });
 
   // Filter to active listings only
-  query = query.eq('status', 'active');
+  query = query.or('status.eq.active,status.is.null');
 
   // ── Top-level column filters (backward-compatible) ────────────────────────
   if (params.category)  query = query.eq('category', params.category);
@@ -304,7 +304,8 @@ export const createListing = async (listingData, imageFiles) => {
       {
         ...listingData,
         images: imageUrls,
-        seller_id: session.user.id
+        seller_id: session.user.id,
+        status: 'active'
       }
     ])
     .select()

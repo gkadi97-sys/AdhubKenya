@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getFilterAggregates } from '@/lib/api';
+import { getFilterAggregates, getCategoryCounts } from '@/lib/api';
 import { FILTER_CONFIG, UNIVERSAL_FILTERS } from '@/lib/filterConfig';
+import { CATEGORY_ICONS } from '@/lib/categoryData';
 import {
   hasCascadeFilters,
   getLevel1Options,
@@ -285,6 +286,11 @@ function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
 export default function FilterSidebar({ onClose }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const category = searchParams.get('category') || '';
+  const [catCounts, setCatCounts] = useState({});
+
+  useEffect(() => {
+    getCategoryCounts().then(setCatCounts).catch(console.error);
+  }, []);
 
   const get = (key) => searchParams.get(key) || '';
 
@@ -343,6 +349,48 @@ export default function FilterSidebar({ onClose }) {
       </div>
 
       <div className="flex flex-col pb-20 md:pb-0 overflow-y-auto">
+
+        {/* ── Category Selector ── */}
+        <FilterGroup label="Category">
+          <div className="flex flex-col gap-1">
+            <label
+              className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-secondary/50 ${!category ? 'bg-primary/10 font-bold text-primary' : 'text-muted-foreground text-sm'}`}
+            >
+              <span className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="sidebar-category"
+                  checked={!category}
+                  onChange={() => set('category', '')}
+                  className="h-4 w-4 accent-primary"
+                />
+                All Categories
+              </span>
+            </label>
+            {CATEGORY_ICONS.map(c => (
+              <label
+                key={c.slug}
+                className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-secondary/50 ${category === c.slug ? 'bg-primary/10 font-bold text-primary' : 'text-muted-foreground text-sm'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="sidebar-category"
+                    checked={category === c.slug}
+                    onChange={() => set('category', c.slug)}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  <span>{c.icon} {c.name}</span>
+                </span>
+                {catCounts[c.slug] > 0 && (
+                  <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                    {catCounts[c.slug]}
+                  </span>
+                )}
+              </label>
+            ))}
+          </div>
+        </FilterGroup>
 
         {/* ── Location ── */}
         <FilterGroup label="Location">
