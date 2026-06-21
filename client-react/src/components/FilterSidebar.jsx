@@ -105,10 +105,6 @@ export function DynamicDataFilter({ category, urlParam, searchParams, onChange }
   if (!counts) return <div className="animate-pulse h-10 w-full bg-secondary/50 rounded-xl" />;
   
   const options = Object.keys(counts).filter(k => counts[k] > 0).sort();
-  if (options.length === 0) {
-    // If we have no data, we can't show a dropdown because we don't have static options.
-    return null;
-  }
 
   const labelMap = {
     brand: 'Brand',
@@ -122,6 +118,7 @@ export function DynamicDataFilter({ category, urlParam, searchParams, onChange }
   return (
     <select
       className={inputClass}
+      disabled={options.length === 0}
       value={searchParams.get(urlParam) || ''}
       onChange={e => onChange(e.target.value)}
     >
