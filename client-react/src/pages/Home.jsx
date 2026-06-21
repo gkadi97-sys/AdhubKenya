@@ -3,6 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, MapPin, BadgeCheck, ShieldCheck, Sparkles, Flame, TrendingUp, Clock, ChevronRight, ArrowUpRight, PlusCircle, Car, Smartphone, Home, Shirt, Laptop, Sofa, Briefcase, Wrench, SlidersHorizontal } from 'lucide-react';
 import { getListings } from '@/lib/api';
 import { FILTER_CONFIG } from '@/lib/filterConfig';
+import { 
+  hasCascadeFilters, 
+  getLevel1Options, 
+  getLevel2Options, 
+  getCascadeLabels, 
+  CASCADE_URL_PARAMS 
+} from '@/lib/filterEngine';
 import ListingCard from '@/components/ListingCard';
 import { useSEO } from '@/lib/useSEO';
 
@@ -166,14 +173,64 @@ export default function HomePage() {
             </div>
 
             {/* Dynamic Inline Filters */}
-            {category !== 'All categories' && categoryMap[category] && FILTER_CONFIG[categoryMap[category]] && (
+            {category !== 'All categories' && categoryMap[category] && (
               <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-secondary/30 px-3 py-2.5">
                 <SlidersHorizontal className="h-4 w-4 text-muted-foreground mr-1" />
                 <span className="text-xs font-semibold text-muted-foreground mr-2 hidden sm:inline">Advanced:</span>
                 
-                {FILTER_CONFIG[categoryMap[category]].filters
+                {/* ── Cascade Filters (Brand/Model) ── */}
+                {(() => {
+                  const catSlug = categoryMap[category];
+                  if (!hasCascadeFilters(catSlug)) return null;
+                  
+                  const params = CASCADE_URL_PARAMS[catSlug];
+                  const labels = getCascadeLabels(catSlug);
+                  const val1 = dynamicFilters[params.level1] || '';
+                  const val2 = dynamicFilters[params.level2] || '';
+                  
+                  const opts1 = getLevel1Options(catSlug);
+                  const opts2 = getLevel2Options(catSlug, val1);
+                  
+                  return (
+                    <>
+                      {opts1.length > 0 && (
+                        <select
+                          value={val1}
+                          onChange={(e) => {
+                            const newFilters = { ...dynamicFilters, [params.level1]: e.target.value };
+                            delete newFilters[params.level2];
+                            if (params.level3) delete newFilters[params.level3];
+                            setDynamicFilters(newFilters);
+                          }}
+                          className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                        >
+                          <option value="">{labels.level1Label}</option>
+                          {opts1.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      )}
+                      
+                      {val1 && opts2.length > 0 && (
+                        <select
+                          value={val2}
+                          onChange={(e) => {
+                            const newFilters = { ...dynamicFilters, [params.level2]: e.target.value };
+                            if (params.level3) delete newFilters[params.level3];
+                            setDynamicFilters(newFilters);
+                          }}
+                          className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                        >
+                          <option value="">{labels.level2Label}</option>
+                          {opts2.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      )}
+                    </>
+                  );
+                })()}
+
+                {/* ── Flat Filters (Condition, etc) ── */}
+                {FILTER_CONFIG[categoryMap[category]]?.filters
                   .filter(f => f.type === 'select' || f.type === 'radio')
-                  .slice(0, 4) // Show only top 4 select/radio filters to prevent clutter
+                  .slice(0, 3) // Show top 3 standard filters
                   .map(f => (
                     <select
                       key={f.id}
