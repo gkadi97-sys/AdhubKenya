@@ -78,27 +78,80 @@ export const getListings = async (params = {}) => {
   // 2. Standard Query (No Keyword)
   let query = supabase.from('listings').select('*, seller:profiles!seller_id(name, location, created_at)', { count: 'exact' });
 
+  // Filter to active listings only
+  query = query.eq('status', 'active');
+
   // ── Top-level column filters (backward-compatible) ────────────────────────
   if (params.category)  query = query.eq('category', params.category);
   if (params.location)  query = query.eq('location', params.location);
   if (params.minPrice)  query = query.gte('price', params.minPrice);
   if (params.maxPrice)  query = query.lte('price', params.maxPrice);
 
-  // ── Structured attribute filters via specs JSONB column ───────────────────
+  // ── Make: checks both top-level column AND specs JSONB ───────────────────
   if (params.make) {
-    query = query.or(`make.ilike.%${params.make}%,specs->make.ilike.%${params.make}%`);
+    query = query.or(`make.ilike.%${params.make}%,specs->>make.ilike.%${params.make}%`);
   }
 
+  // ── Backward-compat ALIAS filters (URL param → actual DB field name) ──────
+  // These fix field-name mismatches between filterConfig URL params and what
+  // forms actually save into the specs JSONB column.
+
+  // fuel: VehicleForm saves specs.fuelType, TruckForm saves specs.fuel — query both
+  if (params.fuel) {
+    query = query.or(`specs->>fuel.ilike.%${params.fuel}%,specs->>fuelType.ilike.%${params.fuel}%`);
+  }
+  // drive: VehicleForm saves specs.driveType — query both
+  if (params.drive) {
+    query = query.or(`specs->>drive.ilike.%${params.drive}%,specs->>driveType.ilike.%${params.drive}%`);
+  }
+  // job_type: JobForm saves specs.employmentType — query both
+  if (params.job_type) {
+    query = query.or(`specs->>job_type.ilike.%${params.job_type}%,specs->>employmentType.ilike.%${params.job_type}%`);
+  }
+  // tv_size: TvForm saves specs.screenSize (not specs.tv_size)
+  if (params.tv_size) {
+    query = query.ilike('specs->>screenSize', `%${params.tv_size}%`);
+  }
+  // tv_tech: TvForm saves specs.displayTech (not specs.tv_tech)
+  if (params.tv_tech) {
+    query = query.ilike('specs->>displayTech', `%${params.tv_tech}%`);
+  }
+  // seller_type: stored in specs.sellerType
+  if (params.seller_type) {
+    query = query.ilike('specs->>sellerType', `%${params.seller_type}%`);
+  }
+  // amenities: stored as a JSONB array in specs.amenities — use contains text search
+  if (params.amenities) {
+    query = query.ilike('specs->>amenities', `%${params.amenities}%`);
+  }
+
+  // ── Standard JSONB specs filters (direct field name match) ────────────────
   const SPECS_PARAMS = [
+    // Generic / cascades
     'model', 'subcategory', 'system', 'part',
-    'vehicle_type', 'bodyStyle', 'fuel', 'transmission', 'drive',
-    'color', 'numSeats', 'registered', 'exchange',
-    'os', 'ram', 'storage',
-    'property_type', 'purpose', 'bedrooms', 'bathrooms', 'furnished', 'parking',
-    'job_type', 'industry', 'animal_type', 'gender',
-    'condition',
-    'equipmentType', 'brand', 'series', 'cpuBrand', 'cpuFamily', 'gpu', 
-    'screenSize', 'channels', 'connectivity', 'resolution', 'tv_size', 'tv_tech'
+    // Vehicles
+    'vehicle_type', 'bodyStyle', 'bodyType', 'transmission',
+    'color', 'numSeats', 'numDoors', 'registered', 'exchange',
+    'variant', 'usageType', 'overallCondition', 'prevOwners',
+    // Phones & Laptops
+    'os', 'ram', 'ramType', 'storage', 'storageSize', 'storageType',
+    'chipset', 'network',
+    // Laptop specific
+    'cpuBrand', 'cpuFamily', 'cpuGen', 'cpuSpeed', 'gpu',
+    // Electronics
+    'equipmentType', 'brand', 'series',
+    'screenSize', 'displayTech', 'resolution', 'smartPlatform',
+    'channels', 'connectivity',
+    // Trucks
+    'engineCapacity',
+    // Property
+    'property_type', 'purpose', 'listingCategory', 'bedrooms', 'bathrooms',
+    'furnished', 'parking', 'floors',
+    // Jobs (direct field names)
+    'employmentType', 'workArrangement', 'experienceLevel', 'educationLevel',
+    'industry',
+    // Animals / Fashion / Universal
+    'animal_type', 'gender', 'condition',
   ];
 
   SPECS_PARAMS.forEach(key => {
@@ -107,11 +160,14 @@ export const getListings = async (params = {}) => {
     }
   });
 
-  // ── Numeric range filters from specs ──────────────────────────────────────
-  if (params.engineCC_max) query = query.lte(`specs->>engineCC`, params.engineCC_max);
-  if (params.mileage_max) query = query.lte(`specs->>mileage`, params.mileage_max);
-  if (params.year_min) query = query.gte('year', parseInt(params.year_min));
-  if (params.year_max) query = query.lte('year', parseInt(params.year_max));
+  // ── Numeric range filters ─────────────────────────────────────────────────
+  if (params.engineCC_max)  query = query.lte(`specs->>engineCC`,  params.engineCC_max);
+  if (params.mileage_max)   query = query.lte(`specs->>mileage`,   params.mileage_max);
+  if (params.year_min)      query = query.gte('year', parseInt(params.year_min));
+  if (params.year_max)      query = query.lte('year', parseInt(params.year_max));
+  // Salary range for jobs
+  if (params.salaryMin_min) query = query.gte(`specs->>salaryMin`, params.salaryMin_min);
+  if (params.salaryMax_max) query = query.lte(`specs->>salaryMax`, params.salaryMax_max);
 
   // ── Date-posted filter ────────────────────────────────────────────────────
   if (params.posted) {
@@ -126,16 +182,16 @@ export const getListings = async (params = {}) => {
     }
   }
 
-  // ── County / location ──────────────────────────────────────────────────────
+  // ── County / location ─────────────────────────────────────────────────────
   if (params.county) query = query.ilike('location', `%${params.county}%`);
 
-  // ── Sorting ────────────────────────────────────────────────────────────────
+  // ── Sorting ───────────────────────────────────────────────────────────────
   const sort = params.sort || 'createdAt';
   if (sort === 'createdAt') query = query.order('created_at', { ascending: false });
   if (sort === 'price_asc')  query = query.order('price', { ascending: true });
   if (sort === 'price_desc') query = query.order('price', { ascending: false });
 
-  // ── Pagination ─────────────────────────────────────────────────────────────
+  // ── Pagination ────────────────────────────────────────────────────────────
   const to = offset + limit - 1;
   query = query.range(offset, to);
 

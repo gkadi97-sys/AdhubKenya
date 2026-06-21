@@ -1,20 +1,25 @@
 // Central filter configuration for all categories.
 // Each entry maps a category slug → array of filter definitions.
-// type: 'select' | 'multicheck' | 'radio' | 'range' | 'text'
+// type: 'select' | 'multicheck' | 'radio' | 'range' | 'text' | 'dynamic-select'
 // urlParam: the key written to/read from URL search params
 //
 // SINGLE SOURCE OF TRUTH:
-// The `cascades` array in each category is derived from CATEGORY_ATTRIBUTES
-// in categoryData.js via filterEngine.js. Adding new brands/models there
-// automatically makes them available in filters — no duplication needed.
+// Cascade filters (brand/model hierarchy) are derived from CATEGORY_ATTRIBUTES in
+// categoryData.js via filterEngine.js. Flat filters below are static enum options
+// that don't change based on existing ad inventory.
+//
+// FIELD ALIGNMENT NOTES:
+// - `fuel` urlParam: api.js queries BOTH specs.fuel AND specs.fuelType for backward compat
+// - `drive` urlParam: api.js queries BOTH specs.drive AND specs.driveType for backward compat
+// - `job_type` urlParam: api.js queries BOTH specs.job_type AND specs.employmentType
+// - `tv_size` urlParam: api.js maps to specs.screenSize (TvForm saves screenSize)
+// - `tv_tech` urlParam: api.js maps to specs.displayTech (TvForm saves displayTech)
 
 export const FILTER_CONFIG = {
 
   vehicles: {
     label: 'Vehicles',
-    // NOTE: Make/Model cascades are handled by FilterSidebar's CascadeFilterGroup
-    // which reads from CATEGORY_ATTRIBUTES via filterEngine.js.
-    // The filters below are flat (non-cascaded) vehicle-specific attributes.
+    // Make/Model cascades handled by CascadeFilterGroup via filterEngine.js
     filters: [
       {
         id: 'vehicle_type', label: 'Vehicle Type', type: 'select', urlParam: 'vehicle_type',
@@ -22,7 +27,7 @@ export const FILTER_CONFIG = {
       },
       {
         id: 'bodyStyle', label: 'Body Style', type: 'select', urlParam: 'bodyStyle',
-        options: ['Sedan', 'Hatchback', 'Station Wagon', 'SUV / Crossover', 'Coupe', 'Convertible', 'Pickup / Double Cabin', 'Van / Minivan']
+        options: ['Sedan','Hatchback','Station Wagon','SUV / Crossover','Coupe','Convertible','Pickup / Double Cabin','Van / Minivan']
       },
       {
         id: 'year_min', label: 'Year From', type: 'select', urlParam: 'year_min',
@@ -38,27 +43,39 @@ export const FILTER_CONFIG = {
       },
       {
         id: 'transmission', label: 'Transmission', type: 'radio', urlParam: 'transmission',
-        options: ['Automatic','Manual', 'CVT', 'DCT', 'Semi-Auto']
+        options: ['Automatic','Manual','CVT','DCT','Semi-Auto']
       },
       {
         id: 'drive', label: 'Drive', type: 'radio', urlParam: 'drive',
-        options: ['FWD','RWD','AWD', '4WD']
+        options: ['FWD','RWD','AWD','4WD']
       },
       {
         id: 'engineCC_max', label: 'Max Engine CC', type: 'select', urlParam: 'engineCC_max',
-        options: ['1000', '1500', '1800', '2000', '2500', '3000', '4000', '5000+']
+        options: ['1000','1500','1800','2000','2500','3000','4000','5000+']
       },
       {
         id: 'mileage_max', label: 'Max Mileage (km)', type: 'select', urlParam: 'mileage_max',
-        options: ['10000', '30000', '50000', '80000', '100000', '150000', '200000']
+        options: ['10000','30000','50000','80000','100000','150000','200000']
       },
       {
         id: 'color', label: 'Color', type: 'select', urlParam: 'color',
-        options: ['White', 'Black', 'Silver', 'Grey', 'Blue', 'Red', 'Brown', 'Green', 'Pearl White']
+        options: ['White','Black','Silver','Grey','Blue','Red','Brown','Green','Pearl White']
       },
       {
         id: 'numSeats', label: 'Number of Seats', type: 'radio', urlParam: 'numSeats',
-        options: ['2', '4', '5', '6', '7', '8+']
+        options: ['2','4','5','6','7','8+']
+      },
+      {
+        id: 'numDoors', label: 'Number of Doors', type: 'radio', urlParam: 'numDoors',
+        options: ['2','3','4','5']
+      },
+      {
+        id: 'usageType', label: 'Usage Type', type: 'radio', urlParam: 'usageType',
+        options: ['Local','Import / Ex-Japan','Import / Ex-UK','Ex-Lease','Diplomatic']
+      },
+      {
+        id: 'overallCondition', label: 'Overall Condition', type: 'radio', urlParam: 'overallCondition',
+        options: ['Excellent','Good','Fair','Needs Work']
       },
       {
         id: 'registered', label: 'Registered in Kenya?', type: 'radio', urlParam: 'registered',
@@ -82,7 +99,7 @@ export const FILTER_CONFIG = {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',
         options: ['New','Ex-Japan','Locally Used','OEM (Original)','Aftermarket','Refurbished']
       }
-      // System → Part cascade is handled by CascadeFilterGroup via filterEngine
+      // System → Part cascade handled by CascadeFilterGroup via filterEngine
     ]
   },
 
@@ -92,6 +109,10 @@ export const FILTER_CONFIG = {
       {
         id: 'purpose', label: 'Purpose', type: 'radio', urlParam: 'purpose',
         options: ['Rent','Sale']
+      },
+      {
+        id: 'listingCategory', label: 'Listing Type', type: 'radio', urlParam: 'listingCategory',
+        options: ['For Sale','For Rent','For Lease']
       },
       {
         id: 'bedrooms', label: 'Bedrooms', type: 'radio', urlParam: 'bedrooms',
@@ -106,31 +127,41 @@ export const FILTER_CONFIG = {
         options: ['Furnished','Semi-Furnished','Unfurnished']
       },
       {
+        id: 'floors', label: 'Floor', type: 'radio', urlParam: 'floors',
+        options: ['Ground','1','2','3','4','5+']
+      },
+      {
         id: 'parking', label: 'Parking', type: 'radio', urlParam: 'parking',
         options: ['Yes','No']
       },
       {
         id: 'amenities', label: 'Amenities', type: 'multicheck', urlParam: 'amenities',
-        options: ['Swimming Pool', 'Gym', 'Backup Generator', 'Borehole', 'Elevator', 'Balcony', 'Garden', 'Security Guard', 'CCTV', 'Internet / Wi-Fi', 'Pet Friendly']
+        options: ['Swimming Pool','Gym','Backup Generator','Borehole','Elevator','Balcony','Garden','Security Guard','CCTV','Internet / Wi-Fi','Pet Friendly']
       }
-      // Property subcategory + type cascade handled by CascadeFilterGroup
     ]
   },
 
   'phones-tablets': {
     label: 'Phones & Tablets',
     filters: [
+      // Brand/Series from dynamic DB aggregates
+      { id: 'brand',  label: 'Brand',  type: 'dynamic-select', urlParam: 'brand' },
+      { id: 'series', label: 'Series', type: 'dynamic-select', urlParam: 'series' },
       {
         id: 'storage', label: 'Storage', type: 'multicheck', urlParam: 'storage',
         options: ['16GB','32GB','64GB','128GB','256GB','512GB','1TB']
       },
       {
         id: 'ram', label: 'RAM', type: 'multicheck', urlParam: 'ram',
-        options: ['2GB', '3GB', '4GB', '6GB', '8GB', '12GB', '16GB+']
+        options: ['2GB','3GB','4GB','6GB','8GB','12GB','16GB+']
+      },
+      {
+        id: 'network', label: 'Network', type: 'multicheck', urlParam: 'network',
+        options: ['3G','4G LTE','5G']
       },
       {
         id: 'os', label: 'Operating System', type: 'radio', urlParam: 'os',
-        options: ['Android', 'iOS', 'Windows', 'Other']
+        options: ['Android','iOS','Windows','Other']
       },
       {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',
@@ -142,12 +173,42 @@ export const FILTER_CONFIG = {
   electronics: {
     label: 'Electronics',
     filters: [
+      // All electronics — detect sub-type to narrow filters
       { id: 'equipmentType', label: 'Equipment Type', type: 'dynamic-select', urlParam: 'equipmentType' },
-      { id: 'brand', label: 'Brand', type: 'dynamic-select', urlParam: 'brand' },
-      { id: 'tv_size', label: 'TV Size', type: 'dynamic-select', urlParam: 'tv_size' },
-      { id: 'tv_tech', label: 'Screen Tech', type: 'dynamic-select', urlParam: 'tv_tech' },
+      { id: 'brand',  label: 'Brand',  type: 'dynamic-select', urlParam: 'brand' },
+      // TV-specific (TvForm saves as screenSize / displayTech)
+      { id: 'tv_size', label: 'TV Screen Size', type: 'dynamic-select', urlParam: 'tv_size' },
+      { id: 'tv_tech', label: 'Display Technology', type: 'dynamic-select', urlParam: 'tv_tech' },
+      {
+        id: 'resolution', label: 'Resolution', type: 'multicheck', urlParam: 'resolution',
+        options: ['HD','Full HD','4K UHD','8K']
+      },
+      {
+        id: 'smartPlatform', label: 'Smart Platform', type: 'multicheck', urlParam: 'smartPlatform',
+        options: ['Android TV','Google TV','WebOS','Tizen','VIDAA','Roku','Non Smart']
+      },
+      // Audio-specific (AudioForm saves as channels / connectivity)
+      {
+        id: 'channels', label: 'Channels', type: 'multicheck', urlParam: 'channels',
+        options: ['2.0','2.1','3.1','5.0','5.1','7.1','9.1','11.1']
+      },
+      {
+        id: 'connectivity', label: 'Connectivity', type: 'multicheck', urlParam: 'connectivity',
+        options: ['Bluetooth','Wi-Fi','HDMI','HDMI ARC','HDMI eARC','USB','Optical','AUX']
+      },
+      // Laptop-specific
+      { id: 'cpuBrand', label: 'Processor Brand', type: 'dynamic-select', urlParam: 'cpuBrand' },
+      {
+        id: 'ram', label: 'RAM', type: 'multicheck', urlParam: 'ram',
+        options: ['4GB','8GB','16GB','32GB','64GB']
+      },
+      {
+        id: 'os', label: 'Operating System', type: 'multicheck', urlParam: 'os',
+        options: ['Windows','macOS','Linux','Chrome OS']
+      },
+      // Series/Model (all sub-categories)
       { id: 'series', label: 'Series', type: 'dynamic-select', urlParam: 'series' },
-      { id: 'model', label: 'Model', type: 'dynamic-select', urlParam: 'model' },
+      { id: 'model',  label: 'Model',  type: 'dynamic-select', urlParam: 'model' },
       {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',
         options: ['New','Used - Like New','Used - Good','Used - Fair']
@@ -183,9 +244,22 @@ export const FILTER_CONFIG = {
   jobs: {
     label: 'Jobs',
     filters: [
+      // job_type urlParam → api.js queries both specs.job_type AND specs.employmentType
       {
-        id: 'job_type', label: 'Job Type', type: 'multicheck', urlParam: 'job_type',
+        id: 'job_type', label: 'Employment Type', type: 'multicheck', urlParam: 'job_type',
         options: ['Full Time','Part Time','Contract','Internship','Freelance','Remote']
+      },
+      {
+        id: 'workArrangement', label: 'Work Arrangement', type: 'radio', urlParam: 'workArrangement',
+        options: ['On-site','Remote','Hybrid']
+      },
+      {
+        id: 'experienceLevel', label: 'Experience Level', type: 'radio', urlParam: 'experienceLevel',
+        options: ['Entry Level','1-3 Years','3-5 Years','5-10 Years','10+ Years']
+      },
+      {
+        id: 'educationLevel', label: 'Education Level', type: 'radio', urlParam: 'educationLevel',
+        options: ['KCSE / O-Level','Certificate','Diploma','Bachelor\'s Degree','Master\'s Degree','PhD']
       },
       {
         id: 'industry', label: 'Industry', type: 'select', urlParam: 'industry',

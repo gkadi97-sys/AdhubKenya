@@ -88,17 +88,36 @@ function BrowseContent() {
   // ── Active filter chips — human-readable labels ────────────────────────────
   // Maps URL param keys → display names shown on the chip badges
   const PARAM_LABELS = {
+    // Location & price
     county: 'County', minPrice: 'Min Price', maxPrice: 'Max Price',
+    // Cascades
     make: 'Brand', model: 'Model', subcategory: 'Type', system: 'System', part: 'Part',
-    vehicle_type: 'Vehicle Type', bodyStyle: 'Body Style', fuel: 'Fuel',
-    transmission: 'Gearbox', drive: 'Drive', engineCC_max: 'Max CC',
-    mileage_max: 'Max KM', color: 'Color', numSeats: 'Seats',
-    registered: 'Registered', exchange: 'Exchange', year_min: 'Year From', year_max: 'Year To',
-    os: 'OS', ram: 'RAM', storage: 'Storage',
-    property_type: 'Property Type', purpose: 'Purpose', bedrooms: 'Beds',
-    bathrooms: 'Baths', furnished: 'Furnished', parking: 'Parking', amenities: 'Amenities',
-    job_type: 'Job Type', industry: 'Industry', animal_type: 'Animal Type',
-    gender: 'For', condition: 'Condition', posted: 'Posted', seller_type: 'Seller',
+    // Vehicles
+    vehicle_type: 'Vehicle Type', bodyStyle: 'Body Style', bodyType: 'Body Type',
+    fuel: 'Fuel', fuelType: 'Fuel', transmission: 'Gearbox', drive: 'Drive',
+    engineCC_max: 'Max CC', mileage_max: 'Max KM',
+    color: 'Color', numSeats: 'Seats', numDoors: 'Doors',
+    registered: 'Registered', exchange: 'Exchange',
+    year_min: 'Year From', year_max: 'Year To',
+    variant: 'Variant', usageType: 'Usage', overallCondition: 'Condition',
+    // Phones & Laptops
+    os: 'OS', ram: 'RAM', storage: 'Storage', network: 'Network', chipset: 'Chipset',
+    storageSize: 'Storage', cpuBrand: 'Processor', gpu: 'GPU',
+    // Electronics
+    equipmentType: 'Equipment Type', brand: 'Brand', series: 'Series',
+    tv_size: 'TV Size', tv_tech: 'Display Tech', screenSize: 'Screen Size',
+    displayTech: 'Display Tech', resolution: 'Resolution', smartPlatform: 'Platform',
+    channels: 'Channels', connectivity: 'Connectivity',
+    // Property
+    property_type: 'Property Type', purpose: 'Purpose', listingCategory: 'Listing Type',
+    bedrooms: 'Beds', bathrooms: 'Baths', furnished: 'Furnished',
+    parking: 'Parking', amenities: 'Amenities', floors: 'Floor',
+    // Jobs
+    job_type: 'Job Type', employmentType: 'Employment', workArrangement: 'Arrangement',
+    experienceLevel: 'Experience', educationLevel: 'Education', industry: 'Industry',
+    // Animals / Fashion / Universal
+    animal_type: 'Animal', gender: 'For',
+    condition: 'Condition', posted: 'Posted', seller_type: 'Seller',
   };
   const activeChips = [];
   for (const [k, v] of searchParams.entries()) {

@@ -176,6 +176,14 @@ export default function TvForm({ values = {}, onChange }) {
         </select>
       </Field>
 
+      <Field label="Condition" required>
+        <select className={inputClass} value={s.condition || ''}
+          onChange={e => setSpec('condition', e.target.value)}>
+          <option value="">Select Condition…</option>
+          {TV_SPECS.conditions.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </Field>
+
     </div>
   );
 }

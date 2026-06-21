@@ -15,10 +15,22 @@ export default function SparePartForm({ values = {}, onChange }) {
   const [position, setPosition] = useState(values.position || '');
   const [oemNumber, setOemNumber] = useState(values.oemNumber || '');
 
-  const emit = (overrides) => {
+  // Emit data with make/model at top level (for search), and everything
+  // else properly nested inside specs JSONB for structured filtering.
+  const emit = (overrides = {}) => {
+    const merged = { category, part, make, model, generation, engine, year, position, oemNumber, ...overrides };
     onChange({
-      category, part, make, model, generation, engine, year, position, oemNumber,
-      ...overrides
+      make: merged.make,
+      model: merged.model,
+      specs: {
+        part: merged.part,
+        partCategory: merged.category,
+        generation: merged.generation,
+        engine: merged.engine,
+        compatibleYear: merged.year,
+        position: merged.position,
+        oemNumber: merged.oemNumber,
+      }
     });
   };
 

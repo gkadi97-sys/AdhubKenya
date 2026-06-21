@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { imageUrl, formatPrice, timeAgo } from '@/lib/api';
-import { Heart, MapPin, BadgeCheck, Phone } from 'lucide-react';
+import { Heart, MapPin, BadgeCheck } from 'lucide-react';
 
 function getSaved() {
   try { return JSON.parse(localStorage.getItem('adhub_saved') || '[]'); }
@@ -12,6 +12,87 @@ function toggleSaved(id) {
   const next = saved.includes(id) ? saved.filter(s => s !== id) : [...saved, id];
   localStorage.setItem('adhub_saved', JSON.stringify(next));
   return next.includes(id);
+}
+
+/**
+ * Returns 2-3 key spec tags for a listing based on its category.
+ * These appear as a quick-scan strip on the listing card.
+ */
+function getSpecTags(listing) {
+  const s = listing.specs || {};
+  const cat = listing.category;
+
+  if (cat === 'vehicles') {
+    return [
+      listing.year && String(listing.year),
+      s.transmission,
+      s.fuelType || s.fuel,
+    ].filter(Boolean);
+  }
+
+  if (cat === 'phones-tablets') {
+    return [
+      s.brand,
+      s.storage && `${s.storage}`,
+      s.ram && `${s.ram} RAM`,
+    ].filter(Boolean);
+  }
+
+  if (cat === 'electronics') {
+    const subType = listing.make; // ItemAttributesSelect stores category in make
+    if (subType === 'Televisions') {
+      return [
+        s.brand,
+        s.screenSize && `${s.screenSize}`,
+        s.displayTech,
+      ].filter(Boolean);
+    }
+    if (subType === 'Audio & Music') {
+      return [
+        s.equipmentType,
+        s.brand,
+        s.channels && `${s.channels} Ch`,
+      ].filter(Boolean);
+    }
+    if (subType === 'Laptops & Computers') {
+      return [
+        s.brand,
+        s.ram && `${s.ram} RAM`,
+        s.storageSize,
+      ].filter(Boolean);
+    }
+    return [s.equipmentType, s.brand].filter(Boolean);
+  }
+
+  if (cat === 'property') {
+    return [
+      s.bedrooms && `${s.bedrooms} Bed`,
+      s.bathrooms && `${s.bathrooms} Bath`,
+      s.listingCategory || s.purpose,
+    ].filter(Boolean);
+  }
+
+  if (cat === 'jobs') {
+    return [
+      s.employmentType,
+      s.workArrangement,
+      s.experienceLevel,
+    ].filter(Boolean);
+  }
+
+  if (cat === 'auto-spares') {
+    return [
+      listing.make,
+      s.part || listing.model,
+      s.condition,
+    ].filter(Boolean);
+  }
+
+  if (cat === 'home-furniture') {
+    return [s.brand, s.condition].filter(Boolean);
+  }
+
+  return [];
 }
 
 export default function ListingCard({ listing, featured }) {
@@ -31,11 +112,13 @@ export default function ListingCard({ listing, featured }) {
     listing.seller.created_at &&
     (new Date() - new Date(listing.seller.created_at)) / (1000 * 60 * 60 * 24) > 30;
 
-  // Determine mock badge
+  // Determine badge
   let badgeLabel = 'New';
   if (featured) badgeLabel = 'Featured';
   else if (listing.id.endsWith('1') || listing.id.endsWith('5')) badgeLabel = 'Hot';
   else if (isVerified) badgeLabel = 'Verified';
+
+  const specTags = getSpecTags(listing);
 
   return (
     <Link to={`/listing/${listing.id}`} className="block">
@@ -68,8 +151,19 @@ export default function ListingCard({ listing, featured }) {
           <h3 className="line-clamp-1 font-display text-base font-semibold text-foreground">
             {listing.title}
           </h3>
+
+          {/* ── Smart spec strip ── */}
+          {specTags.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1">
+              {specTags.map((tag, i) => (
+                <span key={i} className="inline-flex items-center gap-0.5 rounded-md bg-secondary/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
           
-          <div className="mt-1 font-display text-lg font-bold text-primary">
+          <div className="mt-2 font-display text-lg font-bold text-primary">
             {formatPrice(listing.price)}
           </div>
           
@@ -81,23 +175,18 @@ export default function ListingCard({ listing, featured }) {
             <span className="shrink-0">{timeAgo(listing.created_at)}</span>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-border flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">
-                  {listing.seller?.name?.charAt(0) || 'U'}
-                </div>
-                <span className="text-xs text-muted-foreground font-medium">⭐ 4.8</span>
+          <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">
+                {listing.seller?.name?.charAt(0) || 'U'}
               </div>
-              {isVerified && (
-                <div className="flex items-center gap-1 text-primary text-[10px] font-bold uppercase tracking-wider">
-                  <BadgeCheck className="h-3 w-3" /> Verified
-                </div>
-              )}
+              <span className="text-xs text-muted-foreground font-medium">⭐ 4.8</span>
             </div>
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-              <Phone className="h-3 w-3" /> Phone Verified
-            </div>
+            {isVerified && (
+              <div className="flex items-center gap-1 text-primary text-[10px] font-bold uppercase tracking-wider">
+                <BadgeCheck className="h-3 w-3" /> Verified
+              </div>
+            )}
           </div>
         </div>
       </article>
