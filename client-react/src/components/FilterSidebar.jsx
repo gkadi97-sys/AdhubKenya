@@ -13,7 +13,7 @@ import {
   CASCADE_URL_PARAMS,
 } from '@/lib/filterEngine';
 import { COUNTIES } from '@/lib/countyData';
-import { ChevronDown, GitBranch } from 'lucide-react';
+import { ChevronDown, GitBranch, ChevronLeft } from 'lucide-react';
 
 // ─── Primitives ──────────────────────────────────────────────────────────────
 
@@ -312,12 +312,78 @@ export default function FilterSidebar({ onClose }) {
     setSearchParams(next);
   };
 
+  const handleCategorySelect = (slug) => {
+    const next = new URLSearchParams();
+    if (slug) next.set('category', slug);
+    setSearchParams(next);
+  };
+
   const catConfig = FILTER_CONFIG[category];
   const catFilters = catConfig?.filters || [];
+
+  const cascadeConfig = CASCADE_URL_PARAMS[category];
+  const primarySubParam = cascadeConfig ? cascadeConfig.level1 : (catFilters.length > 0 ? catFilters[0].urlParam : null);
+  const primarySubValue = searchParams.get(primarySubParam);
+  const isFocusMode = !!category;
+  const showAdvanced = isFocusMode && !!primarySubValue;
+
+  const subcategoryFlatFilter = !cascadeConfig && catFilters.length > 0 ? catFilters[0] : null;
+  const advancedFlatFilters = catFilters.filter(f => f.id !== 'condition' && f.urlParam !== primarySubParam);
 
   const ignoredKeys = new Set(['category', 'keyword', 'location', 'sort', 'page']);
   const activeCount = [...searchParams.keys()].filter(k => !ignoredKeys.has(k)).length;
   const countyList = COUNTIES || [];
+
+  const renderFlatFilter = (f) => {
+    if (f.type === 'text') {
+      return (
+        <input
+          type="text"
+          className={inputClass}
+          placeholder={f.placeholder || `Any ${f.label}`}
+          value={get(f.urlParam)}
+          onChange={e => set(f.urlParam, e.target.value)}
+        />
+      );
+    } else if (f.type === 'dynamic-select') {
+      return (
+        <DynamicDataFilter
+          category={category}
+          urlParam={f.urlParam}
+          searchParams={searchParams}
+          onChange={v => set(f.urlParam, v)}
+        />
+      );
+    } else if (f.type === 'select') {
+      return (
+        <select
+          className={inputClass}
+          value={get(f.urlParam)}
+          onChange={e => set(f.urlParam, e.target.value)}
+        >
+          <option value="">Any {f.label}</option>
+          {f.options.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      );
+    } else if (f.type === 'radio') {
+      return (
+        <RadioGroup
+          options={f.options}
+          value={get(f.urlParam)}
+          onChange={v => set(f.urlParam, v)}
+        />
+      );
+    } else if (f.type === 'multicheck') {
+      return (
+        <MultiCheck
+          options={f.options}
+          value={get(f.urlParam)}
+          onChange={v => set(f.urlParam, v)}
+        />
+      );
+    }
+    return null;
+  };
 
   return (
     <aside className="flex flex-col w-full h-full bg-background md:bg-transparent">
@@ -350,190 +416,175 @@ export default function FilterSidebar({ onClose }) {
 
       <div className="flex flex-col pb-20 md:pb-0 overflow-y-auto">
 
-        {/* ── Category Selector ── */}
-        <FilterGroup label="Category">
-          <div className="flex flex-col gap-1">
-            <label
-              className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-secondary/50 ${!category ? 'bg-primary/10 font-bold text-primary' : 'text-muted-foreground text-sm'}`}
-            >
-              <span className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="sidebar-category"
-                  checked={!category}
-                  onChange={() => set('category', '')}
-                  className="h-4 w-4 accent-primary"
-                />
-                All Categories
-              </span>
-            </label>
+        {/* ── Category Selection Mode ── */}
+        {!isFocusMode && (
+          <div className="flex flex-col gap-1 mt-2">
+            <h3 className="font-bold text-foreground mb-3 px-2 text-lg">All Categories</h3>
             {CATEGORY_ICONS.map(c => (
-              <label
+              <button
                 key={c.slug}
-                className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-2 transition-colors hover:bg-secondary/50 ${category === c.slug ? 'bg-primary/10 font-bold text-primary' : 'text-muted-foreground text-sm'}`}
+                onClick={() => handleCategorySelect(c.slug)}
+                className="flex items-center justify-between gap-2 rounded-xl px-4 py-3.5 transition-colors hover:bg-secondary/50 text-foreground group"
               >
-                <span className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="sidebar-category"
-                    checked={category === c.slug}
-                    onChange={() => set('category', c.slug)}
-                    className="h-4 w-4 accent-primary"
-                  />
-                  <span>{c.icon} {c.name}</span>
+                <span className="flex items-center gap-4">
+                  <span className="text-2xl">{c.icon}</span>
+                  <span className="font-medium text-[15px]">{c.name}</span>
                 </span>
                 {catCounts[c.slug] > 0 && (
-                  <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                  <span className="rounded-full bg-secondary/80 group-hover:bg-primary/10 px-3 py-1 text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors">
                     {catCounts[c.slug]}
                   </span>
                 )}
-              </label>
+              </button>
             ))}
           </div>
-        </FilterGroup>
-
-        {/* ── Location ── */}
-        <FilterGroup label="Location">
-          <select
-            className={inputClass}
-            value={get('county')}
-            onChange={e => set('county', e.target.value)}
-          >
-            <option value="">All Kenya</option>
-            {countyList.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </FilterGroup>
-
-        {/* ── Price Range ── */}
-        <FilterGroup label="Price (KES)">
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              className={inputClass}
-              placeholder="Min"
-              min="0"
-              value={get('minPrice')}
-              onChange={e => set('minPrice', e.target.value)}
-            />
-            <span className="text-muted-foreground">-</span>
-            <input
-              type="number"
-              className={inputClass}
-              placeholder="Max"
-              min="0"
-              value={get('maxPrice')}
-              onChange={e => set('maxPrice', e.target.value)}
-            />
-          </div>
-        </FilterGroup>
-
-        {/* ── Dynamic Cascade Filters (Brand → Model → Variant) ─────────── */}
-        {/* This is the core of filter parity: derives options from categoryData.js */}
-        {category && (
-          <CascadeFilterGroup
-            categorySlug={category}
-            searchParams={searchParams}
-            setParam={setParam}
-          />
         )}
 
-        {/* ── Category-specific flat filters ── */}
-        {catFilters.map(f => {
-          if (f.id === 'condition') return null; // handled separately below
-          return (
-            <FilterGroup key={f.id} label={f.label}>
-              {f.type === 'text' ? (
-                <input
-                  type="text"
-                  className={inputClass}
-                  placeholder={f.placeholder || `Any ${f.label}`}
-                  value={get(f.urlParam)}
-                  onChange={e => set(f.urlParam, e.target.value)}
-                />
-              ) : f.type === 'dynamic-select' ? (
-                <DynamicDataFilter
-                  category={category}
-                  urlParam={f.urlParam}
-                  searchParams={searchParams}
-                  onChange={v => set(f.urlParam, v)}
-                />
-              ) : f.type === 'select' ? (
-                <select
-                  className={inputClass}
-                  value={get(f.urlParam)}
-                  onChange={e => set(f.urlParam, e.target.value)}
-                >
-                  <option value="">Any {f.label}</option>
-                  {f.options.map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              ) : f.type === 'radio' ? (
-                <RadioGroup
-                  options={f.options}
-                  value={get(f.urlParam)}
-                  onChange={v => set(f.urlParam, v)}
-                />
-              ) : f.type === 'multicheck' ? (
-                <MultiCheck
-                  options={f.options}
-                  value={get(f.urlParam)}
-                  onChange={v => set(f.urlParam, v)}
-                />
-              ) : null}
-            </FilterGroup>
-          );
-        })}
+        {/* ── Focus Mode ── */}
+        {isFocusMode && (
+          <>
+            <div className="mb-6 px-2 mt-2">
+              <button
+                onClick={() => handleCategorySelect('')}
+                className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-4"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back to Categories
+              </button>
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+                <span className="text-3xl">{CATEGORY_ICONS.find(c => c.slug === category)?.icon}</span>
+                {CATEGORY_ICONS.find(c => c.slug === category)?.name}
+              </h2>
+            </div>
 
-        {/* ── Condition ── */}
-        {(() => {
-          const condFilter =
-            catFilters.find(f => f.id === 'condition') ||
-            UNIVERSAL_FILTERS.find(f => f.id === 'condition');
-          if (!condFilter) return null;
-          return (
-            <FilterGroup label="Condition" defaultOpen={false}>
-              <RadioGroup
-                options={condFilter.options}
-                value={get('condition')}
-                onChange={v => set('condition', v)}
+            {/* Primary Subcategory (Cascade Level 1) */}
+            {hasCascadeFilters(category) && (
+              <CascadeFilterGroup
+                categorySlug={category}
+                searchParams={searchParams}
+                setParam={setParam}
               />
-            </FilterGroup>
-          );
-        })()}
-
-        {/* ── Sort ── */}
-        <FilterGroup label="Sort By" defaultOpen={false}>
-          <RadioGroup
-            options={['Newest','Price: Low → High','Price: High → Low']}
-            value={
-              get('sort') === 'price_asc' ? 'Price: Low → High'
-              : get('sort') === 'price_desc' ? 'Price: High → Low'
-              : 'Newest'
-            }
-            onChange={v => set('sort',
-              v === 'Price: Low → High' ? 'price_asc'
-              : v === 'Price: High → Low' ? 'price_desc'
-              : 'createdAt'
             )}
-          />
-        </FilterGroup>
 
-        {/* ── Date Posted ── */}
-        <FilterGroup label="Date Posted" defaultOpen={false}>
-          <RadioGroup
-            options={['Today','Last 7 days','Last 30 days']}
-            value={get('posted')}
-            onChange={v => set('posted', v)}
-          />
-        </FilterGroup>
+            {/* Primary Subcategory (Flat Filter, e.g., Jobs) */}
+            {subcategoryFlatFilter && (
+              <FilterGroup key={subcategoryFlatFilter.id} label={subcategoryFlatFilter.label}>
+                {renderFlatFilter(subcategoryFlatFilter)}
+              </FilterGroup>
+            )}
 
-        {/* ── Seller Type ── */}
-        <FilterGroup label="Seller Type" defaultOpen={false}>
-          <RadioGroup
-            options={['Individual','Dealer']}
-            value={get('seller_type')}
-            onChange={v => set('seller_type', v)}
-          />
-        </FilterGroup>
+            {!showAdvanced && (
+              <div className="mt-8 p-6 rounded-xl bg-secondary/20 border border-border/50 text-center flex flex-col items-center gap-3 animate-in fade-in duration-300">
+                <div className="w-12 h-12 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground mb-1">
+                  <GitBranch className="w-6 h-6" />
+                </div>
+                <p className="text-[15px] font-medium text-foreground">
+                  Select a subcategory
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Choose an option above to unlock advanced filters and specific details.
+                </p>
+              </div>
+            )}
+
+            {showAdvanced && (
+              <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                {/* ── Location ── */}
+                <FilterGroup label="Location">
+                  <select
+                    className={inputClass}
+                    value={get('county')}
+                    onChange={e => set('county', e.target.value)}
+                  >
+                    <option value="">All Kenya</option>
+                    {countyList.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </FilterGroup>
+
+                {/* ── Price Range ── */}
+                <FilterGroup label="Price (KES)">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      className={inputClass}
+                      placeholder="Min"
+                      min="0"
+                      value={get('minPrice')}
+                      onChange={e => set('minPrice', e.target.value)}
+                    />
+                    <span className="text-muted-foreground">-</span>
+                    <input
+                      type="number"
+                      className={inputClass}
+                      placeholder="Max"
+                      min="0"
+                      value={get('maxPrice')}
+                      onChange={e => set('maxPrice', e.target.value)}
+                    />
+                  </div>
+                </FilterGroup>
+
+                {/* ── Advanced Category-specific flat filters ── */}
+                {advancedFlatFilters.map(f => (
+                  <FilterGroup key={f.id} label={f.label}>
+                    {renderFlatFilter(f)}
+                  </FilterGroup>
+                ))}
+
+                {/* ── Condition (Universal) ── */}
+                {(() => {
+                  const condFilter = catFilters.find(f => f.id === 'condition') || UNIVERSAL_FILTERS.find(f => f.id === 'condition');
+                  if (!condFilter) return null;
+                  return (
+                    <FilterGroup label="Condition" defaultOpen={false}>
+                      <RadioGroup
+                        options={condFilter.options}
+                        value={get('condition')}
+                        onChange={v => set('condition', v)}
+                      />
+                    </FilterGroup>
+                  );
+                })()}
+
+                {/* ── Sort ── */}
+                <FilterGroup label="Sort By" defaultOpen={false}>
+                  <RadioGroup
+                    options={['Newest','Price: Low → High','Price: High → Low']}
+                    value={
+                      get('sort') === 'price_asc' ? 'Price: Low → High'
+                      : get('sort') === 'price_desc' ? 'Price: High → Low'
+                      : 'Newest'
+                    }
+                    onChange={v => set('sort',
+                      v === 'Price: Low → High' ? 'price_asc'
+                      : v === 'Price: High → Low' ? 'price_desc'
+                      : 'createdAt'
+                    )}
+                  />
+                </FilterGroup>
+
+                {/* ── Date Posted ── */}
+                <FilterGroup label="Date Posted" defaultOpen={false}>
+                  <RadioGroup
+                    options={['Today','Last 7 days','Last 30 days']}
+                    value={get('posted')}
+                    onChange={v => set('posted', v)}
+                  />
+                </FilterGroup>
+
+                {/* ── Seller Type ── */}
+                <FilterGroup label="Seller Type" defaultOpen={false}>
+                  <RadioGroup
+                    options={['Individual','Dealer']}
+                    value={get('seller_type')}
+                    onChange={v => set('seller_type', v)}
+                  />
+                </FilterGroup>
+
+              </div>
+            )}
+          </>
+        )}
 
       </div>
     </aside>
