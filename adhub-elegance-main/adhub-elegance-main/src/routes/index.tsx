@@ -1,19 +1,54 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, BadgeCheck, ShieldCheck, Sparkles, Flame, TrendingUp, Clock, ChevronRight, ArrowUpRight, PlusCircle, Car, Smartphone, Home, Shirt, Laptop, Sofa, Briefcase, Wrench } from 'lucide-react';
-import { getListings } from '@/lib/api';
-import ListingCard from '@/components/ListingCard';
-import { useSEO } from '@/lib/useSEO';
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  Search,
+  MapPin,
+  PlusCircle,
+  ShieldCheck,
+  BadgeCheck,
+  Sparkles,
+  ArrowUpRight,
+  Heart,
+  Flame,
+  TrendingUp,
+  Clock,
+  ChevronRight,
+  Car,
+  Smartphone,
+  Home,
+  Shirt,
+  Laptop,
+  Sofa,
+  Briefcase,
+  Wrench,
+} from "lucide-react";
+import heroNairobi from "@/assets/hero-nairobi.jpg";
+import catVehicles from "@/assets/cat-vehicles.jpg";
+import catPhones from "@/assets/cat-phones.jpg";
+import catProperty from "@/assets/cat-property.jpg";
+import catFashion from "@/assets/cat-fashion.jpg";
+import catElectronics from "@/assets/cat-electronics.jpg";
+import catFurniture from "@/assets/cat-furniture.jpg";
+import catServices from "@/assets/cat-services.jpg";
 
-// Import Assets
-import heroNairobi from '@/assets/hero-nairobi.jpg';
-import catVehicles from '@/assets/cat-vehicles.jpg';
-import catPhones from '@/assets/cat-phones.jpg';
-import catProperty from '@/assets/cat-property.jpg';
-import catFashion from '@/assets/cat-fashion.jpg';
-import catElectronics from '@/assets/cat-electronics.jpg';
-import catFurniture from '@/assets/cat-furniture.jpg';
-import catServices from '@/assets/cat-services.jpg';
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "AdHub Kenya — Buy, Sell & Discover Across Kenya" },
+      {
+        name: "description",
+        content:
+          "Kenya's trusted marketplace for cars, phones, property, fashion and services. 12,000+ verified listings, free posting, real sellers near you.",
+      },
+      { property: "og:title", content: "AdHub Kenya — Kenya's Trusted Marketplace" },
+      {
+        property: "og:description",
+        content:
+          "Buy, sell and discover deals near you. Verified sellers, free posting, and the freshest listings across all 47 counties.",
+      },
+    ],
+  }),
+  component: Index,
+});
 
 const categories = [
   { name: "Vehicles", count: "3,420", icon: Car, img: catVehicles, tint: "from-emerald-900/70" },
@@ -26,39 +61,45 @@ const categories = [
   { name: "Services", count: "1,210", icon: Wrench, img: catServices, tint: "from-emerald-900/60" },
 ];
 
+const trending = [
+  {
+    title: "Toyota Fielder 2015",
+    price: "KSh 1,250,000",
+    location: "Nairobi · Westlands",
+    img: catVehicles,
+    badge: "Verified",
+    posted: "2h ago",
+  },
+  {
+    title: "iPhone 15 Pro Max — 256GB",
+    price: "KSh 165,000",
+    location: "Mombasa · Nyali",
+    img: catPhones,
+    badge: "Hot",
+    posted: "37m ago",
+  },
+  {
+    title: "3BR Apartment, Kilimani",
+    price: "KSh 95,000 / mo",
+    location: "Nairobi · Kilimani",
+    img: catProperty,
+    badge: "Verified",
+    posted: "5h ago",
+  },
+  {
+    title: "MacBook Pro M3 14\"",
+    price: "KSh 245,000",
+    location: "Nairobi · CBD",
+    img: catElectronics,
+    badge: "New",
+    posted: "1d ago",
+  },
+];
+
 const counties = ["All Kenya", "Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Thika"];
 const popularSearches = ["Toyota Fielder", "Bedsitter Nairobi", "iPhone 15", "Mitsubishi FH", "PlayStation 5"];
 
-export default function HomePage() {
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('All categories');
-  const [location, setLocation] = useState('All Kenya');
-  const navigate = useNavigate();
-
-  useSEO({
-    title: 'AdHub Kenya – Buy & Sell Anything in Kenya',
-    description: "AdHub Kenya is Kenya's free classifieds marketplace. Buy and sell cars, property, electronics, phones, fashion, and jobs across all 47 counties.",
-    canonicalPath: '/'
-  });
-
-  useEffect(() => {
-    getListings({ limit: 8, sort: 'createdAt' })
-      .then(res => setListings(res.listings || []))
-      .catch(() => setListings([]))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    let query = `/browse?`;
-    if (search.trim()) query += `keyword=${encodeURIComponent(search)}&`;
-    if (category !== 'All categories') query += `category=${encodeURIComponent(category)}&`;
-    if (location !== 'All Kenya') query += `location=${encodeURIComponent(location)}`;
-    navigate(query);
-  };
-
+function Index() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Announcement strip */}
@@ -68,6 +109,51 @@ export default function HomePage() {
           <span className="opacity-90">Free posting all June — list your ad in under 60 seconds.</span>
         </div>
       </div>
+
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-4 sm:px-6">
+          <a href="/" className="flex shrink-0 items-center gap-2">
+            <div className="grid h-10 w-10 place-items-center rounded-xl gradient-emerald text-primary-foreground shadow-elevated">
+              <span className="font-display text-lg font-bold">A</span>
+            </div>
+            <div className="leading-none">
+              <div className="font-display text-lg font-bold tracking-tight">
+                Ad<span className="text-primary">Hub</span>
+              </div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Kenya
+              </div>
+            </div>
+          </a>
+
+          <div className="hidden min-w-0 md:flex">
+            <div className="flex w-full items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 shadow-sm transition focus-within:border-primary/50 focus-within:shadow-elevated">
+              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <input
+                placeholder="Search Toyota, iPhone, apartment…"
+                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              />
+              <kbd className="hidden rounded-md border border-border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground lg:inline">
+                ⌘ K
+              </kbd>
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <button className="hidden items-center gap-2 rounded-full gradient-emerald px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-elevated transition hover:opacity-95 sm:inline-flex">
+              <PlusCircle className="h-4 w-4" />
+              Post Ad — Free
+            </button>
+            <button className="hidden rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-muted sm:inline-block">
+              Login
+            </button>
+            <button className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90">
+              Register
+            </button>
+          </div>
+        </div>
+      </header>
 
       {/* Hero */}
       <section className="relative overflow-hidden">
@@ -100,13 +186,11 @@ export default function HomePage() {
           </div>
 
           {/* Search card */}
-          <form onSubmit={handleSearch} className="mx-auto mt-10 max-w-4xl rounded-3xl border border-border bg-card p-3 shadow-elevated sm:p-4">
+          <div className="mx-auto mt-10 max-w-4xl rounded-3xl border border-border bg-card p-3 shadow-elevated sm:p-4">
             <div className="flex items-center gap-3 rounded-2xl bg-background px-4 py-3 ring-1 ring-border focus-within:ring-2 focus-within:ring-primary/40">
               <Search className="h-5 w-5 text-muted-foreground" />
               <input
                 placeholder="What are you looking for today?"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
                 className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
               />
             </div>
@@ -116,7 +200,7 @@ export default function HomePage() {
                 <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   Category
                 </span>
-                <select value={category} onChange={e => setCategory(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none">
+                <select className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none">
                   <option>All categories</option>
                   {categories.map((c) => (
                     <option key={c.name}>{c.name}</option>
@@ -126,14 +210,14 @@ export default function HomePage() {
 
               <label className="group flex items-center gap-2 rounded-xl bg-background px-3 py-2.5 ring-1 ring-border hover:ring-primary/40">
                 <MapPin className="h-4 w-4 shrink-0 text-primary" />
-                <select value={location} onChange={e => setLocation(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none">
+                <select className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none">
                   {counties.map((c) => (
                     <option key={c}>{c}</option>
                   ))}
                 </select>
               </label>
 
-              <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elevated transition hover:opacity-95 cursor-pointer">
+              <button className="inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elevated transition hover:opacity-95">
                 <Search className="h-4 w-4" />
                 Search
               </button>
@@ -146,15 +230,13 @@ export default function HomePage() {
               {popularSearches.map((s) => (
                 <button
                   key={s}
-                  type="button"
-                  onClick={() => { setSearch(s); }}
-                  className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-foreground/80 hover:border-primary/40 hover:text-primary cursor-pointer"
+                  className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-foreground/80 hover:border-primary/40 hover:text-primary"
                 >
                   {s}
                 </button>
               ))}
             </div>
-          </form>
+          </div>
 
           {/* Trust strip */}
           <div className="mx-auto mt-8 grid max-w-3xl grid-cols-3 gap-4 text-center">
@@ -204,17 +286,17 @@ export default function HomePage() {
               Featured categories
             </h2>
           </div>
-          <Link to="/browse" className="hidden items-center gap-1 text-sm font-semibold text-primary hover:underline sm:inline-flex">
+          <a href="#" className="hidden items-center gap-1 text-sm font-semibold text-primary hover:underline sm:inline-flex">
             All categories <ChevronRight className="h-4 w-4" />
-          </Link>
+          </a>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {categories.map((c) => (
-            <Link
+            <a
               key={c.name}
-              to={`/browse?category=${encodeURIComponent(c.name)}`}
-              className="group relative aspect-[5/4] overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-elevated block"
+              href="#"
+              className="group relative aspect-[5/4] overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-elevated"
             >
               <img
                 src={c.img}
@@ -237,12 +319,12 @@ export default function HomePage() {
                   <div className="text-xs opacity-90">{c.count} ads</div>
                 </div>
               </div>
-            </Link>
+            </a>
           ))}
         </div>
       </section>
 
-      {/* Trending listings from Supabase */}
+      {/* Trending listings */}
       <section className="bg-secondary/50">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-24">
           <div className="mb-8 flex items-end justify-between gap-4">
@@ -254,22 +336,52 @@ export default function HomePage() {
                 Fresh deals near you
               </h2>
             </div>
-            <Link to="/browse" className="hidden items-center gap-1 text-sm font-semibold text-primary hover:underline sm:inline-flex">
+            <a href="#" className="hidden items-center gap-1 text-sm font-semibold text-primary hover:underline sm:inline-flex">
               See all listings <ChevronRight className="h-4 w-4" />
-            </Link>
+            </a>
           </div>
 
-          {loading ? (
-            <div className="py-20 text-center text-muted-foreground">Loading fresh deals...</div>
-          ) : listings.length > 0 ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {listings.map((listing, i) => (
-                <ListingCard key={listing.id} listing={listing} featured={i < 2} />
-              ))}
-            </div>
-          ) : (
-            <div className="py-20 text-center text-muted-foreground">No listings found. Post the first ad!</div>
-          )}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {trending.map((t) => (
+              <article
+                key={t.title}
+                className="group overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-elevated"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src={t.img}
+                    alt={t.title}
+                    loading="lazy"
+                    width={800}
+                    height={600}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                  <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-primary backdrop-blur">
+                    <BadgeCheck className="h-3 w-3" />
+                    {t.badge}
+                  </span>
+                  <button className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-background/95 text-foreground/70 backdrop-blur hover:text-destructive">
+                    <Heart className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="p-4">
+                  <h3 className="line-clamp-1 font-display text-base font-semibold">
+                    {t.title}
+                  </h3>
+                  <div className="mt-1 font-display text-lg font-bold text-primary">
+                    {t.price}
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {t.location}
+                    </span>
+                    <span>{t.posted}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -292,11 +404,11 @@ export default function HomePage() {
                 no middlemen — just real Kenyans buying and selling.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link to="/post-ad" className="inline-flex items-center gap-2 rounded-full bg-background px-5 py-3 text-sm font-semibold text-primary shadow-elevated hover:bg-cream">
+                <button className="inline-flex items-center gap-2 rounded-full bg-background px-5 py-3 text-sm font-semibold text-primary shadow-elevated hover:bg-cream">
                   <PlusCircle className="h-4 w-4" />
                   Post your free ad
-                </Link>
-                <button className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-5 py-3 text-sm font-semibold hover:bg-primary-foreground/10 cursor-pointer">
+                </button>
+                <button className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/30 px-5 py-3 text-sm font-semibold hover:bg-primary-foreground/10">
                   How it works
                 </button>
               </div>
@@ -320,6 +432,70 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-card">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="grid h-9 w-9 place-items-center rounded-xl gradient-emerald text-primary-foreground">
+                  <span className="font-display font-bold">A</span>
+                </div>
+                <div className="font-display text-lg font-bold">
+                  Ad<span className="text-primary">Hub</span>{" "}
+                  <span className="text-xs font-semibold tracking-widest text-muted-foreground">
+                    KENYA
+                  </span>
+                </div>
+              </div>
+              <p className="mt-4 max-w-xs text-sm text-muted-foreground">
+                Kenya's home for buying and selling — built for real sellers and
+                serious buyers, from Nairobi to Kisumu.
+              </p>
+            </div>
+
+            {[
+              {
+                title: "Marketplace",
+                links: ["All categories", "Featured ads", "Verified sellers", "Post an ad"],
+              },
+              {
+                title: "Support",
+                links: ["Help centre", "Safety tips", "Contact us", "Report a listing"],
+              },
+              {
+                title: "Company",
+                links: ["About AdHub", "Careers", "Terms of service", "Privacy"],
+              },
+            ].map((col) => (
+              <div key={col.title}>
+                <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                  {col.title}
+                </div>
+                <ul className="mt-4 space-y-2 text-sm">
+                  {col.links.map((l) => (
+                    <li key={l}>
+                      <a href="#" className="text-muted-foreground hover:text-primary">
+                        {l}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
+            <div>© {new Date().getFullYear()} AdHub Kenya. Made in Nairobi.</div>
+            <div className="flex items-center gap-4">
+              <a href="#" className="hover:text-primary">Terms</a>
+              <a href="#" className="hover:text-primary">Privacy</a>
+              <a href="#" className="hover:text-primary">Cookies</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

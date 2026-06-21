@@ -2,56 +2,80 @@ import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
-    <footer className="footer">
-      <div className="container">
-        <div className="footer-grid">
-          <div className="footer-brand">
-            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-              <span style={{background:'var(--primary)',color:'#fff',width:32,height:32,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800}}>A</span>
-              <span style={{fontFamily:'var(--font-display)',fontWeight:800,fontSize:'1.2rem'}}>
-                <span style={{color:'var(--primary-light)'}}>Ad</span>Hub
-                <span style={{color:'var(--accent)',fontSize:'0.6rem',letterSpacing:2,textTransform:'uppercase',marginLeft:4}}>Kenya</span>
-              </span>
+    <footer className="border-t border-border bg-card">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="grid h-9 w-9 place-items-center rounded-xl gradient-emerald text-primary-foreground">
+                <span className="font-display font-bold">A</span>
+              </div>
+              <div className="font-display text-lg font-bold">
+                Ad<span className="text-primary">Hub</span>{" "}
+                <span className="text-xs font-semibold tracking-widest text-muted-foreground">
+                  KENYA
+                </span>
+              </div>
             </div>
-            <p>Kenya's fastest growing classified ads marketplace. Buy and sell anything — electronics, vehicles, property, and more.</p>
-            <div style={{display:'flex',gap:10,marginTop:16}}>
-              {['📘','🐦','📸','▶️'].map((icon,i) => (
-                <span key={i} style={{fontSize:'1.2rem',cursor:'pointer',opacity:0.7}}>{icon}</span>
-              ))}
+            <p className="mt-4 max-w-xs text-sm text-muted-foreground">
+              Kenya's home for buying and selling — built for real sellers and
+              serious buyers, from Nairobi to Kisumu.
+            </p>
+          </div>
+
+          {[
+            {
+              title: "Marketplace",
+              links: [
+                { name: "All categories", path: "/browse" },
+                { name: "Featured ads", path: "/browse?featured=true" },
+                { name: "Verified sellers", path: "/browse?verified=true" },
+                { name: "Post an ad", path: "/post-ad" }
+              ],
+            },
+            {
+              title: "Support",
+              links: [
+                { name: "Help centre", path: "/help" },
+                { name: "Safety tips", path: "/safety" },
+                { name: "Contact us", path: "/contact" },
+                { name: "Report a listing", path: "/report" }
+              ],
+            },
+            {
+              title: "Company",
+              links: [
+                { name: "About AdHub", path: "/about" },
+                { name: "Careers", path: "/careers" },
+                { name: "Terms of service", path: "/terms" },
+                { name: "Privacy", path: "/privacy" }
+              ],
+            },
+          ].map((col) => (
+            <div key={col.title}>
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+                {col.title}
+              </div>
+              <ul className="mt-4 space-y-2 text-sm">
+                {col.links.map((l) => (
+                  <li key={l.name}>
+                    <Link to={l.path} className="text-muted-foreground hover:text-primary transition-colors">
+                      {l.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
-
-          <div className="footer-col">
-            <h4>Categories</h4>
-            <ul>
-              {[['Electronics','/category/electronics'],['Vehicles','/category/vehicles'],['Property','/category/property'],['Fashion','/category/fashion'],['Services','/category/services']].map(([name,href]) => (
-                <li key={name}><Link to={href}>{name}</Link></li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="footer-col">
-            <h4>Quick Links</h4>
-            <ul>
-              {[['Browse All Ads','/browse'],['Post Free Ad','/post-ad'],['Register','/register'],['Login','/login'],['My Ads','/my-ads']].map(([name,href]) => (
-                <li key={name}><Link to={href}>{name}</Link></li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="footer-col">
-            <h4>Support</h4>
-            <ul>
-              {[['Help Center','#'],['Safety Tips','#'],['Report Ad','#'],['Contact Us','#'],['Terms of Use','#']].map(([name,href]) => (
-                <li key={name}><Link to={href}>{name}</Link></li>
-              ))}
-            </ul>
-          </div>
+          ))}
         </div>
 
-        <div className="footer-bottom">
-          <p>© {new Date().getFullYear()} AdHub Kenya. All rights reserved.</p>
-          <p>🇰🇪 Made in Kenya</p>
+        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row">
+          <div>© {new Date().getFullYear()} AdHub Kenya. Made in Nairobi.</div>
+          <div className="flex items-center gap-4">
+            <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
+            <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+            <Link to="/cookies" className="hover:text-primary transition-colors">Cookies</Link>
+          </div>
         </div>
       </div>
     </footer>
