@@ -76,6 +76,61 @@ function MultiCheck({ options, value = '', onChange }) {
 
 const inputClass = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
 
+// ─── Dynamic Data Filter ─────────────────────────────────────────────────────
+
+export function DynamicDataFilter({ category, urlParam, searchParams, onChange }) {
+  const [counts, setCounts] = useState(null);
+
+  useEffect(() => {
+    if (!category) return;
+    
+    const filters = {};
+    for (const [k, v] of searchParams.entries()) {
+      if (k !== 'category' && k !== 'keyword' && k !== 'sort' && k !== 'page') {
+        filters[k] = v;
+      }
+    }
+
+    let isMounted = true;
+    getFilterAggregates(category, urlParam, filters).then(res => {
+      if (isMounted) setCounts(res);
+    }).catch(err => {
+      console.error("Failed to fetch aggregate for", urlParam, err);
+      if (isMounted) setCounts({});
+    });
+    return () => { isMounted = false };
+  }, [category, urlParam, searchParams]);
+
+  if (!counts) return <div className="animate-pulse h-10 w-full bg-secondary/50 rounded-xl" />;
+  
+  const options = Object.keys(counts).filter(k => counts[k] > 0).sort();
+  if (options.length === 0) return null;
+
+  const labelMap = {
+    brand: 'Brand',
+    series: 'Series',
+    model: 'Model',
+    equipmentType: 'Equipment Type',
+    tv_size: 'TV Size',
+    tv_tech: 'Screen Tech'
+  };
+
+  return (
+    <select
+      className={inputClass}
+      value={searchParams.get(urlParam) || ''}
+      onChange={e => onChange(e.target.value)}
+    >
+      <option value="">Any {labelMap[urlParam] || 'Option'}</option>
+      {options.map(o => (
+        <option key={o} value={o}>
+          {o} ({counts[o]})
+        </option>
+      ))}
+    </select>
+  );
+}
+
 // ─── Cascade Filter Group ────────────────────────────────────────────────────
 
 function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
@@ -346,6 +401,13 @@ export default function FilterSidebar({ onClose }) {
                   placeholder={f.placeholder || `Any ${f.label}`}
                   value={get(f.urlParam)}
                   onChange={e => set(f.urlParam, e.target.value)}
+                />
+              ) : f.type === 'dynamic-select' ? (
+                <DynamicDataFilter
+                  category={category}
+                  urlParam={f.urlParam}
+                  searchParams={searchParams}
+                  onChange={v => set(f.urlParam, v)}
                 />
               ) : f.type === 'select' ? (
                 <select

@@ -97,6 +97,8 @@ export const getListings = async (params = {}) => {
     'property_type', 'purpose', 'bedrooms', 'bathrooms', 'furnished', 'parking',
     'job_type', 'industry', 'animal_type', 'gender',
     'condition',
+    'equipmentType', 'brand', 'series', 'cpuBrand', 'cpuFamily', 'gpu', 
+    'screenSize', 'channels', 'connectivity', 'resolution', 'tv_size', 'tv_tech'
   ];
 
   SPECS_PARAMS.forEach(key => {

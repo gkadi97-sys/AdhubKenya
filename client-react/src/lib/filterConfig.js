@@ -136,29 +136,33 @@ export const FILTER_CONFIG = {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',
         options: ['Brand New','Open Box','Ex-UK','Ex-USA','Foreign Used','Locally Used','Refurbished']
       }
-      // Subcategory → Brand → Model cascade handled by CascadeFilterGroup (3-level)
     ]
   },
 
   electronics: {
     label: 'Electronics',
     filters: [
+      { id: 'equipmentType', label: 'Equipment Type', type: 'dynamic-select', urlParam: 'equipmentType' },
+      { id: 'brand', label: 'Brand', type: 'dynamic-select', urlParam: 'brand' },
+      { id: 'tv_size', label: 'TV Size', type: 'dynamic-select', urlParam: 'tv_size' },
+      { id: 'tv_tech', label: 'Screen Tech', type: 'dynamic-select', urlParam: 'tv_tech' },
+      { id: 'series', label: 'Series', type: 'dynamic-select', urlParam: 'series' },
+      { id: 'model', label: 'Model', type: 'dynamic-select', urlParam: 'model' },
       {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',
         options: ['New','Used - Like New','Used - Good','Used - Fair']
       }
-      // Category → Item cascade handled by CascadeFilterGroup
     ]
   },
 
   'home-furniture': {
     label: 'Home, Furniture & Appliances',
     filters: [
+      { id: 'brand', label: 'Brand', type: 'dynamic-select', urlParam: 'brand' },
       {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',
         options: ['New','Used - Like New','Used - Good','Used - Fair']
       }
-      // Category → Item cascade handled by CascadeFilterGroup
     ]
   },
 

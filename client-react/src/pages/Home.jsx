@@ -11,6 +11,7 @@ import {
   CASCADE_URL_PARAMS 
 } from '@/lib/filterEngine';
 import ListingCard from '@/components/ListingCard';
+import FilterSidebar, { DynamicDataFilter } from '@/components/FilterSidebar';
 import { useSEO } from '@/lib/useSEO';
 
 // Import Assets
@@ -229,20 +230,30 @@ export default function HomePage() {
 
                 {/* ── Flat Filters (Condition, etc) ── */}
                 {FILTER_CONFIG[categoryMap[category]]?.filters
-                  .filter(f => f.type === 'select' || f.type === 'radio')
+                  .filter(f => f.type === 'select' || f.type === 'radio' || f.type === 'dynamic-select')
                   .slice(0, 3) // Show top 3 standard filters
                   .map(f => (
-                    <select
-                      key={f.id}
-                      value={dynamicFilters[f.urlParam] || ''}
-                      onChange={(e) => setDynamicFilters(prev => ({ ...prev, [f.urlParam]: e.target.value }))}
-                      className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
-                    >
-                      <option value="">{f.label}</option>
-                      {f.options.map(opt => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))}
-                    </select>
+                    f.type === 'dynamic-select' ? (
+                      <DynamicDataFilter
+                        key={f.id}
+                        category={categoryMap[category]}
+                        urlParam={f.urlParam}
+                        searchParams={new URLSearchParams(dynamicFilters)}
+                        onChange={(v) => setDynamicFilters(prev => ({ ...prev, [f.urlParam]: v }))}
+                      />
+                    ) : (
+                      <select
+                        key={f.id}
+                        value={dynamicFilters[f.urlParam] || ''}
+                        onChange={(e) => setDynamicFilters(prev => ({ ...prev, [f.urlParam]: e.target.value }))}
+                        className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                      >
+                        <option value="">{f.label}</option>
+                        {f.options.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    )
                 ))}
               </div>
             )}
