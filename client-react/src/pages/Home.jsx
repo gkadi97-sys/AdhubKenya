@@ -7,7 +7,7 @@ import {
 import { getListings } from '@/lib/api';
 import { CATEGORY_ICONS, VEHICLE_SPECS, MANUFACTURE_YEARS } from '@/lib/categoryData';
 import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
-import { getLevel1Options, getLevel2Options, getCascadeLabels, CASCADE_URL_PARAMS } from '@/lib/filterEngine';
+import { getLevel1Options, getLevel2Options, getLevel3Options, getCascadeLabels, CASCADE_URL_PARAMS } from '@/lib/filterEngine';
 import ListingCard from '@/components/ListingCard';
 import { useSEO } from '@/lib/useSEO';
 
@@ -40,55 +40,56 @@ const popularSearches = ['Toyota Fielder', 'Bedsitter Nairobi', 'iPhone 15', 'Mi
 // ─── Left Category Sidebar ───────────────────────────────────────────────────
 function CategorySidebar({ onNavigate }) {
   const [selectedSlug, setSelectedSlug] = useState(null);
-  const [selectedSub, setSelectedSub]   = useState('');
   const [filters, setFilters]           = useState({});
 
   const cat      = CATEGORY_ICONS.find(c => c.slug === selectedSlug);
   const schema   = selectedSlug ? (SCHEMA_REGISTRY[selectedSlug] || SCHEMA_REGISTRY.default) : null;
-  const cascadeP = selectedSlug ? CASCADE_URL_PARAMS[selectedSlug] : null;
 
-  const subcategories = selectedSlug
-    ? (SUBCATEGORY_OVERRIDES[selectedSlug] || getLevel1Options(selectedSlug))
-    : [];
+  const selectCategory = (slug) => { setSelectedSlug(slug); setFilters({}); };
 
-  const lvl1Val  = cascadeP ? (filters[cascadeP.level1] || '') : '';
-  const lvl1Opts = cascadeP ? getLevel1Options(selectedSlug, selectedSub) : [];
-  const lvl2Opts = (cascadeP && lvl1Val) ? getLevel2Options(selectedSlug, lvl1Val, selectedSub) : [];
-  const labels   = selectedSlug ? getCascadeLabels(selectedSlug, selectedSub) : {};
-
-  const flatFilters = (schema?.attributes || []).filter(a =>
-    !['dynamic-cascade','text','number'].includes(a.type) && !['listingType'].includes(a.id)
-  );
-
-  const selectCategory = (slug) => { setSelectedSlug(slug); setSelectedSub(''); setFilters({}); };
-  const back = () => { setSelectedSlug(null); setSelectedSub(''); setFilters({}); };
+  const evaluateDependsOn = (dependsOn) => {
+    if (!dependsOn) return true;
+    const { field, value } = dependsOn;
+    const currentVal = filters[field];
+    if (!currentVal) return false;
+    return Array.isArray(value) ? value.includes(currentVal) : currentVal === value;
+  };
 
   const setFilter = (key, val) => {
-    const next = { ...filters, [key]: val };
-    if (cascadeP) {
-      if (key === cascadeP.level1) { delete next[cascadeP.level2]; delete next[cascadeP.level3]; }
-      if (key === cascadeP.level2) { delete next[cascadeP.level3]; }
-    }
-    setFilters(next);
+    setFilters(prev => {
+      const next = { ...prev, [key]: val };
+      const attr = schema?.attributes?.find(a => a.id === key);
+      if (attr && attr.type === 'dynamic-cascade') {
+        schema.attributes.filter(a => a.type === 'dynamic-cascade' && a.cascadeLevel > attr.cascadeLevel).forEach(child => {
+          delete next[child.id];
+        });
+      }
+      return next;
+    });
   };
+
   const clearFilter = (key) => {
-    const next = { ...filters }; delete next[key];
-    if (cascadeP && key === cascadeP.level1) { delete next[cascadeP.level2]; delete next[cascadeP.level3]; }
-    setFilters(next);
+    setFilters(prev => {
+      const next = { ...prev };
+      delete next[key];
+      const attr = schema?.attributes?.find(a => a.id === key);
+      if (attr && attr.type === 'dynamic-cascade') {
+        schema.attributes.filter(a => a.type === 'dynamic-cascade' && a.cascadeLevel > attr.cascadeLevel).forEach(child => {
+          delete next[child.id];
+        });
+      }
+      return next;
+    });
   };
 
   const browse = () => {
     const p = new URLSearchParams();
     p.set('category', selectedSlug);
-    if (selectedSub && cascadeP) {
-      if (selectedSlug === 'vehicles') p.set('bodyType', selectedSub);
-      else p.set(cascadeP.level1, selectedSub);
-    }
     Object.entries(filters).forEach(([k, v]) => { if (v) p.set(k, v); });
     onNavigate(`/browse?${p.toString()}`);
   };
 
-  const activeCount = Object.values(filters).filter(Boolean).length + (selectedSub ? 1 : 0);
+  const activeCount = Object.values(filters).filter(Boolean).length;
 
   // ── ACCORDION CATEGORIES LIST ──────────────────────────────────────────────
   return (
@@ -116,147 +117,103 @@ function CategorySidebar({ onNavigate }) {
               </button>
 
               {/* ACCORDION EXPANSION */}
-              {isSelected && (
-                <div className="pl-11 pr-3 py-3 flex flex-col gap-4 border-b border-border/50 mb-2">
-                  
-                  {/* Subcategories */}
-                  {subcategories.length > 0 && (
-                    <div>
-                      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
-                        {selectedSlug === 'vehicles' ? 'Vehicle Type' : labels.level1Label || 'Subcategory'}
-                      </p>
-                      <ul className="grid grid-cols-2 gap-1.5 mt-1">
-                        {subcategories.map(sub => (
-                          <li key={sub}>
-                            <button
-                              onClick={() => setSelectedSub(selectedSub === sub ? '' : sub)}
-                              className={`w-full inline-flex items-center justify-center rounded-lg px-1.5 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer border text-center ${
-                                selectedSub === sub
-                                  ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-                                  : 'border-border bg-background hover:border-primary/40 text-foreground hover:bg-secondary/50'
-                              }`}
-                              title={sub}
-                            >
-                              <span className="truncate">{sub}</span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+              {isSelected && schema && (() => {
+                const visibleAttrs = (schema.attributes || []).filter(attr => evaluateDependsOn(attr.dependsOn));
+                if (!visibleAttrs.length) return null;
 
-                  {/* Cascade: Make→Model (vehicles) */}
-                  {selectedSlug === 'vehicles' && lvl1Opts.length > 0 && (
-                    <div className="flex flex-col gap-2 border-t border-border pt-4">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Make / Model</p>
-                      <select
-                        value={filters.make || ''}
-                        onChange={e => setFilter('make', e.target.value)}
-                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
-                      >
-                        <option value="">Any Make</option>
-                        {lvl1Opts.map(o => <option key={o} value={o}>{o}</option>)}
-                      </select>
-                      {filters.make && getLevel2Options('vehicles', filters.make).length > 0 && (
-                        <select
-                          value={filters.model || ''}
-                          onChange={e => setFilter('model', e.target.value)}
-                          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
-                        >
-                          <option value="">Any Model</option>
-                          {getLevel2Options('vehicles', filters.make).map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
-                      )}
-                      <select
-                        value={filters.year || ''}
-                        onChange={e => setFilter('year', e.target.value)}
-                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
-                      >
-                        <option value="">Any Year</option>
-                        {MANUFACTURE_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-                      </select>
-                    </div>
-                  )}
+                return (
+                  <div className="pl-11 pr-3 py-3 flex flex-col gap-4 border-b border-border/50 mb-2">
+                    {visibleAttrs.map((attr, idx) => {
+                      const isFirst = idx === 0;
+                      let opts = [];
+                      if (attr.options) opts = attr.options;
+                      else if (attr.type === 'dynamic-cascade') {
+                        if (attr.cascadeLevel === 1) opts = getLevel1Options(selectedSlug, filters);
+                        else if (attr.cascadeLevel === 2) {
+                          const l1Attr = schema.attributes.find(a => a.cascadeLevel === 1 && a.type === 'dynamic-cascade');
+                          if (l1Attr && filters[l1Attr.id]) opts = getLevel2Options(selectedSlug, filters[l1Attr.id], filters);
+                        } else if (attr.cascadeLevel === 3) {
+                          const l1Attr = schema.attributes.find(a => a.cascadeLevel === 1 && a.type === 'dynamic-cascade');
+                          const l2Attr = schema.attributes.find(a => a.cascadeLevel === 2 && a.type === 'dynamic-cascade');
+                          if (l1Attr && l2Attr && filters[l1Attr.id] && filters[l2Attr.id]) {
+                            opts = getLevel3Options(selectedSlug, filters[l1Attr.id], filters[l2Attr.id], filters);
+                          }
+                        }
+                      }
+                      
+                      if (!opts || !opts.length) return null;
+                      const val = filters[attr.id] || '';
 
-                  {/* Cascade level 2: shown only after a subcategory chip is selected (chips = level1) */}
-                  {selectedSlug !== 'vehicles' && cascadeP && selectedSub && (() => {
-                    const l2Opts = getLevel2Options(selectedSlug, selectedSub);
-                    if (!l2Opts.length) return null;
-                    return (
-                      <div className="flex flex-col gap-2 border-t border-border pt-4">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{labels.level2Label}</p>
-                        <select
-                          value={filters[cascadeP.level2] || ''}
-                          onChange={e => setFilter(cascadeP.level2, e.target.value)}
-                          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
-                        >
-                          <option value="">Any {labels.level2Label}</option>
-                          {l2Opts.map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Flat schema filters */}
-                  {flatFilters.length > 0 && (
-                    <div className="flex flex-col gap-2 border-t border-border pt-4">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-                        <SlidersHorizontal className="w-3 h-3" /> Filters
-                      </p>
-                      {flatFilters.map(attr => {
-                        const opts = Array.isArray(attr.options) ? attr.options : [];
-                        if (!opts.length) return null;
-                        const val = filters[attr.id] || '';
+                      if (isFirst && opts.length <= 25) {
                         return (
-                          <div key={attr.id} className="relative">
-                            <select
-                              value={val}
-                              onChange={e => setFilter(attr.id, e.target.value)}
-                              className={`w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition cursor-pointer ${
-                                val ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-foreground'
-                              } focus:border-primary/50`}
-                            >
-                              <option value="">{attr.label}</option>
-                              {opts.map(o => <option key={o} value={o}>{o}</option>)}
-                            </select>
-                            {val && (
-                              <button onClick={() => clearFilter(attr.id)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer">
-                                <X className="w-3 h-3" />
-                              </button>
-                            )}
+                          <div key={attr.id}>
+                            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                            <ul className="grid grid-cols-2 gap-1.5 mt-1">
+                              {opts.map(o => {
+                                const isSel = val === o;
+                                return (
+                                  <li key={o}>
+                                    <button
+                                      onClick={() => setFilter(attr.id, isSel ? '' : o)}
+                                      className={`w-full inline-flex items-center justify-center rounded-lg px-1.5 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer border text-center ${
+                                        isSel ? 'border-primary bg-primary text-primary-foreground shadow-sm' : 'border-border bg-background hover:border-primary/40 text-foreground hover:bg-secondary/50'
+                                      }`}
+                                      title={o}
+                                    >
+                                      <span className="truncate">{o}</span>
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
                           </div>
                         );
-                      })}
-                    </div>
-                  )}
+                      }
 
-                  {/* Active pills */}
-                  {activeCount > 0 && (
-                    <div className="flex flex-wrap gap-1.5 border-t border-border pt-3">
-                      {selectedSub && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                          {selectedSub} <button onClick={() => setSelectedSub('')} className="cursor-pointer"><X className="w-2.5 h-2.5" /></button>
-                        </span>
-                      )}
-                      {Object.entries(filters).filter(([,v]) => v).map(([k, v]) => (
-                        <span key={k} className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                          {v} <button onClick={() => clearFilter(k)} className="cursor-pointer"><X className="w-2.5 h-2.5" /></button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                      return (
+                        <div key={attr.id} className="relative">
+                          <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                          <select
+                            value={val}
+                            onChange={e => setFilter(attr.id, e.target.value)}
+                            className={`w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition cursor-pointer ${
+                              val ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-foreground'
+                            } focus:border-primary/50`}
+                          >
+                            <option value="">Any {attr.label}</option>
+                            {opts.map(o => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                          {val && (
+                            <button onClick={() => clearFilter(attr.id)} className="absolute right-2.5 top-[26px] text-primary hover:text-destructive cursor-pointer">
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
 
-                  {/* Browse CTA */}
-                  <button
-                    onClick={browse}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-4 py-2.5 text-sm font-bold text-primary-foreground shadow hover:opacity-90 transition cursor-pointer mt-1"
-                  >
-                    Browse {cat?.name}
-                    {activeCount > 0 && <span className="rounded-full bg-white/25 px-1.5 py-0.5 text-[10px] font-bold">{activeCount}</span>}
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+                    {/* Active pills */}
+                    {activeCount > 0 && (
+                      <div className="flex flex-wrap gap-1.5 border-t border-border pt-3">
+                        {Object.entries(filters).filter(([,v]) => v).map(([k, v]) => (
+                          <span key={k} className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                            {v} <button onClick={() => clearFilter(k)} className="cursor-pointer"><X className="w-2.5 h-2.5" /></button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Browse CTA */}
+                    <button
+                      onClick={browse}
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-4 py-2.5 text-sm font-bold text-primary-foreground shadow hover:opacity-90 transition cursor-pointer mt-1"
+                    >
+                      Browse {cat?.name}
+                      {activeCount > 0 && <span className="rounded-full bg-white/25 px-1.5 py-0.5 text-[10px] font-bold">{activeCount}</span>}
+                    </button>
+                  </div>
+                );
+              })()}
             </li>
           );
         })}

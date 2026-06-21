@@ -30,7 +30,11 @@ export function getCascadeConfig(categorySlug, subcategory) {
   return CASCADE_URL_PARAMS[categorySlug];
 }
 
-export function getLevel1Options(categorySlug, subcategory) {
+export function getLevel1Options(categorySlug, filters = {}) {
+  let subcategory = null;
+  if (categorySlug === 'electronics') subcategory = filters.subcategory;
+  if (categorySlug === 'vehicles') subcategory = filters.bodyType;
+
   if (categorySlug === 'electronics' && subcategory) {
     const tree = getElectronicsTree(subcategory);
     if (tree) return Object.keys(tree);
@@ -47,8 +51,11 @@ export function getLevel1Options(categorySlug, subcategory) {
   return Object.keys(tree.data);
 }
 
-export function getLevel2Options(categorySlug, level1Value, subcategory) {
+export function getLevel2Options(categorySlug, level1Value, filters = {}) {
   if (!level1Value) return [];
+  let subcategory = null;
+  if (categorySlug === 'electronics') subcategory = filters.subcategory;
+  if (categorySlug === 'vehicles') subcategory = filters.bodyType;
   
   if (categorySlug === 'electronics' && subcategory) {
     const tree = getElectronicsTree(subcategory);
@@ -78,8 +85,11 @@ export function getLevel2Options(categorySlug, level1Value, subcategory) {
   return Object.keys(level1Data);
 }
 
-export function getLevel3Options(categorySlug, level1Value, level2Value, subcategory) {
+export function getLevel3Options(categorySlug, level1Value, level2Value, filters = {}) {
   if (!level1Value || !level2Value) return [];
+  let subcategory = null;
+  if (categorySlug === 'electronics') subcategory = filters.subcategory;
+  if (categorySlug === 'vehicles') subcategory = filters.bodyType;
 
   if (categorySlug === 'electronics' && subcategory) {
     const tree = getElectronicsTree(subcategory);
