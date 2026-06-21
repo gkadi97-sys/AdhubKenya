@@ -13,6 +13,10 @@ export const FILTER_CONFIG = {
         options: ['Cars','SUVs','Crossovers','Pickups','Vans','Light Trucks','Heavy Trucks','Buses','Motorcycles','Tuk Tuk','Tractor']
       },
       {
+        id: 'bodyStyle', label: 'Body Style', type: 'select', urlParam: 'bodyStyle',
+        options: ['Sedan', 'Hatchback', 'Station Wagon', 'SUV / Crossover', 'Coupe', 'Convertible', 'Pickup / Double Cabin', 'Van / Minivan']
+      },
+      {
         id: 'make', label: 'Brand', type: 'select', urlParam: 'make',
         options: ['Toyota','Nissan','Mitsubishi','Mazda','Honda','Subaru','Isuzu','Suzuki','Land Rover','Mercedes-Benz','BMW','Volkswagen','Ford','Hyundai','Kia','Jeep','Peugeot','Renault','Volvo','Scania','MAN','Hino','Fuso','UD Trucks','Tata','Ashok Leyland']
       },
@@ -31,11 +35,27 @@ export const FILTER_CONFIG = {
       },
       {
         id: 'transmission', label: 'Transmission', type: 'radio', urlParam: 'transmission',
-        options: ['Automatic','Manual']
+        options: ['Automatic','Manual', 'CVT', 'DCT', 'Semi-Auto']
       },
       {
         id: 'drive', label: 'Drive', type: 'radio', urlParam: 'drive',
-        options: ['2WD','4WD','AWD']
+        options: ['FWD','RWD','AWD', '4WD']
+      },
+      {
+        id: 'engineCC_max', label: 'Max Engine CC', type: 'select', urlParam: 'engineCC_max',
+        options: ['1000', '1500', '1800', '2000', '2500', '3000', '4000', '5000+']
+      },
+      {
+        id: 'mileage_max', label: 'Max Mileage', type: 'select', urlParam: 'mileage_max',
+        options: ['10000', '30000', '50000', '80000', '100000', '150000', '200000']
+      },
+      {
+        id: 'color', label: 'Color', type: 'select', urlParam: 'color',
+        options: ['White', 'Black', 'Silver', 'Grey', 'Blue', 'Red', 'Brown', 'Green', 'Pearl White']
+      },
+      {
+        id: 'numSeats', label: 'Number of Seats', type: 'radio', urlParam: 'numSeats',
+        options: ['2', '4', '5', '6', '7', '8+']
       },
       {
         id: 'registered', label: 'Registered in Kenya?', type: 'radio', urlParam: 'registered',
@@ -51,6 +71,10 @@ export const FILTER_CONFIG = {
   'auto-spares': {
     label: 'Auto Spares & Accessories',
     filters: [
+      {
+        id: 'system', label: 'Part Category / System', type: 'select', urlParam: 'system',
+        options: ['Engine & Components', 'Transmission & Drivetrain', 'Suspension & Steering', 'Braking System', 'Electrical & Lighting', 'Body & Exterior', 'Interior Parts', 'Cooling System', 'Exhaust System', 'Fuel System', 'Wheels & Tyres', 'Accessories & Upgrades']
+      },
       {
         id: 'make', label: 'Compatible Brand', type: 'select', urlParam: 'make',
         options: ['Toyota','Nissan','Mitsubishi','Mazda','Honda','Subaru','Isuzu','Land Rover','Mercedes-Benz','BMW','Volkswagen','Ford','Universal']
@@ -88,6 +112,10 @@ export const FILTER_CONFIG = {
       {
         id: 'parking', label: 'Parking', type: 'radio', urlParam: 'parking',
         options: ['Yes','No']
+      },
+      {
+        id: 'amenities', label: 'Amenities', type: 'multicheck', urlParam: 'amenities',
+        options: ['Swimming Pool', 'Gym', 'Backup Generator', 'Borehole', 'Elevator', 'Balcony', 'Garden', 'Security Guard', 'CCTV', 'Internet / Wi-Fi', 'Pet Friendly']
       }
     ]
   },
@@ -103,6 +131,14 @@ export const FILTER_CONFIG = {
       {
         id: 'storage', label: 'Storage', type: 'multicheck', urlParam: 'storage',
         options: ['16GB','32GB','64GB','128GB','256GB','512GB','1TB']
+      },
+      {
+        id: 'ram', label: 'RAM', type: 'multicheck', urlParam: 'ram',
+        options: ['2GB', '3GB', '4GB', '6GB', '8GB', '12GB', '16GB+']
+      },
+      {
+        id: 'os', label: 'Operating System', type: 'radio', urlParam: 'os',
+        options: ['Android', 'iOS', 'Windows', 'Other']
       },
       {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',

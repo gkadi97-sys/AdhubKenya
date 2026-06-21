@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useSEO } from '@/lib/useSEO';
+import { Loader2 } from 'lucide-react';
 
 function GoogleIcon() {
   return (
@@ -13,6 +14,8 @@ function GoogleIcon() {
     </svg>
   );
 }
+
+const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
 
 export default function LoginPage() {
   useSEO({
@@ -58,104 +61,110 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{
-      minHeight: 'calc(100vh - 68px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '40px 20px',
-      background: 'radial-gradient(circle at 30% 50%, var(--primary-glow) 0%, transparent 60%)',
-    }}>
-      <div style={{ width: '100%', maxWidth: 440 }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <span style={{ background: 'var(--primary)', color: '#fff', width: 42, height: 42, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.2rem' }}>A</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.5rem' }}>
-              <span style={{ color: 'var(--primary-light)' }}>Ad</span>Hub
-              <span style={{ color: 'var(--accent)', fontSize: '0.65rem', letterSpacing: 2, textTransform: 'uppercase', marginLeft: 4 }}>Kenya</span>
+    <div className="flex min-h-[calc(100vh-68px)] items-center justify-center p-6 bg-background">
+      <div className="w-full max-w-[440px] animate-in fade-in slide-in-from-bottom-4 duration-500">
+        
+        {/* Logo and Header */}
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-2 mb-4 hover:opacity-90 transition-opacity">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-xl font-black text-primary-foreground shadow-sm">
+              A
             </span>
-          </div>
-          <h1 style={{ fontSize: '1.6rem', marginBottom: 6 }}>Welcome to AdHub Kenya</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            <span className="font-display text-2xl font-black text-foreground">
+              <span className="text-primary">Ad</span>Hub
+              <span className="ml-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Kenya</span>
+            </span>
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground mb-2">Welcome back to AdHub</h1>
+          <p className="text-sm text-muted-foreground">
             {isFromListing ? "Sign in to view the seller's contact details" : 'Sign in to manage your ads and saved listings'}
           </p>
         </div>
 
-        <div className="card" style={{ padding: 32 }}>
-          {error && <div className="alert alert-error" style={{ marginBottom: 20 }}>{error}</div>}
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-sm">
+          {error && (
+            <div className="mb-6 rounded-xl border border-destructive/50 bg-destructive/10 p-4 text-sm font-medium text-destructive">
+              {error}
+            </div>
+          )}
 
           {/* ── Google Sign-In (Primary CTA) ── */}
           <button
             id="google-signin-btn"
             onClick={handleGoogle}
             disabled={googleLoading}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 12, padding: '13px 20px',
-              background: '#fff', color: '#3c4043',
-              border: '1px solid #dadce0', borderRadius: 8,
-              fontWeight: 600, fontSize: '0.95rem',
-              cursor: googleLoading ? 'not-allowed' : 'pointer',
-              transition: 'box-shadow 0.2s, background 0.2s',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-              opacity: googleLoading ? 0.75 : 1,
-            }}
-            onMouseOver={e => { if (!googleLoading) e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,0,0,0.2)'; }}
-            onMouseOut={e => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.12)'; }}
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-background px-4 py-3.5 text-sm font-semibold text-foreground shadow-sm transition hover:bg-secondary hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <GoogleIcon />
+            {googleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
             {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
           </button>
 
           {/* ── Divider ── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--border)' }}></div>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>or sign in with email</span>
-            <div style={{ flex: 1, height: 1, background: 'var(--border)' }}></div>
+          <div className="my-6 flex items-center gap-4">
+            <div className="h-px flex-1 bg-border"></div>
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">or</span>
+            <div className="h-px flex-1 bg-border"></div>
           </div>
 
           {/* ── Email form (toggled or always shown) ── */}
           {!showEmail ? (
             <button
               onClick={() => setShowEmail(true)}
-              style={{
-                width: '100%', padding: '12px', background: 'transparent',
-                border: '1px solid var(--border)', borderRadius: 8,
-                color: 'var(--text-secondary)', fontWeight: 500, fontSize: '0.9rem',
-                cursor: 'pointer', transition: 'border-color 0.2s, color 0.2s',
-              }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--text)'; }}
-              onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+              className="w-full rounded-xl border border-border bg-transparent px-4 py-3 text-sm font-medium text-muted-foreground transition hover:border-primary hover:text-foreground"
             >
-              Use Email & Password
+              Sign in with Email & Password
             </button>
           ) : (
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <input className="form-control" name="email" type="email" value={form.email}
-                  onChange={handleChange} placeholder="you@example.com" required autoFocus />
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-300">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-foreground">Email Address</label>
+                <input 
+                  className={inputClass} 
+                  name="email" 
+                  type="email" 
+                  value={form.email}
+                  onChange={handleChange} 
+                  placeholder="you@example.com" 
+                  required 
+                  autoFocus 
+                />
               </div>
-              <div className="form-group">
-                <label className="form-label">Password</label>
-                <input className="form-control" name="password" type="password" value={form.password}
-                  onChange={handleChange} placeholder="Your password" required />
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-foreground">Password</label>
+                  <Link to="#" className="text-xs font-medium text-primary hover:underline">Forgot password?</Link>
+                </div>
+                <input 
+                  className={inputClass} 
+                  name="password" 
+                  type="password" 
+                  value={form.password}
+                  onChange={handleChange} 
+                  placeholder="Your password" 
+                  required 
+                />
               </div>
-              <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading} style={{ marginTop: 8 }}>
-                {loading ? '⏳ Signing in...' : 'Sign In'}
+              <button 
+                type="submit" 
+                disabled={loading} 
+                className="mt-2 flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+                {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
           )}
         </div>
 
-        <p style={{ textAlign: 'center', marginTop: 20, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+        <p className="mt-8 text-center text-sm text-muted-foreground">
           Don't have an account?{' '}
-          <Link to="/register" style={{ color: 'var(--primary-light)', fontWeight: 600 }}>Create one free →</Link>
+          <Link to="/register" className="font-bold text-primary hover:underline">Create one free &rarr;</Link>
         </p>
-        <p style={{ textAlign: 'center', marginTop: 8, color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+        <p className="mt-4 text-center text-xs text-muted-foreground/60 max-w-xs mx-auto">
           By continuing, you agree to AdHub Kenya's{' '}
-          <Link to="/terms" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>Terms</Link>
+          <Link to="/terms" className="underline hover:text-muted-foreground">Terms</Link>
           {' '}and{' '}
-          <Link to="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>Privacy Policy</Link>.
+          <Link to="/privacy" className="underline hover:text-muted-foreground">Privacy Policy</Link>.
         </p>
       </div>
     </div>

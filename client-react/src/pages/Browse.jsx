@@ -6,6 +6,7 @@ import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
 import FilterSidebar from '@/components/FilterSidebar';
 import { FILTER_CONFIG } from '@/lib/filterConfig';
+import { Filter, X, Search } from 'lucide-react';
 
 const CATEGORIES = CATEGORY_ICONS;
 
@@ -92,50 +93,48 @@ function BrowseContent() {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-background">
       {/* ── Page Header ─────────────────────────────── */}
-      <div className="page-header">
-        <div className="container">
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+      <div className="bg-secondary/30 border-b border-border py-6">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
                 {catLabel ? `${catLabel}` : 'Browse Ads'}
-                {keyword && <span style={{ color:'var(--text-muted)', fontWeight:400 }}> — "{keyword}"</span>}
+                {keyword && <span className="text-muted-foreground font-normal ml-2">"{keyword}"</span>}
               </h1>
-              <p style={{ color:'var(--text-muted)', marginTop:4 }}>
+              <p className="text-muted-foreground mt-2 text-sm font-medium">
                 {total.toLocaleString()} listing{total !== 1 ? 's' : ''} found
               </p>
             </div>
             {/* Mobile filter button */}
             <button
-              className="btn btn-outline btn-sm mobile-filter-btn"
+              className="md:hidden flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:bg-secondary"
               onClick={() => setDrawerOpen(true)}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="4" y1="6" x2="20" y2="6"/>
-                <line x1="4" y1="12" x2="14" y2="12"/>
-                <line x1="4" y1="18" x2="10" y2="18"/>
-              </svg>
+              <Filter className="w-4 h-4" />
               Filters
-              {activeFilterCount > 0 && <span className="filter-count-badge" style={{ marginLeft:4 }}>{activeFilterCount}</span>}
+              {activeFilterCount > 0 && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground ml-1">{activeFilterCount}</span>}
             </button>
           </div>
 
           {/* Active filter chips */}
           {activeChips.length > 0 && (
-            <div className="active-filter-chips">
+            <div className="flex flex-wrap items-center gap-2 mt-6">
               {activeChips.map(chip => (
-                <span key={chip.key} className="active-chip">
-                  <span style={{ textTransform:'capitalize' }}>{chip.key.replace(/_/g,' ')}: </span>
-                  {chip.value}
+                <span key={chip.key} className="flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-sm font-medium text-primary">
+                  <span className="capitalize">{chip.key.replace(/_/g,' ')}: </span>
+                  <span className="font-bold">{chip.value}</span>
                   <button
-                    className="active-chip-remove"
+                    className="ml-1 rounded-full p-0.5 hover:bg-primary/20 transition-colors"
                     onClick={() => applyFilter({ [chip.key]: '' })}
                     aria-label={`Remove ${chip.key} filter`}
-                  >✕</button>
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 </span>
               ))}
-              <button className="btn btn-ghost btn-sm" onClick={clearAll} style={{ fontSize:'0.8rem' }}>
+              <button className="text-sm font-semibold text-muted-foreground hover:text-foreground ml-2 transition-colors" onClick={clearAll}>
                 Clear all
               </button>
             </div>
@@ -143,122 +142,139 @@ function BrowseContent() {
         </div>
       </div>
 
-      <div className="container" style={{ padding:'24px 20px' }}>
-        <div className="browse-layout-v2">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col md:flex-row gap-8 items-start">
 
           {/* ── Desktop Sidebar ──────────────────────── */}
-          <div className="browse-sidebar-col">
+          <div className="hidden md:block w-64 shrink-0 sticky top-24">
             <FilterSidebar />
           </div>
 
           {/* ── Mobile Drawer ────────────────────────── */}
           {drawerOpen && (
             <>
-              <div className="filter-drawer-overlay" onClick={() => setDrawerOpen(false)} />
-              <div className="filter-drawer">
+              <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden" onClick={() => setDrawerOpen(false)} />
+              <div className="fixed inset-y-0 right-0 z-50 w-full max-w-xs bg-background p-6 shadow-xl sm:max-w-sm md:hidden animate-in slide-in-from-right duration-300">
                 <FilterSidebar onClose={() => setDrawerOpen(false)} />
               </div>
             </>
           )}
 
           {/* ── Results column ───────────────────────── */}
-          <div className="browse-results-col">
+          <div className="flex-1 min-w-0 w-full">
 
             {/* Sort + count bar */}
-            <div className="browse-results-bar">
-              <span style={{ color:'var(--text-muted)', fontSize:'0.9rem' }}>
-                {total.toLocaleString()} result{total !== 1 ? 's' : ''}
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+              <span className="text-sm font-medium text-muted-foreground hidden sm:block">
+                Showing {listings.length} of {total.toLocaleString()} result{total !== 1 ? 's' : ''}
               </span>
-              <select
-                className="form-control"
-                style={{ width:'auto', padding:'8px 12px', fontSize:'0.85rem' }}
-                value={sort}
-                onChange={e => applyFilter({ sort: e.target.value })}
-              >
-                <option value="createdAt">Newest First</option>
-                <option value="price_asc">Price: Low → High</option>
-                <option value="price_desc">Price: High → Low</option>
-              </select>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <span className="text-sm font-semibold text-foreground whitespace-nowrap">Sort by:</span>
+                <select
+                  className="w-full sm:w-auto rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                  value={sort}
+                  onChange={e => applyFilter({ sort: e.target.value })}
+                >
+                  <option value="createdAt">Newest First</option>
+                  <option value="price_asc">Price: Low → High</option>
+                  <option value="price_desc">Price: High → Low</option>
+                </select>
+              </div>
             </div>
 
             {/* Results */}
             {loading ? (
-              <div className="listings-grid">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {[...Array(12)].map((_,i) => (
-                  <div key={i} style={{ borderRadius:'var(--radius-lg)', overflow:'hidden', background:'var(--surface)' }}>
-                    <div className="skeleton" style={{ aspectRatio:'4/3' }}/>
-                    <div style={{ padding:16 }}>
-                      <div className="skeleton" style={{ height:18, width:'60%', marginBottom:8 }}/>
-                      <div className="skeleton" style={{ height:14, width:'90%', marginBottom:6 }}/>
-                      <div className="skeleton" style={{ height:12, width:'40%' }}/>
+                  <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm animate-pulse">
+                    <div className="w-full aspect-[4/3] bg-secondary/50"/>
+                    <div className="p-4">
+                      <div className="h-5 bg-secondary/60 rounded-md w-3/4 mb-3"/>
+                      <div className="h-4 bg-secondary/50 rounded-md w-full mb-2"/>
+                      <div className="h-4 bg-secondary/50 rounded-md w-2/3 mb-4"/>
+                      <div className="h-3 bg-secondary/40 rounded-md w-1/3"/>
                     </div>
                   </div>
                 ))}
               </div>
             ) : listings.length > 0 ? (
               <>
-                <div className="listings-grid">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {listings.map(l => <ListingCard key={l.id} listing={l} />)}
                 </div>
                 {pages > 1 && (
-                  <div style={{ display:'flex', justifyContent:'center', gap:8, marginTop:40 }}>
+                  <div className="flex items-center justify-center gap-2 mt-12">
                     {page > 1 && (
-                      <button className="btn btn-ghost btn-sm" onClick={() => applyFilter({ page: page - 1 })}>← Prev</button>
+                      <button className="px-4 py-2 text-sm font-semibold text-foreground hover:bg-secondary rounded-lg transition-colors" onClick={() => applyFilter({ page: page - 1 })}>← Prev</button>
                     )}
-                    {[...Array(Math.min(pages, 7))].map((_,i) => {
-                      const p = i + 1;
-                      return (
-                        <button
-                          key={p}
-                          onClick={() => applyFilter({ page: p })}
-                          className={`btn btn-sm ${page === p ? 'btn-primary' : 'btn-ghost'}`}
-                        >{p}</button>
-                      );
-                    })}
+                    <div className="flex items-center gap-1">
+                      {[...Array(Math.min(pages, 7))].map((_,i) => {
+                        const p = i + 1;
+                        return (
+                          <button
+                            key={p}
+                            onClick={() => applyFilter({ page: p })}
+                            className={`w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition-colors ${page === p ? 'bg-primary text-primary-foreground shadow-sm' : 'text-foreground hover:bg-secondary'}`}
+                          >{p}</button>
+                        );
+                      })}
+                    </div>
                     {page < pages && (
-                      <button className="btn btn-ghost btn-sm" onClick={() => applyFilter({ page: page + 1 })}>Next →</button>
+                      <button className="px-4 py-2 text-sm font-semibold text-foreground hover:bg-secondary rounded-lg transition-colors" onClick={() => applyFilter({ page: page + 1 })}>Next →</button>
                     )}
                   </div>
                 )}
               </>
             ) : (
               /* ── Improved Empty State ── */
-              <div className="empty-state-recovery">
-                <div className="esr-icon">🔍</div>
-                <h3>No exact matches found</h3>
-                <p>Try widening your search with these suggestions:</p>
-                <div className="esr-suggestions">
-                  {activeChips.map(chip => (
-                    <button key={chip.key} className="esr-suggestion-btn" onClick={() => applyFilter({ [chip.key]: '' })}>
-                      ✓ Remove "{chip.value}" filter
-                    </button>
-                  ))}
-                  {searchParams.get('minPrice') || searchParams.get('maxPrice') ? (
-                    <button className="esr-suggestion-btn" onClick={() => {
-                      applyFilter({ minPrice: '', maxPrice: '' });
-                    }}>
-                      ✓ Expand price range
-                    </button>
-                  ) : null}
-                  {searchParams.get('county') && (
-                    <button className="esr-suggestion-btn" onClick={() => applyFilter({ county: '', location: '' })}>
-                      ✓ Search all of Kenya
+              <div className="flex flex-col items-center justify-center py-20 px-4 text-center rounded-2xl border border-dashed border-border bg-secondary/20">
+                <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center shadow-sm mb-6">
+                  <Search className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-2">No exact matches found</h3>
+                <p className="text-muted-foreground mb-8 max-w-md">Try widening your search or removing some filters to see more results.</p>
+                
+                {activeChips.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-3 max-w-2xl mb-8">
+                    {activeChips.map(chip => (
+                      <button key={chip.key} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-background border border-border text-sm font-medium hover:border-primary/50 hover:text-primary transition-colors shadow-sm" onClick={() => applyFilter({ [chip.key]: '' })}>
+                        <X className="w-4 h-4" /> Remove "{chip.value}" filter
+                      </button>
+                    ))}
+                    {(searchParams.get('minPrice') || searchParams.get('maxPrice')) && (
+                      <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-background border border-border text-sm font-medium hover:border-primary/50 hover:text-primary transition-colors shadow-sm" onClick={() => {
+                        applyFilter({ minPrice: '', maxPrice: '' });
+                      }}>
+                        <X className="w-4 h-4" /> Expand price range
+                      </button>
+                    )}
+                    {searchParams.get('county') && (
+                      <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-background border border-border text-sm font-medium hover:border-primary/50 hover:text-primary transition-colors shadow-sm" onClick={() => applyFilter({ county: '', location: '' })}>
+                        <X className="w-4 h-4" /> Search all of Kenya
+                      </button>
+                    )}
+                  </div>
+                )}
+                
+                <div className="flex flex-wrap items-center justify-center gap-4">
+                  {activeChips.length > 0 && (
+                    <button className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold shadow-sm hover:opacity-90 transition-opacity" onClick={clearAll}>
+                      Clear All Filters
                     </button>
                   )}
-                </div>
-                <div style={{ marginTop:24, display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-                  <button className="btn btn-primary" onClick={clearAll}>Clear All Filters</button>
-                  <Link to="/post-ad" className="btn btn-ghost">Post an Ad</Link>
+                  <Link to="/post-ad" className="px-6 py-2.5 rounded-xl bg-background border border-border text-foreground font-semibold shadow-sm hover:bg-secondary transition-colors">
+                    Post an Ad
+                  </Link>
                 </div>
 
                 {/* Similar category suggestions */}
                 {category && (
-                  <div style={{ marginTop:32 }}>
-                    <p style={{ color:'var(--text-muted)', marginBottom:12, fontSize:'0.9rem' }}>Browse similar categories:</p>
-                    <div style={{ display:'flex', gap:8, flexWrap:'wrap', justifyContent:'center' }}>
+                  <div className="mt-12 w-full max-w-3xl border-t border-border pt-8">
+                    <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Browse similar categories</p>
+                    <div className="flex flex-wrap justify-center gap-3">
                       {CATEGORIES.filter(c => c.slug !== category).slice(0, 5).map(c => (
-                        <Link key={c.slug} to={`/browse?category=${c.slug}`} className="btn btn-outline btn-sm">
-                          {c.icon} {c.name}
+                        <Link key={c.slug} to={`/browse?category=${c.slug}`} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-background border border-border hover:border-primary/50 hover:shadow-sm transition-all text-sm font-medium">
+                          <span className="text-lg">{c.icon}</span> {c.name}
                         </Link>
                       ))}
                     </div>

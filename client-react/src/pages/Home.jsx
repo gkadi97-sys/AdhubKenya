@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, BadgeCheck, ShieldCheck, Sparkles, Flame, TrendingUp, Clock, ChevronRight, ArrowUpRight, PlusCircle, Car, Smartphone, Home, Shirt, Laptop, Sofa, Briefcase, Wrench } from 'lucide-react';
+import { Search, MapPin, BadgeCheck, ShieldCheck, Sparkles, Flame, TrendingUp, Clock, ChevronRight, ArrowUpRight, PlusCircle, Car, Smartphone, Home, Shirt, Laptop, Sofa, Briefcase, Wrench, SlidersHorizontal } from 'lucide-react';
 import { getListings } from '@/lib/api';
+import { FILTER_CONFIG } from '@/lib/filterConfig';
 import ListingCard from '@/components/ListingCard';
 import { useSEO } from '@/lib/useSEO';
 
@@ -29,12 +30,26 @@ const categories = [
 const counties = ["All Kenya", "Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Thika"];
 const popularSearches = ["Toyota Fielder", "Bedsitter Nairobi", "iPhone 15", "Mitsubishi FH", "PlayStation 5"];
 
+const categoryMap = {
+  "Vehicles": "vehicles",
+  "Phones & Tablets": "phones-tablets",
+  "Property": "property",
+  "Fashion": "fashion",
+  "Electronics": "electronics",
+  "Furniture": "home-furniture",
+  "Jobs": "jobs",
+  "Services": "services",
+  "Auto Spares": "auto-spares",
+  "Animals & Pets": "animals-pets"
+};
+
 export default function HomePage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All categories');
   const [location, setLocation] = useState('All Kenya');
+  const [dynamicFilters, setDynamicFilters] = useState({});
   const navigate = useNavigate();
 
   useSEO({
@@ -50,12 +65,23 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Reset dynamic filters when category changes
+  useEffect(() => {
+    setDynamicFilters({});
+  }, [category]);
+
   const handleSearch = (e) => {
     e.preventDefault();
     let query = `/browse?`;
     if (search.trim()) query += `keyword=${encodeURIComponent(search)}&`;
-    if (category !== 'All categories') query += `category=${encodeURIComponent(category)}&`;
-    if (location !== 'All Kenya') query += `location=${encodeURIComponent(location)}`;
+    if (category !== 'All categories') query += `category=${encodeURIComponent(categoryMap[category] || category)}&`;
+    if (location !== 'All Kenya') query += `location=${encodeURIComponent(location)}&`;
+    
+    // Append dynamic filters
+    Object.entries(dynamicFilters).forEach(([k, v]) => {
+      if (v) query += `${k}=${encodeURIComponent(v)}&`;
+    });
+
     navigate(query);
   };
 
@@ -138,6 +164,31 @@ export default function HomePage() {
                 Search
               </button>
             </div>
+
+            {/* Dynamic Inline Filters */}
+            {category !== 'All categories' && categoryMap[category] && FILTER_CONFIG[categoryMap[category]] && (
+              <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-secondary/30 px-3 py-2.5">
+                <SlidersHorizontal className="h-4 w-4 text-muted-foreground mr-1" />
+                <span className="text-xs font-semibold text-muted-foreground mr-2 hidden sm:inline">Advanced:</span>
+                
+                {FILTER_CONFIG[categoryMap[category]].filters
+                  .filter(f => f.type === 'select' || f.type === 'radio')
+                  .slice(0, 4) // Show only top 4 select/radio filters to prevent clutter
+                  .map(f => (
+                    <select
+                      key={f.id}
+                      value={dynamicFilters[f.urlParam] || ''}
+                      onChange={(e) => setDynamicFilters(prev => ({ ...prev, [f.urlParam]: e.target.value }))}
+                      className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
+                    >
+                      <option value="">{f.label}</option>
+                      {f.options.map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                ))}
+              </div>
+            )}
 
             <div className="mt-4 flex flex-wrap items-center gap-2 px-1">
               <span className="text-xs font-semibold uppercase tracking-widest text-gold">

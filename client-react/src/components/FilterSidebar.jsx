@@ -1,31 +1,33 @@
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { FILTER_CONFIG, UNIVERSAL_FILTERS } from '@/lib/filterConfig';
 import { COUNTIES } from '@/lib/countyData';
+import { ChevronDown } from 'lucide-react';
 
 function FilterGroup({ label, children, defaultOpen = true }) {
   return (
-    <details className="filter-group" open={defaultOpen}>
-      <summary className="filter-group-header">
-        <span>{label}</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
+    <details className="group border-b border-border py-4" open={defaultOpen}>
+      <summary className="flex cursor-pointer items-center justify-between font-semibold text-foreground outline-none marker:content-none">
+        <span className="text-sm">{label}</span>
+        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
       </summary>
-      <div className="filter-group-body">{children}</div>
+      <div className="mt-4 flex flex-col gap-3 animate-in fade-in duration-200">
+        {children}
+      </div>
     </details>
   );
 }
 
 function RadioGroup({ options, value, onChange }) {
   return (
-    <div className="filter-radio-group">
+    <div className="flex flex-col gap-2">
       {options.map(opt => (
-        <label key={opt} className={`filter-radio-label ${value === opt ? 'active' : ''}`}>
+        <label key={opt} className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50 ${value === opt ? 'font-medium text-primary' : 'text-muted-foreground text-sm'}`}>
           <input
             type="radio"
             name={`radio-${opt}`}
             checked={value === opt}
             onChange={() => onChange(value === opt ? '' : opt)}
+            className="h-4 w-4 accent-primary"
           />
           {opt}
         </label>
@@ -43,13 +45,14 @@ function MultiCheck({ options, value = '', onChange }) {
     onChange(next.join(','));
   };
   return (
-    <div className="filter-check-group">
+    <div className="flex flex-col gap-2">
       {options.map(opt => (
-        <label key={opt} className={`filter-check-label ${selected.includes(opt) ? 'active' : ''}`}>
+        <label key={opt} className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50 ${selected.includes(opt) ? 'font-medium text-primary' : 'text-muted-foreground text-sm'}`}>
           <input
             type="checkbox"
             checked={selected.includes(opt)}
             onChange={() => toggle(opt)}
+            className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 accent-primary"
           />
           {opt}
         </label>
@@ -57,6 +60,8 @@ function MultiCheck({ options, value = '', onChange }) {
     </div>
   );
 }
+
+const inputClass = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
 
 export default function FilterSidebar({ onClose }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -87,28 +92,38 @@ export default function FilterSidebar({ onClose }) {
   const countyList = COUNTIES || [];
 
   return (
-    <aside className="filter-sidebar">
-      <div className="filter-sidebar-header">
-        <span className="filter-sidebar-title">
-          Filters {activeCount > 0 && <span className="filter-count-badge">{activeCount}</span>}
+    <aside className="flex flex-col w-full h-full bg-background md:bg-transparent">
+      <div className="flex items-center justify-between pb-4 border-b border-border md:hidden">
+        <span className="font-bold text-lg text-foreground">
+          Filters {activeCount > 0 && <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">{activeCount}</span>}
         </span>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="flex items-center gap-2">
           {activeCount > 0 && (
-            <button className="filter-clear-btn" onClick={resetAll}>Clear all</button>
+            <button className="text-sm font-semibold text-muted-foreground hover:text-foreground" onClick={resetAll}>Clear all</button>
           )}
           {onClose && (
-            <button className="filter-close-btn" onClick={onClose} aria-label="Close">✕</button>
+            <button className="rounded-full p-2 hover:bg-secondary text-foreground" onClick={onClose} aria-label="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
           )}
         </div>
       </div>
+      
+      <div className="hidden md:flex items-center justify-between pb-2">
+        <span className="font-bold text-lg text-foreground">
+          Filters {activeCount > 0 && <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">{activeCount}</span>}
+        </span>
+        {activeCount > 0 && (
+          <button className="text-xs font-semibold text-muted-foreground hover:text-foreground" onClick={resetAll}>Clear all</button>
+        )}
+      </div>
 
-      <div className="filter-sidebar-body">
+      <div className="flex flex-col pb-20 md:pb-0 overflow-y-auto">
 
         {/* ── Location ── */}
         <FilterGroup label="Location">
-          <label className="filter-field-label">County</label>
           <select
-            className="filter-select"
+            className={inputClass}
             value={get('county')}
             onChange={e => set('county', e.target.value)}
           >
@@ -119,18 +134,19 @@ export default function FilterSidebar({ onClose }) {
 
         {/* ── Price Range ── */}
         <FilterGroup label="Price (KES)">
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="flex items-center gap-2">
             <input
               type="number"
-              className="filter-input"
+              className={inputClass}
               placeholder="Min"
               min="0"
               value={get('minPrice')}
               onChange={e => set('minPrice', e.target.value)}
             />
+            <span className="text-muted-foreground">-</span>
             <input
               type="number"
-              className="filter-input"
+              className={inputClass}
               placeholder="Max"
               min="0"
               value={get('maxPrice')}
@@ -147,14 +163,14 @@ export default function FilterSidebar({ onClose }) {
               {f.type === 'text' ? (
                 <input
                   type="text"
-                  className="filter-input"
+                  className={inputClass}
                   placeholder={f.placeholder || `Any ${f.label}`}
                   value={get(f.urlParam)}
                   onChange={e => set(f.urlParam, e.target.value)}
                 />
               ) : f.type === 'select' ? (
                 <select
-                  className="filter-select"
+                  className={inputClass}
                   value={get(f.urlParam)}
                   onChange={e => set(f.urlParam, e.target.value)}
                 >

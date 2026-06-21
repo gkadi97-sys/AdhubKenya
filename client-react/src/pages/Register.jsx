@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import CountyTownSelect from '@/components/CountyTownSelect';
 import { useSEO } from '@/lib/useSEO';
+import { Loader2 } from 'lucide-react';
 
 function GoogleIcon() {
   return (
@@ -15,8 +16,7 @@ function GoogleIcon() {
   );
 }
 
-
-const COUNTIES = ['Nairobi','Mombasa','Kwale','Kilifi','Tana River','Lamu','Taita-Taveta','Garissa','Wajir','Mandera','Marsabit','Isiolo','Meru','Tharaka-Nithi','Embu','Kitui','Machakos','Makueni','Nyandarua','Nyeri','Kirinyaga',"Murang'a",'Kiambu','Turkana','West Pokot','Samburu','Trans Nzoia','Uasin Gishu','Elgeyo-Marakwet','Nandi','Baringo','Laikipia','Nakuru','Narok','Kajiado','Kericho','Bomet','Kakamega','Vihiga','Bungoma','Busia','Siaya','Kisumu','Homa Bay','Migori','Kisii','Nyamira'];
+const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
 
 export default function RegisterPage() {
   useSEO({
@@ -26,6 +26,13 @@ export default function RegisterPage() {
   });
   const { register, loginWithGoogle } = useAuth();
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from || '/post-ad';
+  const [form, setForm] = useState({ name:'', email:'', password:'', phone:'', whatsapp:'', location:'' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleGoogle = async () => {
     setError('');
@@ -37,12 +44,6 @@ export default function RegisterPage() {
       setGoogleLoading(false);
     }
   };
-  const navigate = useNavigate();
-  const location = useLocation();
-  const redirectTo = location.state?.from || '/post-ad';
-  const [form, setForm] = useState({ name:'', email:'', password:'', phone:'', whatsapp:'', location:'' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -60,102 +61,137 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{minHeight:'calc(100vh - 68px)',display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 20px',background:'radial-gradient(circle at 70% 50%, rgba(255,107,0,0.05) 0%, transparent 60%)'}}>
-      <div style={{width:'100%',maxWidth:500}}>
-        {/* Logo */}
-        <div style={{textAlign:'center',marginBottom:32}}>
-          <div style={{display:'inline-flex',alignItems:'center',gap:10,marginBottom:8}}>
-            <span style={{background:'var(--primary)',color:'#fff',width:42,height:42,borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,fontSize:'1.2rem'}}>A</span>
-            <span style={{fontFamily:'var(--font-display)',fontWeight:800,fontSize:'1.5rem'}}>
-              <span style={{color:'var(--primary-light)'}}>Ad</span>Hub
-              <span style={{color:'var(--accent)',fontSize:'0.65rem',letterSpacing:2,textTransform:'uppercase',marginLeft:4}}>Kenya</span>
+    <div className="flex min-h-[calc(100vh-68px)] items-center justify-center p-6 bg-background py-12">
+      <div className="w-full max-w-[500px] animate-in fade-in slide-in-from-bottom-4 duration-500">
+        
+        {/* Logo and Header */}
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-2 mb-4 hover:opacity-90 transition-opacity">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-xl font-black text-primary-foreground shadow-sm">
+              A
             </span>
-          </div>
-          <h1 style={{fontSize:'1.6rem',marginBottom:6}}>Create your account</h1>
-          <p style={{color:'var(--text-secondary)',fontSize:'0.9rem'}}>Start selling for free in minutes</p>
+            <span className="font-display text-2xl font-black text-foreground">
+              <span className="text-primary">Ad</span>Hub
+              <span className="ml-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Kenya</span>
+            </span>
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground mb-2">Create your account</h1>
+          <p className="text-sm text-muted-foreground">Start selling for free in minutes</p>
         </div>
 
-        <div className="card" style={{padding:32}}>
-          {error && <div className="alert alert-error" style={{marginBottom:20}}>{error}</div>}
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-sm">
+          {error && (
+            <div className="mb-6 rounded-xl border border-destructive/50 bg-destructive/10 p-4 text-sm font-medium text-destructive">
+              {error}
+            </div>
+          )}
 
           {/* ── Google Sign-Up (Primary CTA) ── */}
           <button
             id="google-register-btn"
             onClick={handleGoogle}
             disabled={googleLoading}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              gap: 12, padding: '13px 20px',
-              background: '#fff', color: '#3c4043',
-              border: '1px solid #dadce0', borderRadius: 8,
-              fontWeight: 600, fontSize: '0.95rem',
-              cursor: googleLoading ? 'not-allowed' : 'pointer',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-              marginBottom: 20,
-              opacity: googleLoading ? 0.75 : 1,
-            }}
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-background px-4 py-3.5 text-sm font-semibold text-foreground shadow-sm transition hover:bg-secondary hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 mb-6"
           >
-            <GoogleIcon />
+            {googleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
             {googleLoading ? 'Redirecting to Google...' : 'Sign up with Google'}
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-            <div style={{ flex: 1, height: 1, background: 'var(--border)' }}></div>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>or create with email</span>
-            <div style={{ flex: 1, height: 1, background: 'var(--border)' }}></div>
+          <div className="my-6 flex items-center gap-4">
+            <div className="h-px flex-1 bg-border"></div>
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">or create with email</span>
+            <div className="h-px flex-1 bg-border"></div>
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Full Name *</label>
-              <input className="form-control" name="name" value={form.name} onChange={handleChange}
-                placeholder="e.g. John Kamau" required autoFocus />
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-foreground">Full Name <span className="text-destructive">*</span></label>
+              <input 
+                className={inputClass} 
+                name="name" 
+                value={form.name} 
+                onChange={handleChange}
+                placeholder="e.g. John Kamau" 
+                required 
+                autoFocus 
+              />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Email Address *</label>
-              <input className="form-control" name="email" type="email" value={form.email}
-                onChange={handleChange} placeholder="you@example.com" required />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-foreground">Email Address <span className="text-destructive">*</span></label>
+              <input 
+                className={inputClass} 
+                name="email" 
+                type="email" 
+                value={form.email}
+                onChange={handleChange} 
+                placeholder="you@example.com" 
+                required 
+              />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Password *</label>
-              <input className="form-control" name="password" type="password" value={form.password}
-                onChange={handleChange} placeholder="Min. 6 characters" required />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-semibold text-foreground">Password <span className="text-destructive">*</span></label>
+              <input 
+                className={inputClass} 
+                name="password" 
+                type="password" 
+                value={form.password}
+                onChange={handleChange} 
+                placeholder="Min. 6 characters" 
+                required 
+              />
             </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
-              <div className="form-group">
-                <label className="form-label">Phone Number *</label>
-                <input className="form-control" name="phone" value={form.phone}
-                  onChange={handleChange} placeholder="0712 345 678" required />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-foreground">Phone Number <span className="text-destructive">*</span></label>
+                <input 
+                  className={inputClass} 
+                  name="phone" 
+                  value={form.phone}
+                  onChange={handleChange} 
+                  placeholder="0712 345 678" 
+                  required 
+                />
               </div>
-              <div className="form-group">
-                <label className="form-label">WhatsApp Number</label>
-                <input className="form-control" name="whatsapp" value={form.whatsapp}
-                  onChange={handleChange} placeholder="0712 345 678" />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-foreground">WhatsApp Number</label>
+                <input 
+                  className={inputClass} 
+                  name="whatsapp" 
+                  value={form.whatsapp}
+                  onChange={handleChange} 
+                  placeholder="0712 345 678" 
+                />
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="mt-1">
               <CountyTownSelect
                 value={form.location}
                 onChange={(loc) => setForm(f => ({ ...f, location: loc }))}
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-full btn-lg" disabled={loading} style={{marginTop:8}}>
-              {loading ? '⏳ Creating account...' : '🚀 Create Free Account'}
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="mt-4 flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5 text-sm font-bold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+              {loading ? 'Creating account...' : '🚀 Create Free Account'}
             </button>
 
-            <p style={{fontSize:'0.75rem',color:'var(--text-muted)',textAlign:'center',marginTop:16}}>
+            <p className="mt-2 text-center text-xs text-muted-foreground/80">
               By registering you agree to our Terms of Use and Privacy Policy
             </p>
           </form>
         </div>
 
-        <p style={{textAlign:'center',marginTop:20,color:'var(--text-secondary)',fontSize:'0.9rem'}}>
+        <p className="mt-8 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link to="/login" style={{color:'var(--primary-light)',fontWeight:600}}>Sign in →</Link>
+          <Link to="/login" className="font-bold text-primary hover:underline">Sign in &rarr;</Link>
         </p>
       </div>
     </div>
