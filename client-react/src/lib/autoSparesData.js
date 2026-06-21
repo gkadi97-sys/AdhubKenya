@@ -64,6 +64,24 @@ export const MASTER_SPARE_PARTS = {
   ]
 };
 
+export const MASTER_ACCESSORIES = {
+  'Exterior Accessories': [
+    'Car Covers', 'Bull Bars & Grille Guards', 'Roof Racks & Boxes', 'Mud Flaps', 'Spoilers', 'Towing Accessories'
+  ],
+  'Interior Accessories': [
+    'Floor Mats', 'Seat Covers', 'Steering Wheel Covers', 'Sunshades', 'Dashboard Organizers'
+  ],
+  'Car Electronics': [
+    'Dash Cams', 'Car Stereos & Radios', 'GPS Trackers', 'Alarm Systems', 'Car Speakers'
+  ],
+  'Lighting': [
+    'LED Light Bars', 'HID Kits', 'Underglow Lights'
+  ],
+  'Maintenance & Care': [
+    'Car Wash Shampoo', 'Waxes & Polishes', 'Tire Inflators', 'Jumper Cables', 'Tool Kits'
+  ]
+};
+
 // Mock Hierarchical Data for cascade testing
 export const MOCK_VEHICLE_HIERARCHY = {
   'Toyota': {

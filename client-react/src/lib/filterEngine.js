@@ -9,6 +9,7 @@
  */
 
 import { CATEGORY_ATTRIBUTES, TV_SPECS, AUDIO_SPECS, VEHICLE_MAKES_BY_TYPE } from './categoryData';
+import { MASTER_SPARE_PARTS, MASTER_ACCESSORIES } from './autoSparesData';
 import { LAPTOP_DATA } from './laptopPhoneData';
 
 /**
@@ -30,10 +31,16 @@ export function getCascadeConfig(categorySlug, subcategory) {
   return CASCADE_URL_PARAMS[categorySlug];
 }
 
-export function getLevel1Options(categorySlug, filters = {}) {
+export function getLevel1Options(categorySlug, filters = {}, attrId = null) {
   let subcategory = null;
   if (categorySlug === 'electronics') subcategory = filters.subcategory;
   if (categorySlug === 'vehicles') subcategory = filters.bodyType;
+
+  if (categorySlug === 'auto-spares') {
+    if (attrId === 'make') return Object.keys(VEHICLE_MAKES_BY_TYPE.Cars || {});
+    if (filters.listingType === 'accessory' || attrId === 'category') return Object.keys(MASTER_ACCESSORIES);
+    return Object.keys(MASTER_SPARE_PARTS);
+  }
 
   if (categorySlug === 'electronics' && subcategory) {
     const tree = getElectronicsTree(subcategory);
@@ -51,12 +58,20 @@ export function getLevel1Options(categorySlug, filters = {}) {
   return Object.keys(tree.data);
 }
 
-export function getLevel2Options(categorySlug, level1Value, filters = {}) {
+export function getLevel2Options(categorySlug, level1Value, filters = {}, attrId = null) {
   if (!level1Value) return [];
   let subcategory = null;
   if (categorySlug === 'electronics') subcategory = filters.subcategory;
   if (categorySlug === 'vehicles') subcategory = filters.bodyType;
   
+  if (categorySlug === 'auto-spares') {
+    if (attrId === 'model' || (filters.make && level1Value === filters.make)) {
+      return VEHICLE_MAKES_BY_TYPE.Cars?.[level1Value] || [];
+    }
+    if (filters.listingType === 'accessory' || attrId === 'subcategory') return MASTER_ACCESSORIES[level1Value] || [];
+    return MASTER_SPARE_PARTS[level1Value] || [];
+  }
+
   if (categorySlug === 'electronics' && subcategory) {
     const tree = getElectronicsTree(subcategory);
     if (!tree) return [];

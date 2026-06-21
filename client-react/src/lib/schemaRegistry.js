@@ -33,20 +33,20 @@ export const SCHEMA_REGISTRY = {
       // Spare Part Specific
       { id: 'partCategory', label: 'Part Category', type: 'dynamic-cascade', cascadeLevel: 1, dependsOn: { field: 'listingType', value: 'spare-part' } },
       { id: 'part', label: 'Spare Part', type: 'dynamic-cascade', cascadeLevel: 2, dependsOn: { field: 'listingType', value: 'spare-part' } },
-      { id: 'make', label: 'Vehicle Make', type: 'dynamic-cascade', cascadeLevel: 3 },
-      { id: 'model', label: 'Vehicle Model', type: 'dynamic-cascade', cascadeLevel: 4 },
-      { id: 'generation', label: 'Generation / Chassis', type: 'text' },
-      { id: 'engine', label: 'Engine Code', type: 'text' },
-      { id: 'compatibleYear', label: 'Compatible Year', type: 'select', options: MANUFACTURE_YEARS },
-      { id: 'position', label: 'Position', type: 'select', options: ['Front', 'Rear', 'Left', 'Right', 'Upper', 'Lower', 'Inner', 'Outer'] },
-      { id: 'oemNumber', label: 'OEM Part Number', type: 'text' },
+      { id: 'make', label: 'Vehicle Make', type: 'dynamic-cascade', cascadeLevel: 1, dependsOn: { field: 'listingType', value: 'spare-part' } },
+      { id: 'model', label: 'Vehicle Model', type: 'dynamic-cascade', cascadeParent: 'make', dependsOn: { field: 'listingType', value: 'spare-part' } },
+      { id: 'generation', label: 'Generation / Chassis', type: 'text', dependsOn: { field: 'listingType', value: 'spare-part' } },
+      { id: 'engine', label: 'Engine Code', type: 'text', dependsOn: { field: 'listingType', value: 'spare-part' } },
+      { id: 'compatibleYear', label: 'Compatible Year', type: 'select', options: MANUFACTURE_YEARS, dependsOn: { field: 'listingType', value: 'spare-part' } },
+      { id: 'position', label: 'Position', type: 'select', options: ['Front', 'Rear', 'Left', 'Right', 'Upper', 'Lower', 'Inner', 'Outer'], dependsOn: { field: 'listingType', value: 'spare-part' } },
+      { id: 'oemNumber', label: 'OEM Part Number', type: 'text', dependsOn: { field: 'listingType', value: 'spare-part' } },
 
       // Accessories Specific
       { id: 'category', label: 'Accessory Category', type: 'dynamic-cascade', cascadeLevel: 1, dependsOn: { field: 'listingType', value: 'accessory' } },
       { id: 'subcategory', label: 'Subcategory', type: 'dynamic-cascade', cascadeLevel: 2, dependsOn: { field: 'listingType', value: 'accessory' } },
       { id: 'item', label: 'Accessory Item', type: 'dynamic-cascade', cascadeLevel: 3, dependsOn: { field: 'listingType', value: 'accessory' } },
-      { id: 'universal', label: 'Universal Fit', type: 'radio', options: ['Yes', 'No'] },
-      { id: 'vehicleType', label: 'Vehicle Type', type: 'select', options: ['Car', 'SUV', 'Pickup', 'Truck', 'Motorcycle'] },
+      { id: 'universal', label: 'Universal Fit', type: 'radio', options: ['Yes', 'No'], dependsOn: { field: 'listingType', value: 'accessory' } },
+      { id: 'vehicleType', label: 'Vehicle Type', type: 'select', options: ['Car', 'SUV', 'Pickup', 'Truck', 'Motorcycle'], dependsOn: { field: 'listingType', value: 'accessory' } },
       
       { id: 'condition', label: 'Condition', type: 'radio', options: ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'] }
     ]

@@ -128,15 +128,25 @@ function CategorySidebar({ onNavigate }) {
                       let opts = [];
                       if (attr.options) opts = attr.options;
                       else if (attr.type === 'dynamic-cascade') {
-                        if (attr.cascadeLevel === 1) opts = getLevel1Options(selectedSlug, filters);
-                        else if (attr.cascadeLevel === 2) {
+                        if (attr.cascadeParent) {
+                          const parentVal = filters[attr.cascadeParent];
+                          // If there's a cascadeGrandparent, pass it as level1Value, and parent as level2Value
+                          if (attr.cascadeGrandparent) {
+                            const gpVal = filters[attr.cascadeGrandparent];
+                            if (gpVal && parentVal) opts = getLevel3Options(selectedSlug, gpVal, parentVal, filters, attr.id);
+                          } else {
+                            if (parentVal) opts = getLevel2Options(selectedSlug, parentVal, filters, attr.id);
+                          }
+                        } else if (attr.cascadeLevel === 1) {
+                          opts = getLevel1Options(selectedSlug, filters, attr.id);
+                        } else if (attr.cascadeLevel === 2) {
                           const l1Attr = schema.attributes.find(a => a.cascadeLevel === 1 && a.type === 'dynamic-cascade');
-                          if (l1Attr && filters[l1Attr.id]) opts = getLevel2Options(selectedSlug, filters[l1Attr.id], filters);
+                          if (l1Attr && filters[l1Attr.id]) opts = getLevel2Options(selectedSlug, filters[l1Attr.id], filters, attr.id);
                         } else if (attr.cascadeLevel === 3) {
                           const l1Attr = schema.attributes.find(a => a.cascadeLevel === 1 && a.type === 'dynamic-cascade');
                           const l2Attr = schema.attributes.find(a => a.cascadeLevel === 2 && a.type === 'dynamic-cascade');
                           if (l1Attr && l2Attr && filters[l1Attr.id] && filters[l2Attr.id]) {
-                            opts = getLevel3Options(selectedSlug, filters[l1Attr.id], filters[l2Attr.id], filters);
+                            opts = getLevel3Options(selectedSlug, filters[l1Attr.id], filters[l2Attr.id], filters, attr.id);
                           }
                         }
                       }
@@ -171,23 +181,25 @@ function CategorySidebar({ onNavigate }) {
                       }
 
                       return (
-                        <div key={attr.id} className="relative">
+                        <div key={attr.id}>
                           <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
-                          <select
-                            value={val}
-                            onChange={e => setFilter(attr.id, e.target.value)}
-                            className={`w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition cursor-pointer ${
-                              val ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-foreground'
-                            } focus:border-primary/50`}
-                          >
-                            <option value="">Any {attr.label}</option>
-                            {opts.map(o => <option key={o} value={o}>{o}</option>)}
-                          </select>
-                          {val && (
-                            <button onClick={() => clearFilter(attr.id)} className="absolute right-2.5 top-[26px] text-primary hover:text-destructive cursor-pointer">
-                              <X className="w-3 h-3" />
-                            </button>
-                          )}
+                          <div className="relative">
+                            <select
+                              value={val}
+                              onChange={e => setFilter(attr.id, e.target.value)}
+                              className={`w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition cursor-pointer ${
+                                val ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-foreground'
+                              } focus:border-primary/50`}
+                            >
+                              <option value="">Any {attr.label}</option>
+                              {opts.map(o => <option key={o} value={o}>{o}</option>)}
+                            </select>
+                            {val && (
+                              <button onClick={() => clearFilter(attr.id)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer">
+                                <X className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
