@@ -195,30 +195,25 @@ function CategorySidebar({ onNavigate }) {
         </div>
       )}
 
-      {/* Cascade: non-vehicles (System→Part, Category→Brand, etc.) */}
-      {selectedSlug !== 'vehicles' && cascadeP && lvl1Opts.length > 0 && (
-        <div className="flex flex-col gap-2 border-t border-border pt-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{labels.level1Label}</p>
-          <select
-            value={lvl1Val}
-            onChange={e => setFilter(cascadeP.level1, e.target.value)}
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
-          >
-            <option value="">Any {labels.level1Label}</option>
-            {lvl1Opts.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-          {lvl1Val && lvl2Opts.length > 0 && (
+      {/* Cascade level 2: shown only after a subcategory chip is selected (chips = level1) */}
+      {selectedSlug !== 'vehicles' && cascadeP && selectedSub && (() => {
+        const l2Opts = getLevel2Options(selectedSlug, selectedSub);
+        if (!l2Opts.length) return null;
+        return (
+          <div className="flex flex-col gap-2 border-t border-border pt-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{labels.level2Label}</p>
             <select
               value={filters[cascadeP.level2] || ''}
               onChange={e => setFilter(cascadeP.level2, e.target.value)}
               className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
             >
               <option value="">Any {labels.level2Label}</option>
-              {lvl2Opts.map(o => <option key={o} value={o}>{o}</option>)}
+              {l2Opts.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
-          )}
-        </div>
-      )}
+          </div>
+        );
+      })()}
+
 
       {/* Flat schema filters */}
       {flatFilters.length > 0 && (
