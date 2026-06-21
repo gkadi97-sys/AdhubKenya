@@ -125,7 +125,6 @@ function CategorySidebar({ onNavigate }) {
 
               {/* ACCORDION EXPANSION */}
               {isSelected && schema && (() => {
-                const visibleAttrs = (schema.attributes || []).filter(attr => evaluateDependsOn(attr.dependsOn));
                 if (!visibleAttrs.length) return null;
 
                 return (
