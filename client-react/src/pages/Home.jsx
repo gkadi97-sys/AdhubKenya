@@ -90,190 +90,183 @@ function CategorySidebar({ onNavigate }) {
 
   const activeCount = Object.values(filters).filter(Boolean).length + (selectedSub ? 1 : 0);
 
-  // ── ALL CATEGORIES LIST ──────────────────────────────────────────────────
-  if (!selectedSlug) {
-    return (
-      <nav>
-        <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">All Categories</p>
-        <ul className="flex flex-col">
-          {CATEGORY_ICONS.map(c => (
-            <li key={c.slug}>
+  // ── ACCORDION CATEGORIES LIST ──────────────────────────────────────────────
+  return (
+    <nav>
+      <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">All Categories</p>
+      <ul className="flex flex-col gap-1">
+        {CATEGORY_ICONS.map(c => {
+          const isSelected = selectedSlug === c.slug;
+          return (
+            <li key={c.slug} className="flex flex-col">
               <button
-                onClick={() => selectCategory(c.slug)}
-                className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-secondary/70 cursor-pointer"
+                onClick={() => isSelected ? selectCategory(null) : selectCategory(c.slug)}
+                className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors cursor-pointer ${
+                  isSelected ? 'bg-primary/5' : 'hover:bg-secondary/70'
+                }`}
               >
                 <span className="text-xl w-7 text-center leading-none shrink-0">{c.icon}</span>
-                <span className="flex-1 text-[13px] font-medium text-foreground group-hover:text-primary leading-tight">{c.name}</span>
-                <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">{c.count.toLocaleString()}</span>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-4 border-t border-border pt-4 px-3">
-          <Link to="/browse" className="flex items-center gap-2 text-xs font-semibold text-primary hover:underline">
-            Browse all listings <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      </nav>
-    );
-  }
-
-  // ── FOCUSED CATEGORY ─────────────────────────────────────────────────────
-  return (
-    <div className="flex flex-col gap-4">
-      {/* Back + Category name */}
-      <div>
-        <button
-          onClick={back}
-          className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer mb-3"
-        >
-          <ChevronLeft className="w-3.5 h-3.5" /> All Categories
-        </button>
-        <div className="flex items-center gap-2 px-1">
-          <span className="text-2xl leading-none">{cat?.icon}</span>
-          <h3 className="text-base font-bold text-foreground">{cat?.name}</h3>
-        </div>
-      </div>
-
-      {/* Subcategories */}
-      {subcategories.length > 0 && (
-        <div>
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
-            {selectedSlug === 'vehicles' ? 'Vehicle Type' : labels.level1Label || 'Subcategory'}
-          </p>
-          <ul className="flex flex-col gap-0.5">
-            {subcategories.map(sub => (
-              <li key={sub}>
-                <button
-                  onClick={() => setSelectedSub(selectedSub === sub ? '' : sub)}
-                  className={`w-full flex items-center gap-2 rounded-xl px-3 py-2 text-left text-[13px] transition-colors cursor-pointer ${
-                    selectedSub === sub
-                      ? 'bg-primary/10 text-primary font-semibold'
-                      : 'text-foreground hover:bg-secondary/70 font-medium'
-                  }`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${selectedSub === sub ? 'bg-primary' : 'bg-border'}`} />
-                  {sub}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Cascade: Make→Model (vehicles) */}
-      {selectedSlug === 'vehicles' && lvl1Opts.length > 0 && (
-        <div className="flex flex-col gap-2 border-t border-border pt-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Make / Model</p>
-          <select
-            value={filters.make || ''}
-            onChange={e => setFilter('make', e.target.value)}
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
-          >
-            <option value="">Any Make</option>
-            {lvl1Opts.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-          {filters.make && getLevel2Options('vehicles', filters.make).length > 0 && (
-            <select
-              value={filters.model || ''}
-              onChange={e => setFilter('model', e.target.value)}
-              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
-            >
-              <option value="">Any Model</option>
-              {getLevel2Options('vehicles', filters.make).map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-          )}
-          <select
-            value={filters.year || ''}
-            onChange={e => setFilter('year', e.target.value)}
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
-          >
-            <option value="">Any Year</option>
-            {MANUFACTURE_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-      )}
-
-      {/* Cascade level 2: shown only after a subcategory chip is selected (chips = level1) */}
-      {selectedSlug !== 'vehicles' && cascadeP && selectedSub && (() => {
-        const l2Opts = getLevel2Options(selectedSlug, selectedSub);
-        if (!l2Opts.length) return null;
-        return (
-          <div className="flex flex-col gap-2 border-t border-border pt-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{labels.level2Label}</p>
-            <select
-              value={filters[cascadeP.level2] || ''}
-              onChange={e => setFilter(cascadeP.level2, e.target.value)}
-              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
-            >
-              <option value="">Any {labels.level2Label}</option>
-              {l2Opts.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </div>
-        );
-      })()}
-
-
-      {/* Flat schema filters */}
-      {flatFilters.length > 0 && (
-        <div className="flex flex-col gap-2 border-t border-border pt-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-            <SlidersHorizontal className="w-3 h-3" /> Filters
-          </p>
-          {flatFilters.map(attr => {
-            const opts = Array.isArray(attr.options) ? attr.options : [];
-            if (!opts.length) return null;
-            const val = filters[attr.id] || '';
-            return (
-              <div key={attr.id} className="relative">
-                <select
-                  value={val}
-                  onChange={e => setFilter(attr.id, e.target.value)}
-                  className={`w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition cursor-pointer ${
-                    val ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-foreground'
-                  } focus:border-primary/50`}
-                >
-                  <option value="">{attr.label}</option>
-                  {opts.map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-                {val && (
-                  <button onClick={() => clearFilter(attr.id)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer">
-                    <X className="w-3 h-3" />
-                  </button>
+                <span className={`flex-1 text-[13px] leading-tight ${isSelected ? 'font-bold text-primary' : 'font-medium text-foreground group-hover:text-primary'}`}>
+                  {c.name}
+                </span>
+                {!isSelected && (
+                  <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">{c.count.toLocaleString()}</span>
                 )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+                <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${isSelected ? 'rotate-180 text-primary' : '-rotate-90 text-muted-foreground opacity-0 group-hover:opacity-100'}`} />
+              </button>
 
-      {/* Active pills */}
-      {activeCount > 0 && (
-        <div className="flex flex-wrap gap-1.5 border-t border-border pt-3">
-          {selectedSub && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[10px] font-semibold text-primary">
-              {selectedSub} <button onClick={() => setSelectedSub('')} className="cursor-pointer"><X className="w-2.5 h-2.5" /></button>
-            </span>
-          )}
-          {Object.entries(filters).filter(([,v]) => v).map(([k, v]) => (
-            <span key={k} className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[10px] font-semibold text-primary">
-              {v} <button onClick={() => clearFilter(k)} className="cursor-pointer"><X className="w-2.5 h-2.5" /></button>
-            </span>
-          ))}
-        </div>
-      )}
+              {/* ACCORDION EXPANSION */}
+              {isSelected && (
+                <div className="pl-11 pr-3 py-3 flex flex-col gap-4 border-b border-border/50 mb-2">
+                  
+                  {/* Subcategories */}
+                  {subcategories.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
+                        {selectedSlug === 'vehicles' ? 'Vehicle Type' : labels.level1Label || 'Subcategory'}
+                      </p>
+                      <ul className="flex flex-col gap-0.5">
+                        {subcategories.map(sub => (
+                          <li key={sub}>
+                            <button
+                              onClick={() => setSelectedSub(selectedSub === sub ? '' : sub)}
+                              className={`w-full flex items-center gap-2 rounded-xl px-3 py-2 text-left text-[13px] transition-colors cursor-pointer ${
+                                selectedSub === sub
+                                  ? 'bg-primary/10 text-primary font-semibold'
+                                  : 'text-foreground hover:bg-secondary/70 font-medium'
+                              }`}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${selectedSub === sub ? 'bg-primary' : 'bg-border'}`} />
+                              {sub}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-      {/* Browse CTA */}
-      <button
-        onClick={browse}
-        className="w-full inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-4 py-2.5 text-sm font-bold text-primary-foreground shadow hover:opacity-90 transition cursor-pointer mt-1"
-      >
-        Browse {cat?.name}
-        {activeCount > 0 && <span className="rounded-full bg-white/25 px-1.5 py-0.5 text-[10px] font-bold">{activeCount}</span>}
-        <ChevronRight className="w-4 h-4" />
-      </button>
-    </div>
+                  {/* Cascade: Make→Model (vehicles) */}
+                  {selectedSlug === 'vehicles' && lvl1Opts.length > 0 && (
+                    <div className="flex flex-col gap-2 border-t border-border pt-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Make / Model</p>
+                      <select
+                        value={filters.make || ''}
+                        onChange={e => setFilter('make', e.target.value)}
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
+                      >
+                        <option value="">Any Make</option>
+                        {lvl1Opts.map(o => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                      {filters.make && getLevel2Options('vehicles', filters.make).length > 0 && (
+                        <select
+                          value={filters.model || ''}
+                          onChange={e => setFilter('model', e.target.value)}
+                          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
+                        >
+                          <option value="">Any Model</option>
+                          {getLevel2Options('vehicles', filters.make).map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      )}
+                      <select
+                        value={filters.year || ''}
+                        onChange={e => setFilter('year', e.target.value)}
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
+                      >
+                        <option value="">Any Year</option>
+                        {MANUFACTURE_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Cascade level 2: shown only after a subcategory chip is selected (chips = level1) */}
+                  {selectedSlug !== 'vehicles' && cascadeP && selectedSub && (() => {
+                    const l2Opts = getLevel2Options(selectedSlug, selectedSub);
+                    if (!l2Opts.length) return null;
+                    return (
+                      <div className="flex flex-col gap-2 border-t border-border pt-4">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{labels.level2Label}</p>
+                        <select
+                          value={filters[cascadeP.level2] || ''}
+                          onChange={e => setFilter(cascadeP.level2, e.target.value)}
+                          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none focus:border-primary/50"
+                        >
+                          <option value="">Any {labels.level2Label}</option>
+                          {l2Opts.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Flat schema filters */}
+                  {flatFilters.length > 0 && (
+                    <div className="flex flex-col gap-2 border-t border-border pt-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                        <SlidersHorizontal className="w-3 h-3" /> Filters
+                      </p>
+                      {flatFilters.map(attr => {
+                        const opts = Array.isArray(attr.options) ? attr.options : [];
+                        if (!opts.length) return null;
+                        const val = filters[attr.id] || '';
+                        return (
+                          <div key={attr.id} className="relative">
+                            <select
+                              value={val}
+                              onChange={e => setFilter(attr.id, e.target.value)}
+                              className={`w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition cursor-pointer ${
+                                val ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-foreground'
+                              } focus:border-primary/50`}
+                            >
+                              <option value="">{attr.label}</option>
+                              {opts.map(o => <option key={o} value={o}>{o}</option>)}
+                            </select>
+                            {val && (
+                              <button onClick={() => clearFilter(attr.id)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer">
+                                <X className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Active pills */}
+                  {activeCount > 0 && (
+                    <div className="flex flex-wrap gap-1.5 border-t border-border pt-3">
+                      {selectedSub && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                          {selectedSub} <button onClick={() => setSelectedSub('')} className="cursor-pointer"><X className="w-2.5 h-2.5" /></button>
+                        </span>
+                      )}
+                      {Object.entries(filters).filter(([,v]) => v).map(([k, v]) => (
+                        <span key={k} className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                          {v} <button onClick={() => clearFilter(k)} className="cursor-pointer"><X className="w-2.5 h-2.5" /></button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Browse CTA */}
+                  <button
+                    onClick={browse}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-4 py-2.5 text-sm font-bold text-primary-foreground shadow hover:opacity-90 transition cursor-pointer mt-1"
+                  >
+                    Browse {cat?.name}
+                    {activeCount > 0 && <span className="rounded-full bg-white/25 px-1.5 py-0.5 text-[10px] font-bold">{activeCount}</span>}
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <div className="mt-4 border-t border-border pt-4 px-3">
+        <Link to="/browse" className="flex items-center gap-2 text-xs font-semibold text-primary hover:underline">
+          Browse all listings <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+    </nav>
   );
 }
 
