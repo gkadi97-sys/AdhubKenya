@@ -20,26 +20,75 @@ export const getMe = async () => {
 
 // --- Listings API ---
 export const getListings = async (params = {}) => {
+  const page  = parseInt(params.page)  || 1;
+  const limit = parseInt(params.limit) || 12;
+  const offset = (page - 1) * limit;
+
+  // 1. If searching by keyword, use the advanced search ranking RPC
+  if (params.keyword) {
+    // Extract filter-only params (exclude pagination, keyword, sort)
+    const filters = { ...params };
+    delete filters.keyword;
+    delete filters.category;
+    delete filters.page;
+    delete filters.limit;
+    delete filters.sort;
+
+    const { data, error } = await supabase.rpc('search_listings_ranked', {
+      p_keyword: params.keyword,
+      p_category: params.category || null,
+      p_filters: Object.keys(filters).length > 0 ? filters : null,
+      p_limit: limit,
+      p_offset: offset
+    });
+
+    if (error) throw error;
+
+    const total = data.length > 0 ? Number(data[0].total_count) : 0;
+    
+    // The RPC returns ranked results natively. We only re-sort if explicitly requested.
+    let sortedData = data;
+    if (params.sort === 'price_asc') {
+      sortedData = [...data].sort((a, b) => a.price - b.price);
+    } else if (params.sort === 'price_desc') {
+      sortedData = [...data].sort((a, b) => b.price - a.price);
+    } else if (params.sort === 'createdAt') {
+       // already secondarily sorted by created_at in RPC
+    }
+
+    // fetch seller profiles separately since RPC returns raw rows
+    if (sortedData.length > 0) {
+       const sellerIds = [...new Set(sortedData.map(d => d.seller_id))];
+       const { data: profiles } = await supabase.from('profiles').select('id, name, location, created_at').in('id', sellerIds);
+       if (profiles) {
+         sortedData = sortedData.map(d => ({
+           ...d,
+           seller: profiles.find(p => p.id === d.seller_id)
+         }));
+       }
+    }
+
+    return {
+      listings: sortedData,
+      total,
+      pages: Math.ceil(total / limit),
+    };
+  }
+
+  // 2. Standard Query (No Keyword)
   let query = supabase.from('listings').select('*, seller:profiles!seller_id(name, location, created_at)', { count: 'exact' });
 
   // ── Top-level column filters (backward-compatible) ────────────────────────
   if (params.category)  query = query.eq('category', params.category);
   if (params.location)  query = query.eq('location', params.location);
-  if (params.keyword)   query = query.or(`title.ilike.%${params.keyword}%,description.ilike.%${params.keyword}%`);
   if (params.minPrice)  query = query.gte('price', params.minPrice);
   if (params.maxPrice)  query = query.lte('price', params.maxPrice);
 
   // ── Structured attribute filters via specs JSONB column ───────────────────
-  // These params are written by CascadeFilterGroup in FilterSidebar and read
-  // from the structured `specs` column stored during ad creation.
-  // Falls back gracefully for old ads that don't have specs stored.
-
-  // make: check both top-level `make` column AND specs->>'make'
   if (params.make) {
     query = query.or(`make.ilike.%${params.make}%,specs->make.ilike.%${params.make}%`);
   }
 
-  // Cascade-derived params — all read from specs JSONB
   const SPECS_PARAMS = [
     'model', 'subcategory', 'system', 'part',
     'vehicle_type', 'bodyStyle', 'fuel', 'transmission', 'drive',
@@ -52,22 +101,13 @@ export const getListings = async (params = {}) => {
 
   SPECS_PARAMS.forEach(key => {
     if (params[key]) {
-      // Use ilike for partial matching (e.g. multicheck values stored as comma-separated)
       query = query.ilike(`specs->>${key}`, `%${params[key]}%`);
     }
   });
 
   // ── Numeric range filters from specs ──────────────────────────────────────
-  // engineCC_max: ads store engineCC in specs->engineCC, filter shows max threshold
-  if (params.engineCC_max) {
-    query = query.lte(`specs->>engineCC`, params.engineCC_max);
-  }
-  // mileage_max: ads store mileage in specs->mileage
-  if (params.mileage_max) {
-    query = query.lte(`specs->>mileage`, params.mileage_max);
-  }
-
-  // ── Year range filters ────────────────────────────────────────────────────
+  if (params.engineCC_max) query = query.lte(`specs->>engineCC`, params.engineCC_max);
+  if (params.mileage_max) query = query.lte(`specs->>mileage`, params.mileage_max);
   if (params.year_min) query = query.gte('year', parseInt(params.year_min));
   if (params.year_max) query = query.lte('year', parseInt(params.year_max));
 
@@ -94,11 +134,8 @@ export const getListings = async (params = {}) => {
   if (sort === 'price_desc') query = query.order('price', { ascending: false });
 
   // ── Pagination ─────────────────────────────────────────────────────────────
-  const page  = parseInt(params.page)  || 1;
-  const limit = parseInt(params.limit) || 12;
-  const from  = (page - 1) * limit;
-  const to    = from + limit - 1;
-  query = query.range(from, to);
+  const to = offset + limit - 1;
+  query = query.range(offset, to);
 
   const { data, error, count } = await query;
   if (error) throw error;
@@ -108,6 +145,33 @@ export const getListings = async (params = {}) => {
     total: count,
     pages: Math.ceil(count / limit),
   };
+};
+
+/**
+ * Fetches dynamic aggregations (counts) for a specific field based on current filters.
+ * Powers the data-driven filter sidebar options.
+ */
+export const getFilterAggregates = async (category, aggregateField, currentFilters = {}) => {
+  if (!category || !aggregateField) return {};
+  
+  // Clean up filters to only send actual DB fields
+  const cleanFilters = { ...currentFilters };
+  delete cleanFilters.category;
+  delete cleanFilters.page;
+  delete cleanFilters.sort;
+  delete cleanFilters.keyword;
+
+  const { data, error } = await supabase.rpc('get_filter_aggregates', {
+    p_category: category,
+    p_aggregate_field: aggregateField,
+    p_filters: Object.keys(cleanFilters).length > 0 ? cleanFilters : null
+  });
+
+  if (error) {
+    console.error('Error fetching filter aggregates:', error);
+    return {};
+  }
+  return data || {};
 };
 
 export const getFeaturedListings = async () => {

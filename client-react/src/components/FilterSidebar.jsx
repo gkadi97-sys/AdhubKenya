@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { getFilterAggregates } from '@/lib/api';
 import { FILTER_CONFIG, UNIVERSAL_FILTERS } from '@/lib/filterConfig';
 import {
   hasCascadeFilters,
@@ -75,11 +77,12 @@ function MultiCheck({ options, value = '', onChange }) {
 const inputClass = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
 
 // ─── Cascade Filter Group ────────────────────────────────────────────────────
-// This component is the heart of the "filter parity" feature.
-// It reads cascade options from filterEngine.js (which reads from categoryData.js)
-// and renders dependent dropdowns. Selecting a parent auto-clears child params.
 
 function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
+  const [counts1, setCounts1] = useState(null);
+  const [counts2, setCounts2] = useState(null);
+  const [counts3, setCounts3] = useState(null);
+
   if (!hasCascadeFilters(categorySlug)) return null;
 
   const depth = getCascadeDepth(categorySlug);
@@ -90,12 +93,41 @@ function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
   const level1Value = searchParams.get(params.level1) || '';
   const level2Value = searchParams.get(params.level2) || '';
 
-  const level1Options = getLevel1Options(categorySlug);
-  const level2Options = getLevel2Options(categorySlug, level1Value);
-  const level3Options = depth >= 3 ? getLevel3Options(categorySlug, level1Value, level2Value) : [];
+  const staticLevel1 = getLevel1Options(categorySlug);
+  const staticLevel2 = getLevel2Options(categorySlug, level1Value);
+  const staticLevel3 = depth >= 3 ? getLevel3Options(categorySlug, level1Value, level2Value) : [];
+
+  useEffect(() => {
+    const currentFilters = Object.fromEntries(searchParams.entries());
+    
+    const filters1 = { ...currentFilters };
+    delete filters1[params.level1];
+    delete filters1[params.level2];
+    if (params.level3) delete filters1[params.level3];
+    getFilterAggregates(categorySlug, params.level1, filters1).then(setCounts1);
+
+    if (level1Value) {
+      const filters2 = { ...currentFilters };
+      delete filters2[params.level2];
+      if (params.level3) delete filters2[params.level3];
+      getFilterAggregates(categorySlug, params.level2, filters2).then(setCounts2);
+    }
+
+    if (depth >= 3 && level2Value && params.level3) {
+      const filters3 = { ...currentFilters };
+      delete filters3[params.level3];
+      getFilterAggregates(categorySlug, params.level3, filters3).then(setCounts3);
+    }
+  }, [categorySlug, searchParams, params.level1, params.level2, params.level3, depth, level1Value, level2Value]);
+
+  const renderOptions = (staticOpts, countsMap) => {
+    if (!countsMap) return staticOpts.map(o => <option key={o} value={o}>{o}</option>);
+    return staticOpts
+      .filter(o => countsMap[o] > 0)
+      .map(o => <option key={o} value={o}>{o} ({countsMap[o]})</option>);
+  };
 
   const handleLevel1Change = (val) => {
-    // Clear level2 and level3 when level1 changes
     const next = new URLSearchParams(searchParams);
     if (val) next.set(params.level1, val); else next.delete(params.level1);
     next.delete(params.level2);
@@ -119,6 +151,10 @@ function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
     setParam(next);
   };
 
+  const hasLiveLevel1 = !counts1 || staticLevel1.some(o => counts1[o] > 0);
+  const hasLiveLevel2 = level1Value && (!counts2 || staticLevel2.some(o => counts2[o] > 0));
+  const hasLiveLevel3 = depth >= 3 && level2Value && (!counts3 || staticLevel3.some(o => counts3[o] > 0));
+
   return (
     <details className="group border-b border-border py-4" open>
       <summary className="flex cursor-pointer items-center justify-between font-semibold text-foreground outline-none marker:content-none">
@@ -131,8 +167,7 @@ function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
       </summary>
 
       <div className="mt-4 flex flex-col gap-3 animate-in fade-in duration-200">
-        {/* Level 1 */}
-        {level1Options.length > 0 && (
+        {staticLevel1.length > 0 && hasLiveLevel1 && (
           <div className="flex flex-col gap-1">
             <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-1">
               {labels.level1Label}
@@ -143,13 +178,12 @@ function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
               onChange={e => handleLevel1Change(e.target.value)}
             >
               <option value="">Any {labels.level1Label}</option>
-              {level1Options.map(o => <option key={o} value={o}>{o}</option>)}
+              {renderOptions(staticLevel1, counts1)}
             </select>
           </div>
         )}
 
-        {/* Level 2 — only shown when level1 is selected */}
-        {level1Value && level2Options.length > 0 && (
+        {level1Value && staticLevel2.length > 0 && hasLiveLevel2 && (
           <div className="flex flex-col gap-1 animate-in slide-in-from-top-1 duration-200">
             <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-1">
               {labels.level2Label}
@@ -160,13 +194,12 @@ function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
               onChange={e => handleLevel2Change(e.target.value)}
             >
               <option value="">Any {labels.level2Label}</option>
-              {level2Options.map(o => <option key={o} value={o}>{o}</option>)}
+              {renderOptions(staticLevel2, counts2)}
             </select>
           </div>
         )}
 
-        {/* Level 3 — only shown for 3-level categories when level2 is selected */}
-        {depth >= 3 && level2Value && level3Options.length > 0 && (
+        {depth >= 3 && level2Value && staticLevel3.length > 0 && hasLiveLevel3 && (
           <div className="flex flex-col gap-1 animate-in slide-in-from-top-1 duration-200">
             <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-1">
               {labels.level3Label || 'Model'}
@@ -177,15 +210,14 @@ function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
               onChange={e => handleLevel3Change(e.target.value)}
             >
               <option value="">Any Model</option>
-              {level3Options.map(o => <option key={o} value={o}>{o}</option>)}
+              {renderOptions(staticLevel3, counts3)}
             </select>
           </div>
         )}
 
-        {/* Helper text when level1 is selected but no level2 options (flat list already at level2) */}
-        {level1Value && level2Options.length === 0 && (
+        {level1Value && !hasLiveLevel2 && (
           <p className="text-xs text-muted-foreground italic px-1">
-            No sub-options for "{level1Value}"
+            No sub-options currently available
           </p>
         )}
       </div>
