@@ -105,7 +105,10 @@ export function DynamicDataFilter({ category, urlParam, searchParams, onChange }
   if (!counts) return <div className="animate-pulse h-10 w-full bg-secondary/50 rounded-xl" />;
   
   const options = Object.keys(counts).filter(k => counts[k] > 0).sort();
-  if (options.length === 0) return null;
+  if (options.length === 0) {
+    // If we have no data, we can't show a dropdown because we don't have static options.
+    return null;
+  }
 
   const labelMap = {
     brand: 'Brand',
@@ -177,7 +180,9 @@ function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
   }, [categorySlug, searchParams, params.level1, params.level2, params.level3, depth, level1Value, level2Value]);
 
   const renderOptions = (staticOpts, countsMap) => {
-    if (!countsMap) return staticOpts.map(o => <option key={o} value={o}>{o}</option>);
+    if (!countsMap || Object.keys(countsMap).length === 0) {
+      return staticOpts.map(o => <option key={o} value={o}>{o}</option>);
+    }
     return staticOpts
       .filter(o => countsMap[o] > 0)
       .map(o => <option key={o} value={o}>{o} ({countsMap[o]})</option>);
@@ -207,9 +212,9 @@ function CascadeFilterGroup({ categorySlug, searchParams, setParam }) {
     setParam(next);
   };
 
-  const hasLiveLevel1 = !counts1 || staticLevel1.some(o => counts1[o] > 0);
-  const hasLiveLevel2 = level1Value && (!counts2 || staticLevel2.some(o => counts2[o] > 0));
-  const hasLiveLevel3 = depth >= 3 && level2Value && (!counts3 || staticLevel3.some(o => counts3[o] > 0));
+  const hasLiveLevel1 = !counts1 || Object.keys(counts1).length === 0 || staticLevel1.some(o => counts1[o] > 0);
+  const hasLiveLevel2 = level1Value && (!counts2 || Object.keys(counts2).length === 0 || staticLevel2.some(o => counts2[o] > 0));
+  const hasLiveLevel3 = depth >= 3 && level2Value && (!counts3 || Object.keys(counts3).length === 0 || staticLevel3.some(o => counts3[o] > 0));
 
   return (
     <details className="group border-b border-border py-4" open>
