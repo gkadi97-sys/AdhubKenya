@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getListing, imageUrl, formatPrice, timeAgo } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { SCHEMA_ATTRIBUTES } from '@/lib/schemaEngine';
+import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
 import { useSEO } from '@/lib/useSEO';
 
 export default function ListingDetailPage() {
@@ -206,7 +207,14 @@ export default function ListingDetailPage() {
                   legalInfo: '⚖️ Legal & Compliance',
                 };
                 
-                // Separate boolean/checkbox attributes vs key-value attributes
+                // Flatten the SCHEMA_REGISTRY to easily lookup labels
+                const flatSchema = {};
+                Object.values(SCHEMA_REGISTRY).forEach(cat => {
+                  cat.attributes.forEach(attr => {
+                    flatSchema[attr.id] = attr;
+                  });
+                });
+                
                 const booleanFeatures = [];
                 const keyValueSpecs = [];
                 
@@ -214,8 +222,9 @@ export default function ListingDetailPage() {
                   if (FEATURE_KEYS.includes(k)) return; // handled by legacy array loop below
                   if (v === '' || v === null || v === undefined) return;
                   
-                  const isBoolean = v === true || v === false || SCHEMA_ATTRIBUTES[k]?.type === 'checkbox';
-                  const label = SCHEMA_ATTRIBUTES[k]?.label || FRIENDLY_LABELS[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+                  const schemaAttr = SCHEMA_ATTRIBUTES[k] || flatSchema[k];
+                  const isBoolean = v === true || v === false || schemaAttr?.type === 'checkbox' || schemaAttr?.type === 'radio' && v === 'Yes';
+                  const label = schemaAttr?.label || FRIENDLY_LABELS[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
                   
                   if (isBoolean) {
                     if (v === true) booleanFeatures.push(label);

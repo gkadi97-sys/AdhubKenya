@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getFilterAggregates, getCategoryCounts } from '@/lib/api';
-import { FILTER_CONFIG, UNIVERSAL_FILTERS } from '@/lib/filterConfig';
+import { UNIVERSAL_FILTERS } from '@/lib/filterConfig';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import {
   hasCascadeFilters,
@@ -15,6 +15,7 @@ import {
 } from '@/lib/filterEngine';
 import { COUNTIES, getTowns, getAreas } from '@/lib/countyData';
 import { ChevronDown, GitBranch, ChevronLeft } from 'lucide-react';
+import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
 
 // ─── Primitives ──────────────────────────────────────────────────────────────
 
@@ -275,8 +276,13 @@ export default function FilterSidebar({ onClose }) {
     setSearchParams(next);
   };
 
-  const catConfig = FILTER_CONFIG[category];
-  const catFilters = catConfig?.filters || [];
+  const catSchema = SCHEMA_REGISTRY[category] || SCHEMA_REGISTRY['default'];
+  const catFilters = (catSchema?.attributes || [])
+    .filter(attr => attr.type !== 'dynamic-cascade') // Cascades are handled separately by CascadeFilterGroup
+    .map(attr => ({
+      ...attr,
+      urlParam: attr.id
+    }));
 
   const subcategory = searchParams.get('subcategory') || '';
   const cascadeConfig = getCascadeConfig(category, subcategory);
@@ -432,114 +438,104 @@ export default function FilterSidebar({ onClose }) {
               </FilterGroup>
             )}
 
-            {!showAdvanced && (
-              <div className="mt-8 p-6 rounded-xl bg-secondary/20 border border-border/50 text-center flex flex-col items-center gap-3 animate-in fade-in duration-300">
-                <div className="w-12 h-12 rounded-full bg-secondary/50 flex items-center justify-center text-muted-foreground mb-1">
-                  <GitBranch className="w-6 h-6" />
-                </div>
-                <p className="text-[15px] font-medium text-foreground">
-                  Select a subcategory
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Choose an option above to unlock advanced filters and specific details.
-                </p>
-              </div>
-            )}
+            <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+              {/* ── Location ── */}
+              <FilterGroup label="Location">
+                <div className="flex flex-col gap-2">
+                  <select
+                    className={inputClass}
+                    value={get('county')}
+                    onChange={e => {
+                      const next = new URLSearchParams(searchParams);
+                      if (e.target.value) next.set('county', e.target.value);
+                      else next.delete('county');
+                      next.delete('town');
+                      next.delete('area');
+                      next.delete('page');
+                      setParam(next);
+                    }}
+                  >
+                    <option value="">All Kenya</option>
+                    {countyList.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
 
-            {showAdvanced && (
-              <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-                {/* ── Location ── */}
-                <FilterGroup label="Location">
-                  <div className="flex flex-col gap-2">
+                  {get('county') && getTowns(get('county')).length > 0 && (
                     <select
                       className={inputClass}
-                      value={get('county')}
+                      value={get('town')}
                       onChange={e => {
                         const next = new URLSearchParams(searchParams);
-                        if (e.target.value) next.set('county', e.target.value);
-                        else next.delete('county');
-                        next.delete('town');
+                        if (e.target.value) next.set('town', e.target.value);
+                        else next.delete('town');
                         next.delete('area');
                         next.delete('page');
                         setParam(next);
                       }}
                     >
-                      <option value="">All Kenya</option>
-                      {countyList.map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="">All of {get('county')}</option>
+                      {getTowns(get('county')).map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
+                  )}
 
-                    {get('county') && getTowns(get('county')).length > 0 && (
-                      <select
-                        className={inputClass}
-                        value={get('town')}
-                        onChange={e => {
-                          const next = new URLSearchParams(searchParams);
-                          if (e.target.value) next.set('town', e.target.value);
-                          else next.delete('town');
-                          next.delete('area');
-                          next.delete('page');
-                          setParam(next);
-                        }}
-                      >
-                        <option value="">All of {get('county')}</option>
-                        {getTowns(get('county')).map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                    )}
-
-                    {get('town') && getAreas(get('county'), get('town')).length > 0 && (
-                      <select
-                        className={inputClass}
-                        value={get('area')}
-                        onChange={e => {
-                          const next = new URLSearchParams(searchParams);
-                          if (e.target.value) next.set('area', e.target.value);
-                          else next.delete('area');
-                          next.delete('page');
-                          setParam(next);
-                        }}
-                      >
-                        <option value="">All of {get('town')}</option>
-                        {getAreas(get('county'), get('town')).map(a => <option key={a} value={a}>{a}</option>)}
-                      </select>
-                    )}
-                  </div>
-                </FilterGroup>
-
-                {/* ── Price Range ── */}
-                <FilterGroup label="Price (KES)">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
+                  {get('town') && getAreas(get('county'), get('town')).length > 0 && (
+                    <select
                       className={inputClass}
-                      placeholder="Min"
-                      min="0"
-                      value={get('minPrice')}
-                      onChange={e => set('minPrice', e.target.value)}
-                    />
-                    <span className="text-muted-foreground">-</span>
-                    <input
-                      type="number"
-                      className={inputClass}
-                      placeholder="Max"
-                      min="0"
-                      value={get('maxPrice')}
-                      onChange={e => set('maxPrice', e.target.value)}
-                    />
-                  </div>
-                </FilterGroup>
+                      value={get('area')}
+                      onChange={e => {
+                        const next = new URLSearchParams(searchParams);
+                        if (e.target.value) next.set('area', e.target.value);
+                        else next.delete('area');
+                        next.delete('page');
+                        setParam(next);
+                      }}
+                    >
+                      <option value="">All of {get('town')}</option>
+                      {getAreas(get('county'), get('town')).map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  )}
+                </div>
+              </FilterGroup>
 
-                {/* ── Advanced Category-specific flat filters ── */}
-                {advancedFlatFilters.map(f => {
-                  if (f.dependsOn) {
-                    const dependentValue = get(f.dependsOn.field);
+              {/* ── Price Range ── */}
+              <FilterGroup label="Price (KES)">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    className={inputClass}
+                    placeholder="Min"
+                    min="0"
+                    value={get('minPrice')}
+                    onChange={e => set('minPrice', e.target.value)}
+                  />
+                  <span className="text-muted-foreground">-</span>
+                  <input
+                    type="number"
+                    className={inputClass}
+                    placeholder="Max"
+                    min="0"
+                    value={get('maxPrice')}
+                    onChange={e => set('maxPrice', e.target.value)}
+                  />
+                </div>
+              </FilterGroup>
+
+              {/* ── Advanced Category-specific flat filters ── */}
+              {advancedFlatFilters.map(f => {
+                if (f.dependsOn) {
+                  const dependentValue = get(f.dependsOn.field);
+                  // Allow matching against an array of values or a single value
+                  if (Array.isArray(f.dependsOn.values)) {
                     if (!f.dependsOn.values.includes(dependentValue)) return null;
+                  } else {
+                    if (dependentValue !== f.dependsOn.value) return null;
                   }
-                  return (
-                    <FilterGroup key={f.id} label={f.label}>
-                      {renderFlatFilter(f)}
-                    </FilterGroup>
-                  );
-                })}
+                }
+                return (
+                  <FilterGroup key={f.id} label={f.label}>
+                    {renderFlatFilter(f)}
+                  </FilterGroup>
+                );
+              })}
 
                 {/* ── Condition (Universal) ── */}
                 {(() => {
@@ -592,7 +588,6 @@ export default function FilterSidebar({ onClose }) {
                 </FilterGroup>
 
               </div>
-            )}
           </>
         )}
 

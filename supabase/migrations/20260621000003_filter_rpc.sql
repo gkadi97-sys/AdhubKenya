@@ -126,7 +126,9 @@ BEGIN
                     CASE WHEN COALESCE(make, specs->>''make'') ILIKE %L THEN 30 ELSE 0 END +
                     -- Text search in title and description
                     CASE WHEN title ILIKE %L THEN 20 ELSE 0 END +
-                    CASE WHEN description ILIKE %L THEN 10 ELSE 0 END
+                    CASE WHEN description ILIKE %L THEN 10 ELSE 0 END +
+                    -- Search anywhere inside the structured specs JSONB (OEM parts, engines, generations, etc.)
+                    CASE WHEN specs::text ILIKE %L THEN 40 ELSE 0 END
                 ) as relevance_score
             FROM listings l
             %s
@@ -142,7 +144,7 @@ BEGIN
         ORDER BY relevance_score DESC, created_at DESC
         LIMIT %L OFFSET %L
     ', 
-    '%'||p_keyword||'%', '%'||p_keyword||'%', '%'||p_keyword||'%', '%'||p_keyword||'%', '%'||p_keyword||'%', '%'||p_keyword||'%',
+    '%'||p_keyword||'%', '%'||p_keyword||'%', '%'||p_keyword||'%', '%'||p_keyword||'%', '%'||p_keyword||'%', '%'||p_keyword||'%', '%'||p_keyword||'%',
     v_where, p_limit, p_offset);
 
     RETURN QUERY EXECUTE v_query;

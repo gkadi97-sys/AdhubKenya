@@ -125,38 +125,29 @@ export const getListings = async (params = {}) => {
     query = query.ilike('specs->>amenities', `%${params.amenities}%`);
   }
 
-  // ── Standard JSONB specs filters (direct field name match) ────────────────
-  const SPECS_PARAMS = [
-    // Generic / cascades
-    'model', 'subcategory', 'system', 'part',
-    // Vehicles
-    'vehicle_type', 'bodyStyle', 'bodyType', 'transmission',
-    'color', 'numSeats', 'numDoors', 'registered', 'exchange',
-    'variant', 'usageType', 'overallCondition', 'prevOwners',
-    // Phones & Laptops
-    'os', 'ram', 'ramType', 'storage', 'storageSize', 'storageType',
-    'chipset', 'network',
-    // Laptop specific
-    'cpuBrand', 'cpuFamily', 'cpuGen', 'cpuSpeed', 'gpu',
-    // Electronics
-    'equipmentType', 'brand', 'series',
-    'screenSize', 'displayTech', 'resolution', 'smartPlatform',
-    'channels', 'connectivity',
-    // Trucks
-    'engineCapacity',
-    // Property
-    'property_type', 'purpose', 'listingCategory', 'bedrooms', 'bathrooms',
-    'furnished', 'parking', 'floors',
-    // Jobs (direct field names)
-    'employmentType', 'workArrangement', 'experienceLevel', 'educationLevel',
-    'industry',
-    // Animals / Fashion / Universal
-    'animal_type', 'gender', 'condition',
-  ];
+  // ── Standard JSONB specs filters (dynamic) ────────────────────────────────
+  // Any parameter that isn't a top-level column or reserved keyword is treated as a specs filter
+  const RESERVED_PARAMS = ['category', 'location', 'minPrice', 'maxPrice', 'keyword', 'sort', 'page', 'limit', 'county', 'town', 'area', 'engineCC_max', 'mileage_max', 'year_min', 'year_max', 'salaryMin_min', 'salaryMax_max', 'posted'];
+  
+  Object.keys(params).forEach(key => {
+    // Skip reserved params
+    if (RESERVED_PARAMS.includes(key)) return;
+    
+    // Skip if empty
+    if (!params[key]) return;
 
-  SPECS_PARAMS.forEach(key => {
-    if (params[key]) {
-      query = query.ilike(`specs->>${key}`, `%${params[key]}%`);
+    // For backwards compatibility mapping or special top-level alias, skip if already handled above
+    if (['make', 'fuel', 'drive', 'job_type', 'tv_size', 'tv_tech', 'seller_type', 'amenities'].includes(key)) return;
+
+    // Handle comma-separated multicheck values (e.g., "Petrol,Diesel") as OR clauses
+    const values = params[key].split(',').map(v => v.trim()).filter(Boolean);
+    if (values.length === 1) {
+      // Single value: simple ILIKE
+      query = query.ilike(`specs->>${key}`, `%${values[0]}%`);
+    } else if (values.length > 1) {
+      // Multiple values: OR clause across all selected options
+      const orClause = values.map(v => `specs->>${key}.ilike.%${v}%`).join(',');
+      query = query.or(orClause);
     }
   });
 
