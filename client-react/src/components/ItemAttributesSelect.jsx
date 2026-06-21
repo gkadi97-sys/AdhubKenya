@@ -109,13 +109,16 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
   const compMakeOptions = Object.keys(compVehiclesData);
   const compModelOptions = compMake ? (compVehiclesData[compMake] || []) : [];
 
+  const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
+  const labelClass = "text-sm font-semibold text-foreground mb-1.5 inline-block";
+
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+    <div className="flex flex-col gap-4">
 
       {/* ── Level 1: Make / Type ─────────────────────────────── */}
-      <div className="form-group" style={{marginBottom:0}}>
-        <label className="form-label">{attrs.level1Label}</label>
-        <select className="form-control" value={make} onChange={handleMakeChange}>
+      <div>
+        <label className={labelClass}>{attrs.level1Label}</label>
+        <select className={inputClass} value={make} onChange={handleMakeChange}>
           <option value="">Select {attrs.level1Label}</option>
           {level1Options.map(opt => (
             <option key={opt} value={opt}>{opt}</option>
@@ -130,145 +133,126 @@ export default function ItemAttributesSelect({ category, values = {}, onChange }
       ) : make === 'Laptops & Computers' ? (
         <LaptopForm values={values} onChange={emit} />
       ) : (
-        <>
+        <div className="flex flex-col gap-4">
           {/* ── Level 2: Brand / Item (or Model if not nested) ──── */}
           {make && (
-        <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-          <label className="form-label">{isNested ? 'Brand' : attrs.level2Label}</label>
-          <select className="form-control" value={isNested ? brand : model} onChange={isNested ? handleBrandChange : handleModelChange}>
-            <option value="">Select {isNested ? 'Brand' : attrs.level2Label}</option>
-            {level2Options.map(opt => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
-      )}
+            <div className="animate-in fade-in duration-300">
+              <label className={labelClass}>{isNested ? 'Brand' : attrs.level2Label}</label>
+              <select className={inputClass} value={isNested ? brand : model} onChange={isNested ? handleBrandChange : handleModelChange}>
+                <option value="">Select {isNested ? 'Brand' : attrs.level2Label}</option>
+                {level2Options.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
-      {/* ── Level 3: Model (Only if nested) ──────────────────── */}
-      {isNested && brand && (
-        <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-          <label className="form-label">Model</label>
-          <select className="form-control" value={model} onChange={handleModelChange}>
-            <option value="">Select Model</option>
-            {level3Options.map(opt => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
-      )}
+          {/* ── Level 3: Model (Only if nested) ──────────────────── */}
+          {isNested && brand && (
+            <div className="animate-in fade-in duration-300">
+              <label className={labelClass}>Model</label>
+              <select className={inputClass} value={model} onChange={handleModelChange}>
+                <option value="">Select Model</option>
+                {level3Options.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
-      {/* ── Year of Manufacture (vehicles only) ──────────────── */}
-      {attrs.hasYear && make && (
-        <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-          <label className="form-label">Year of Manufacture</label>
-          <select className="form-control" value={year} onChange={handleYearChange}>
-            <option value="">Select Year</option>
-            {MANUFACTURE_YEARS.map(y => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-        </div>
-      )}
+          {/* ── Year of Manufacture (vehicles only) ──────────────── */}
+          {attrs.hasYear && make && (
+            <div className="animate-in fade-in duration-300">
+              <label className={labelClass}>Year of Manufacture</label>
+              <select className={inputClass} value={year} onChange={handleYearChange}>
+                <option value="">Select Year</option>
+                {MANUFACTURE_YEARS.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
-      {/* ── Compatible Vehicles (Auto Spares only) ───────────── */}
-      {category === 'auto-spares' && make && (
-        <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius)', border: '1px dashed var(--border)' }}>
-          <label className="form-label" style={{marginBottom: 8}}>Compatible Vehicles</label>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-            <select className="form-control" style={{flex: 1, fontSize:'0.85rem'}} value={compMake} onChange={e => {setCompMake(e.target.value); setCompModel('');}}>
-              <option value="">Make</option>
-              {compMakeOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            <select className="form-control" style={{flex: 1, fontSize:'0.85rem'}} value={compModel} onChange={e => setCompModel(e.target.value)} disabled={!compMake}>
-              <option value="">Model</option>
-              {compModelOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            <button type="button" onClick={addCompatibleVehicle} disabled={!compMake || !compModel} style={{
-              background: 'var(--primary)', color: '#000', border: 'none', borderRadius: 'var(--radius)', padding: '0 16px', cursor: 'pointer', fontWeight: 600
-            }}>Add</button>
-          </div>
-          
-          {(specs.compatibleVehicles || []).length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {specs.compatibleVehicles.map((v, idx) => (
-                <div key={idx} style={{
-                  display: 'flex', alignItems: 'center', gap: 6, background: 'var(--surface-2)', padding: '4px 8px', borderRadius: 20, fontSize: '0.75rem', border: '1px solid var(--border)'
-                }}>
-                  {v.make} {v.model}
-                  <button type="button" onClick={() => removeCompatibleVehicle(idx)} style={{
-                    background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, fontSize: '0.9rem', lineHeight: 1
-                  }}>&times;</button>
+          {/* ── Compatible Vehicles (Auto Spares only) ───────────── */}
+          {category === 'auto-spares' && make && (
+            <div className="rounded-xl border border-dashed border-border bg-secondary/30 p-4">
+              <label className={labelClass}>Compatible Vehicles</label>
+              <div className="flex gap-2 mb-3">
+                <select className={`${inputClass} flex-1 text-xs`} value={compMake} onChange={e => {setCompMake(e.target.value); setCompModel('');}}>
+                  <option value="">Make</option>
+                  {compMakeOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <select className={`${inputClass} flex-1 text-xs`} value={compModel} onChange={e => setCompModel(e.target.value)} disabled={!compMake}>
+                  <option value="">Model</option>
+                  {compModelOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <button type="button" onClick={addCompatibleVehicle} disabled={!compMake || !compModel} className="rounded-xl bg-primary px-4 py-2 font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-50">
+                  Add
+                </button>
+              </div>
+              
+              {(specs.compatibleVehicles || []).length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {specs.compatibleVehicles.map((v, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-foreground">
+                      {v.make} {v.model}
+                      <button type="button" onClick={() => removeCompatibleVehicle(idx)} className="text-muted-foreground hover:text-destructive">&times;</button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+            </div>
+          )}
+
+          {/* ── Extra Spec Fields ────────────────────────────────── */}
+          {make && specFields.length > 0 && (
+            <div className="animate-in fade-in duration-300">
+              <div className="mt-2 mb-3 border-t border-border pt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Additional Specifications
+              </div>
+
+              {/* Render 2-column grid for specs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {specFields.map(spec => (
+                  <div key={spec.key}>
+                    <label className={labelClass}>{spec.label}</label>
+                    {spec.type === 'text' ? (
+                      <input
+                        type="text"
+                        className={inputClass}
+                        placeholder={`Enter ${spec.label}`}
+                        value={specs[spec.key] || ''}
+                        onChange={e => handleSpecChange(spec.key, e.target.value)}
+                      />
+                    ) : (
+                      <select
+                        className={inputClass}
+                        value={specs[spec.key] || ''}
+                        onChange={e => handleSpecChange(spec.key, e.target.value)}
+                      >
+                        <option value="">Select {spec.label}</option>
+                        {spec.options?.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* ── Extra Spec Fields ────────────────────────────────── */}
-      {make && specFields.length > 0 && (
-        <>
-          <div style={{
-            paddingTop:12, borderTop:'1px solid var(--border)',
-            fontSize:'0.78rem', color:'var(--text-muted)',
-            textTransform:'uppercase', letterSpacing:'0.06em', fontWeight:600,
-          }}>
-            Additional Specifications
-          </div>
-
-          {/* Render 2-column grid for specs */}
-          <div style={{
-            display:'grid',
-            gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))',
-            gap:14,
-          }}>
-            {specFields.map(spec => (
-              <div key={spec.key} className="form-group" style={{marginBottom:0}}>
-                <label className="form-label" style={{fontSize:'0.8rem'}}>{spec.label}</label>
-                {spec.type === 'text' ? (
-                  <input
-                    type="text"
-                    className="form-control"
-                    style={{fontSize:'0.85rem'}}
-                    placeholder={`Enter ${spec.label}`}
-                    value={specs[spec.key] || ''}
-                    onChange={e => handleSpecChange(spec.key, e.target.value)}
-                  />
-                ) : (
-                  <select
-                    className="form-control"
-                    style={{fontSize:'0.85rem'}}
-                    value={specs[spec.key] || ''}
-                    onChange={e => handleSpecChange(spec.key, e.target.value)}
-                  >
-                    <option value="">Select {spec.label}</option>
-                    {spec.options?.map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-      </>
-      )}
-
       {/* ── Summary pill ─────────────────────────────────────── */}
       {(make || brand || model || year) && (
-        <div style={{
-          display:'flex', flexWrap:'wrap', gap:8,
-          padding:'10px 14px', background:'var(--primary-glow)',
-          border:'1px solid var(--primary)', borderRadius:'var(--radius)',
-          fontSize:'0.82rem', color:'var(--primary-light)',
-        }}>
-          {make  && <span>🏷️ <strong>{make}</strong></span>}
-          {brand && <span>› <strong>{brand}</strong></span>}
-          {model && <span>› <strong>{model}</strong></span>}
-          {year  && <span>› <strong>{year}</strong></span>}
+        <div className="mt-2 flex flex-wrap gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary">
+          {make  && <span>🏷️ <strong className="font-semibold">{make}</strong></span>}
+          {brand && <span>› <strong className="font-semibold">{brand}</strong></span>}
+          {model && <span>› <strong className="font-semibold">{model}</strong></span>}
+          {year  && <span>› <strong className="font-semibold">{year}</strong></span>}
           {Object.entries(specs).filter(([k,v])=> v && k !== 'brand').map(([k,v])=>(
-            <span key={k} style={{background:'rgba(255,255,255,0.06)',padding:'2px 8px',borderRadius:20}}>
+            <span key={k} className="rounded-full bg-background/50 px-2 py-0.5 text-xs font-medium border border-primary/10">
               {v}
             </span>
           ))}

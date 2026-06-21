@@ -4,32 +4,25 @@ import CATEGORY_ATTRIBUTES, { PROPERTY_SPECS } from '@/lib/categoryData';
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const SectionHeader = ({ icon, title }) => (
-  <div style={{
-    display: 'flex', alignItems: 'center', gap: 10,
-    paddingTop: 8, paddingBottom: 12,
-    borderBottom: '1px solid var(--border)',
-    marginBottom: 4,
-  }}>
-    <span style={{ fontSize: '1.1rem' }}>{icon}</span>
-    <span style={{
-      fontSize: '0.78rem', textTransform: 'uppercase',
-      letterSpacing: '0.07em', fontWeight: 700,
-      color: 'var(--text-muted)',
-    }}>{title}</span>
+  <div className="mb-4 flex items-center gap-2 border-b border-border pb-3 pt-2">
+    <span className="text-lg">{icon}</span>
+    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</span>
   </div>
 );
 
 const Field = ({ label, required, children }) => (
-  <div className="form-group" style={{ marginBottom: 0 }}>
-    <label className="form-label" style={{ fontSize: '0.82rem' }}>
-      {label}{required && <span style={{ color: 'var(--primary-light)', marginLeft: 3 }}>*</span>}
+  <div className="flex flex-col gap-1.5">
+    <label className="text-sm font-semibold text-foreground">
+      {label}{required && <span className="ml-1 text-destructive">*</span>}
     </label>
     {children}
   </div>
 );
 
+const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
+
 const Select = ({ value, onChange, options, placeholder }) => (
-  <select className="form-control" style={{ fontSize: '0.85rem' }} value={value || ''} onChange={e => onChange(e.target.value)}>
+  <select className={inputClass} value={value || ''} onChange={e => onChange(e.target.value)}>
     <option value="">{placeholder || 'Select…'}</option>
     {options.map(o => <option key={o} value={o}>{o}</option>)}
   </select>
@@ -38,8 +31,7 @@ const Select = ({ value, onChange, options, placeholder }) => (
 const TextInput = ({ value, onChange, placeholder }) => (
   <input
     type="text"
-    className="form-control"
-    style={{ fontSize: '0.85rem' }}
+    className={inputClass}
     value={value || ''}
     placeholder={placeholder || ''}
     onChange={e => onChange(e.target.value)}
@@ -49,8 +41,7 @@ const TextInput = ({ value, onChange, placeholder }) => (
 const NumberInput = ({ value, onChange, placeholder }) => (
   <input
     type="number"
-    className="form-control"
-    style={{ fontSize: '0.85rem' }}
+    className={inputClass}
     value={value || ''}
     placeholder={placeholder || ''}
     onChange={e => onChange(e.target.value)}
@@ -66,32 +57,21 @@ const CheckboxGroup = ({ options, selected = [], onChange }) => {
     onChange(next);
   };
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-      gap: 8,
-    }}>
-      {options.map(opt => (
-        <label key={opt} style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 10px',
-          background: selected.includes(opt) ? 'var(--primary-glow)' : 'var(--surface-2)',
-          border: `1px solid ${selected.includes(opt) ? 'var(--primary)' : 'var(--border)'}`,
-          borderRadius: 'var(--radius)',
-          cursor: 'pointer',
-          fontSize: '0.82rem',
-          transition: 'all 0.15s ease',
-          userSelect: 'none',
-        }}>
-          <input
-            type="checkbox"
-            checked={selected.includes(opt)}
-            onChange={() => toggle(opt)}
-            style={{ accentColor: 'var(--primary)', width: 14, height: 14, flexShrink: 0 }}
-          />
-          {opt}
-        </label>
-      ))}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+      {options.map(opt => {
+        const isSelected = selected.includes(opt);
+        return (
+          <label key={opt} className={`flex cursor-pointer select-none items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-all duration-150 ${isSelected ? 'border-primary bg-primary/5' : 'border-border bg-secondary/30 hover:border-primary/40'}`}>
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={() => toggle(opt)}
+              className="h-4 w-4 shrink-0 rounded border-border text-primary focus:ring-primary/40 accent-primary"
+            />
+            {opt}
+          </label>
+        );
+      })}
     </div>
   );
 };
@@ -134,12 +114,12 @@ export default function PropertyForm({ values = {}, onChange }) {
   const s = specs; // shorthand
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div className="flex flex-col gap-8 mt-4">
 
       {/* ── 1. PROPERTY IDENTITY ────────────────────────────────── */}
       <div>
         <SectionHeader icon="🏢" title="Property Details" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
 
           <Field label="Listing Category" required>
             <Select value={s.listingCategory} onChange={v => setSpec('listingCategory', v)}
@@ -147,7 +127,7 @@ export default function PropertyForm({ values = {}, onChange }) {
           </Field>
 
           <Field label="Property Category" required>
-            <select className="form-control" style={{ fontSize: '0.85rem' }} value={category}
+            <select className={inputClass} value={category}
               onChange={e => { setCategory(e.target.value); setType(''); emit({ make: e.target.value, model: '' }); }}>
               <option value="">Select Category…</option>
               {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
@@ -155,7 +135,7 @@ export default function PropertyForm({ values = {}, onChange }) {
           </Field>
 
           <Field label="Property Type" required>
-            <select className="form-control" style={{ fontSize: '0.85rem' }} value={type}
+            <select className={inputClass} value={type}
               onChange={e => { setType(e.target.value); emit({ model: e.target.value }); }}
               disabled={!category}>
               <option value="">Select Type…</option>
@@ -183,7 +163,7 @@ export default function PropertyForm({ values = {}, onChange }) {
       {/* ── 2. SIZE & DIMENSIONS ───────────────────────────────── */}
       <div>
         <SectionHeader icon="📐" title="Size & Dimensions" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
 
           <Field label="Land Size">
             <TextInput value={s.landSize} onChange={v => setSpec('landSize', v)} placeholder="e.g. 50x100 or 0.5 Acres" />
@@ -208,7 +188,7 @@ export default function PropertyForm({ values = {}, onChange }) {
       {['Residential Properties', 'Commercial Properties', 'Special-Purpose Properties'].includes(category) && (
         <div>
           <SectionHeader icon="🛏️" title="Layout Details" />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
 
             {category === 'Residential Properties' && (
               <>
@@ -240,9 +220,7 @@ export default function PropertyForm({ values = {}, onChange }) {
       {category === 'Residential Properties' && (
         <div>
           <SectionHeader icon="✨" title="Residential Features" />
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-            Select all that apply
-          </p>
+          <p className="mb-3 text-sm text-muted-foreground">Select all that apply</p>
           <CheckboxGroup
             options={PROPERTY_SPECS.residentialFeatures}
             selected={s.residentialFeatures || []}
@@ -255,9 +233,7 @@ export default function PropertyForm({ values = {}, onChange }) {
       {category === 'Commercial Properties' && (
         <div>
           <SectionHeader icon="💼" title="Commercial Features" />
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-            Select all that apply
-          </p>
+          <p className="mb-3 text-sm text-muted-foreground">Select all that apply</p>
           <CheckboxGroup
             options={PROPERTY_SPECS.commercialFeatures}
             selected={s.commercialFeatures || []}
@@ -270,9 +246,7 @@ export default function PropertyForm({ values = {}, onChange }) {
       {category !== 'Land and Plots' && (
         <div>
           <SectionHeader icon="🏊‍♂️" title="Amenities & Facilities" />
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-            Select all that apply
-          </p>
+          <p className="mb-3 text-sm text-muted-foreground">Select all that apply</p>
           <CheckboxGroup
             options={PROPERTY_SPECS.amenities}
             selected={s.amenities || []}
@@ -284,9 +258,7 @@ export default function PropertyForm({ values = {}, onChange }) {
       {/* ── 7. LEGAL & COMPLIANCE ──────────────────────────────── */}
       <div>
         <SectionHeader icon="⚖️" title="Legal & Compliance" />
-        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-          Select all that apply
-        </p>
+        <p className="mb-3 text-sm text-muted-foreground">Select all that apply</p>
         <CheckboxGroup
           options={PROPERTY_SPECS.legalInfo}
           selected={s.legalInfo || []}
@@ -297,7 +269,7 @@ export default function PropertyForm({ values = {}, onChange }) {
       {/* ── 8. AGENT/OWNER INFO ────────────────────────────────── */}
       <div>
         <SectionHeader icon="👤" title="Agent/Owner Info" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
           <Field label="Agency / Company Name">
             <TextInput value={s.agencyName} onChange={v => setSpec('agencyName', v)} placeholder="e.g. ReMax Kenya" />
           </Field>

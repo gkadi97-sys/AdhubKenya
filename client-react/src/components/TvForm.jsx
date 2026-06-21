@@ -3,12 +3,16 @@ import { TV_SPECS } from '@/lib/categoryData';
 
 function Field({ label, required, children }) {
   return (
-    <div className="form-group" style={{ marginBottom: 0 }}>
-      <label className="form-label">{label} {required && '*'}</label>
+    <div className="flex flex-col gap-1.5">
+      <label className="text-sm font-semibold text-foreground">
+        {label} {required && <span className="ml-1 text-destructive">*</span>}
+      </label>
       {children}
     </div>
   );
 }
+
+const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
 
 export default function TvForm({ values = {}, onChange }) {
   // values.make is 'Televisions' (from ItemAttributesSelect)
@@ -103,10 +107,10 @@ export default function TvForm({ values = {}, onChange }) {
   });
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 16 }}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
       
       <Field label="Brand" required>
-        <select className="form-control" style={{ fontSize: '0.85rem' }} value={brand}
+        <select className={inputClass} value={brand}
           onChange={e => { 
             const val = e.target.value;
             setBrand(val); 
@@ -122,7 +126,7 @@ export default function TvForm({ values = {}, onChange }) {
       </Field>
 
       <Field label="Screen Size" required>
-        <select className="form-control" style={{ fontSize: '0.85rem' }} value={s.screenSize || ''}
+        <select className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`} value={s.screenSize || ''}
           onChange={e => setSpec('screenSize', e.target.value)} disabled={!brand}>
           <option value="">{brand ? 'Select Size…' : 'Select Brand First'}</option>
           {sizeOptions.map(sz => <option key={sz} value={sz}>{sz}</option>)}
@@ -130,7 +134,7 @@ export default function TvForm({ values = {}, onChange }) {
       </Field>
 
       <Field label="Display Technology" required>
-        <select className="form-control" style={{ fontSize: '0.85rem' }} value={s.displayTech || ''}
+        <select className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`} value={s.displayTech || ''}
           onChange={e => setSpec('displayTech', e.target.value)} disabled={!s.screenSize}>
           <option value="">{s.screenSize ? 'Select Tech…' : 'Select Size First'}</option>
           {techOptions.map(t => <option key={t} value={t}>{t}</option>)}
@@ -139,7 +143,7 @@ export default function TvForm({ values = {}, onChange }) {
 
       {seriesOptions.length > 0 && (
         <Field label="Series" required>
-          <select className="form-control" style={{ fontSize: '0.85rem' }} value={s.series || ''}
+          <select className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`} value={s.series || ''}
             onChange={e => setSpec('series', e.target.value)} disabled={!s.displayTech}>
             <option value="">Select Series…</option>
             {seriesOptions.map(sr => <option key={sr} value={sr}>{sr}</option>)}
@@ -148,7 +152,7 @@ export default function TvForm({ values = {}, onChange }) {
       )}
 
       <Field label="Exact Model" required>
-        <input className="form-control" style={{ fontSize: '0.85rem' }} list="tv-models"
+        <input className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`} list="tv-models"
           value={model} onChange={e => { setModel(e.target.value); emit({ model: e.target.value }); }}
           placeholder={modelExamples.length > 0 ? `e.g. ${modelExamples[0]}` : 'e.g. 55U8G'} disabled={!brand} />
         <datalist id="tv-models">
@@ -157,7 +161,7 @@ export default function TvForm({ values = {}, onChange }) {
       </Field>
 
       <Field label="Resolution" required>
-        <select className="form-control" style={{ fontSize: '0.85rem' }} value={s.resolution || ''}
+        <select className={inputClass} value={s.resolution || ''}
           onChange={e => setSpec('resolution', e.target.value)}>
           <option value="">Select Resolution…</option>
           {resolutionOptions.map(r => <option key={r} value={r}>{r}</option>)}
@@ -165,7 +169,7 @@ export default function TvForm({ values = {}, onChange }) {
       </Field>
 
       <Field label="Smart Platform" required>
-        <select className="form-control" style={{ fontSize: '0.85rem' }} value={s.smartPlatform || ''}
+        <select className={inputClass} value={s.smartPlatform || ''}
           onChange={e => setSpec('smartPlatform', e.target.value)}>
           <option value="">Select Platform…</option>
           {TV_SPECS.os.map(o => <option key={o} value={o}>{o}</option>)}

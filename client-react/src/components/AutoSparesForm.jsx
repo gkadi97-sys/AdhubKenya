@@ -11,29 +11,31 @@ export default function AutoSparesForm({ values = {}, onChange }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
       
       {/* TOGGLE */}
-      <div style={{ padding: 16, background: 'var(--bg-2)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>
-        <h3 style={{ fontSize: '1.05rem', marginBottom: 12 }}>What are you listing?</h3>
-        <div style={{ display: 'flex', gap: 20 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+      <div className="rounded-xl border border-border bg-secondary/30 p-4">
+        <h3 className="mb-3 text-sm font-semibold text-foreground">What are you listing?</h3>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-foreground">
             <input 
               type="radio" 
               name="listingType" 
               value="spare-part" 
               checked={listingType === 'spare-part'} 
-              onChange={() => handleTypeChange('spare-part')} 
+              onChange={() => handleTypeChange('spare-part')}
+              className="h-4 w-4 rounded-full border-border text-primary focus:ring-primary/40 accent-primary"
             />
             Auto Spare Part
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+          <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-foreground">
             <input 
               type="radio" 
               name="listingType" 
               value="accessory" 
               checked={listingType === 'accessory'} 
-              onChange={() => handleTypeChange('accessory')} 
+              onChange={() => handleTypeChange('accessory')}
+              className="h-4 w-4 rounded-full border-border text-primary focus:ring-primary/40 accent-primary"
             />
             Vehicle Accessory
           </label>

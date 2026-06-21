@@ -8,20 +8,21 @@ import {
 
 function Field({ label, required, children, style = {} }) {
   return (
-    <div className="form-group" style={{ marginBottom: 0, ...style }}>
-      <label className="form-label" style={{ fontSize: '0.82rem' }}>
-        {label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}
+    <div className="flex flex-col gap-1.5" style={style}>
+      <label className="text-sm font-semibold text-foreground">
+        {label} {required && <span className="ml-1 text-destructive">*</span>}
       </label>
       {children}
     </div>
   );
 }
 
+const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
+
 function Select({ value, onChange, disabled, children, placeholder }) {
   return (
     <select
-      className="form-control"
-      style={{ fontSize: '0.85rem' }}
+      className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`}
       value={value}
       onChange={e => onChange(e.target.value)}
       disabled={disabled}
@@ -96,59 +97,59 @@ export default function LaptopForm({ values = {}, onChange }) {
   // ── Apple special case — no CPU pickers ───────────────────────────────────
   const isApple = brand === 'Apple';
 
-  const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 14 };
-
   return (
-    <div style={{ marginTop: 16 }}>
+    <div className="flex flex-col gap-8 mt-4">
 
       {/* ── SECTION: Device ─────────────────────────────── */}
-      <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: 10 }}>
-        💻 Device Details
-      </p>
-      <div style={grid}>
+      <div>
+        <p className="mb-4 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border pb-3">
+          💻 Device Details
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
-        {/* Brand */}
-        <Field label="Brand" required>
-          <Select value={brand} onChange={v => { setBrand(v); setSpec('brand', v); }} placeholder="Select Brand">
-            {LAPTOP_DATA.brands.map(b => <option key={b} value={b}>{b}</option>)}
-          </Select>
-        </Field>
-
-        {/* Series */}
-        {seriesOptions.length > 0 && (
-          <Field label="Series" required>
-            <Select value={series} onChange={v => { setSeries(v); setSpec('series', v); }} disabled={!brand} placeholder={brand ? 'Select Series' : 'Select Brand First'}>
-              {seriesOptions.map(s => <option key={s} value={s}>{s}</option>)}
+          {/* Brand */}
+          <Field label="Brand" required>
+            <Select value={brand} onChange={v => { setBrand(v); setSpec('brand', v); }} placeholder="Select Brand">
+              {LAPTOP_DATA.brands.map(b => <option key={b} value={b}>{b}</option>)}
             </Select>
           </Field>
-        )}
 
-        {/* Exact Model */}
-        {brand && (
-          <Field label="Exact Model">
-            {modelOptions.length > 0 ? (
-              <Select value={model} onChange={v => { setModel(v); emit({ model: v }); }} disabled={!series} placeholder="Select Model">
-                {modelOptions.map(m => <option key={m} value={m}>{m}</option>)}
+          {/* Series */}
+          {seriesOptions.length > 0 && (
+            <Field label="Series" required>
+              <Select value={series} onChange={v => { setSeries(v); setSpec('series', v); }} disabled={!brand} placeholder={brand ? 'Select Series' : 'Select Brand First'}>
+                {seriesOptions.map(s => <option key={s} value={s}>{s}</option>)}
               </Select>
-            ) : (
-              <input className="form-control" style={{ fontSize: '0.85rem' }}
-                value={model}
-                onChange={e => { setModel(e.target.value); emit({ model: e.target.value }); }}
-                placeholder={`e.g. ${brand === 'Apple' ? 'MacBook Air M2 13"' : 'Enter exact model'}`}
-                disabled={!brand}
-              />
-            )}
-          </Field>
-        )}
+            </Field>
+          )}
+
+          {/* Exact Model */}
+          {brand && (
+            <Field label="Exact Model">
+              {modelOptions.length > 0 ? (
+                <Select value={model} onChange={v => { setModel(v); emit({ model: v }); }} disabled={!series} placeholder="Select Model">
+                  {modelOptions.map(m => <option key={m} value={m}>{m}</option>)}
+                </Select>
+              ) : (
+                <input className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`}
+                  value={model}
+                  onChange={e => { setModel(e.target.value); emit({ model: e.target.value }); }}
+                  placeholder={`e.g. ${brand === 'Apple' ? 'MacBook Air M2 13"' : 'Enter exact model'}`}
+                  disabled={!brand}
+                />
+              )}
+            </Field>
+          )}
+        </div>
       </div>
 
       {/* ── SECTION: Processor ──────────────────────────── */}
       {!isApple && brand && (
-        <>
-          <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', margin: '18px 0 10px' }}>
+        <div>
+          <p className="mb-4 mt-2 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border pb-3">
             ⚙️ Processor
           </p>
-          <div style={grid}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
             <Field label="Processor Brand">
               <Select value={cpuBrand} onChange={v => setCpuBrand(v)} placeholder="Select CPU Brand">
@@ -179,16 +180,16 @@ export default function LaptopForm({ values = {}, onChange }) {
             </Field>
 
           </div>
-        </>
+        </div>
       )}
 
       {/* ── SECTION: Memory & Storage ───────────────────── */}
       {brand && (
-        <>
-          <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', margin: '18px 0 10px' }}>
+        <div>
+          <p className="mb-4 mt-2 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border pb-3">
             🗄️ Memory & Storage
           </p>
-          <div style={grid}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
             <Field label="RAM">
               <Select value={specs.ram || ''} onChange={v => setSpec('ram', v)} placeholder="Select RAM">
@@ -215,19 +216,19 @@ export default function LaptopForm({ values = {}, onChange }) {
             </Field>
 
           </div>
-        </>
+        </div>
       )}
 
       {/* ── SECTION: Graphics & Display ─────────────────── */}
       {brand && (
-        <>
-          <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', margin: '18px 0 10px' }}>
+        <div>
+          <p className="mb-4 mt-2 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border pb-3">
             🖥️ Graphics & Display
           </p>
-          <div style={grid}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
             <Field label="GPU">
-              <select className="form-control" style={{ fontSize: '0.85rem' }}
+              <select className={inputClass}
                 value={specs.gpu || ''}
                 onChange={e => setSpec('gpu', e.target.value)}
               >
@@ -253,16 +254,16 @@ export default function LaptopForm({ values = {}, onChange }) {
             </Field>
 
           </div>
-        </>
+        </div>
       )}
 
       {/* ── SECTION: OS ─────────────────────────────────── */}
       {brand && (
-        <>
-          <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', margin: '18px 0 10px' }}>
+        <div>
+          <p className="mb-4 mt-2 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border pb-3">
             💿 Operating System
           </p>
-          <div style={{ ...grid, gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <Field label="OS">
               <Select
                 value={specs.os || ''}
@@ -277,7 +278,7 @@ export default function LaptopForm({ values = {}, onChange }) {
               </Select>
             </Field>
           </div>
-        </>
+        </div>
       )}
 
     </div>

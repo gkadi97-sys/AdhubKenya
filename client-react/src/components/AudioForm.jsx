@@ -3,12 +3,16 @@ import { AUDIO_SPECS } from '@/lib/categoryData';
 
 function Field({ label, required, children }) {
   return (
-    <div className="form-group" style={{ marginBottom: 0 }}>
-      <label className="form-label">{label} {required && '*'}</label>
+    <div className="flex flex-col gap-1.5">
+      <label className="text-sm font-semibold text-foreground">
+        {label} {required && <span className="ml-1 text-destructive">*</span>}
+      </label>
       {children}
     </div>
   );
 }
+
+const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
 
 export default function AudioForm({ values = {}, onChange }) {
   const [brand, setBrand] = useState(values.specs?.brand || '');
@@ -73,10 +77,10 @@ export default function AudioForm({ values = {}, onChange }) {
   }, [model]);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 16 }}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
       
       <Field label="Equipment Type" required>
-        <select className="form-control" style={{ fontSize: '0.85rem' }} value={s.equipmentType || ''}
+        <select className={inputClass} value={s.equipmentType || ''}
           onChange={e => {
             const val = e.target.value;
             const next = { ...specs, equipmentType: val, brand: '', series: '', channels: '', connectivity: '' };
@@ -92,7 +96,7 @@ export default function AudioForm({ values = {}, onChange }) {
 
       {brandOptions.length > 0 && (
         <Field label="Brand" required>
-          <select className="form-control" style={{ fontSize: '0.85rem' }} value={brand} disabled={!s.equipmentType}
+          <select className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`} value={brand} disabled={!s.equipmentType}
             onChange={e => { 
               const val = e.target.value;
               setBrand(val); 
@@ -109,7 +113,7 @@ export default function AudioForm({ values = {}, onChange }) {
 
       {seriesOptions.length > 0 && (
         <Field label="Series" required>
-          <select className="form-control" style={{ fontSize: '0.85rem' }} value={s.series || ''} disabled={!brand}
+          <select className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`} value={s.series || ''} disabled={!brand}
             onChange={e => setSpec('series', e.target.value)}>
             <option value="">Select Series…</option>
             {seriesOptions.map(sr => <option key={sr} value={sr}>{sr}</option>)}
@@ -120,13 +124,13 @@ export default function AudioForm({ values = {}, onChange }) {
       {(brandOptions.length > 0 || seriesOptions.length > 0) && (
         <Field label="Exact Model" required>
           {modelOptions.length > 0 ? (
-            <select className="form-control" style={{ fontSize: '0.85rem' }} value={model} disabled={!s.series && seriesOptions.length > 0}
+            <select className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`} value={model} disabled={!s.series && seriesOptions.length > 0}
               onChange={e => { setModel(e.target.value); emit({ model: e.target.value }); }}>
               <option value="">Select Model…</option>
               {modelOptions.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           ) : (
-            <input className="form-control" style={{ fontSize: '0.85rem' }}
+            <input className={`${inputClass} disabled:opacity-50 disabled:cursor-not-allowed`}
               value={model} onChange={e => { setModel(e.target.value); emit({ model: e.target.value }); }}
               placeholder={s.equipmentType === 'Soundbar' && brand === 'Bose' ? 'e.g. Smart Soundbar 900' : 'e.g. Enter model'} 
               disabled={!brand} />
@@ -135,7 +139,7 @@ export default function AudioForm({ values = {}, onChange }) {
       )}
 
       <Field label="Channels">
-        <select className="form-control" style={{ fontSize: '0.85rem' }} value={s.channels || ''}
+        <select className={inputClass} value={s.channels || ''}
           onChange={e => setSpec('channels', e.target.value)}>
           <option value="">Select Channels (Optional)</option>
           {AUDIO_SPECS.channels.map(c => <option key={c} value={c}>{c}</option>)}
@@ -143,7 +147,7 @@ export default function AudioForm({ values = {}, onChange }) {
       </Field>
 
       <Field label="Connectivity">
-        <select className="form-control" style={{ fontSize: '0.85rem' }} value={s.connectivity || ''}
+        <select className={inputClass} value={s.connectivity || ''}
           onChange={e => setSpec('connectivity', e.target.value)}>
           <option value="">Select Connectivity (Optional)</option>
           {AUDIO_SPECS.connectivity.map(c => <option key={c} value={c}>{c}</option>)}

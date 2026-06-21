@@ -4,32 +4,25 @@ import CATEGORY_ATTRIBUTES, { MANUFACTURE_YEARS, VEHICLE_SPECS, VEHICLE_MAKES_BY
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const SectionHeader = ({ icon, title }) => (
-  <div style={{
-    display: 'flex', alignItems: 'center', gap: 10,
-    paddingTop: 8, paddingBottom: 12,
-    borderBottom: '1px solid var(--border)',
-    marginBottom: 4,
-  }}>
-    <span style={{ fontSize: '1.1rem' }}>{icon}</span>
-    <span style={{
-      fontSize: '0.78rem', textTransform: 'uppercase',
-      letterSpacing: '0.07em', fontWeight: 700,
-      color: 'var(--text-muted)',
-    }}>{title}</span>
+  <div className="mb-4 flex items-center gap-2 border-b border-border pb-3 pt-2">
+    <span className="text-lg">{icon}</span>
+    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</span>
   </div>
 );
 
 const Field = ({ label, required, children }) => (
-  <div className="form-group" style={{ marginBottom: 0 }}>
-    <label className="form-label" style={{ fontSize: '0.82rem' }}>
-      {label}{required && <span style={{ color: 'var(--primary-light)', marginLeft: 3 }}>*</span>}
+  <div className="flex flex-col gap-1.5">
+    <label className="text-sm font-semibold text-foreground">
+      {label}{required && <span className="ml-1 text-primary">*</span>}
     </label>
     {children}
   </div>
 );
 
+const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
+
 const Select = ({ value, onChange, options, placeholder }) => (
-  <select className="form-control" style={{ fontSize: '0.85rem' }} value={value || ''} onChange={e => onChange(e.target.value)}>
+  <select className={inputClass} value={value || ''} onChange={e => onChange(e.target.value)}>
     <option value="">{placeholder || 'Select…'}</option>
     {options.map(o => <option key={o} value={o}>{o}</option>)}
   </select>
@@ -38,8 +31,7 @@ const Select = ({ value, onChange, options, placeholder }) => (
 const TextInput = ({ value, onChange, placeholder }) => (
   <input
     type="text"
-    className="form-control"
-    style={{ fontSize: '0.85rem' }}
+    className={inputClass}
     value={value || ''}
     placeholder={placeholder || ''}
     onChange={e => onChange(e.target.value)}
@@ -49,8 +41,7 @@ const TextInput = ({ value, onChange, placeholder }) => (
 const NumberInput = ({ value, onChange, placeholder }) => (
   <input
     type="number"
-    className="form-control"
-    style={{ fontSize: '0.85rem' }}
+    className={inputClass}
     value={value || ''}
     placeholder={placeholder || ''}
     onChange={e => onChange(e.target.value)}
@@ -66,32 +57,21 @@ const CheckboxGroup = ({ options, selected = [], onChange }) => {
     onChange(next);
   };
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-      gap: 8,
-    }}>
-      {options.map(opt => (
-        <label key={opt} style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 10px',
-          background: selected.includes(opt) ? 'var(--primary-glow)' : 'var(--surface-2)',
-          border: `1px solid ${selected.includes(opt) ? 'var(--primary)' : 'var(--border)'}`,
-          borderRadius: 'var(--radius)',
-          cursor: 'pointer',
-          fontSize: '0.82rem',
-          transition: 'all 0.15s ease',
-          userSelect: 'none',
-        }}>
-          <input
-            type="checkbox"
-            checked={selected.includes(opt)}
-            onChange={() => toggle(opt)}
-            style={{ accentColor: 'var(--primary)', width: 14, height: 14, flexShrink: 0 }}
-          />
-          {opt}
-        </label>
-      ))}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+      {options.map(opt => {
+        const isSelected = selected.includes(opt);
+        return (
+          <label key={opt} className={`flex cursor-pointer select-none items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-all duration-150 ${isSelected ? 'border-primary bg-primary/5' : 'border-border bg-secondary/30 hover:border-primary/40'}`}>
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={() => toggle(opt)}
+              className="h-4 w-4 shrink-0 rounded border-border text-primary focus:ring-primary/40 accent-primary"
+            />
+            {opt}
+          </label>
+        );
+      })}
     </div>
   );
 };
@@ -174,12 +154,12 @@ export default function VehicleForm({ values = {}, onChange }) {
   const hasDriveType = isStandardCar || ['Heavy Truck', 'Construction Equipment', 'Agricultural Equipment'].includes(vType);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div className="flex flex-col gap-8">
 
       {/* ── 1. VEHICLE IDENTITY ────────────────────────────────── */}
       <div>
         <SectionHeader icon="🚗" title="Vehicle Identity" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
 
           <Field label="Vehicle Type" required>
             <Select value={s.vehicleType} onChange={v => {
@@ -198,7 +178,7 @@ export default function VehicleForm({ values = {}, onChange }) {
           )}
 
           <Field label={isStandardCar ? 'Make (Brand)' : ['Bus','Heavy Truck','Construction Equipment','Agricultural Equipment','Trailer'].includes(vType) ? 'Manufacturer' : 'Make'} required>
-            <select className="form-control" style={{ fontSize: '0.85rem' }} value={make}
+            <select className={inputClass} value={make}
               onChange={e => { setMake(e.target.value); setModel(''); emit({ make: e.target.value, model: '' }); }}>
               <option value="">{vType ? `Select ${vType} Brand…` : 'Select Make…'}</option>
               {makeOptions.map(m => <option key={m} value={m}>{m}</option>)}
@@ -206,7 +186,7 @@ export default function VehicleForm({ values = {}, onChange }) {
           </Field>
 
           <Field label={isStandardCar ? 'Model' : 'Model / Type'} required>
-            <select className="form-control" style={{ fontSize: '0.85rem' }} value={model}
+            <select className={inputClass} value={model}
               onChange={e => { setModel(e.target.value); emit({ model: e.target.value }); }}
               disabled={!make}>
               <option value="">{make ? `Select ${make} model…` : 'Select make first'}</option>
@@ -237,7 +217,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {/* ── 2. MILEAGE & USAGE ─────────────────────────────────── */}
       <div>
         <SectionHeader icon="📍" title="Mileage & Usage" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
 
           <Field label="Mileage" required>
             <NumberInput value={s.mileage} onChange={v => setSpec('mileage', v)} placeholder="e.g. 45000" />
@@ -270,7 +250,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {hasEngine && (
       <div>
         <SectionHeader icon="⚙️" title="Engine Specifications" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
 
           <Field label="Fuel Type" required>
             <Select value={s.fuelType} onChange={v => setSpec('fuelType', v)}
@@ -312,7 +292,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {hasEngine && (
       <div>
         <SectionHeader icon="🔧" title="Transmission & Drivetrain" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
 
           <Field label="Transmission" required>
             <Select value={s.transmission} onChange={v => setSpec('transmission', v)}
@@ -338,7 +318,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {/* ── 5. EXTERIOR ────────────────────────────────────────── */}
       <div>
         <SectionHeader icon="🎨" title="Exterior" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
 
           <Field label="Exterior Colour">
             <TextInput value={s.color} onChange={v => setSpec('color', v)} placeholder="e.g. Pearl White" />
@@ -372,7 +352,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {hasInterior && (
       <div>
         <SectionHeader icon="🪑" title="Interior" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
 
           <Field label="Interior Colour">
             <TextInput value={s.interiorColor} onChange={v => setSpec('interiorColor', v)} placeholder="e.g. Black" />
@@ -391,9 +371,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {hasInterior && (
       <div>
         <SectionHeader icon="❄️" title="Comfort & Convenience" />
-        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-          Select all that apply
-        </p>
+        <p className="mb-3 text-sm text-muted-foreground">Select all that apply</p>
         <CheckboxGroup
           options={VEHICLE_SPECS.comfortFeatures}
           selected={s.comfortFeatures || []}
@@ -406,9 +384,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {hasInterior && (
       <div>
         <SectionHeader icon="📱" title="Infotainment & Connectivity" />
-        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-          Select all that apply
-        </p>
+        <p className="mb-3 text-sm text-muted-foreground">Select all that apply</p>
         <CheckboxGroup
           options={VEHICLE_SPECS.infotainmentFeatures}
           selected={s.infotainmentFeatures || []}
@@ -420,9 +396,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {/* ── 9. SAFETY FEATURES — CHECKBOXES ────────────────────── */}
       <div>
         <SectionHeader icon="🛡️" title="Safety Features" />
-        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-          Select all that apply
-        </p>
+        <p className="mb-3 text-sm text-muted-foreground">Select all that apply</p>
         <CheckboxGroup
           options={VEHICLE_SPECS.safetyFeatures}
           selected={s.safetyFeatures || []}
@@ -433,9 +407,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {/* ── 10. EXTERIOR FEATURES — CHECKBOXES ─────────────────── */}
       <div>
         <SectionHeader icon="✨" title="Exterior Features" />
-        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-          Select all that apply
-        </p>
+        <p className="mb-3 text-sm text-muted-foreground">Select all that apply</p>
         <CheckboxGroup
           options={VEHICLE_SPECS.exteriorFeatures}
           selected={s.exteriorFeatures || []}
@@ -446,7 +418,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {/* ── 11. VEHICLE CONDITION & DOCUMENTS ──────────────────── */}
       <div>
         <SectionHeader icon="📋" title="Vehicle Condition & Documents" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
 
           <Field label="Accident History">
             <Select value={s.accidentHistory} onChange={v => setSpec('accidentHistory', v)}
@@ -480,10 +452,8 @@ export default function VehicleForm({ values = {}, onChange }) {
 
         </div>
 
-        <div style={{ marginTop: 14 }}>
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
-            Additional Condition Details (select all that apply)
-          </p>
+        <div className="mt-5">
+          <p className="mb-3 text-sm text-muted-foreground">Additional Condition Details (select all that apply)</p>
           <CheckboxGroup
             options={VEHICLE_SPECS.conditionDetails}
             selected={s.conditionDetails || []}
@@ -495,7 +465,7 @@ export default function VehicleForm({ values = {}, onChange }) {
       {/* ── 12. SELLER INFO ────────────────────────────────────── */}
       <div>
         <SectionHeader icon="👤" title="Seller Details" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginTop: 12 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
           <Field label="Seller Type">
             <Select value={s.sellerType} onChange={v => setSpec('sellerType', v)}
               options={['Private Owner', 'Dealer', 'Broker']} />

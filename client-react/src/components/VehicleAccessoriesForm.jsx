@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { VEHICLE_ACCESSORIES_DATA } from '@/lib/vehicleAccessoriesData';
 import { CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
 
+const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
+
 export default function VehicleAccessoriesForm({ values = {}, onChange }) {
   const [category, setCategory] = useState(values.category || '');
   const [subcategory, setSubcategory] = useState(values.subcategory || '');
@@ -61,22 +63,22 @@ export default function VehicleAccessoriesForm({ values = {}, onChange }) {
   const models = make ? (vehicleData[make] || []) : [];
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      <h3 style={{ fontSize: '1.1rem', marginBottom: 8, color: 'var(--primary)' }}>✨ Accessory Details</h3>
+    <div className="flex flex-col gap-6">
+      <h3 className="text-lg font-bold text-primary">✨ Accessory Details</h3>
       
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div className="form-group" style={{marginBottom:0}}>
-          <label className="form-label">Accessory Category *</label>
-          <select className="form-control" value={category} onChange={handleCategoryChange} required>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-foreground">Accessory Category <span className="text-destructive">*</span></label>
+          <select className={inputClass} value={category} onChange={handleCategoryChange} required>
             <option value="">Select Category</option>
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
 
         {category && (
-          <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-            <label className="form-label">Subcategory *</label>
-            <select className="form-control" value={subcategory} onChange={handleSubcategoryChange} required>
+          <div className="flex flex-col gap-1.5 animate-in fade-in duration-200">
+            <label className="text-sm font-semibold text-foreground">Subcategory <span className="text-destructive">*</span></label>
+            <select className={inputClass} value={subcategory} onChange={handleSubcategoryChange} required>
               <option value="">Select Subcategory</option>
               {subcategories.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -84,9 +86,9 @@ export default function VehicleAccessoriesForm({ values = {}, onChange }) {
         )}
 
         {subcategory && (
-          <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-            <label className="form-label">Accessory Item *</label>
-            <select className="form-control" value={item} onChange={handleItemChange} required>
+          <div className="flex flex-col gap-1.5 animate-in fade-in duration-200">
+            <label className="text-sm font-semibold text-foreground">Accessory Item <span className="text-destructive">*</span></label>
+            <select className={inputClass} value={item} onChange={handleItemChange} required>
               <option value="">Select Item</option>
               {items.map(i => <option key={i} value={i}>{i}</option>)}
             </select>
@@ -96,27 +98,27 @@ export default function VehicleAccessoriesForm({ values = {}, onChange }) {
 
       {/* COMPATIBILITY SECTION */}
       {item && (
-        <div style={{ marginTop: 12, padding: 16, background: 'var(--bg-2)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', animation:'fadeIn 0.3s ease' }}>
-          <h4 style={{ fontSize: '0.95rem', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="mt-2 rounded-xl border border-border bg-secondary/30 p-4 animate-in fade-in duration-300">
+          <h4 className="mb-4 flex items-center gap-2 text-sm font-bold text-foreground">
             <span>🔗</span> Vehicle Compatibility
           </h4>
           
-          <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.9rem' }}>
-              <input type="radio" name="universal" checked={universal === true} onChange={() => handleUniversalChange(true)} />
+          <div className="mb-4 flex flex-col sm:flex-row gap-4">
+            <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground">
+              <input type="radio" name="universal" checked={universal === true} onChange={() => handleUniversalChange(true)} className="h-4 w-4 accent-primary" />
               Universal (Fits all / most vehicles)
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.9rem' }}>
-              <input type="radio" name="universal" checked={universal === false} onChange={() => handleUniversalChange(false)} />
+            <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground">
+              <input type="radio" name="universal" checked={universal === false} onChange={() => handleUniversalChange(false)} className="h-4 w-4 accent-primary" />
               Specific Vehicle Only
             </label>
           </div>
 
           {!universal && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, animation: 'fadeIn 0.2s ease' }}>
-              <div className="form-group" style={{marginBottom:0}}>
-                <label className="form-label">Vehicle Type</label>
-                <select className="form-control" value={vehicleType} onChange={e => { setVehicleType(e.target.value); emit({vehicleType: e.target.value}); }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-foreground">Vehicle Type</label>
+                <select className={inputClass} value={vehicleType} onChange={e => { setVehicleType(e.target.value); emit({vehicleType: e.target.value}); }}>
                   <option value="">Any Type</option>
                   <option value="Car">Car</option>
                   <option value="SUV">SUV</option>
@@ -127,18 +129,18 @@ export default function VehicleAccessoriesForm({ values = {}, onChange }) {
                 </select>
               </div>
 
-              <div className="form-group" style={{marginBottom:0}}>
-                <label className="form-label">Vehicle Make</label>
-                <select className="form-control" value={make} onChange={handleMakeChange}>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-foreground">Vehicle Make</label>
+                <select className={inputClass} value={make} onChange={handleMakeChange}>
                   <option value="">Any Make</option>
                   {makes.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
               </div>
 
               {make && (
-                <div className="form-group" style={{marginBottom:0}}>
-                  <label className="form-label">Vehicle Model</label>
-                  <select className="form-control" value={model} onChange={e => { setModel(e.target.value); emit({model: e.target.value}); }}>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-foreground">Vehicle Model</label>
+                  <select className={inputClass} value={model} onChange={e => { setModel(e.target.value); emit({model: e.target.value}); }}>
                     <option value="">Any Model</option>
                     {models.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>

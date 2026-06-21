@@ -68,13 +68,16 @@ export default function CountyTownSelect({ value = '', onChange, required = fals
     }
   };
 
+  const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
+  const labelClass = "text-sm font-semibold text-foreground mb-1.5 inline-block";
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="flex flex-col gap-4">
       {/* County Select */}
       <div>
-        {showLabel && <label className="form-label">County *</label>}
+        {showLabel && <label className={labelClass}>County *</label>}
         <select
-          className="form-control"
+          className={inputClass}
           value={county}
           onChange={handleCountyChange}
           required={required}
@@ -88,10 +91,10 @@ export default function CountyTownSelect({ value = '', onChange, required = fals
 
       {/* Town Select — only shown once a county is picked */}
       {county && (
-        <div style={{ animation: 'fadeIn 0.2s ease' }}>
-          {showLabel && <label className="form-label">Town / City</label>}
+        <div className="animate-in fade-in duration-300">
+          {showLabel && <label className={labelClass}>Town / City</label>}
           <select
-            className="form-control"
+            className={inputClass}
             value={town}
             onChange={handleTownChange}
             required={required}
@@ -106,10 +109,10 @@ export default function CountyTownSelect({ value = '', onChange, required = fals
 
       {/* Area Select — only shown once a town is picked AND it has areas */}
       {town && areas.length > 0 && (
-        <div style={{ animation: 'fadeIn 0.2s ease' }}>
-          {showLabel && <label className="form-label">Area / Estate</label>}
+        <div className="animate-in fade-in duration-300">
+          {showLabel && <label className={labelClass}>Area / Estate</label>}
           <select
-            className="form-control"
+            className={inputClass}
             value={area}
             onChange={handleAreaChange}
           >
@@ -123,11 +126,8 @@ export default function CountyTownSelect({ value = '', onChange, required = fals
 
       {/* Dynamic Location Pin Feedback */}
       {(town || county) && (
-        <div style={{
-          marginTop: 4, fontSize: '0.8rem', color: 'var(--primary-light)',
-          display: 'flex', alignItems: 'center', gap: 4
-        }}>
-          📍 <strong>{area ? `${area}, ` : ''}{town ? `${town}, ` : ''}{county}</strong>
+        <div className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-primary">
+          📍 <span>{area ? `${area}, ` : ''}{town ? `${town}, ` : ''}{county}</span>
         </div>
       )}
     </div>

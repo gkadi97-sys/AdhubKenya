@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { MASTER_SPARE_PARTS, MOCK_VEHICLE_HIERARCHY, POSITIONS } from '@/lib/autoSparesData';
 import { CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
 
+const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
+
 export default function SparePartForm({ values = {}, onChange }) {
   const [category, setCategory] = useState(values.category || '');
   const [part, setPart] = useState(values.part || '');
@@ -79,119 +81,129 @@ export default function SparePartForm({ values = {}, onChange }) {
     : standardYears;
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16, animation: 'fadeIn 0.3s ease' }}>
-      <h3 style={{ fontSize: '1.1rem', marginBottom: 8, color: 'var(--primary)' }}>⚙️ Part Details</h3>
+    <div className="flex flex-col gap-8 animate-in fade-in duration-300">
       
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div className="form-group" style={{marginBottom:0}}>
-          <label className="form-label">Part Category *</label>
-          <select className="form-control" value={category} onChange={handleCategoryChange} required>
-            <option value="">Select Category</option>
-            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-
-        {category && (
-          <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-            <label className="form-label">Spare Part *</label>
-            <select className="form-control" value={part} onChange={handlePartChange} required>
-              <option value="">Select Part</option>
-              {partsList.map(p => <option key={p} value={p}>{p}</option>)}
+      {/* ── 1. PART DETAILS ───────────────────────────────────────────── */}
+      <div>
+        <h3 className="text-lg font-bold text-primary mb-4">⚙️ Part Details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-foreground">Part Category <span className="text-destructive">*</span></label>
+            <select className={inputClass} value={category} onChange={handleCategoryChange} required>
+              <option value="">Select Category</option>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-        )}
-      </div>
 
-      <h3 style={{ fontSize: '1.1rem', marginTop: 16, marginBottom: 8, color: 'var(--primary)' }}>🚗 Compatible Vehicle</h3>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div className="form-group" style={{marginBottom:0}}>
-          <label className="form-label">Vehicle Make</label>
-          <select className="form-control" value={make} onChange={handleMakeChange}>
-            <option value="">Select Make</option>
-            {makes.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
-        </div>
-
-        {make && (
-          <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-            <label className="form-label">Model</label>
-            <select className="form-control" value={model} onChange={handleModelChange}>
-              <option value="">Select Model</option>
-              {models.map(m => <option key={m} value={m}>{m}</option>)}
-            </select>
-          </div>
-        )}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-        {model && (
-          <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-            <label className="form-label">Generation / Chassis (Optional)</label>
-            {generations.length > 0 ? (
-              <select className="form-control" value={generation} onChange={handleGenerationChange}>
-                <option value="">Select Generation</option>
-                {generations.map(g => <option key={g} value={g}>{g}</option>)}
+          {category && (
+            <div className="flex flex-col gap-1.5 animate-in fade-in duration-200">
+              <label className="text-sm font-semibold text-foreground">Spare Part <span className="text-destructive">*</span></label>
+              <select className={inputClass} value={part} onChange={handlePartChange} required>
+                <option value="">Select Part</option>
+                {partsList.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
-            ) : (
-              <input className="form-control" value={generation} onChange={(e) => {
-                setGeneration(e.target.value);
-                emit({ generation: e.target.value });
-              }} placeholder="e.g. XV50" />
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
+      </div>
 
-        {(model) && (
-          <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-            <label className="form-label">Engine (Optional)</label>
-            {engines.length > 0 ? (
-              <select className="form-control" value={engine} onChange={handleEngineChange}>
-                <option value="">Select Engine</option>
-                {engines.map(e => <option key={e} value={e}>{e}</option>)}
-              </select>
-            ) : (
-              <input className="form-control" value={engine} onChange={(e) => {
-                setEngine(e.target.value);
-                emit({ engine: e.target.value });
-              }} placeholder="e.g. 1AZ" />
-            )}
-          </div>
-        )}
+      {/* ── 2. COMPATIBLE VEHICLE ─────────────────────────────────────── */}
+      <div>
+        <h3 className="text-lg font-bold text-primary mb-4 border-t border-border pt-6">🚗 Compatible Vehicle</h3>
 
-        {(model) && (
-          <div className="form-group" style={{marginBottom:0, animation:'fadeIn 0.2s ease'}}>
-            <label className="form-label">Year (Optional)</label>
-            <select className="form-control" value={year} onChange={handleYearChange}>
-              <option value="">Select Year</option>
-              {years.map(y => <option key={y} value={y}>{y}</option>)}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-foreground">Vehicle Make</label>
+            <select className={inputClass} value={make} onChange={handleMakeChange}>
+              <option value="">Select Make</option>
+              {makes.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
-        )}
-      </div>
 
-      <h3 style={{ fontSize: '1.1rem', marginTop: 16, marginBottom: 8, color: 'var(--primary)' }}>🏷️ Part Specifications</h3>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div className="form-group" style={{marginBottom:0}}>
-          <label className="form-label">Position (Optional)</label>
-          <select className="form-control" value={position} onChange={(e) => {
-            setPosition(e.target.value);
-            emit({ position: e.target.value });
-          }}>
-            <option value="">Select Position</option>
-            {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
+          {make && (
+            <div className="flex flex-col gap-1.5 animate-in fade-in duration-200">
+              <label className="text-sm font-semibold text-foreground">Model</label>
+              <select className={inputClass} value={model} onChange={handleModelChange}>
+                <option value="">Select Model</option>
+                {models.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+          )}
         </div>
 
-        <div className="form-group" style={{marginBottom:0}}>
-          <label className="form-label">OEM Part Number (Optional)</label>
-          <input className="form-control" value={oemNumber} onChange={(e) => {
-            setOemNumber(e.target.value);
-            emit({ oemNumber: e.target.value });
-          }} placeholder="e.g. 45046-09270" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {model && (
+            <div className="flex flex-col gap-1.5 animate-in fade-in duration-200">
+              <label className="text-sm font-semibold text-foreground">Generation / Chassis <span className="text-muted-foreground text-xs font-normal">(Optional)</span></label>
+              {generations.length > 0 ? (
+                <select className={inputClass} value={generation} onChange={handleGenerationChange}>
+                  <option value="">Select Generation</option>
+                  {generations.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              ) : (
+                <input className={inputClass} value={generation} onChange={(e) => {
+                  setGeneration(e.target.value);
+                  emit({ generation: e.target.value });
+                }} placeholder="e.g. XV50" />
+              )}
+            </div>
+          )}
+
+          {(model) && (
+            <div className="flex flex-col gap-1.5 animate-in fade-in duration-200">
+              <label className="text-sm font-semibold text-foreground">Engine <span className="text-muted-foreground text-xs font-normal">(Optional)</span></label>
+              {engines.length > 0 ? (
+                <select className={inputClass} value={engine} onChange={handleEngineChange}>
+                  <option value="">Select Engine</option>
+                  {engines.map(e => <option key={e} value={e}>{e}</option>)}
+                </select>
+              ) : (
+                <input className={inputClass} value={engine} onChange={(e) => {
+                  setEngine(e.target.value);
+                  emit({ engine: e.target.value });
+                }} placeholder="e.g. 1AZ" />
+              )}
+            </div>
+          )}
+
+          {(model) && (
+            <div className="flex flex-col gap-1.5 animate-in fade-in duration-200">
+              <label className="text-sm font-semibold text-foreground">Year <span className="text-muted-foreground text-xs font-normal">(Optional)</span></label>
+              <select className={inputClass} value={year} onChange={handleYearChange}>
+                <option value="">Select Year</option>
+                {years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* ── 3. PART SPECIFICATIONS ────────────────────────────────────── */}
+      <div>
+        <h3 className="text-lg font-bold text-primary mb-4 border-t border-border pt-6">🏷️ Part Specifications</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-foreground">Position <span className="text-muted-foreground text-xs font-normal">(Optional)</span></label>
+            <select className={inputClass} value={position} onChange={(e) => {
+              setPosition(e.target.value);
+              emit({ position: e.target.value });
+            }}>
+              <option value="">Select Position</option>
+              {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-foreground">OEM Part Number <span className="text-muted-foreground text-xs font-normal">(Optional)</span></label>
+            <input className={inputClass} value={oemNumber} onChange={(e) => {
+              setOemNumber(e.target.value);
+              emit({ oemNumber: e.target.value });
+            }} placeholder="e.g. 45046-09270" />
+          </div>
+        </div>
+      </div>
+      
     </div>
   );
 }
