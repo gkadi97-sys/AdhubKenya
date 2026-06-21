@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, BadgeCheck, ShieldCheck, Sparkles, Flame, TrendingUp, Clock, ChevronRight, ArrowUpRight, PlusCircle, Car, Smartphone, Home, Shirt, Laptop, Sofa, Briefcase, Wrench, SlidersHorizontal } from 'lucide-react';
+import {
+  Search, MapPin, BadgeCheck, ShieldCheck, Sparkles, Flame, TrendingUp,
+  Clock, ChevronRight, ArrowUpRight, PlusCircle, ChevronLeft, SlidersHorizontal
+} from 'lucide-react';
 import { getListings } from '@/lib/api';
-import { FILTER_CONFIG } from '@/lib/filterConfig';
-import { 
-  hasCascadeFilters, 
-  getLevel1Options, 
-  getLevel2Options, 
-  getCascadeLabels, 
-  CASCADE_URL_PARAMS 
+import { CATEGORY_ICONS } from '@/lib/categoryData';
+import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
+import {
+  hasCascadeFilters,
+  getLevel1Options,
+  getLevel2Options,
+  getCascadeLabels,
+  CASCADE_URL_PARAMS,
 } from '@/lib/filterEngine';
 import ListingCard from '@/components/ListingCard';
-import FilterSidebar, { DynamicDataFilter } from '@/components/FilterSidebar';
 import { useSEO } from '@/lib/useSEO';
 
 // Import Assets
@@ -24,40 +27,194 @@ import catElectronics from '@/assets/cat-electronics.jpg';
 import catFurniture from '@/assets/cat-furniture.jpg';
 import catServices from '@/assets/cat-services.jpg';
 
-const categories = [
-  { name: "Vehicles", count: "3,420", icon: Car, img: catVehicles, tint: "from-emerald-900/70" },
-  { name: "Phones & Tablets", count: "2,180", icon: Smartphone, img: catPhones, tint: "from-amber-900/60" },
-  { name: "Property", count: "1,940", icon: Home, img: catProperty, tint: "from-stone-900/60" },
-  { name: "Fashion", count: "1,560", icon: Shirt, img: catFashion, tint: "from-orange-900/60" },
-  { name: "Electronics", count: "1,330", icon: Laptop, img: catElectronics, tint: "from-emerald-900/60" },
-  { name: "Furniture", count: "870", icon: Sofa, img: catFurniture, tint: "from-amber-900/60" },
-  { name: "Jobs", count: "640", icon: Briefcase, img: catServices, tint: "from-stone-900/60" },
-  { name: "Services", count: "1,210", icon: Wrench, img: catServices, tint: "from-emerald-900/60" },
+const featuredCategories = [
+  { slug: 'vehicles',       img: catVehicles,    tint: 'from-emerald-900/70' },
+  { slug: 'phones-tablets', img: catPhones,      tint: 'from-amber-900/60'  },
+  { slug: 'property',       img: catProperty,    tint: 'from-stone-900/60'  },
+  { slug: 'fashion',        img: catFashion,     tint: 'from-orange-900/60' },
+  { slug: 'electronics',    img: catElectronics, tint: 'from-emerald-900/60'},
+  { slug: 'home-furniture', img: catFurniture,   tint: 'from-amber-900/60'  },
+  { slug: 'jobs',           img: catServices,    tint: 'from-stone-900/60'  },
+  { slug: 'services',       img: catServices,    tint: 'from-emerald-900/60'},
 ];
 
-const counties = ["All Kenya", "Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret", "Thika"];
-const popularSearches = ["Toyota Fielder", "Bedsitter Nairobi", "iPhone 15", "Mitsubishi FH", "PlayStation 5"];
+const counties = ['All Kenya', 'Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika'];
+const popularSearches = ['Toyota Fielder', 'Bedsitter Nairobi', 'iPhone 15', 'Mitsubishi FH', 'PlayStation 5'];
 
-const categoryMap = {
-  "Vehicles": "vehicles",
-  "Phones & Tablets": "phones-tablets",
-  "Property": "property",
-  "Fashion": "fashion",
-  "Electronics": "electronics",
-  "Furniture": "home-furniture",
-  "Jobs": "jobs",
-  "Services": "services",
-  "Auto Spares": "auto-spares",
-  "Animals & Pets": "animals-pets"
-};
+// ─── Inline Category Browser ─────────────────────────────────────────────────
+
+function CategoryBrowser({ onNavigate }) {
+  const [selectedSlug, setSelectedSlug] = useState(null);
+  const [filters, setFilters] = useState({});
+
+  const selectedCat = CATEGORY_ICONS.find(c => c.slug === selectedSlug);
+  const schema = selectedSlug ? (SCHEMA_REGISTRY[selectedSlug] || SCHEMA_REGISTRY['default']) : null;
+
+  // cascade state
+  const cascadeParams = selectedSlug ? CASCADE_URL_PARAMS[selectedSlug] : null;
+  const level1Opts = selectedSlug ? getLevel1Options(selectedSlug, filters.subcategory) : [];
+  const level2Opts = cascadeParams && filters[cascadeParams.level1]
+    ? getLevel2Options(selectedSlug, filters[cascadeParams.level1], filters.subcategory)
+    : [];
+  const labels = selectedSlug ? getCascadeLabels(selectedSlug, filters.subcategory) : {};
+  const hasCascade = selectedSlug ? hasCascadeFilters(selectedSlug, filters.subcategory) : false;
+
+  const flatFilters = schema
+    ? schema.attributes.filter(a => a.type !== 'dynamic-cascade' && a.type !== 'text' && a.type !== 'number' && a.id !== 'listingType')
+    : [];
+
+  const handleSelect = (slug) => {
+    setSelectedSlug(slug);
+    setFilters({});
+  };
+
+  const handleBrowse = () => {
+    const params = new URLSearchParams();
+    params.set('category', selectedSlug);
+    Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    onNavigate(`/browse?${params.toString()}`);
+  };
+
+  const handleBack = () => {
+    setSelectedSlug(null);
+    setFilters({});
+  };
+
+  const setFilter = (key, val) => {
+    // When cascade level 1 changes, reset level 2+
+    const next = { ...filters, [key]: val };
+    if (cascadeParams && key === cascadeParams.level1) {
+      if (cascadeParams.level2) delete next[cascadeParams.level2];
+      if (cascadeParams.level3) delete next[cascadeParams.level3];
+    }
+    setFilters(next);
+  };
+
+  if (!selectedSlug) {
+    return (
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9">
+        {CATEGORY_ICONS.map(cat => (
+          <button
+            key={cat.slug}
+            onClick={() => handleSelect(cat.slug)}
+            className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-secondary/60 hover:shadow-md cursor-pointer"
+          >
+            <span className="text-2xl transition-transform duration-200 group-hover:scale-110">{cat.icon}</span>
+            <span className="text-[11px] font-semibold leading-tight text-foreground">{cat.name}</span>
+            <span className="text-[10px] text-muted-foreground">{cat.count.toLocaleString()}</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+      {/* Back + Category Header */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            All Categories
+          </button>
+          <span className="text-border">|</span>
+          <span className="text-2xl">{selectedCat?.icon}</span>
+          <h3 className="text-lg font-bold text-foreground">{selectedCat?.name}</h3>
+        </div>
+        <button
+          onClick={handleBrowse}
+          className="hidden sm:inline-flex items-center gap-2 rounded-xl gradient-emerald px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition cursor-pointer"
+        >
+          Browse {selectedCat?.name} <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
+        {/* Left: Cascade selectors */}
+        {hasCascade && level1Opts.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <SlidersHorizontal className="w-3.5 h-3.5" /> Narrow by
+            </p>
+
+            {/* Level 1 */}
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-foreground/70 px-1">{labels.level1Label}</label>
+              <select
+                value={filters[cascadeParams.level1] || ''}
+                onChange={e => setFilter(cascadeParams.level1, e.target.value)}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">Any {labels.level1Label}</option>
+                {level1Opts.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </div>
+
+            {/* Level 2 (only when L1 selected) */}
+            {filters[cascadeParams.level1] && level2Opts.length > 0 && (
+              <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                <label className="text-xs font-semibold text-foreground/70 px-1">{labels.level2Label}</label>
+                <select
+                  value={filters[cascadeParams.level2] || ''}
+                  onChange={e => setFilter(cascadeParams.level2, e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="">Any {labels.level2Label}</option>
+                  {level2Opts.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Right: Flat schema filters as pill selects */}
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-1.5">
+            <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {flatFilters.map(attr => {
+              const opts = Array.isArray(attr.options) ? attr.options : [];
+              if (opts.length === 0) return null;
+              return (
+                <select
+                  key={attr.id}
+                  value={filters[attr.id] || ''}
+                  onChange={e => setFilter(attr.id, e.target.value)}
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-medium outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30 hover:border-primary/30"
+                >
+                  <option value="">{attr.label}</option>
+                  {opts.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Browse CTA (mobile) */}
+      <div className="mt-5 flex sm:hidden">
+        <button
+          onClick={handleBrowse}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition cursor-pointer"
+        >
+          Browse {selectedCat?.name} <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main HomePage ────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('All categories');
   const [location, setLocation] = useState('All Kenya');
-  const [dynamicFilters, setDynamicFilters] = useState({});
   const navigate = useNavigate();
 
   useSEO({
@@ -73,24 +230,12 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Reset dynamic filters when category changes
-  useEffect(() => {
-    setDynamicFilters({});
-  }, [category]);
-
   const handleSearch = (e) => {
     e.preventDefault();
-    let query = `/browse?`;
-    if (search.trim()) query += `keyword=${encodeURIComponent(search)}&`;
-    if (category !== 'All categories') query += `category=${encodeURIComponent(categoryMap[category] || category)}&`;
-    if (location !== 'All Kenya') query += `location=${encodeURIComponent(location)}&`;
-    
-    // Append dynamic filters
-    Object.entries(dynamicFilters).forEach(([k, v]) => {
-      if (v) query += `${k}=${encodeURIComponent(v)}&`;
-    });
-
-    navigate(query);
+    const params = new URLSearchParams();
+    if (search.trim()) params.set('keyword', search.trim());
+    if (location !== 'All Kenya') params.set('county', location);
+    navigate(`/browse?${params.toString()}`);
   };
 
   return (
@@ -103,7 +248,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Hero */}
+      {/* ── Hero ────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
           <img
@@ -117,14 +262,14 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/30 to-background/80" />
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:pb-24 lg:pt-28">
+        <div className="mx-auto max-w-7xl px-4 pb-12 pt-14 sm:px-6 sm:pt-20 lg:pb-16 lg:pt-28">
           <div className="mx-auto max-w-3xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-primary" />
               Live from 47 counties · 236 ads today
             </span>
             <h1 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-              Kenya's trusted{" "}
+              Kenya's trusted{' '}
               <span className="text-gold-grad">marketplace</span>
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground sm:text-lg">
@@ -134,139 +279,45 @@ export default function HomePage() {
           </div>
 
           {/* Search card */}
-          <form onSubmit={handleSearch} className="mx-auto mt-10 max-w-4xl rounded-3xl border border-border bg-card p-3 shadow-elevated sm:p-4">
+          <form onSubmit={handleSearch} className="mx-auto mt-10 max-w-3xl rounded-3xl border border-border bg-card p-3 shadow-elevated sm:p-4">
             <div className="flex items-center gap-3 rounded-2xl bg-background px-4 py-3 ring-1 ring-border focus-within:ring-2 focus-within:ring-primary/40">
-              <Search className="h-5 w-5 text-muted-foreground" />
+              <Search className="h-5 w-5 text-muted-foreground shrink-0" />
               <input
-                placeholder="What are you looking for today?"
+                placeholder="Search cars, phones, property and more…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
               />
             </div>
 
-            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
-              <label className="group flex items-center gap-2 rounded-xl bg-background px-3 py-2.5 ring-1 ring-border hover:ring-primary/40">
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Category
-                </span>
-                <select value={category} onChange={e => setCategory(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none">
-                  <option>All categories</option>
-                  {categories.map((c) => (
-                    <option key={c.name}>{c.name}</option>
-                  ))}
-                </select>
-              </label>
-
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
               <label className="group flex items-center gap-2 rounded-xl bg-background px-3 py-2.5 ring-1 ring-border hover:ring-primary/40">
                 <MapPin className="h-4 w-4 shrink-0 text-primary" />
-                <select value={location} onChange={e => setLocation(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none">
-                  {counties.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
+                <select
+                  value={location}
+                  onChange={e => setLocation(e.target.value)}
+                  className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none"
+                >
+                  {counties.map((c) => <option key={c}>{c}</option>)}
                 </select>
               </label>
-
-              <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elevated transition hover:opacity-95 cursor-pointer">
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-6 py-3 text-sm font-semibold text-primary-foreground shadow-elevated transition hover:opacity-95 cursor-pointer"
+              >
                 <Search className="h-4 w-4" />
                 Search
               </button>
             </div>
 
-            {/* Dynamic Inline Filters */}
-            {category !== 'All categories' && categoryMap[category] && (
-              <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-secondary/30 px-3 py-2.5">
-                <SlidersHorizontal className="h-4 w-4 text-muted-foreground mr-1" />
-                <span className="text-xs font-semibold text-muted-foreground mr-2 hidden sm:inline">Advanced:</span>
-                
-                {/* ── Cascade Filters (Brand/Model) ── */}
-                {(() => {
-                  const catSlug = categoryMap[category];
-                  if (!hasCascadeFilters(catSlug)) return null;
-                  
-                  const params = CASCADE_URL_PARAMS[catSlug];
-                  const labels = getCascadeLabels(catSlug);
-                  const val1 = dynamicFilters[params.level1] || '';
-                  const val2 = dynamicFilters[params.level2] || '';
-                  
-                  const opts1 = getLevel1Options(catSlug);
-                  const opts2 = getLevel2Options(catSlug, val1);
-                  
-                  return (
-                    <>
-                      {opts1.length > 0 && (
-                        <select
-                          value={val1}
-                          onChange={(e) => {
-                            const newFilters = { ...dynamicFilters, [params.level1]: e.target.value };
-                            delete newFilters[params.level2];
-                            if (params.level3) delete newFilters[params.level3];
-                            setDynamicFilters(newFilters);
-                          }}
-                          className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
-                        >
-                          <option value="">{labels.level1Label}</option>
-                          {opts1.map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
-                      )}
-                      
-                      {val1 && opts2.length > 0 && (
-                        <select
-                          value={val2}
-                          onChange={(e) => {
-                            const newFilters = { ...dynamicFilters, [params.level2]: e.target.value };
-                            if (params.level3) delete newFilters[params.level3];
-                            setDynamicFilters(newFilters);
-                          }}
-                          className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
-                        >
-                          <option value="">{labels.level2Label}</option>
-                          {opts2.map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
-                      )}
-                    </>
-                  );
-                })()}
-
-                {/* ── Flat Filters (Condition, etc) ── */}
-                {FILTER_CONFIG[categoryMap[category]]?.filters
-                  .filter(f => f.type === 'select' || f.type === 'radio' || f.type === 'dynamic-select')
-                  .slice(0, 3) // Show top 3 standard filters
-                  .map(f => (
-                    f.type === 'dynamic-select' ? (
-                      <DynamicDataFilter
-                        key={f.id}
-                        category={categoryMap[category]}
-                        urlParam={f.urlParam}
-                        searchParams={new URLSearchParams(dynamicFilters)}
-                        onChange={(v) => setDynamicFilters(prev => ({ ...prev, [f.urlParam]: v }))}
-                      />
-                    ) : (
-                      <select
-                        key={f.id}
-                        value={dynamicFilters[f.urlParam] || ''}
-                        onChange={(e) => setDynamicFilters(prev => ({ ...prev, [f.urlParam]: e.target.value }))}
-                        className="rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/30"
-                      >
-                        <option value="">{f.label}</option>
-                        {f.options.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    )
-                ))}
-              </div>
-            )}
-
+            {/* Popular searches */}
             <div className="mt-4 flex flex-wrap items-center gap-2 px-1">
-              <span className="text-xs font-semibold uppercase tracking-widest text-gold">
-                Popular
-              </span>
+              <span className="text-xs font-semibold uppercase tracking-widest text-gold">Popular</span>
               {popularSearches.map((s) => (
                 <button
                   key={s}
                   type="button"
-                  onClick={() => { setSearch(s); }}
+                  onClick={() => setSearch(s)}
                   className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-foreground/80 hover:border-primary/40 hover:text-primary cursor-pointer"
                 >
                   {s}
@@ -278,9 +329,9 @@ export default function HomePage() {
           {/* Trust strip */}
           <div className="mx-auto mt-8 grid max-w-3xl grid-cols-3 gap-4 text-center">
             {[
-              { icon: BadgeCheck, label: "12,000+ Live Ads" },
-              { icon: ShieldCheck, label: "Verified Sellers" },
-              { icon: Sparkles, label: "Always Free Posting" },
+              { icon: BadgeCheck, label: '12,000+ Live Ads' },
+              { icon: ShieldCheck, label: 'Verified Sellers' },
+              { icon: Sparkles,   label: 'Always Free Posting' },
             ].map(({ icon: Icon, label }) => (
               <div key={label} className="flex items-center justify-center gap-2 text-xs sm:text-sm">
                 <Icon className="h-4 w-4 text-primary" />
@@ -291,13 +342,33 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Live counters band */}
+      {/* ── Category Browser ───────────────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Browse</span>
+            <h2 className="mt-1 font-display text-2xl font-bold sm:text-3xl">What are you looking for?</h2>
+          </div>
+          <Link
+            to="/browse"
+            className="hidden items-center gap-1 text-sm font-semibold text-primary hover:underline sm:inline-flex"
+          >
+            All listings <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-7">
+          <CategoryBrowser onNavigate={navigate} />
+        </div>
+      </section>
+
+      {/* ── Live counters band ──────────────────────────────────────── */}
       <section className="gradient-emerald text-primary-foreground">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 sm:grid-cols-3 sm:px-6">
           {[
-            { icon: Flame, n: "236", l: "New ads today" },
-            { icon: TrendingUp, n: "42", l: "Posted this hour" },
-            { icon: Clock, n: "1,200", l: "Added this week" },
+            { icon: Flame,       n: '236',   l: 'New ads today' },
+            { icon: TrendingUp,  n: '42',    l: 'Posted this hour' },
+            { icon: Clock,       n: '1,200', l: 'Added this week' },
           ].map(({ icon: Icon, n, l }) => (
             <div key={l} className="flex items-center justify-center gap-3 sm:justify-start">
               <div className="grid h-10 w-10 place-items-center rounded-full bg-primary-foreground/10 ring-1 ring-primary-foreground/20">
@@ -312,16 +383,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Categories */}
+      {/* ── Featured Categories (photo grid) ───────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-24">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-              Browse
-            </span>
-            <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">
-              Featured categories
-            </h2>
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Featured</span>
+            <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">Popular categories</h2>
           </div>
           <Link to="/browse" className="hidden items-center gap-1 text-sm font-semibold text-primary hover:underline sm:inline-flex">
             All categories <ChevronRight className="h-4 w-4" />
@@ -329,49 +396,49 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-          {categories.map((c) => (
-            <Link
-              key={c.name}
-              to={`/browse?category=${encodeURIComponent(c.name)}`}
-              className="group relative aspect-[5/4] overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-elevated block"
-            >
-              <img
-                src={c.img}
-                alt={c.name}
-                loading="lazy"
-                width={800}
-                height={800}
-                className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              />
-              <div className={`absolute inset-0 bg-gradient-to-t ${c.tint} via-transparent to-transparent`} />
-              <div className="absolute inset-0 flex flex-col justify-between p-4">
-                <div className="flex items-center justify-between">
-                  <div className="grid h-9 w-9 place-items-center rounded-full bg-background/90 backdrop-blur">
-                    <c.icon className="h-4 w-4 text-primary" />
+          {featuredCategories.map(fc => {
+            const cat = CATEGORY_ICONS.find(c => c.slug === fc.slug);
+            if (!cat) return null;
+            return (
+              <Link
+                key={fc.slug}
+                to={`/browse?category=${fc.slug}`}
+                className="group relative aspect-[5/4] overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-elevated block"
+              >
+                <img
+                  src={fc.img}
+                  alt={cat.name}
+                  loading="lazy"
+                  width={800}
+                  height={800}
+                  className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+                <div className={`absolute inset-0 bg-gradient-to-t ${fc.tint} via-transparent to-transparent`} />
+                <div className="absolute inset-0 flex flex-col justify-between p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-background/90 backdrop-blur text-xl">
+                      {cat.icon}
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 text-background opacity-0 transition group-hover:opacity-100" />
                   </div>
-                  <ArrowUpRight className="h-4 w-4 text-background opacity-0 transition group-hover:opacity-100" />
+                  <div className="text-background">
+                    <div className="font-display text-lg font-bold leading-tight">{cat.name}</div>
+                    <div className="text-xs opacity-90">{cat.count.toLocaleString()} ads</div>
+                  </div>
                 </div>
-                <div className="text-background">
-                  <div className="font-display text-lg font-bold leading-tight">{c.name}</div>
-                  <div className="text-xs opacity-90">{c.count} ads</div>
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </section>
 
-      {/* Trending listings from Supabase */}
+      {/* ── Fresh Listings ──────────────────────────────────────────── */}
       <section className="bg-secondary/50">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-24">
           <div className="mb-8 flex items-end justify-between gap-4">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
-                Trending now
-              </span>
-              <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">
-                Fresh deals near you
-              </h2>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Trending now</span>
+              <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">Fresh deals near you</h2>
             </div>
             <Link to="/browse" className="hidden items-center gap-1 text-sm font-semibold text-primary hover:underline sm:inline-flex">
               See all listings <ChevronRight className="h-4 w-4" />
@@ -379,7 +446,7 @@ export default function HomePage() {
           </div>
 
           {loading ? (
-            <div className="py-20 text-center text-muted-foreground">Loading fresh deals...</div>
+            <div className="py-20 text-center text-muted-foreground">Loading fresh deals…</div>
           ) : listings.length > 0 ? (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {listings.map((listing, i) => (
@@ -392,15 +459,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Sell CTA */}
+      {/* ── Sell CTA ────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-24">
         <div className="relative overflow-hidden rounded-3xl gradient-emerald p-8 text-primary-foreground sm:p-14">
           <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-gold/30 blur-3xl" />
           <div className="relative grid items-center gap-8 lg:grid-cols-[1.5fr_1fr]">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">
-                Sell smarter
-              </span>
+              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Sell smarter</span>
               <h2 className="mt-3 font-display text-3xl font-bold leading-tight sm:text-5xl">
                 Got something to sell?
                 <br />
@@ -411,7 +476,10 @@ export default function HomePage() {
                 no middlemen — just real Kenyans buying and selling.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link to="/post-ad" className="inline-flex items-center gap-2 rounded-full bg-background px-5 py-3 text-sm font-semibold text-primary shadow-elevated hover:bg-cream">
+                <Link
+                  to="/post-ad"
+                  className="inline-flex items-center gap-2 rounded-full bg-background px-5 py-3 text-sm font-semibold text-primary shadow-elevated hover:bg-cream"
+                >
                   <PlusCircle className="h-4 w-4" />
                   Post your free ad
                 </Link>
@@ -422,10 +490,10 @@ export default function HomePage() {
             </div>
             <ul className="grid gap-3 text-sm">
               {[
-                "List in under 60 seconds",
-                "Reach buyers across 47 counties",
-                "Verified seller badges build trust",
-                "Chat directly — no commissions",
+                'List in under 60 seconds',
+                'Reach buyers across 47 counties',
+                'Verified seller badges build trust',
+                'Chat directly — no commissions',
               ].map((p) => (
                 <li
                   key={p}
