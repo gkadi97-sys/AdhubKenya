@@ -37,7 +37,7 @@ export function getLevel1Options(categorySlug, filters = {}, attrId = null) {
   if (categorySlug === 'vehicles') subcategory = filters.bodyType;
 
   if (categorySlug === 'auto-spares') {
-    if (attrId === 'make') return Object.keys(VEHICLE_MAKES_BY_TYPE.Cars || {});
+    if (attrId === 'make') return Object.keys(CATEGORY_ATTRIBUTES.vehicles.data || {});
     if (filters.listingType === 'accessory' || attrId === 'category') return Object.keys(MASTER_ACCESSORIES);
     return Object.keys(MASTER_SPARE_PARTS);
   }
@@ -66,7 +66,7 @@ export function getLevel2Options(categorySlug, level1Value, filters = {}, attrId
   
   if (categorySlug === 'auto-spares') {
     if (attrId === 'model' || (filters.make && level1Value === filters.make)) {
-      return VEHICLE_MAKES_BY_TYPE.Cars?.[level1Value] || [];
+      return CATEGORY_ATTRIBUTES.vehicles.data?.[level1Value] || [];
     }
     if (filters.listingType === 'accessory' || attrId === 'subcategory') return MASTER_ACCESSORIES[level1Value] || [];
     return MASTER_SPARE_PARTS[level1Value] || [];
