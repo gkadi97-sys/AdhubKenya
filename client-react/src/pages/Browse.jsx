@@ -85,11 +85,25 @@ function BrowseContent() {
     navigate(`/browse?${next.toString()}`);
   };
 
-  // ── Active filter chips ────────────────────────────────────
+  // ── Active filter chips — human-readable labels ────────────────────────────
+  // Maps URL param keys → display names shown on the chip badges
+  const PARAM_LABELS = {
+    county: 'County', minPrice: 'Min Price', maxPrice: 'Max Price',
+    make: 'Brand', model: 'Model', subcategory: 'Type', system: 'System', part: 'Part',
+    vehicle_type: 'Vehicle Type', bodyStyle: 'Body Style', fuel: 'Fuel',
+    transmission: 'Gearbox', drive: 'Drive', engineCC_max: 'Max CC',
+    mileage_max: 'Max KM', color: 'Color', numSeats: 'Seats',
+    registered: 'Registered', exchange: 'Exchange', year_min: 'Year From', year_max: 'Year To',
+    os: 'OS', ram: 'RAM', storage: 'Storage',
+    property_type: 'Property Type', purpose: 'Purpose', bedrooms: 'Beds',
+    bathrooms: 'Baths', furnished: 'Furnished', parking: 'Parking', amenities: 'Amenities',
+    job_type: 'Job Type', industry: 'Industry', animal_type: 'Animal Type',
+    gender: 'For', condition: 'Condition', posted: 'Posted', seller_type: 'Seller',
+  };
   const activeChips = [];
   for (const [k, v] of searchParams.entries()) {
     if (ignoredKeys.has(k) || !v) continue;
-    activeChips.push({ key: k, value: v });
+    activeChips.push({ key: k, label: PARAM_LABELS[k] || k.replace(/_/g, ' '), value: v });
   }
 
   return (
@@ -123,12 +137,12 @@ function BrowseContent() {
             <div className="flex flex-wrap items-center gap-2 mt-6">
               {activeChips.map(chip => (
                 <span key={chip.key} className="flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-sm font-medium text-primary">
-                  <span className="capitalize">{chip.key.replace(/_/g,' ')}: </span>
+                  <span className="capitalize">{chip.label}: </span>
                   <span className="font-bold">{chip.value}</span>
                   <button
                     className="ml-1 rounded-full p-0.5 hover:bg-primary/20 transition-colors"
                     onClick={() => applyFilter({ [chip.key]: '' })}
-                    aria-label={`Remove ${chip.key} filter`}
+                    aria-label={`Remove ${chip.label} filter`}
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>

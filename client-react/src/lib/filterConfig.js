@@ -2,11 +2,19 @@
 // Each entry maps a category slug → array of filter definitions.
 // type: 'select' | 'multicheck' | 'radio' | 'range' | 'text'
 // urlParam: the key written to/read from URL search params
+//
+// SINGLE SOURCE OF TRUTH:
+// The `cascades` array in each category is derived from CATEGORY_ATTRIBUTES
+// in categoryData.js via filterEngine.js. Adding new brands/models there
+// automatically makes them available in filters — no duplication needed.
 
 export const FILTER_CONFIG = {
 
   vehicles: {
     label: 'Vehicles',
+    // NOTE: Make/Model cascades are handled by FilterSidebar's CascadeFilterGroup
+    // which reads from CATEGORY_ATTRIBUTES via filterEngine.js.
+    // The filters below are flat (non-cascaded) vehicle-specific attributes.
     filters: [
       {
         id: 'vehicle_type', label: 'Vehicle Type', type: 'select', urlParam: 'vehicle_type',
@@ -16,11 +24,6 @@ export const FILTER_CONFIG = {
         id: 'bodyStyle', label: 'Body Style', type: 'select', urlParam: 'bodyStyle',
         options: ['Sedan', 'Hatchback', 'Station Wagon', 'SUV / Crossover', 'Coupe', 'Convertible', 'Pickup / Double Cabin', 'Van / Minivan']
       },
-      {
-        id: 'make', label: 'Brand', type: 'select', urlParam: 'make',
-        options: ['Toyota','Nissan','Mitsubishi','Mazda','Honda','Subaru','Isuzu','Suzuki','Land Rover','Mercedes-Benz','BMW','Volkswagen','Ford','Hyundai','Kia','Jeep','Peugeot','Renault','Volvo','Scania','MAN','Hino','Fuso','UD Trucks','Tata','Ashok Leyland']
-      },
-      { id: 'model', label: 'Model', type: 'text', urlParam: 'model', placeholder: 'e.g. Prado, Fielder, NZJ...' },
       {
         id: 'year_min', label: 'Year From', type: 'select', urlParam: 'year_min',
         options: Array.from({length: new Date().getFullYear() - 1989}, (_, i) => String(2025 - i))
@@ -46,7 +49,7 @@ export const FILTER_CONFIG = {
         options: ['1000', '1500', '1800', '2000', '2500', '3000', '4000', '5000+']
       },
       {
-        id: 'mileage_max', label: 'Max Mileage', type: 'select', urlParam: 'mileage_max',
+        id: 'mileage_max', label: 'Max Mileage (km)', type: 'select', urlParam: 'mileage_max',
         options: ['10000', '30000', '50000', '80000', '100000', '150000', '200000']
       },
       {
@@ -72,10 +75,6 @@ export const FILTER_CONFIG = {
     label: 'Auto Spares & Accessories',
     filters: [
       {
-        id: 'system', label: 'Part Category / System', type: 'select', urlParam: 'system',
-        options: ['Engine & Components', 'Transmission & Drivetrain', 'Suspension & Steering', 'Braking System', 'Electrical & Lighting', 'Body & Exterior', 'Interior Parts', 'Cooling System', 'Exhaust System', 'Fuel System', 'Wheels & Tyres', 'Accessories & Upgrades']
-      },
-      {
         id: 'make', label: 'Compatible Brand', type: 'select', urlParam: 'make',
         options: ['Toyota','Nissan','Mitsubishi','Mazda','Honda','Subaru','Isuzu','Land Rover','Mercedes-Benz','BMW','Volkswagen','Ford','Universal']
       },
@@ -83,6 +82,7 @@ export const FILTER_CONFIG = {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',
         options: ['New','Ex-Japan','Locally Used','OEM (Original)','Aftermarket','Refurbished']
       }
+      // System → Part cascade is handled by CascadeFilterGroup via filterEngine
     ]
   },
 
@@ -92,10 +92,6 @@ export const FILTER_CONFIG = {
       {
         id: 'purpose', label: 'Purpose', type: 'radio', urlParam: 'purpose',
         options: ['Rent','Sale']
-      },
-      {
-        id: 'property_type', label: 'Property Type', type: 'select', urlParam: 'property_type',
-        options: ['Apartment','House','Villa','Studio','Bedsitter','Maisonette','Bungalow','Office','Shop','Warehouse','Land','Plot']
       },
       {
         id: 'bedrooms', label: 'Bedrooms', type: 'radio', urlParam: 'bedrooms',
@@ -117,17 +113,13 @@ export const FILTER_CONFIG = {
         id: 'amenities', label: 'Amenities', type: 'multicheck', urlParam: 'amenities',
         options: ['Swimming Pool', 'Gym', 'Backup Generator', 'Borehole', 'Elevator', 'Balcony', 'Garden', 'Security Guard', 'CCTV', 'Internet / Wi-Fi', 'Pet Friendly']
       }
+      // Property subcategory + type cascade handled by CascadeFilterGroup
     ]
   },
 
   'phones-tablets': {
     label: 'Phones & Tablets',
     filters: [
-      {
-        id: 'make', label: 'Brand', type: 'select', urlParam: 'make',
-        options: ['Apple','Samsung','Tecno','Infinix','Itel','Huawei','Nokia','Xiaomi','Oppo','Vivo','Realme','Google','Other']
-      },
-      { id: 'model', label: 'Model', type: 'text', urlParam: 'model', placeholder: 'e.g. iPhone 15, Galaxy S24...' },
       {
         id: 'storage', label: 'Storage', type: 'multicheck', urlParam: 'storage',
         options: ['16GB','32GB','64GB','128GB','256GB','512GB','1TB']
@@ -144,6 +136,7 @@ export const FILTER_CONFIG = {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',
         options: ['Brand New','Open Box','Ex-UK','Ex-USA','Foreign Used','Locally Used','Refurbished']
       }
+      // Subcategory → Brand → Model cascade handled by CascadeFilterGroup (3-level)
     ]
   },
 
@@ -154,6 +147,7 @@ export const FILTER_CONFIG = {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',
         options: ['New','Used - Like New','Used - Good','Used - Fair']
       }
+      // Category → Item cascade handled by CascadeFilterGroup
     ]
   },
 
@@ -164,6 +158,7 @@ export const FILTER_CONFIG = {
         id: 'condition', label: 'Condition', type: 'radio', urlParam: 'condition',
         options: ['New','Used - Like New','Used - Good','Used - Fair']
       }
+      // Category → Item cascade handled by CascadeFilterGroup
     ]
   },
 

@@ -22,36 +22,91 @@ export const getMe = async () => {
 export const getListings = async (params = {}) => {
   let query = supabase.from('listings').select('*, seller:profiles!seller_id(name, location, created_at)', { count: 'exact' });
 
-  // Filters
-  if (params.category) query = query.eq('category', params.category);
-  if (params.location) query = query.eq('location', params.location);
-  if (params.make)    query = query.ilike('make', params.make);
-  if (params.keyword) query = query.or(`title.ilike.%${params.keyword}%,description.ilike.%${params.keyword}%`);
-  if (params.minPrice) query = query.gte('price', params.minPrice);
-  if (params.maxPrice) query = query.lte('price', params.maxPrice);
+  // ── Top-level column filters (backward-compatible) ────────────────────────
+  if (params.category)  query = query.eq('category', params.category);
+  if (params.location)  query = query.eq('location', params.location);
+  if (params.keyword)   query = query.or(`title.ilike.%${params.keyword}%,description.ilike.%${params.keyword}%`);
+  if (params.minPrice)  query = query.gte('price', params.minPrice);
+  if (params.maxPrice)  query = query.lte('price', params.maxPrice);
 
-  // Sorting
+  // ── Structured attribute filters via specs JSONB column ───────────────────
+  // These params are written by CascadeFilterGroup in FilterSidebar and read
+  // from the structured `specs` column stored during ad creation.
+  // Falls back gracefully for old ads that don't have specs stored.
+
+  // make: check both top-level `make` column AND specs->>'make'
+  if (params.make) {
+    query = query.or(`make.ilike.%${params.make}%,specs->make.ilike.%${params.make}%`);
+  }
+
+  // Cascade-derived params — all read from specs JSONB
+  const SPECS_PARAMS = [
+    'model', 'subcategory', 'system', 'part',
+    'vehicle_type', 'bodyStyle', 'fuel', 'transmission', 'drive',
+    'color', 'numSeats', 'registered', 'exchange',
+    'os', 'ram', 'storage',
+    'property_type', 'purpose', 'bedrooms', 'bathrooms', 'furnished', 'parking',
+    'job_type', 'industry', 'animal_type', 'gender',
+    'condition',
+  ];
+
+  SPECS_PARAMS.forEach(key => {
+    if (params[key]) {
+      // Use ilike for partial matching (e.g. multicheck values stored as comma-separated)
+      query = query.ilike(`specs->>${key}`, `%${params[key]}%`);
+    }
+  });
+
+  // ── Numeric range filters from specs ──────────────────────────────────────
+  // engineCC_max: ads store engineCC in specs->engineCC, filter shows max threshold
+  if (params.engineCC_max) {
+    query = query.lte(`specs->>engineCC`, params.engineCC_max);
+  }
+  // mileage_max: ads store mileage in specs->mileage
+  if (params.mileage_max) {
+    query = query.lte(`specs->>mileage`, params.mileage_max);
+  }
+
+  // ── Year range filters ────────────────────────────────────────────────────
+  if (params.year_min) query = query.gte('year', parseInt(params.year_min));
+  if (params.year_max) query = query.lte('year', parseInt(params.year_max));
+
+  // ── Date-posted filter ────────────────────────────────────────────────────
+  if (params.posted) {
+    const now = new Date();
+    if (params.posted === 'Today') {
+      now.setHours(0, 0, 0, 0);
+      query = query.gte('created_at', now.toISOString());
+    } else if (params.posted === 'Last 7 days') {
+      query = query.gte('created_at', new Date(Date.now() - 7 * 864e5).toISOString());
+    } else if (params.posted === 'Last 30 days') {
+      query = query.gte('created_at', new Date(Date.now() - 30 * 864e5).toISOString());
+    }
+  }
+
+  // ── County / location ──────────────────────────────────────────────────────
+  if (params.county) query = query.ilike('location', `%${params.county}%`);
+
+  // ── Sorting ────────────────────────────────────────────────────────────────
   const sort = params.sort || 'createdAt';
   if (sort === 'createdAt') query = query.order('created_at', { ascending: false });
-  if (sort === 'price_asc') query = query.order('price', { ascending: true });
+  if (sort === 'price_asc')  query = query.order('price', { ascending: true });
   if (sort === 'price_desc') query = query.order('price', { ascending: false });
 
-  // Pagination
-  const page = parseInt(params.page) || 1;
+  // ── Pagination ─────────────────────────────────────────────────────────────
+  const page  = parseInt(params.page)  || 1;
   const limit = parseInt(params.limit) || 12;
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
-  
+  const from  = (page - 1) * limit;
+  const to    = from + limit - 1;
   query = query.range(from, to);
 
   const { data, error, count } = await query;
-  
   if (error) throw error;
-  
+
   return {
     listings: data,
     total: count,
-    pages: Math.ceil(count / limit)
+    pages: Math.ceil(count / limit),
   };
 };
 
