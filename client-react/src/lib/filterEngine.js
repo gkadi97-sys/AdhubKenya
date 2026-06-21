@@ -8,52 +8,81 @@
  * No duplication. When categoryData.js gets a new brand/model, filters update automatically.
  */
 
-import { CATEGORY_ATTRIBUTES } from './categoryData';
+import { CATEGORY_ATTRIBUTES, TV_SPECS, AUDIO_SPECS } from './categoryData';
+import { LAPTOP_DATA } from './laptopPhoneData';
 
 /**
- * Get Level-1 options (e.g. subcategory / system / make depending on category)
- * @param {string} categorySlug  e.g. 'phones-tablets', 'vehicles', 'electronics'
- * @returns {string[]}
+ * Helper to route electronics subcategories to their specific data structures.
  */
-export function getLevel1Options(categorySlug) {
+function getElectronicsTree(subcategory) {
+  if (subcategory === 'Laptops & Computers') return LAPTOP_DATA.hierarchy;
+  if (subcategory === 'Televisions') return TV_SPECS.hierarchy;
+  if (subcategory === 'Audio & Music') return AUDIO_SPECS.hierarchy;
+  return null;
+}
+
+export function getCascadeConfig(categorySlug, subcategory) {
+  if (categorySlug === 'electronics') {
+    if (subcategory === 'Laptops & Computers') return { level1: 'brand', level2: 'series', level3: 'model' };
+    if (subcategory === 'Televisions') return { level1: 'brand', level2: 'series', level3: 'model' };
+    if (subcategory === 'Audio & Music') return { level1: 'equipmentType', level2: 'brand', level3: 'series' };
+  }
+  return CASCADE_URL_PARAMS[categorySlug];
+}
+
+export function getLevel1Options(categorySlug, subcategory) {
+  if (categorySlug === 'electronics' && subcategory) {
+    const tree = getElectronicsTree(subcategory);
+    if (tree) return Object.keys(tree);
+  }
   const tree = CATEGORY_ATTRIBUTES[categorySlug];
   if (!tree || !tree.data) return [];
   return Object.keys(tree.data);
 }
 
-/**
- * Get Level-2 options, dependent on the selected level-1 value.
- * For flat categories (where level-2 data is a plain string[]) returns []
- * since the models are at level-3.
- * @param {string} categorySlug
- * @param {string} level1Value  — selected level-1 option
- * @returns {string[]}
- */
-export function getLevel2Options(categorySlug, level1Value) {
+export function getLevel2Options(categorySlug, level1Value, subcategory) {
   if (!level1Value) return [];
+  
+  if (categorySlug === 'electronics' && subcategory) {
+    const tree = getElectronicsTree(subcategory);
+    if (!tree) return [];
+    if (subcategory === 'Audio & Music') {
+      // Audio: level1 is equipmentType (e.g. Soundbar), level2 is brand
+      return tree[level1Value]?.brands || [];
+    } else {
+      // Laptops & TVs: level1 is brand, level2 is series
+      return tree[level1Value]?.series || [];
+    }
+  }
+
   const tree = CATEGORY_ATTRIBUTES[categorySlug];
   if (!tree || !tree.data) return [];
 
   const level1Data = tree.data[level1Value];
   if (!level1Data) return [];
 
-  // level1Data can be:
-  //   string[]  → direct models (vehicles: make → [models])
-  //   object    → sub-brands/types (phones: subcategory → {brand: [models]})
   if (Array.isArray(level1Data)) return level1Data;
   return Object.keys(level1Data);
 }
 
-/**
- * Get Level-3 options, dependent on level-1 AND level-2 values.
- * Only meaningful for 3-level hierarchies (phones-tablets: subcategory → brand → models).
- * @param {string} categorySlug
- * @param {string} level1Value
- * @param {string} level2Value
- * @returns {string[]}
- */
-export function getLevel3Options(categorySlug, level1Value, level2Value) {
+export function getLevel3Options(categorySlug, level1Value, level2Value, subcategory) {
   if (!level1Value || !level2Value) return [];
+
+  if (categorySlug === 'electronics' && subcategory) {
+    const tree = getElectronicsTree(subcategory);
+    if (!tree) return [];
+    if (subcategory === 'Audio & Music') {
+      // Audio: level1 = equipmentType, level2 = brand, level3 = series
+      const brandData = tree[level1Value]?.brandData?.[level2Value];
+      return brandData?.series || [];
+    } else {
+      // Laptops & TVs: level1 = brand, level2 = series, level3 = models
+      const modelsData = tree[level1Value]?.models?.[level2Value];
+      if (Array.isArray(modelsData)) return modelsData;
+      return [];
+    }
+  }
+
   const tree = CATEGORY_ATTRIBUTES[categorySlug];
   if (!tree || !tree.data) return [];
 
@@ -66,13 +95,12 @@ export function getLevel3Options(categorySlug, level1Value, level2Value) {
   return Object.keys(level2Data);
 }
 
-/**
- * Returns human-readable labels for a category's cascade levels.
- * Used to label each cascade dropdown in the sidebar.
- * @param {string} categorySlug
- * @returns {{ level1Label: string, level2Label: string }}
- */
-export function getCascadeLabels(categorySlug) {
+export function getCascadeLabels(categorySlug, subcategory) {
+  if (categorySlug === 'electronics' && subcategory) {
+    if (subcategory === 'Audio & Music') return { level1Label: 'Equipment', level2Label: 'Brand', level3Label: 'Series' };
+    if (subcategory === 'Laptops & Computers') return { level1Label: 'Brand', level2Label: 'Series', level3Label: 'Model' };
+    if (subcategory === 'Televisions') return { level1Label: 'Brand', level2Label: 'Series', level3Label: 'Model' };
+  }
   const tree = CATEGORY_ATTRIBUTES[categorySlug];
   if (!tree) return { level1Label: 'Type', level2Label: 'Model' };
   return {
@@ -82,38 +110,27 @@ export function getCascadeLabels(categorySlug) {
   };
 }
 
-/**
- * Returns true if a given category has cascade filters defined in CATEGORY_ATTRIBUTES.
- * @param {string} categorySlug
- * @returns {boolean}
- */
-export function hasCascadeFilters(categorySlug) {
+export function hasCascadeFilters(categorySlug, subcategory) {
+  if (categorySlug === 'electronics' && subcategory) {
+    return !!getElectronicsTree(subcategory);
+  }
   const tree = CATEGORY_ATTRIBUTES[categorySlug];
   return !!(tree && tree.data && Object.keys(tree.data).length > 0);
 }
 
-/**
- * Determines the depth of the cascade hierarchy for a given category.
- * depth 2 → level1 + level2 (e.g. vehicles: make + model)
- * depth 3 → level1 + level2 + level3 (e.g. phones: subcategory + brand + model)
- * @param {string} categorySlug
- * @returns {2|3}
- */
-export function getCascadeDepth(categorySlug) {
+export function getCascadeDepth(categorySlug, subcategory) {
+  if (categorySlug === 'electronics' && subcategory) {
+    return getElectronicsTree(subcategory) ? 3 : 2;
+  }
   const tree = CATEGORY_ATTRIBUTES[categorySlug];
   if (!tree || !tree.data) return 2;
 
-  // Check if any level1 value maps to an object (not array) → depth 3
   const firstKey = Object.keys(tree.data)[0];
   if (!firstKey) return 2;
   const firstValue = tree.data[firstKey];
   return (firstValue && !Array.isArray(firstValue) && typeof firstValue === 'object') ? 3 : 2;
 }
 
-/**
- * URL param names used for each cascade level, per category.
- * Matches the param names already used across the app.
- */
 export const CASCADE_URL_PARAMS = {
   vehicles:       { level1: 'make',        level2: 'model',  level3: null },
   'auto-spares':  { level1: 'system',      level2: 'part',   level3: null },
