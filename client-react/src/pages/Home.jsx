@@ -62,14 +62,29 @@ function CategorySidebar({ onNavigate }) {
     if (filters[attr.id]) activeFilters[attr.id] = filters[attr.id];
   });
 
+  // Recursively find all descendant cascade attrs by cascadeParent linkage
+  const getDescendantAttrs = (attrId, attrs) => {
+    const direct = attrs.filter(a => a.cascadeParent === attrId);
+    return direct.reduce((acc, child) => {
+      acc.push(child);
+      acc.push(...getDescendantAttrs(child.id, attrs));
+      return acc;
+    }, []);
+  };
+
   const setFilter = (key, val) => {
     setFilters(prev => {
       const next = { ...prev, [key]: val };
-      const attr = schema?.attributes?.find(a => a.id === key);
+      const attrs = schema?.attributes || [];
+      const attr = attrs.find(a => a.id === key);
       if (attr && attr.type === 'dynamic-cascade') {
-        schema.attributes.filter(a => a.type === 'dynamic-cascade' && a.cascadeLevel > attr.cascadeLevel).forEach(child => {
-          delete next[child.id];
-        });
+        // Clear cascadeParent-based descendants (new schema style)
+        getDescendantAttrs(key, attrs).forEach(child => { delete next[child.id]; });
+        // Also clear old cascadeLevel-based children (legacy schema style)
+        if (attr.cascadeLevel) {
+          attrs.filter(a => a.type === 'dynamic-cascade' && a.cascadeLevel > attr.cascadeLevel)
+            .forEach(child => { delete next[child.id]; });
+        }
       }
       return next;
     });
@@ -79,11 +94,16 @@ function CategorySidebar({ onNavigate }) {
     setFilters(prev => {
       const next = { ...prev };
       delete next[key];
-      const attr = schema?.attributes?.find(a => a.id === key);
+      const attrs = schema?.attributes || [];
+      const attr = attrs.find(a => a.id === key);
       if (attr && attr.type === 'dynamic-cascade') {
-        schema.attributes.filter(a => a.type === 'dynamic-cascade' && a.cascadeLevel > attr.cascadeLevel).forEach(child => {
-          delete next[child.id];
-        });
+        // Clear cascadeParent-based descendants
+        getDescendantAttrs(key, attrs).forEach(child => { delete next[child.id]; });
+        // Also clear old cascadeLevel-based children
+        if (attr.cascadeLevel) {
+          attrs.filter(a => a.type === 'dynamic-cascade' && a.cascadeLevel > attr.cascadeLevel)
+            .forEach(child => { delete next[child.id]; });
+        }
       }
       return next;
     });
@@ -187,23 +207,24 @@ function CategorySidebar({ onNavigate }) {
                         );
                       }
 
-                      if (isFirst && opts.length <= 25) {
+                      // ── radio: always render as wrapping chip buttons ──────
+                      if (attr.type === 'radio') {
                         return (
                           <div key={attr.id}>
                             <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
-                            <ul className="grid grid-cols-2 gap-1.5 mt-1">
+                            <ul className="flex flex-wrap gap-1.5">
                               {opts.map(o => {
                                 const isSel = val === o;
                                 return (
                                   <li key={o}>
                                     <button
                                       onClick={() => setFilter(attr.id, isSel ? '' : o)}
-                                      className={`w-full inline-flex items-center justify-center rounded-lg px-1.5 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer border text-center ${
+                                      className={`inline-flex items-center justify-center rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer border leading-tight ${
                                         isSel ? 'border-primary bg-primary text-primary-foreground shadow-sm' : 'border-border bg-background hover:border-primary/40 text-foreground hover:bg-secondary/50'
                                       }`}
                                       title={o}
                                     >
-                                      <span className="truncate">{o}</span>
+                                      {o}
                                     </button>
                                   </li>
                                 );
@@ -213,6 +234,34 @@ function CategorySidebar({ onNavigate }) {
                         );
                       }
 
+                      // ── first dynamic-cascade with few options → chips ─────
+                      if (isFirst && attr.type === 'dynamic-cascade' && opts.length <= 25) {
+                        return (
+                          <div key={attr.id}>
+                            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                            <ul className="flex flex-wrap gap-1.5 mt-1">
+                              {opts.map(o => {
+                                const isSel = val === o;
+                                return (
+                                  <li key={o}>
+                                    <button
+                                      onClick={() => setFilter(attr.id, isSel ? '' : o)}
+                                      className={`inline-flex items-center justify-center rounded-lg px-2 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer border text-center leading-tight ${
+                                        isSel ? 'border-primary bg-primary text-primary-foreground shadow-sm' : 'border-border bg-background hover:border-primary/40 text-foreground hover:bg-secondary/50'
+                                      }`}
+                                      title={o}
+                                    >
+                                      {o}
+                                    </button>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        );
+                      }
+
+                      // ── fallback: select dropdown ──────────────────────────
                       return (
                         <div key={attr.id}>
                           <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>

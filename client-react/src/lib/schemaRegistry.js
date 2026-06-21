@@ -48,7 +48,7 @@ export const SCHEMA_REGISTRY = {
       { id: 'universal', label: 'Universal Fit', type: 'radio', options: ['Yes', 'No'], dependsOn: { field: 'listingType', value: 'accessory' } },
       { id: 'vehicleType', label: 'Vehicle Type', type: 'select', options: ['Car', 'SUV', 'Pickup', 'Truck', 'Motorcycle'], dependsOn: { field: 'listingType', value: 'accessory' } },
       
-      { id: 'condition', label: 'Condition', type: 'radio', options: ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'] }
+      { id: 'condition', label: 'Condition', type: 'radio', options: ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'], dependsOn: { field: 'listingType', value: ['spare-part', 'accessory'] } }
     ]
   },
   property: {
