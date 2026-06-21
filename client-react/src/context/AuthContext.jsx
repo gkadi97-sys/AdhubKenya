@@ -91,8 +91,18 @@ export function AuthProvider({ children }) {
     navigate('/');
   };
 
+  const loginWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) throw error;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loginWithGoogle, loading }}>
       {children}
     </AuthContext.Provider>
   );

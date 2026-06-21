@@ -1,9 +1,19 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import CountyTownSelect from '@/components/CountyTownSelect';
 import { useSEO } from '@/lib/useSEO';
+
+function GoogleIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#4285F4" d="M45.5 24.5c0-1.5-.1-3-.4-4.5H24v8.5h12.1c-.5 2.8-2.1 5.1-4.4 6.7v5.5h7.1c4.2-3.8 6.7-9.5 6.7-16.2z"/>
+      <path fill="#34A853" d="M24 46c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2.2 1.5-5 2.3-8.8 2.3-6.7 0-12.4-4.5-14.5-10.6H2.2v5.7C6.2 41.8 14.5 46 24 46z"/>
+      <path fill="#FBBC05" d="M9.5 26.4c-.5-1.5-.8-3.1-.8-4.9s.3-3.4.8-4.9v-5.7H2.2C.8 13.9 0 18.9 0 22.5c0 3.6.8 7 2.2 10.1l7.3-6.2z"/>
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.7 1.2 9.2 3.6l6.9-6.9C35.9 2.4 30.5 0 24 0 14.5 0 6.2 5.2 2.2 12.9l7.3 5.7C11.6 14 17.3 9.5 24 9.5z"/>
+    </svg>
+  );
+}
 
 
 const COUNTIES = ['Nairobi','Mombasa','Kwale','Kilifi','Tana River','Lamu','Taita-Taveta','Garissa','Wajir','Mandera','Marsabit','Isiolo','Meru','Tharaka-Nithi','Embu','Kitui','Machakos','Makueni','Nyandarua','Nyeri','Kirinyaga',"Murang'a",'Kiambu','Turkana','West Pokot','Samburu','Trans Nzoia','Uasin Gishu','Elgeyo-Marakwet','Nandi','Baringo','Laikipia','Nakuru','Narok','Kajiado','Kericho','Bomet','Kakamega','Vihiga','Bungoma','Busia','Siaya','Kisumu','Homa Bay','Migori','Kisii','Nyamira'];
@@ -14,7 +24,19 @@ export default function RegisterPage() {
     description: 'Join AdHub Kenya for free. Create an account to post free ads, sell your items, and connect with buyers across all 47 counties in Kenya.',
     canonicalPath: '/register'
   });
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogle = async () => {
+    setError('');
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      setError(err.message);
+      setGoogleLoading(false);
+    }
+  };
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = location.state?.from || '/post-ad';
@@ -54,7 +76,34 @@ export default function RegisterPage() {
         </div>
 
         <div className="card" style={{padding:32}}>
-          {error && <div className="alert alert-error">{error}</div>}
+          {error && <div className="alert alert-error" style={{marginBottom:20}}>{error}</div>}
+
+          {/* ── Google Sign-Up (Primary CTA) ── */}
+          <button
+            id="google-register-btn"
+            onClick={handleGoogle}
+            disabled={googleLoading}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 12, padding: '13px 20px',
+              background: '#fff', color: '#3c4043',
+              border: '1px solid #dadce0', borderRadius: 8,
+              fontWeight: 600, fontSize: '0.95rem',
+              cursor: googleLoading ? 'not-allowed' : 'pointer',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+              marginBottom: 20,
+              opacity: googleLoading ? 0.75 : 1,
+            }}
+          >
+            <GoogleIcon />
+            {googleLoading ? 'Redirecting to Google...' : 'Sign up with Google'}
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }}></div>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>or create with email</span>
+            <div style={{ flex: 1, height: 1, background: 'var(--border)' }}></div>
+          </div>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">Full Name *</label>
