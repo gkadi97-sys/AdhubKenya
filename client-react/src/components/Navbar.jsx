@@ -59,10 +59,14 @@ export default function Navbar() {
             <ThemeSwitcher />
             <Link to="/post-ad" className="btn btn-accent btn-sm" style={{ fontWeight: 700, padding: '8px 20px' }}>+ Post Ad Free</Link>
             {user ? (
-              <>
-                <Link to="/my-ads" className="btn btn-ghost btn-sm navbar-desktop-only">My Ads</Link>
-                <button onClick={logout} className="btn btn-ghost btn-sm navbar-desktop-only">Logout</button>
-              </>
+              <div className="navbar-desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: '8px' }}>
+                <button title="Saved" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>❤️</button>
+                <button title="Messages" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>💬</button>
+                <button title="Notifications" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>🔔</button>
+                <div style={{ height: '24px', width: '1px', background: 'var(--border)' }}></div>
+                <Link to="/my-ads" className="btn btn-ghost btn-sm" style={{ padding: '6px 12px' }}>My Ads</Link>
+                <button onClick={logout} className="btn btn-outline btn-sm" style={{ padding: '6px 12px' }}>Logout</button>
+              </div>
             ) : (
               <>
                 <Link to="/login" className="btn btn-ghost btn-sm navbar-desktop-only">Login</Link>

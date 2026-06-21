@@ -94,7 +94,7 @@ export default function GuidedSearch({ compact = false }) {
           <input
             className="gs2-keyword-input"
             type="text"
-            placeholder="Search anything in Kenya…"
+            placeholder="Search Toyota, iPhone, Land, Apartment..."
             value={keyword}
             onChange={e => setKeyword(e.target.value)}
             onFocus={() => setFocused(true)}
