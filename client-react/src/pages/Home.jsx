@@ -158,8 +158,35 @@ function CategorySidebar({ onNavigate }) {
                         }
                       }
                       
-                      if (!opts || !opts.length) return null;
+                      if (attr.type !== 'text' && attr.type !== 'number') {
+                        if (!opts || !opts.length) return null;
+                      }
+                      
                       const val = filters[attr.id] || '';
+
+                      if (attr.type === 'text' || attr.type === 'number') {
+                        return (
+                          <div key={attr.id}>
+                            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                            <div className="relative">
+                              <input
+                                type={attr.type}
+                                placeholder={`Any ${attr.label}`}
+                                value={val}
+                                onChange={e => setFilter(attr.id, e.target.value)}
+                                className={`w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition ${
+                                  val ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-foreground'
+                                } focus:border-primary/50`}
+                              />
+                              {val && (
+                                <button onClick={() => clearFilter(attr.id)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer">
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      }
 
                       if (isFirst && opts.length <= 25) {
                         return (
@@ -202,7 +229,7 @@ function CategorySidebar({ onNavigate }) {
                               {opts.map(o => <option key={o} value={o}>{o}</option>)}
                             </select>
                             {val && (
-                              <button onClick={() => clearFilter(attr.id)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer">
+                              <button onClick={() => clearFilter(attr.id)} className="absolute right-[28px] top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer bg-primary/10 pl-1">
                                 <X className="w-3 h-3" />
                               </button>
                             )}
