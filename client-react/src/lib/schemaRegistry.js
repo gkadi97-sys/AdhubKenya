@@ -18,7 +18,7 @@ export const SCHEMA_REGISTRY = {
       { id: 'driveType', label: 'Drive Type', type: 'radio', options: ['FWD', 'RWD', 'AWD', '4WD'] },
       { id: 'engineSize', label: 'Engine Size (CC)', type: 'number', filterType: 'max' },
       { id: 'color', label: 'Color', type: 'select', options: ['White', 'Black', 'Silver', 'Grey', 'Blue', 'Red', 'Brown', 'Green', 'Pearl White', 'Other'] },
-      { id: 'overallCondition', label: 'Condition', type: 'radio', options: ['Excellent', 'Good', 'Fair', 'Needs Work'] },
+
       { id: 'registered', label: 'Registered in Kenya?', type: 'radio', options: ['Yes', 'No'] },
       { id: 'exchange', label: 'Exchange Accepted?', type: 'radio', options: ['Yes', 'No'] },
       { id: 'seats', label: 'Number of Seats', type: 'radio', options: ['2', '4', '5', '6', '7', '8+'] },
@@ -48,7 +48,6 @@ export const SCHEMA_REGISTRY = {
       { id: 'universal', label: 'Universal Fit', type: 'radio', options: ['Yes', 'No'], dependsOn: { field: 'listingType', value: 'accessory' } },
       { id: 'vehicleType', label: 'Vehicle Type', type: 'select', options: ['Car', 'SUV', 'Pickup', 'Truck', 'Motorcycle'], dependsOn: { field: 'listingType', value: 'accessory' } },
       
-      { id: 'condition', label: 'Condition', type: 'radio', options: ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'], dependsOn: { field: 'listingType', value: ['spare-part', 'accessory'] } }
     ]
   },
   property: {
@@ -72,8 +71,7 @@ export const SCHEMA_REGISTRY = {
       { id: 'ram', label: 'RAM', type: 'multicheck', options: ['2GB', '3GB', '4GB', '6GB', '8GB', '12GB', '16GB+'] },
       { id: 'network', label: 'Network', type: 'multicheck', options: ['3G', '4G LTE', '5G'] },
       { id: 'os', label: 'Operating System', type: 'radio', options: ['Android', 'iOS', 'Windows', 'Other'] },
-      { id: 'color', label: 'Color', type: 'select', options: ['Black', 'White', 'Silver', 'Gold', 'Blue', 'Red', 'Green', 'Other'] },
-      { id: 'condition', label: 'Condition', type: 'radio', options: ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'] }
+      { id: 'color', label: 'Color', type: 'select', options: ['Black', 'White', 'Silver', 'Gold', 'Blue', 'Red', 'Green', 'Other'] }
     ]
   },
   electronics: {
@@ -104,9 +102,7 @@ export const SCHEMA_REGISTRY = {
       { id: 'equipmentType', label: 'Equipment Type', type: 'dynamic-cascade', cascadeLevel: 2, dependsOn: { field: 'subcategory', value: 'Audio & Music' } },
       { id: 'audioBrand', label: 'Brand', type: 'dynamic-cascade', cascadeLevel: 3, dependsOn: { field: 'subcategory', value: 'Audio & Music' } },
       { id: 'channels', label: 'Channels', type: 'select', options: ['2.0', '2.1', '3.1', '5.0', '5.1', '7.1', '9.1', '11.1'], dependsOn: { field: 'subcategory', value: 'Audio & Music' } },
-      { id: 'connectivity', label: 'Connectivity', type: 'multicheck', options: ['Bluetooth', 'Wi-Fi', 'HDMI', 'HDMI ARC', 'HDMI eARC', 'USB', 'Optical', 'AUX'], dependsOn: { field: 'subcategory', value: 'Audio & Music' } },
-
-      { id: 'condition', label: 'Condition', type: 'radio', options: ['Brand New', 'Open Box', 'Ex-UK', 'Foreign Used', 'Locally Used', 'Refurbished'] }
+      { id: 'connectivity', label: 'Connectivity', type: 'multicheck', options: ['Bluetooth', 'Wi-Fi', 'HDMI', 'HDMI ARC', 'HDMI eARC', 'USB', 'Optical', 'AUX'], dependsOn: { field: 'subcategory', value: 'Audio & Music' } }
     ]
   },
   jobs: {
@@ -122,8 +118,6 @@ export const SCHEMA_REGISTRY = {
   },
   // Add fallback for default DynamicListingForm
   default: {
-    attributes: [
-      { id: 'condition', label: 'Condition', type: 'radio', options: ['New', 'Used'] }
-    ]
+    attributes: []
   }
 };

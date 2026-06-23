@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import ListingCard from '@/components/ListingCard';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
-import FilterSidebar from '@/components/FilterSidebar';
+import FilterPanel from '@/components/filters/FilterPanel';
 import { Filter, X, Search } from 'lucide-react';
 
 const CATEGORIES = CATEGORY_ICONS;
@@ -173,15 +173,17 @@ function BrowseContent() {
 
           {/* ── Desktop Sidebar ──────────────────────── */}
           <div className="hidden md:block w-64 shrink-0 sticky top-24">
-            <FilterSidebar />
+            <div className="h-[calc(100vh-100px)] overflow-hidden">
+              <FilterPanel isMobile={false} />
+            </div>
           </div>
 
           {/* ── Mobile Drawer ────────────────────────── */}
           {drawerOpen && (
             <>
               <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden" onClick={() => setDrawerOpen(false)} />
-              <div className="fixed inset-y-0 right-0 z-50 w-full max-w-xs bg-background p-6 shadow-xl sm:max-w-sm md:hidden animate-in slide-in-from-right duration-300">
-                <FilterSidebar onClose={() => setDrawerOpen(false)} />
+              <div className="fixed inset-y-0 right-0 z-50 w-full max-w-xs bg-background shadow-xl sm:max-w-sm md:hidden animate-in slide-in-from-right duration-300">
+                <FilterPanel isMobile={true} onClose={() => setDrawerOpen(false)} />
               </div>
             </>
           )}
