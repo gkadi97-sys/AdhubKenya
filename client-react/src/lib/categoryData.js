@@ -1,4 +1,5 @@
-import { MASTER_SPARE_PARTS, MASTER_ACCESSORIES } from './autoSparesData';
+import { MASTER_SPARE_PARTS } from './autoSparesData';
+
 // ============================================================
 //  ADHUB KENYA — Category Attributes Data (Comprehensive Edition)
 // ============================================================
@@ -1094,7 +1095,7 @@ export const CATEGORY_ICONS = [
 
 export const TOP_CATEGORIES = CATEGORY_ICONS;
 export const MANUFACTURE_YEARS = Array.from({length: 30}, (_, i) => new Date().getFullYear() - i);
-export function getSpecs(categorySlug, level1, level2) {
+export const getSpecs = (categorySlug, make) => {
   if (categorySlug === 'auto-spares') {
     return [
       { key: 'partNumber', label: 'Part Number', type: 'text' },

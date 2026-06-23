@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search, MapPin, BadgeCheck, ShieldCheck, Sparkles, Flame, TrendingUp,
-  Clock, ChevronRight, ArrowUpRight, PlusCircle, ChevronLeft, SlidersHorizontal, X, ChevronDown
+  Clock, ChevronRight, ArrowUpRight, PlusCircle, X, ChevronDown
 } from 'lucide-react';
 import { getListings } from '@/lib/api';
-import { CATEGORY_ICONS, VEHICLE_SPECS, MANUFACTURE_YEARS } from '@/lib/categoryData';
+import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
-import { getLevel1Options, getLevel2Options, getLevel3Options, getCascadeLabels, CASCADE_URL_PARAMS } from '@/lib/filterEngine';
+import { getLevel1Options, getLevel2Options, getLevel3Options } from '@/lib/filterEngine';
 import ListingCard from '@/components/ListingCard';
 import { useSEO } from '@/lib/useSEO';
 
@@ -33,7 +33,7 @@ const CAT_TINTS = {
 };
 const FEATURED_SLUGS = ['vehicles','phones-tablets','property','fashion','electronics','home-furniture','jobs','services'];
 
-const SUBCATEGORY_OVERRIDES = { vehicles: VEHICLE_SPECS.vehicleTypes };
+
 const counties = ['All Kenya','Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Thika','Nyeri','Meru'];
 const popularSearches = ['Toyota Fielder', 'Bedsitter Nairobi', 'iPhone 15', 'Mitsubishi FH', 'PlayStation 5'];
 

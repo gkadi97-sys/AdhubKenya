@@ -8,7 +8,6 @@ import AutoSparesForm from '@/components/AutoSparesForm';
 import VehicleForm from '@/components/VehicleForm';
 import TruckForm from '@/components/TruckForm';
 import PropertyForm from '@/components/PropertyForm';
-import LaptopForm from '@/components/LaptopForm';
 import PhoneForm from '@/components/PhoneForm';
 import JobForm from '@/components/JobForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
@@ -65,7 +64,6 @@ export default function PostAdPage() {
   const handleImages = async (e) => {
     const isVehicle = form.category === 'vehicles' || form.category === 'commercial-vehicles';
     const isProperty = form.category === 'property' || form.category === 'land-plots';
-    const isAutoSpares = form.category === 'auto-spares';
     const maxImages = isProperty ? 15 : (isVehicle ? 10 : 5);
     const rawNewFiles = Array.from(e.target.files);
     

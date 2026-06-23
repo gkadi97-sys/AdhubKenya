@@ -12,7 +12,6 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
-  const [showLoginHint, setShowLoginHint] = useState(false);
 
   // Dynamic SEO: updates as listing loads
   useSEO({
@@ -180,8 +179,7 @@ export default function ListingDetailPage() {
                   turbocharged: 'Turbocharged', transmission: 'Transmission', numGears: 'No. Gears',
                   driveType: 'Drive Type', color: 'Exterior Colour', colorType: 'Colour Type',
                   numDoors: 'Doors', numSeats: 'Seats', wheelSize: 'Wheel Size',
-                  engineCapacityCc: 'Engine Size (cc)', bodyType: 'Body Type', fuelType: 'Fuel Type',
-                  transmission: 'Transmission', driveType: 'Drive Type', interiorColor: 'Interior Color',
+                  engineCapacityCc: 'Engine Size (cc)', bodyType: 'Body Type', interiorColor: 'Interior Color',
                   exteriorColor: 'Exterior Color', seatingCapacity: 'Seating Capacity', mileageKm: 'Mileage (km)',
                   listingCategory: 'Listing Category', currency: 'Currency', listingId: 'Listing ID',
                   landSize: 'Land Size', builtArea: 'Built-up Area', floors: 'Floors',

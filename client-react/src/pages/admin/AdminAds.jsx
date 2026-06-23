@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, RefreshCw, CheckCircle, XCircle, Star, Archive, Trash2, Eye, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { Search, RefreshCw, CheckCircle, XCircle, Star, Archive, Trash2, Eye, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatPrice, timeAgo } from '@/lib/api';
 
@@ -54,6 +54,7 @@ export default function AdminAds() {
     }
   }, [page, search, statusFilter]);
 
+  // eslint-disable-next-line
   useEffect(() => { fetchAds(); }, [fetchAds]);
 
   const handleAction = async (id, action) => {

@@ -1,4 +1,4 @@
-import { DollarSign, TrendingUp, CreditCard, RefreshCw, Download, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { DollarSign, TrendingUp, CreditCard, Download, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 const MOCK_TRANSACTIONS = [
   { id: 'TXN-001', user: 'James Mwangi', type: 'Featured Ad', amount: 500, status: 'completed', date: '2026-06-21', gateway: 'M-Pesa', ref: 'QJKX7A2' },

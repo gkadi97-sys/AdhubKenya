@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Globe, Mail, Bell, Shield, Database, Paintbrush } from 'lucide-react';
+import { Save, Globe, Mail, Shield, Database, Paintbrush } from 'lucide-react';
 
 const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20";
 

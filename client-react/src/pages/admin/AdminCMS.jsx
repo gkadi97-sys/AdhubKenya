@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, PlusCircle, Save, Eye, EyeOff, Edit3 } from 'lucide-react';
+import { FileText, PlusCircle, Eye, EyeOff, Edit3 } from 'lucide-react';
 
 const INITIAL_PAGES = [
   { id: 'about',    title: 'About Us',        status: 'published', slug: '/about' },
@@ -18,7 +18,6 @@ export default function AdminCMS() {
   const [pages, setPages] = useState(INITIAL_PAGES);
   const [banners, setBanners] = useState(INITIAL_BANNERS);
   const [activeTab, setActiveTab] = useState('pages');
-  const [editingBanner, setEditingBanner] = useState(null);
 
   const togglePageStatus = (id) => {
     setPages(prev => prev.map(p => p.id === id ? { ...p, status: p.status === 'published' ? 'draft' : 'published' } : p));

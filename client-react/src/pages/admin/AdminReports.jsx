@@ -1,9 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ShieldAlert, CheckCircle, Clock, Archive, Search, ChevronLeft, ChevronRight, RefreshCw, Eye } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { useState } from 'react';
+import { ShieldAlert } from 'lucide-react';
 import { timeAgo } from '@/lib/api';
 
-const REPORT_REASONS = ['Fraud', 'Scam', 'Duplicate', 'Abuse', 'Wrong Category', 'Misleading Price', 'Prohibited Item'];
 const STATUSES = {
   open:         { label: 'Open',         class: 'bg-destructive/15 text-destructive border-destructive/20' },
   investigating:{ label: 'Investigating',class: 'bg-amber-500/15 text-amber-600 border-amber-500/20' },

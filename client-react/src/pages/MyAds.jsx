@@ -14,6 +14,7 @@ export default function MyAdsPage() {
     if (user?.id) {
       getSellerListings(user.id).then(setListings).catch(()=>setListings([])).finally(()=>setLoading(false));
     } else { setLoading(false); }
+    // eslint-disable-next-line
   }, [user]);
 
   const handleDelete = async (id) => {

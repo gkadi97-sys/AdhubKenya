@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, RefreshCw, Shield, ShieldOff, Trash2, Eye, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, Download } from 'lucide-react';
+import { Search, Filter, RefreshCw, ShieldOff, Trash2, Eye, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, Download } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const ROLE_BADGES = {
@@ -15,15 +15,6 @@ const STATUS_BADGES = {
   suspended: { label: 'Suspended', icon: Clock,        class: 'bg-amber-500/15 text-amber-600' },
   banned:    { label: 'Banned',    icon: XCircle,      class: 'bg-destructive/15 text-destructive' },
 };
-
-function StatusBadge({ status = 'active' }) {
-  const s = STATUS_BADGES[status] || STATUS_BADGES.active;
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${s.class}`}>
-      <s.icon className="h-3 w-3" /> {s.label}
-    </span>
-  );
-}
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -58,6 +49,7 @@ export default function AdminUsers() {
     }
   }, [page, search]);
 
+  // eslint-disable-next-line
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   const toggleSelect = (id) => {
