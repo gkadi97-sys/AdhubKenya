@@ -1,13 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Grid, PlusCircle, MessageSquare, User } from 'lucide-react';
+import { Home, Search, PlusCircle, MessageSquare, User } from 'lucide-react';
 
 export default function MobileBottomNav() {
   const location = useLocation();
 
   const navItems = [
     { label: 'Home', path: '/', icon: Home },
-    { label: 'Categories', path: '/browse', icon: Grid },
-    { label: 'Sell', path: '/post-ad', icon: PlusCircle, isPrimary: true },
+    { label: 'Search', path: '/browse', icon: Search },
+    { label: 'Post', path: '/post-ad', icon: PlusCircle, isPrimary: true },
     { label: 'Messages', path: '/messages', icon: MessageSquare },
     { label: 'Profile', path: '/profile', icon: User },
   ];

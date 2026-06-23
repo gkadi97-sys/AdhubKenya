@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Search, MapPin, BadgeCheck, ShieldCheck, Sparkles, Flame, TrendingUp,
-  Clock, ChevronRight, ArrowUpRight, PlusCircle, X, ChevronDown
+  MapPin, BadgeCheck, ShieldCheck, Sparkles,
+  ChevronRight, ArrowUpRight, PlusCircle, X, ChevronDown
 } from 'lucide-react';
-import { getListings } from '@/lib/api';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
 import { getLevel1Options, getLevel2Options, getLevel3Options } from '@/lib/filterEngine';
-import ListingCard from '@/components/ListingCard';
+import HeroSearch from '@/components/HeroSearch';
+import QuickFilters from '@/components/QuickFilters';
+import DiscoveryRow from '@/components/DiscoveryRow';
+import ContinueBrowsing from '@/components/ContinueBrowsing';
+import TrustSafety from '@/components/TrustSafety';
 import { useSEO } from '@/lib/useSEO';
 
 import heroNairobi from '@/assets/hero-nairobi.jpg';
@@ -33,14 +36,11 @@ const CAT_TINTS = {
 };
 const FEATURED_SLUGS = ['vehicles','phones-tablets','property','fashion','electronics','home-furniture','jobs','services'];
 
-
-const counties = ['All Kenya','Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Thika','Nyeri','Meru'];
-const popularSearches = ['Toyota Fielder', 'Bedsitter Nairobi', 'iPhone 15', 'Mitsubishi FH', 'PlayStation 5'];
-
 // ─── Left Category Sidebar ───────────────────────────────────────────────────
 function CategorySidebar({ onNavigate }) {
   const [selectedSlug, setSelectedSlug] = useState(null);
   const [filters, setFilters]           = useState({});
+  const [showAll, setShowAll]           = useState(false);
 
   const cat      = CATEGORY_ICONS.find(c => c.slug === selectedSlug);
   const schema   = selectedSlug ? (SCHEMA_REGISTRY[selectedSlug] || SCHEMA_REGISTRY.default) : null;
@@ -121,9 +121,14 @@ function CategorySidebar({ onNavigate }) {
   // ── ACCORDION CATEGORIES LIST ──────────────────────────────────────────────
   return (
     <nav>
-      <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">All Categories</p>
+      <div className="flex items-center justify-between mb-3 px-3">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Categories</p>
+        <button onClick={() => setShowAll(!showAll)} className="text-[10px] font-bold text-primary hover:underline cursor-pointer">
+          {showAll ? 'Show Less' : 'View All'}
+        </button>
+      </div>
       <ul className="flex flex-col gap-1">
-        {CATEGORY_ICONS.map(c => {
+        {(showAll ? CATEGORY_ICONS : CATEGORY_ICONS.slice(0, 8)).map(c => {
           const isSelected = selectedSlug === c.slug;
           return (
             <li key={c.slug} className="flex flex-col">
@@ -323,10 +328,6 @@ function CategorySidebar({ onNavigate }) {
 
 // ─── HomePage ────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [search, setSearch]     = useState('');
-  const [location, setLocation] = useState('All Kenya');
   const navigate = useNavigate();
 
   useSEO({
@@ -335,23 +336,29 @@ export default function HomePage() {
     canonicalPath: '/'
   });
 
-  useEffect(() => {
-    getListings({ limit: 8, sort: 'createdAt' })
-      .then(res => setListings(res.listings || []))
-      .catch(() => setListings([]))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const p = new URLSearchParams();
-    if (search.trim()) p.set('keyword', search.trim());
-    if (location !== 'All Kenya') p.set('county', location);
-    navigate(`/browse?${p.toString()}`);
+  // JSON-LD structured data for SEO
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'AdHub Kenya',
+    url: 'https://adhubkenya.co.ke',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://adhubkenya.co.ke/browse?keyword={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
 
       {/* Announcement strip */}
       <div className="gradient-emerald text-primary-foreground">
@@ -390,45 +397,15 @@ export default function HomePage() {
                     Live from 47 counties · 236 ads today
                   </span>
                   <h1 className="mt-4 font-display text-3xl font-bold leading-tight tracking-tight sm:text-5xl">
-                    Kenya's trusted{' '}
-                    <span className="text-gold-grad">marketplace</span>
+                    Buy. Sell. Discover.{' '}
+                    <span className="text-gold-grad">Across Kenya.</span>
                   </h1>
                   <p className="mt-3 max-w-lg text-sm text-muted-foreground sm:text-base">
-                    Buy, sell and discover real deals — from Westlands to Mombasa.
+                    Find vehicles, property, electronics, jobs and more.
                   </p>
                 </div>
 
-                {/* Search */}
-                <form onSubmit={handleSearch} className="mt-6 max-w-2xl rounded-2xl border border-border bg-card/95 backdrop-blur p-3 shadow-elevated">
-                  <div className="flex items-center gap-3 rounded-xl bg-background px-4 py-2.5 ring-1 ring-border focus-within:ring-2 focus-within:ring-primary/40">
-                    <Search className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <input
-                      placeholder="Search cars, phones, property…"
-                      value={search}
-                      onChange={e => setSearch(e.target.value)}
-                      className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                    />
-                  </div>
-                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
-                    <label className="flex items-center gap-2 rounded-xl bg-background px-3 py-2 ring-1 ring-border hover:ring-primary/40">
-                      <MapPin className="h-4 w-4 shrink-0 text-primary" />
-                      <select value={location} onChange={e => setLocation(e.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none">
-                        {counties.map(c => <option key={c}>{c}</option>)}
-                      </select>
-                    </label>
-                    <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow transition hover:opacity-95 cursor-pointer">
-                      <Search className="h-4 w-4" /> Search
-                    </button>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5 px-1">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest text-gold">Popular</span>
-                    {popularSearches.map(s => (
-                      <button key={s} type="button" onClick={() => setSearch(s)} className="rounded-full border border-border bg-background px-2.5 py-0.5 text-xs font-medium text-foreground/80 hover:border-primary/40 hover:text-primary cursor-pointer">
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </form>
+                <HeroSearch />
 
                 {/* Trust strip */}
                 <div className="mt-5 flex flex-wrap gap-4">
@@ -442,6 +419,12 @@ export default function HomePage() {
               </div>
             </section>
 
+            {/* Quick Filters */}
+            <QuickFilters />
+
+            {/* Continue Browsing */}
+            <ContinueBrowsing />
+
             {/* Mobile category row (lg hidden) */}
             <div className="lg:hidden mb-6 overflow-x-auto pb-2">
               <div className="flex gap-2" style={{ width: 'max-content' }}>
@@ -454,27 +437,6 @@ export default function HomePage() {
                     <span className="text-2xl leading-none">{c.icon}</span>
                     <span className="text-[11px] font-semibold whitespace-nowrap text-foreground">{c.name}</span>
                   </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* Live counters */}
-            <div className="mb-6 rounded-2xl gradient-emerald text-primary-foreground">
-              <div className="grid grid-cols-3 gap-4 px-6 py-5">
-                {[
-                  { icon: Flame,      n: '236',   l: 'New ads today' },
-                  { icon: TrendingUp, n: '42',    l: 'Posted this hour' },
-                  { icon: Clock,      n: '1,200', l: 'Added this week' },
-                ].map(({ icon: Icon, n, l }) => (
-                  <div key={l} className="flex items-center gap-2.5">
-                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary-foreground/10 ring-1 ring-primary-foreground/20">
-                      <Icon className="h-4 w-4 text-gold" />
-                    </div>
-                    <div>
-                      <div className="font-display text-xl font-bold leading-none">{n}</div>
-                      <div className="text-[10px] opacity-80">{l}</div>
-                    </div>
-                  </div>
                 ))}
               </div>
             </div>
@@ -505,7 +467,10 @@ export default function HomePage() {
                         </div>
                         <div className="text-background">
                           <div className="font-display text-base font-bold leading-tight">{c.name}</div>
-                          <div className="text-[10px] opacity-90">{c.count.toLocaleString()} ads</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-medium opacity-90">{c.count.toLocaleString()} Ads</span>
+                            <span className="text-[9px] font-bold text-gold bg-gold/20 px-1.5 py-0.5 rounded-sm">+{Math.max(12, Math.floor(c.count * 0.05))} Today</span>
+                          </div>
                         </div>
                       </div>
                     </Link>
@@ -514,27 +479,39 @@ export default function HomePage() {
               </div>
             </section>
 
+            {/* Trending Listings */}
+            <DiscoveryRow title="Trending Deals" subtitle="Hot Right Now" sort="price_asc" limit={8} />
+
             {/* Fresh Listings */}
-            <section className="mb-10">
-              <div className="mb-4 flex items-end justify-between gap-4">
-                <div>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">Trending now</span>
-                  <h2 className="mt-1 font-display text-xl font-bold sm:text-2xl">Fresh deals near you</h2>
-                </div>
-                <Link to="/browse" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
-                  See all <ChevronRight className="h-3.5 w-3.5" />
-                </Link>
+            <DiscoveryRow title="Newly Posted" subtitle="Fresh on AdHub" sort="createdAt" limit={8} />
+
+            {/* Live counters */}
+            <div className="mb-10 rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group">
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-[100%] group-hover:animate-[shimmer_2s_infinite]"></div>
+              
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-6 py-8 relative z-10">
+                {[
+                  { icon: BadgeCheck, n: '12,000+', l: 'Live Ads' },
+                  { icon: MapPin,     n: '47',      l: 'Counties Covered' },
+                  { icon: ShieldCheck,n: '100%',    l: 'Verified Sellers' },
+                  { icon: Sparkles,   n: 'Free',    l: 'Always Free Posting' },
+                ].map(({ icon: Icon, n, l }) => (
+                  <div key={l} className="flex flex-col items-center text-center gap-2.5">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary-foreground/10 ring-1 ring-primary-foreground/20 text-gold">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <div className="font-display text-2xl font-bold leading-none">{n}</div>
+                      <div className="text-xs opacity-80 mt-1">{l}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              {loading ? (
-                <div className="py-16 text-center text-muted-foreground">Loading fresh deals…</div>
-              ) : listings.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {listings.map((listing, i) => <ListingCard key={listing.id} listing={listing} featured={i < 2} />)}
-                </div>
-              ) : (
-                <div className="py-16 text-center text-muted-foreground">No listings yet. Post the first ad!</div>
-              )}
-            </section>
+            </div>
+
+            {/* Trust & Safety */}
+            <TrustSafety />
 
             {/* Sell CTA */}
             <section className="mb-10">

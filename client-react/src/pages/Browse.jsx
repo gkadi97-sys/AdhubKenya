@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { getListings, getCategoryCounts } from '@/lib/api';
+import { getListings } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import ListingCard from '@/components/ListingCard';
@@ -15,7 +15,6 @@ function BrowseContent() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [catCounts, setCatCounts] = useState({});
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // ── URL as single source of truth ─────────────────────────
@@ -61,10 +60,7 @@ function BrowseContent() {
   const ignoredKeys = new Set(['category', 'keyword', 'sort', 'page']);
   const activeFilterCount = [...searchParams.keys()].filter(k => !ignoredKeys.has(k)).length;
 
-  // Category counts for sidebar
-  useEffect(() => {
-    getCategoryCounts().then(setCatCounts).catch(() => {});
-  }, []);
+
 
   // ── Navigation helpers ─────────────────────────────────────
   const applyFilter = useCallback((overrides) => {
