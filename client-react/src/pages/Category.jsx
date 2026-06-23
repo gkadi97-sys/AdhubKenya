@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getListings } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import ListingCard from '@/components/ListingCard.jsx';
 import { Link } from 'react-router-dom';
 
@@ -21,26 +23,26 @@ const CATEGORY_META = {
 
 export default function CategoryPage() {
   const { slug } = useParams();
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
   const [sort, setSort] = useState('createdAt');
   const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
 
   const meta = CATEGORY_META[slug] || { name: slug, icon: '🏷️', desc: `Browse ${slug} listings` };
 
+  const { data, isLoading: loading, isError } = useQuery({
+    queryKey: ['category-listings', slug, sort, page],
+    queryFn: () => getListings({ category: slug, sort, page }),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
   useEffect(() => {
-    setLoading(true);
-    getListings({ category: slug, sort, page })
-      .then(data => {
-        setListings(data.listings || []);
-        setTotal(data.total || 0);
-        setPages(data.pages || 1);
-      })
-      .catch(() => setListings([]))
-      .finally(() => setLoading(false));
-  }, [slug, sort, page]);
+    if (isError) {
+      toast.error('Failed to load listings. Please try again.');
+    }
+  }, [isError]);
+
+  const listings = data?.listings || [];
+  const total = data?.total || 0;
+  const pages = data?.pages || 1;
 
   return (
     <div>

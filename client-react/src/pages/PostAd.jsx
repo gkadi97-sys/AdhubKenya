@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { createListing } from '@/lib/api';
@@ -30,11 +31,21 @@ export default function PostAdPage() {
   });
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    title: '', description: '', price: '', negotiable: false,
-    category: '', location: '', condition: '', phone: user?.phone || '', whatsapp: user?.whatsapp || ''
+  const {
+    register,
+    handleSubmit: rhfHandleSubmit,
+    watch,
+    control
+  } = useForm({
+    defaultValues: {
+      title: '', description: '', price: '', negotiable: false,
+      category: '', location: '', condition: '', phone: user?.phone || '', whatsapp: user?.whatsapp || '',
+      attrs: { make: '', model: '', year: '', specs: {} }
+    }
   });
-  const [attrs, setAttrs] = useState({ make: '', model: '', year: '', specs: {} });
+
+  const category = watch('category');
+  const make = watch('attrs.make');
   const [images, setImages] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [processingImages, setProcessingImages] = useState(false);
@@ -56,14 +67,18 @@ export default function PostAdPage() {
     </div>
   );
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
-  };
+  const isVehicle = category === 'vehicles' || category === 'commercial-vehicles';
+  const isProperty = category === 'property' || category === 'land-plots';
+  const isJob = category === 'jobs' || category === 'seeking-work';
+  const isAutoSpares = category === 'auto-spares';
+  const isPhone = category === 'phones-tablets';
+  const isLaptop = category === 'electronics' && make === 'Laptops & Computers';
+  const isAudio = category === 'electronics' && make === 'Audio & Music';
+  const showStandardCondition = !isVehicle && !isAutoSpares && !isPhone && !isLaptop && !isAudio && category && !isJob;
+  const isHeavyTruck = isVehicle && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers'].includes(make);
+  const isPickupTruck = isVehicle && make === 'Pickups';
 
   const handleImages = async (e) => {
-    const isVehicle = form.category === 'vehicles' || form.category === 'commercial-vehicles';
-    const isProperty = form.category === 'property' || form.category === 'land-plots';
     const maxImages = isProperty ? 15 : (isVehicle ? 10 : 5);
     const rawNewFiles = Array.from(e.target.files);
     
@@ -75,9 +90,12 @@ export default function PostAdPage() {
       setProcessingImages(true);
       try {
         const { autoBlurLicensePlate } = await import('@/lib/imageProcessing');
-        finalNewFiles = await Promise.all(rawNewFiles.map(file => 
-          autoBlurLicensePlate(file, setBlurStatus)
-        ));
+        finalNewFiles = [];
+        for (let i = 0; i < rawNewFiles.length; i++) {
+          setBlurStatus(`Processing image ${i + 1} of ${rawNewFiles.length}...`);
+          const processed = await autoBlurLicensePlate(rawNewFiles[i], setBlurStatus);
+          finalNewFiles.push(processed);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -100,21 +118,10 @@ export default function PostAdPage() {
     setPreviews(newPreviews);
   };
 
-  const isVehicle    = form.category === 'vehicles' || form.category === 'commercial-vehicles';
-  const isProperty   = form.category === 'property' || form.category === 'land-plots';
-  const isAutoSpares = form.category === 'auto-spares';
-  const isAudio      = attrs.make === 'Audio & Music';
-  const HEAVY_TRUCK_TYPES = ['Heavy Truck', 'Bus', 'Construction Equipment', 'Agricultural Equipment', 'Trailer'];
-  const isHeavyTruck = form.category === 'commercial-vehicles' || (form.category === 'vehicles' && HEAVY_TRUCK_TYPES.includes(attrs.specs?.vehicleType));
-  const isPickupTruck = form.category === 'vehicles' && attrs.specs?.vehicleType === 'Pickup / Truck';
-  const isLaptop     = attrs.specs?.deviceType === 'laptop' ||
-                       (form.category === 'electronics' && attrs.specs?.brand && ['HP','Dell','Lenovo','Apple','Asus','Acer','Microsoft','MSI','Razer','Samsung','Huawei','LG'].includes(attrs.specs?.brand));
-  const isPhone      = form.category === 'phones-tablets';
-  const isJob        = form.category === 'jobs';
-  const CONDITION_CATEGORIES = ['phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids', 'auto-spares'];
-  const showStandardCondition = CONDITION_CATEGORIES.includes(form.category) && !isProperty && !isAutoSpares && !isAudio && !isPhone;
+
 
   const getTitlePlaceholder = (cat) => {
+    const attrs = watch("attrs") || {};
     switch (cat) {
       case 'vehicles':
       case 'commercial-vehicles': return isHeavyTruck ? 'e.g. Isuzu NQR – 4×2 Dropside – 2020' : 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White';
@@ -163,20 +170,21 @@ export default function PostAdPage() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     setError('');
-    if (!form.title || !form.description || (!isJob && !form.price) || !form.category || !form.location || !form.phone) {
+    const { attrs, ...formValues } = data;
+    
+    if (!formValues.title || !formValues.description || (!isJob && !formValues.price) || !formValues.category || !formValues.location || !formValues.phone) {
       setError('Please fill in all required fields'); return;
     }
-    if (isVehicle && !form.condition) {
+    if (isVehicle && !formValues.condition) {
       setError('Please select vehicle condition'); return;
     }
     setLoading(true);
     try {
-      const listingData = { ...form };
+      const listingData = { ...formValues };
       if (isJob) listingData.price = 0;
-      if (!showStandardCondition && !isVehicle) delete listingData.condition;
+      if (!showStandardCondition && !isVehicle && !isAutoSpares && !isPhone && !isLaptop && !isAudio) delete listingData.condition;
 
       if (attrs.make)  listingData.make  = attrs.make;
       if (attrs.model) listingData.model = attrs.model;
@@ -205,14 +213,14 @@ export default function PostAdPage() {
       <div className="mx-auto" style={{ maxWidth: (isVehicle || isProperty) ? 960 : 780 }}>
         <div className="mb-8">
           <h1 className="font-display text-3xl font-bold tracking-tight mb-2">
-            {form.category === 'jobs' ? 'Post a Job' : form.category === 'seeking-work' ? 'Post Your CV / Profile' : 'Post a Free Ad'}
+            {category === 'jobs' ? 'Post a Job' : category === 'seeking-work' ? 'Post Your CV / Profile' : 'Post a Free Ad'}
           </h1>
           <p className="text-muted-foreground">
-            {form.category === 'jobs' ? 'Fill in the job details below to attract the right candidates' : form.category === 'seeking-work' ? 'Share your skills and experience to connect with employers' : 'Fill in the details below to list your item for sale'}
+            {category === 'jobs' ? 'Fill in the job details below to attract the right candidates' : category === 'seeking-work' ? 'Share your skills and experience to connect with employers' : 'Fill in the details below to list your item for sale'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={rhfHandleSubmit(onSubmit)}>
           {error && <div className="mb-6 rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive border border-destructive/20">{error}</div>}
 
           {/* ── Basic Info ───────────────────────────────── */}
@@ -222,7 +230,7 @@ export default function PostAdPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               <div>
                 <label className={labelClass}>Category *</label>
-                <select className={inputClass} name="category" value={form.category} onChange={handleChange} required>
+                <select className={inputClass} {...register("category", { required: true })}>
                   <option value="">Select Category</option>
                   {TOP_CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.icon} {c.name}</option>)}
                 </select>
@@ -231,7 +239,7 @@ export default function PostAdPage() {
               {isVehicle && !isHeavyTruck && !isPickupTruck && (
                 <div>
                   <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} name="condition" value={form.condition} onChange={handleChange} required>
+                  <select className={inputClass} {...register("condition", { required: true })}>
                     <option value="">Select Condition</option>
                     {VEHICLE_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -240,7 +248,7 @@ export default function PostAdPage() {
               {isAutoSpares && (
                 <div>
                   <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} name="condition" value={form.condition} onChange={handleChange} required>
+                  <select className={inputClass} {...register("condition", { required: true })}>
                     <option value="">Select Condition</option>
                     {AUTOSPARES_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -249,7 +257,7 @@ export default function PostAdPage() {
               {isAudio && (
                 <div>
                   <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} name="condition" value={form.condition} onChange={handleChange} required>
+                  <select className={inputClass} {...register("condition", { required: true })}>
                     <option value="">Select Condition</option>
                     {AUDIO_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -258,7 +266,7 @@ export default function PostAdPage() {
               {isPhone && (
                 <div>
                   <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} name="condition" value={form.condition} onChange={handleChange} required>
+                  <select className={inputClass} {...register("condition", { required: true })}>
                     <option value="">Select Condition</option>
                     {PHONE_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -267,7 +275,7 @@ export default function PostAdPage() {
               {isLaptop && !isPhone && (
                 <div>
                   <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} name="condition" value={form.condition} onChange={handleChange} required>
+                  <select className={inputClass} {...register("condition", { required: true })}>
                     <option value="">Select Condition</option>
                     {LAPTOP_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -276,7 +284,7 @@ export default function PostAdPage() {
               {(isHeavyTruck || isPickupTruck) && (
                 <div>
                   <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} name="condition" value={form.condition} onChange={handleChange} required>
+                  <select className={inputClass} {...register("condition", { required: true })}>
                     <option value="">Select Condition</option>
                     {TRUCK_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -285,7 +293,7 @@ export default function PostAdPage() {
               {showStandardCondition && (
                 <div>
                   <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} name="condition" value={form.condition} onChange={handleChange} required>
+                  <select className={inputClass} {...register("condition", { required: true })}>
                     <option value="">Select Condition</option>
                     {STANDARD_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -295,25 +303,25 @@ export default function PostAdPage() {
 
             <div className="mb-5">
               <label className={labelClass}>Ad Title *</label>
-              <input className={inputClass} name="title" value={form.title} onChange={handleChange} placeholder={getTitlePlaceholder(form.category)} maxLength={100} required />
-              <div className="mt-1.5 text-xs font-medium text-muted-foreground text-right">{form.title.length}/100 characters</div>
+              <input className={inputClass} {...register("title", { required: true })} placeholder={getTitlePlaceholder(category)} maxLength={100} />
+              <div className="mt-1.5 text-xs font-medium text-muted-foreground text-right">{(watch("title") || "").length}/100 characters</div>
             </div>
 
             {/* Smart Forms */}
-            {isHeavyTruck && <div className="mt-5 pt-5 border-t border-border"><TruckForm truckMode="heavy" values={attrs} onChange={setAttrs} /></div>}
-            {isVehicle && !isHeavyTruck && !isPickupTruck && <div className="mt-5 pt-5 border-t border-border"><VehicleForm values={attrs} onChange={setAttrs} /></div>}
-            {isPickupTruck && <div className="mt-5 pt-5 border-t border-border"><TruckForm truckMode="pickup" values={attrs} onChange={setAttrs} /></div>}
-            {isProperty && <div className="mt-5 pt-5 border-t border-border"><PropertyForm values={attrs} onChange={setAttrs} /></div>}
-            {isAutoSpares && <div className="mt-5 pt-5 border-t border-border"><AutoSparesForm values={attrs} onChange={setAttrs} /></div>}
-            {isPhone && <div className="mt-5 pt-5 border-t border-border"><PhoneForm values={attrs} onChange={setAttrs} /></div>}
-            {isJob && <div className="mt-5 pt-5 border-t border-border"><JobForm values={attrs} onChange={setAttrs} /></div>}
-            {!isVehicle && !isProperty && !isAutoSpares && !isPhone && !isJob && form.category && (
-              <div className="mt-5 pt-5 border-t border-border"><ItemAttributesSelect category={form.category} values={attrs} onChange={setAttrs} /></div>
+            {isHeavyTruck && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <TruckForm truckMode="heavy" values={value} onChange={onChange} />} /></div>}
+            {isVehicle && !isHeavyTruck && !isPickupTruck && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <VehicleForm values={value} onChange={onChange} />} /></div>}
+            {isPickupTruck && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <TruckForm truckMode="pickup" values={value} onChange={onChange} />} /></div>}
+            {isProperty && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <PropertyForm values={value} onChange={onChange} />} /></div>}
+            {isAutoSpares && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <AutoSparesForm values={value} onChange={onChange} />} /></div>}
+            {isPhone && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <PhoneForm values={value} onChange={onChange} />} /></div>}
+            {isJob && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <JobForm values={value} onChange={onChange} />} /></div>}
+            {!isVehicle && !isProperty && !isAutoSpares && !isPhone && !isJob && category && (
+              <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <ItemAttributesSelect category={category} values={value} onChange={onChange} />} /></div>
             )}
 
             <div className="mt-5">
               <label className={labelClass}>Description *</label>
-              <textarea className={`${inputClass} resize-y`} name="description" value={form.description} onChange={handleChange} placeholder={getDescriptionPlaceholder(form.category)} required rows={5} />
+              <textarea className={`${inputClass} resize-y`} {...register("description", { required: true })} placeholder={getDescriptionPlaceholder(category)} rows={5} />
             </div>
           </div>
 
@@ -324,11 +332,11 @@ export default function PostAdPage() {
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="flex-1">
                   <label className={labelClass}>Asking Price (KES) *</label>
-                  <input className={inputClass} name="price" type="number" value={form.price} onChange={handleChange} placeholder="e.g. 2500000" min="0" required />
+                  <input className={inputClass} type="number" {...register("price", { required: true })} placeholder="e.g. 2500000" min="0" />
                 </div>
                 <div className="sm:pt-7">
                   <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-muted-foreground select-none">
-                    <input type="checkbox" name="negotiable" checked={form.negotiable} onChange={handleChange} className="h-5 w-5 rounded border-border text-primary focus:ring-primary/40 accent-primary" />
+                    <input type="checkbox" {...register("negotiable")} className="h-5 w-5 rounded border-border text-primary focus:ring-primary/40 accent-primary" />
                     Price negotiable
                   </label>
                 </div>
@@ -339,7 +347,7 @@ export default function PostAdPage() {
           {/* ── Location ───────────────────────────────────────── */}
           <div className={cardClass}>
             <h3 className={cardHeaderClass}>📍 Location</h3>
-            <CountyTownSelect value={form.location} onChange={(loc) => setForm(f => ({ ...f, location: loc }))} required />
+            <Controller name="location" control={control} rules={{ required: true }} render={({ field: { value, onChange } }) => <CountyTownSelect value={value} onChange={onChange} required />} />
           </div>
 
           {/* ── Photos ─────────────────────────────────────────── */}
@@ -379,11 +387,11 @@ export default function PostAdPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className={labelClass}>Phone Number *</label>
-                <input className={inputClass} name="phone" value={form.phone} onChange={handleChange} placeholder="0712 345 678" required />
+                <input className={inputClass} {...register("phone", { required: true })} placeholder="0712 345 678" />
               </div>
               <div>
                 <label className={labelClass}>WhatsApp Number</label>
-                <input className={inputClass} name="whatsapp" value={form.whatsapp} onChange={handleChange} placeholder="0712 345 678" />
+                <input className={inputClass} {...register("whatsapp")} placeholder="0712 345 678" />
               </div>
             </div>
           </div>

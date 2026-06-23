@@ -1,23 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { getListings, getCategoryCounts } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import ListingCard from '@/components/ListingCard';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
 import FilterSidebar from '@/components/FilterSidebar';
-import { FILTER_CONFIG } from '@/lib/filterConfig';
 import { Filter, X, Search } from 'lucide-react';
 
 const CATEGORIES = CATEGORY_ICONS;
 
 function BrowseContent() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [total, setTotal]       = useState(0);
-  const [pages, setPages]       = useState(1);
   const [catCounts, setCatCounts] = useState({});
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -26,6 +23,28 @@ function BrowseContent() {
   const keyword  = searchParams.get('keyword')  || '';
   const sort     = searchParams.get('sort')      || 'createdAt';
   const page     = parseInt(searchParams.get('page')) || 1;
+
+  // ── Fetch Listings via React Query ─────────────────────────
+  const queryParams = { page, sort };
+  for (const [k, v] of searchParams.entries()) {
+    if (v) queryParams[k] = v;
+  }
+
+  const { data, isLoading: loading, isError } = useQuery({
+    queryKey: ['browse-listings', queryParams],
+    queryFn: () => getListings(queryParams),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  useEffect(() => {
+    if (isError) {
+      toast.error('Failed to load listings. Please try again.');
+    }
+  }, [isError]);
+
+  const listings = data?.listings || [];
+  const total = data?.total || 0;
+  const pages = data?.pages || 1;
 
   // SEO
   const catEntry = CATEGORIES?.find(c => c.slug === category);
@@ -46,28 +65,6 @@ function BrowseContent() {
   useEffect(() => {
     getCategoryCounts().then(setCatCounts).catch(() => {});
   }, []);
-
-  // Fetch whenever URL changes
-  useEffect(() => {
-    const doFetch = async () => {
-      setLoading(true);
-      try {
-        const params = { page, sort };
-        for (const [k, v] of searchParams.entries()) {
-          if (v) params[k] = v;
-        }
-        const data = await getListings(params);
-        setListings(data.listings || []);
-        setTotal(data.total   || 0);
-        setPages(data.pages   || 1);
-      } catch {
-        setListings([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    doFetch();
-  }, [searchParams]);
 
   // ── Navigation helpers ─────────────────────────────────────
   const applyFilter = useCallback((overrides) => {

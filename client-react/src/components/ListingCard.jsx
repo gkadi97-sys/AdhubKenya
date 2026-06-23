@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { imageUrl, formatPrice, timeAgo } from '@/lib/api';
+import { getSpecTags } from '@/lib/categoryData';
 import { Heart, MapPin, BadgeCheck } from 'lucide-react';
 
 function getSaved() {
@@ -14,86 +15,7 @@ function toggleSaved(id) {
   return next.includes(id);
 }
 
-/**
- * Returns 2-3 key spec tags for a listing based on its category.
- * These appear as a quick-scan strip on the listing card.
- */
-function getSpecTags(listing) {
-  const s = listing.specs || {};
-  const cat = listing.category;
 
-  if (cat === 'vehicles') {
-    return [
-      listing.year && String(listing.year),
-      s.transmission,
-      s.fuelType || s.fuel,
-    ].filter(Boolean);
-  }
-
-  if (cat === 'phones-tablets') {
-    return [
-      s.brand,
-      s.storage && `${s.storage}`,
-      s.ram && `${s.ram} RAM`,
-    ].filter(Boolean);
-  }
-
-  if (cat === 'electronics') {
-    const subType = listing.make; // ItemAttributesSelect stores category in make
-    if (subType === 'Televisions') {
-      return [
-        s.brand,
-        s.screenSize && `${s.screenSize}`,
-        s.displayTech,
-      ].filter(Boolean);
-    }
-    if (subType === 'Audio & Music') {
-      return [
-        s.equipmentType,
-        s.brand,
-        s.channels && `${s.channels} Ch`,
-      ].filter(Boolean);
-    }
-    if (subType === 'Laptops & Computers') {
-      return [
-        s.brand,
-        s.ram && `${s.ram} RAM`,
-        s.storageSize,
-      ].filter(Boolean);
-    }
-    return [s.equipmentType, s.brand].filter(Boolean);
-  }
-
-  if (cat === 'property') {
-    return [
-      s.bedrooms && `${s.bedrooms} Bed`,
-      s.bathrooms && `${s.bathrooms} Bath`,
-      s.listingCategory || s.purpose,
-    ].filter(Boolean);
-  }
-
-  if (cat === 'jobs') {
-    return [
-      s.employmentType,
-      s.workArrangement,
-      s.experienceLevel,
-    ].filter(Boolean);
-  }
-
-  if (cat === 'auto-spares') {
-    return [
-      listing.make,
-      s.part || listing.model,
-      s.condition,
-    ].filter(Boolean);
-  }
-
-  if (cat === 'home-furniture') {
-    return [s.brand, s.condition].filter(Boolean);
-  }
-
-  return [];
-}
 
 export default function ListingCard({ listing, featured }) {
   const [saved, setSaved] = useState(false);

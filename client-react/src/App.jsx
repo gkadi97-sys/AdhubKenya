@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
+import { Toaster } from 'react-hot-toast';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // --- Public Layout ---
 import Navbar from '@/components/Navbar.jsx';
@@ -75,10 +77,12 @@ function AppLayout() {
 // --- Root App ---
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          {/* ── Admin: completely isolated from public layout ── */}
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <Toaster position="top-center" />
+          <Routes>
+            {/* ── Admin: completely isolated from public layout ── */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route
             path="/admin/*"
@@ -104,5 +108,6 @@ export default function App() {
         </Routes>
       </AuthProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   );
 }
