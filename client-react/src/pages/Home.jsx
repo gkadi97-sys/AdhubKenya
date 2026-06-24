@@ -10,6 +10,7 @@ import { getLevel1Options, getLevel2Options, getLevel3Options } from '@/lib/filt
 import HeroSearch from '@/components/HeroSearch';
 import QuickFilters from '@/components/QuickFilters';
 import DiscoveryRow from '@/components/DiscoveryRow';
+import FeaturedListings from '@/components/FeaturedListings';
 import ContinueBrowsing from '@/components/ContinueBrowsing';
 import TrustSafety from '@/components/TrustSafety';
 import { useSEO } from '@/lib/useSEO';
@@ -424,6 +425,9 @@ export default function HomePage() {
                 </div>
               </div>
             </section>
+
+            {/* Featured Listings (Above the fold) */}
+            <FeaturedListings />
 
             {/* Live counters (Moved up for Trust) */}
             <div className="mb-6 rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-elevated">
