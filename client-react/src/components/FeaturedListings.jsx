@@ -1,15 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Sparkles } from 'lucide-react';
-import { getListings } from '@/lib/api';
+import { getFeaturedListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
 
 export default function FeaturedListings() {
   const { data, isLoading } = useQuery({
     queryKey: ['featured-listings'],
-    // Mocking "featured" listings by grabbing the 6 most recent.
-    // In the future, this should query for listings with a 'featured' flag or a specific premium sort.
-    queryFn: () => getListings({ limit: 6, sort: 'createdAt' }),
+    queryFn: () => getFeaturedListings(6),
     staleTime: 1000 * 60 * 5, // 5 mins
   });
 

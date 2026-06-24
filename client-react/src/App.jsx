@@ -18,6 +18,7 @@ import Login from '@/pages/Login.jsx';
 import Register from '@/pages/Register.jsx';
 import PostAd from '@/pages/PostAd.jsx';
 import MyAds from '@/pages/MyAds.jsx';
+import SavedSearches from '@/pages/SavedSearches.jsx';
 
 // --- Admin Layout & Pages ---
 import AdminLayout from '@/layouts/AdminLayout.jsx';
@@ -64,6 +65,7 @@ function AppLayout() {
           <Route path="/register" element={<Register />} />
           <Route path="/post-ad" element={<ProtectedRoute><PostAd /></ProtectedRoute>} />
           <Route path="/my-ads" element={<ProtectedRoute><MyAds /></ProtectedRoute>} />
+          <Route path="/saved-searches" element={<ProtectedRoute><SavedSearches /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

@@ -223,17 +223,6 @@ export const getFilterAggregates = async (category, aggregateField, currentFilte
   return data || {};
 };
 
-export const getFeaturedListings = async () => {
-  const { data, error } = await supabase
-    .from('listings')
-    .select('*')
-    .eq('is_featured', true)
-    .order('created_at', { ascending: false })
-    .limit(8);
-    
-  if (error) throw error;
-  return data;
-};
 
 export const getListing = async (id) => {
   const { data, error } = await supabase
@@ -383,4 +372,85 @@ export const timeAgo = (date) => {
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
   return new Date(date).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+// ==========================================
+// PHASE 3 ADVANCED FEATURES
+// ==========================================
+
+export const getSavedSearches = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('saved_searches')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+export const saveSearch = async (keyword, filters) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('saved_searches')
+    .insert([{ user_id: session.user.id, keyword, filters }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const deleteSavedSearch = async (id) => {
+  const { error } = await supabase
+    .from('saved_searches')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+  return true;
+};
+
+export const promoteListing = async (id, days, badgeType) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const expiry = new Date();
+  expiry.setDate(expiry.getDate() + days);
+
+  const { data, error } = await supabase
+    .from('listings')
+    .update({ 
+      promoted_until: expiry.toISOString(), 
+      badge_type: badgeType 
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const getFeaturedListings = async (limit = 6) => {
+  // We use the RPC defined in our migration script
+  const { data, error } = await supabase.rpc('get_featured_listings', { lim: limit });
+  if (error) {
+    console.error('Failed to get featured listings via RPC, falling back to basic query:', error);
+    // Fallback if RPC isn't deployed yet (so UI doesn't crash)
+    const { data: fallback, error: fallbackErr } = await supabase
+      .from('listings')
+      .select('*')
+      .eq('status', 'active')
+      .order('createdAt', { ascending: false })
+      .limit(limit);
+      
+    if (fallbackErr) throw fallbackErr;
+    return { listings: fallback };
+  }
+  return { listings: data || [] };
 };

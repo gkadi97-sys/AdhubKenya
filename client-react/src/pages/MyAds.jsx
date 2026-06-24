@@ -3,13 +3,15 @@ import { useAuth } from '@/context/AuthContext';
 import { getSellerListings, deleteListing, formatPrice, timeAgo, imageUrl } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { PlusCircle, MapPin, Eye, Clock, Trash2, ExternalLink, PackageOpen, Lock } from 'lucide-react';
+import { PlusCircle, MapPin, Eye, Clock, Trash2, ExternalLink, PackageOpen, Lock, Sparkles } from 'lucide-react';
+import PromoteAdModal from '@/components/PromoteAdModal';
 
 export default function MyAdsPage() {
   const { user } = useAuth();
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
+  const [promoteModalOpen, setPromoteModalOpen] = useState(null);
 
   useEffect(() => {
     if (user?.id) {
@@ -172,11 +174,21 @@ export default function MyAdsPage() {
                         }`}>
                           {l.status}
                         </span>
+                        {l.promoted_until && new Date(l.promoted_until) > new Date() && (
+                          <span className="flex items-center gap-1 rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-gold shadow-sm">
+                            <Sparkles className="h-3 w-3" /> Promoted
+                          </span>
+                        )}
                       </div>
                     </div>
                     
-                    {/* Actions */}
-                    <div className="flex shrink-0 items-center gap-2 mt-4 sm:mt-0 pt-4 sm:pt-0 border-t border-border sm:border-0 w-full sm:w-auto justify-end">
+                    <div className="flex shrink-0 items-center gap-2 mt-4 sm:mt-0 pt-4 sm:pt-0 border-t border-border sm:border-0 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
+                      <button 
+                        onClick={() => setPromoteModalOpen(l)}
+                        className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-4 text-xs font-semibold text-gold transition hover:bg-gold hover:text-white sm:w-auto flex-1"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" /> Promote
+                      </button>
                       <Link to={`/listing/${l.id}`} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-foreground transition hover:bg-secondary sm:w-auto flex-1">
                         <ExternalLink className="h-3.5 w-3.5" /> View
                       </Link>
@@ -195,6 +207,17 @@ export default function MyAdsPage() {
           </div>
         )}
       </div>
+
+      {promoteModalOpen && (
+        <PromoteAdModal 
+          listing={promoteModalOpen} 
+          onClose={() => setPromoteModalOpen(null)} 
+          onSuccess={(updatedListing) => {
+            setListings(prev => prev.map(l => l.id === updatedListing.id ? updatedListing : l));
+            setPromoteModalOpen(null);
+          }}
+        />
+      )}
     </div>
   );
 }

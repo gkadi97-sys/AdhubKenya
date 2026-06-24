@@ -80,9 +80,9 @@ export default function Navbar() {
                         <Link to="/my-ads" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition">
                           <FileText className="h-4 w-4 text-muted-foreground" /> My Ads
                         </Link>
-                        <button onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition">
-                          <Heart className="h-4 w-4 text-muted-foreground" /> Saved Listings
-                        </button>
+                        <Link to="/saved-searches" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition">
+                          <Heart className="h-4 w-4 text-muted-foreground" /> Saved Searches
+                        </Link>
                         <button onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition">
                           <Bell className="h-4 w-4 text-muted-foreground" /> Notifications
                         </button>

@@ -11,6 +11,7 @@ import HeroSearch from '@/components/HeroSearch';
 import QuickFilters from '@/components/QuickFilters';
 import DiscoveryRow from '@/components/DiscoveryRow';
 import FeaturedListings from '@/components/FeaturedListings';
+import RecentlyViewed from '@/components/RecentlyViewed';
 import ContinueBrowsing from '@/components/ContinueBrowsing';
 import TrustSafety from '@/components/TrustSafety';
 import { useSEO } from '@/lib/useSEO';
@@ -524,6 +525,9 @@ export default function HomePage() {
 
             {/* Fresh Listings */}
             <DiscoveryRow title="New Listings Today" subtitle="Freshly Posted" sort="createdAt" limit={8} />
+
+            {/* Recently Viewed */}
+            <RecentlyViewed />
 
             {/* Sell CTA */}
             <section className="mb-10">

@@ -5,10 +5,12 @@ import { useAuth } from '@/context/AuthContext';
 import { SCHEMA_ATTRIBUTES } from '@/lib/schemaEngine';
 import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
 import { useSEO } from '@/lib/useSEO';
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { addListing } = useRecentlyViewed();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
@@ -50,8 +52,16 @@ export default function ListingDetailPage() {
 
   useEffect(() => {
     if (id) {
-      getListing(id).then(setListing).catch(()=>setListing(null)).finally(()=>setLoading(false));
+      getListing(id).then(data => {
+        setListing(data);
+        if (data) {
+          addListing(data);
+        }
+      }).catch(()=>setListing(null)).finally(()=>setLoading(false));
     }
+    // Note: addListing is deliberately excluded from deps to avoid infinite loops, 
+    // it's a stable function from the hook but standard practice is to omit it or destructure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (loading) return (

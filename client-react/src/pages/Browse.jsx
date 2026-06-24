@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { getListings } from '@/lib/api';
+import { getListings, saveSearch } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import ListingCard from '@/components/ListingCard';
@@ -8,13 +8,16 @@ import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
 import FilterPanel from '@/components/filters/FilterPanel';
 import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
-import { Filter, X, Search } from 'lucide-react';
+import { Filter, X, Search, Heart } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const CATEGORIES = CATEGORY_ICONS;
 
 function BrowseContent() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [savingSearch, setSavingSearch] = useState(false);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -112,6 +115,30 @@ function BrowseContent() {
     const next = new URLSearchParams();
     if (category) next.set('category', category);
     navigate(`/browse?${next.toString()}`);
+  };
+
+  const handleSaveSearch = async () => {
+    if (!user) {
+      toast('Please create an account or login to save searches.', { icon: '🔒' });
+      navigate('/login');
+      return;
+    }
+    setSavingSearch(true);
+    try {
+      const filters = {};
+      for (const [k, v] of searchParams.entries()) {
+        if (k !== 'keyword' && k !== 'page' && k !== 'sort' && v) {
+          filters[k] = v;
+        }
+      }
+      await saveSearch(keyword || 'All', filters);
+      toast.success('Search saved successfully!');
+    } catch (err) {
+      console.error('Failed to save search:', err);
+      toast.error('Failed to save search. Please try again.');
+    } finally {
+      setSavingSearch(false);
+    }
   };
 
   // ── Active filter chips — human-readable labels ────────────────────────────
@@ -233,9 +260,17 @@ function BrowseContent() {
                 Showing {listings.length} of {total.toLocaleString()} result{total !== 1 ? 's' : ''}
               </span>
               <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button 
+                  onClick={handleSaveSearch} 
+                  disabled={savingSearch}
+                  className="hidden sm:flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary/80 hover:text-primary transition-colors disabled:opacity-50"
+                >
+                  <Heart className="h-4 w-4" /> {savingSearch ? 'Saving...' : 'Save Search'}
+                </button>
+                <div className="h-6 w-px bg-border hidden sm:block"></div>
                 <span className="text-sm font-semibold text-foreground whitespace-nowrap">Sort by:</span>
                 <select
-                  className="w-full sm:w-auto rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                  className="w-full sm:w-auto rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 cursor-pointer"
                   value={sort}
                   onChange={e => applyFilter({ sort: e.target.value })}
                 >
