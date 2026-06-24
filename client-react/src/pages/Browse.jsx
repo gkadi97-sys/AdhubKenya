@@ -7,7 +7,7 @@ import ListingCard from '@/components/ListingCard';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
 import FilterPanel from '@/components/filters/FilterPanel';
-import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
+import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { Filter, X, Search, Heart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -53,7 +53,7 @@ function BrowseContent() {
       );
       
       if (activeKeys.length > 0) {
-        const schema = SCHEMA_REGISTRY[category]?.attributes || SCHEMA_REGISTRY.default?.attributes || [];
+        const schema = ATTRIBUTE_ENGINE[category]?.attributes || ATTRIBUTE_ENGINE.default?.attributes || [];
         
         // Find a leaf key (an active key that no other active key depends on)
         let leafKey = null;

@@ -2425,8 +2425,74 @@ export const AUDIO_SPECS = {
 
   }
 };
+export const getDynamicOptions = (category, fieldId, dependsOnValue) => {
+  const dataStore = CATEGORY_ATTRIBUTES[category];
+  if (!dataStore) return [];
+
+  // Logic for Vehicles (Make -> Model)
+  if (category === 'vehicles') {
+    if (fieldId === 'make') return Object.keys(dataStore.data || {});
+    if (fieldId === 'model' && dependsOnValue) return dataStore.data[dependsOnValue] || [];
+    if (fieldId === 'year') {
+        const currentYear = new Date().getFullYear();
+        const years = [];
+        for (let i = currentYear; i >= 1990; i--) {
+            years.push(i.toString());
+        }
+        return years;
+    }
+  }
+
+  // Logic for Auto Spares
+  if (category === 'auto-spares') {
+      if (fieldId === 'make') return MASTER_SPARE_PARTS.makes;
+      if (fieldId === 'model' && dependsOnValue) return MASTER_SPARE_PARTS.models[dependsOnValue] || [];
+      if (fieldId === 'compatibleYear') {
+          const currentYear = new Date().getFullYear();
+          const years = [];
+          for (let i = currentYear; i >= 1990; i--) {
+              years.push(i.toString());
+          }
+          return years;
+      }
+      if (fieldId === 'partCategory') return Object.keys(MASTER_SPARE_PARTS.parts || {});
+      if (fieldId === 'part' && dependsOnValue) return MASTER_SPARE_PARTS.parts[dependsOnValue] || [];
+      // Accessories
+      if (fieldId === 'category') return Object.keys(MASTER_SPARE_PARTS.accessories || {});
+  }
+
+  // Logic for Property
+  if (category === 'property') {
+      if (fieldId === 'propertyCategory') return Object.keys(dataStore.data || {});
+      if (fieldId === 'propertyType' && dependsOnValue) return dataStore.data[dependsOnValue] || [];
+  }
+
+  // Logic for Phones & Tablets
+  if (category === 'phones-tablets') {
+      if (fieldId === 'brand') return Object.keys(dataStore.data || {});
+      if (fieldId === 'series' && dependsOnValue) return dataStore.data[dependsOnValue]?.series || [];
+      if (fieldId === 'model' && dependsOnValue) {
+          // This needs the parent brand, but our current simple schema dependency only passes 'series'.
+          // For simplicity in this demo, let's just return a generic list or search across all brands if we don't know it.
+          for (const brand of Object.keys(dataStore.data)) {
+              if (dataStore.data[brand].models[dependsOnValue]) {
+                  return dataStore.data[brand].models[dependsOnValue];
+              }
+          }
+          return [];
+      }
+  }
+
+  // Logic for Electronics
+  if (category === 'electronics') {
+      if (fieldId === 'subcategory') return Object.keys(dataStore.data || {});
+      if (fieldId === 'brand' && dependsOnValue) return Object.keys(dataStore.data[dependsOnValue]?.brands || {});
+      // (Simplified logic for the sake of the generic dynamic engine)
+  }
+
+  return [];
+};
 
 export default CATEGORY_ATTRIBUTES;
-
 
 

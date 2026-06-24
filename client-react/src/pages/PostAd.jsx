@@ -4,13 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { createListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
-import ItemAttributesSelect from '@/components/ItemAttributesSelect';
-import AutoSparesForm from '@/components/AutoSparesForm';
-import VehicleForm from '@/components/VehicleForm';
-import TruckForm from '@/components/TruckForm';
-import PropertyForm from '@/components/PropertyForm';
-import PhoneForm from '@/components/PhoneForm';
-import JobForm from '@/components/JobForm';
+import DynamicListingForm from '@/components/forms/DynamicListingForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { useSEO } from '@/lib/useSEO';
@@ -36,12 +30,13 @@ export default function PostAdPage() {
     register,
     handleSubmit: rhfHandleSubmit,
     watch,
-    control
+    control,
+    setValue
   } = useForm({
     defaultValues: {
       title: '', description: '', price: '', negotiable: false,
       category: '', location: '', condition: '', phone: user?.phone || '', whatsapp: user?.whatsapp || '',
-      attrs: { make: '', model: '', year: '', specs: {} }
+      attrs: {}
     }
   });
 
@@ -207,15 +202,12 @@ export default function PostAdPage() {
       if (isJob) listingData.price = 0;
       if (!showStandardCondition && !isVehicle && !isAutoSpares && !isPhone && !isLaptop && !isAudio) delete listingData.condition;
 
-      if (attrs.make)  listingData.make  = attrs.make;
-      if (attrs.model) listingData.model = attrs.model;
-      if (attrs.year)  listingData.year  = attrs.year;
-
-      if (attrs.specs && Object.keys(attrs.specs).length) {
-        listingData.specs = attrs.specs;
-      } else {
-        listingData.specs = {};
-      }
+      // Map dynamic attributes. Some need to be top level, rest go to specs.
+      const { make, model, year, ...restSpecs } = attrs;
+      if (make)  listingData.make  = make;
+      if (model) listingData.model = model;
+      if (year)  listingData.year  = year;
+      listingData.specs = restSpecs || {};
       
       const listing = await createListing(listingData, images);
       navigate(`/listing/${listing.id}`);
@@ -275,15 +267,10 @@ export default function PostAdPage() {
             </div>
 
             {/* Smart Forms */}
-            {isHeavyTruck && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <TruckForm truckMode="heavy" values={value} onChange={onChange} />} /></div>}
-            {isVehicle && !isHeavyTruck && !isPickupTruck && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <VehicleForm values={value} onChange={onChange} />} /></div>}
-            {isPickupTruck && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <TruckForm truckMode="pickup" values={value} onChange={onChange} />} /></div>}
-            {isProperty && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <PropertyForm values={value} onChange={onChange} />} /></div>}
-            {isAutoSpares && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <AutoSparesForm values={value} onChange={onChange} />} /></div>}
-            {isPhone && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <PhoneForm values={value} onChange={onChange} />} /></div>}
-            {isJob && <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <JobForm values={value} onChange={onChange} />} /></div>}
-            {!isVehicle && !isProperty && !isAutoSpares && !isPhone && !isJob && category && (
-              <div className="mt-5 pt-5 border-t border-border"><Controller name="attrs" control={control} render={({ field: { value, onChange } }) => <ItemAttributesSelect category={category} values={value} onChange={onChange} />} /></div>
+            {category && (
+              <div className="mt-5 pt-5 border-t border-border">
+                <DynamicListingForm category={category} register={register} control={control} watch={watch} setValue={setValue} />
+              </div>
             )}
 
             <div className="mt-5">

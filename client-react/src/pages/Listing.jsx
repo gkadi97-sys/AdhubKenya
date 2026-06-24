@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getListing, imageUrl, formatPrice, timeAgo } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { SCHEMA_ATTRIBUTES } from '@/lib/schemaEngine';
-import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
+import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 
@@ -215,12 +215,14 @@ export default function ListingDetailPage() {
                   legalInfo: '⚖️ Legal & Compliance',
                 };
                 
-                // Flatten the SCHEMA_REGISTRY to easily lookup labels
+                // Flatten the ATTRIBUTE_ENGINE to easily lookup labels
                 const flatSchema = {};
-                Object.values(SCHEMA_REGISTRY).forEach(cat => {
-                  cat.attributes.forEach(attr => {
-                    flatSchema[attr.id] = attr;
-                  });
+                Object.values(ATTRIBUTE_ENGINE).forEach(cat => {
+                  if (cat.attributes) {
+                    cat.attributes.forEach(attr => {
+                      flatSchema[attr.id] = attr;
+                    });
+                  }
                 });
                 
                 const booleanFeatures = [];

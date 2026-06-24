@@ -5,7 +5,7 @@ import {
   ChevronRight, ArrowUpRight, PlusCircle, X, ChevronDown
 } from 'lucide-react';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
-import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
+import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { getLevel1Options, getLevel2Options, getLevel3Options } from '@/lib/filterEngine';
 import HeroSearch from '@/components/HeroSearch';
 import QuickFilters from '@/components/QuickFilters';
@@ -45,7 +45,7 @@ function CategorySidebar({ onNavigate }) {
   const [showAll, setShowAll]           = useState(false);
 
   const cat      = CATEGORY_ICONS.find(c => c.slug === selectedSlug);
-  const schema   = selectedSlug ? (SCHEMA_REGISTRY[selectedSlug] || SCHEMA_REGISTRY.default) : null;
+  const schema   = selectedSlug ? (ATTRIBUTE_ENGINE[selectedSlug] || ATTRIBUTE_ENGINE.default) : null;
 
   const selectCategory = (slug) => { setSelectedSlug(slug); setFilters({}); };
 

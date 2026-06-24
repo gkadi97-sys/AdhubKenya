@@ -12,7 +12,7 @@ import {
   getCascadeDepth,
   getCascadeConfig,
 } from '@/lib/filterEngine';
-import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
+import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import LocationCascader from './LocationCascader';
 import PriceFilter from './PriceFilter';
 import DynamicDataFilter from './DynamicDataFilter';
@@ -121,7 +121,7 @@ export default function FilterPanel({ isMobile = false, onClose }) {
     }
     
     // Dynamic Attribute Resets
-    const schema = SCHEMA_REGISTRY[category]?.attributes || SCHEMA_REGISTRY.default.attributes;
+    const schema = ATTRIBUTE_ENGINE[category]?.attributes || ATTRIBUTE_ENGINE.default.attributes;
     
     // Recursive function to find and delete all attributes that depend on the changed key
     const clearDependentKeys = (parentKey) => {
@@ -162,21 +162,26 @@ export default function FilterPanel({ isMobile = false, onClose }) {
   };
 
   // Pre-compute dynamic attributes
-  const schema = SCHEMA_REGISTRY[category]?.attributes || SCHEMA_REGISTRY.default.attributes;
+  const schema = ATTRIBUTE_ENGINE[category]?.attributes || ATTRIBUTE_ENGINE.default.attributes;
 
   // Render Subcategory / Attributes based on schema
   const renderDynamicAttributes = () => {
     if (!category) return null;
 
     return schema.map(attr => {
+      // Check if it should be displayed in search
+      if (!attr.search || !attr.search.filterable) return null;
+
       // Check dependencies
       if (attr.dependsOn) {
         const depVal = filters[attr.dependsOn.field];
         const required = Array.isArray(attr.dependsOn.value) ? attr.dependsOn.value : [attr.dependsOn.value];
-        if (!depVal || !required.includes(depVal)) return null;
+        if (!depVal || (attr.dependsOn.value && !required.includes(depVal))) return null;
       }
 
-      if (attr.type === 'dynamic-cascade') {
+      const uiType = attr.search.uiType;
+
+      if (uiType === 'dynamic-cascade') {
         const config = getCascadeConfig(category, filters.subcategory || filters.bodyType);
         
         let options = [];
@@ -206,23 +211,23 @@ export default function FilterPanel({ isMobile = false, onClose }) {
         );
       }
 
-      if (attr.type === 'radio') {
+      if (uiType === 'radio') {
         return (
           <FilterGroup key={attr.id} label={attr.label}>
-            <RadioGroup options={attr.options} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
+            <RadioGroup options={attr.options || []} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
           </FilterGroup>
         );
       }
 
-      if (attr.type === 'multicheck') {
+      if (uiType === 'multicheck') {
         return (
           <FilterGroup key={attr.id} label={attr.label}>
-             <MultiCheck options={attr.options} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
+             <MultiCheck options={attr.options || []} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
           </FilterGroup>
         );
       }
 
-      if (attr.type === 'select') {
+      if (uiType === 'select') {
         return (
           <FilterGroup key={attr.id} label={attr.label}>
             <div className="relative">
@@ -232,7 +237,7 @@ export default function FilterPanel({ isMobile = false, onClose }) {
                 className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 pr-8"
               >
                 <option value="">Any</option>
-                {attr.options.map(o => <option key={o} value={o}>{o}</option>)}
+                {(attr.options || []).map(o => <option key={o} value={o}>{o}</option>)}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             </div>
@@ -240,7 +245,7 @@ export default function FilterPanel({ isMobile = false, onClose }) {
         );
       }
 
-      if (attr.type === 'dynamic-select') {
+      if (uiType === 'dynamic-select') {
         return (
           <FilterGroup key={attr.id} label={attr.label}>
             <DynamicDataFilter
@@ -252,6 +257,11 @@ export default function FilterPanel({ isMobile = false, onClose }) {
             />
           </FilterGroup>
         );
+      }
+
+      // Placeholder for 'range' implementation later
+      if (uiType === 'range') {
+        return null;
       }
 
       return null;

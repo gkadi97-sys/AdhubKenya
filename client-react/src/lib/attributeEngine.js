@@ -1,0 +1,682 @@
+// src/lib/attributeEngine.js
+
+/**
+ * ATTRIBUTE ENGINE
+ * Single Source of Truth for all category-specific attributes.
+ * These definitions power both the Ad Posting Form (DynamicListingForm)
+ * and the Browse Sidebar (FilterPanel).
+ */
+
+export const ATTRIBUTE_ENGINE = {
+  vehicles: {
+    groups: [
+      { id: 'basics', title: 'Vehicle Basics' },
+      { id: 'specs', title: 'Specifications' },
+      { id: 'details', title: 'Details & Condition' }
+    ],
+    attributes: [
+      { 
+        id: 'make', 
+        label: 'Make', 
+        type: 'dynamic-select', 
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'model', 
+        label: 'Model', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'make' },
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'year', 
+        label: 'Year of Manufacture', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'model' },
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'mileage', 
+        label: 'Mileage (km)', 
+        type: 'number',
+        postAd: { required: true, group: 'basics', uiType: 'number' },
+        search: { filterable: true, uiType: 'range' }
+      },
+      { 
+        id: 'transmission', 
+        label: 'Transmission', 
+        type: 'enum', 
+        options: ['Automatic', 'Manual', 'CVT', 'DCT', 'Semi-Auto'],
+        postAd: { required: true, group: 'specs', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'fuelType', 
+        label: 'Fuel Type', 
+        type: 'enum', 
+        options: ['Petrol', 'Diesel', 'Hybrid', 'Electric', 'LPG'],
+        postAd: { required: true, group: 'specs', uiType: 'radio' },
+        search: { filterable: true, uiType: 'multicheck' }
+      },
+      { 
+        id: 'bodyType', 
+        label: 'Body Style', 
+        type: 'enum', 
+        options: ['Sedan', 'Hatchback', 'Station Wagon', 'SUV / Crossover', 'Coupe', 'Convertible', 'Pickup / Double Cabin', 'Van / Minivan'],
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'driveType', 
+        label: 'Drive Type', 
+        type: 'enum', 
+        options: ['FWD', 'RWD', 'AWD', '4WD'],
+        postAd: { required: false, group: 'specs', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'engineSize', 
+        label: 'Engine Size (CC)', 
+        type: 'number',
+        postAd: { required: false, group: 'specs', uiType: 'number' },
+        search: { filterable: true, uiType: 'range' }
+      },
+      { 
+        id: 'color', 
+        label: 'Color', 
+        type: 'enum', 
+        options: ['White', 'Black', 'Silver', 'Grey', 'Blue', 'Red', 'Brown', 'Green', 'Pearl White', 'Other'],
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'registered', 
+        label: 'Registered in Kenya?', 
+        type: 'enum', 
+        options: ['Yes', 'No'],
+        postAd: { required: true, group: 'details', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'exchange', 
+        label: 'Exchange Accepted?', 
+        type: 'enum', 
+        options: ['Yes', 'No'],
+        postAd: { required: true, group: 'details', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'seats', 
+        label: 'Number of Seats', 
+        type: 'enum', 
+        options: ['2', '4', '5', '6', '7', '8+'],
+        postAd: { required: false, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'doors', 
+        label: 'Number of Doors', 
+        type: 'enum', 
+        options: ['2', '3', '4', '5'],
+        postAd: { required: false, group: 'details', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'usageType', 
+        label: 'Usage Type', 
+        type: 'enum', 
+        options: ['Local', 'Import / Ex-Japan', 'Import / Ex-UK', 'Ex-Lease', 'Diplomatic'],
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      }
+    ]
+  },
+  'auto-spares': {
+    groups: [
+      { id: 'basics', title: 'Part Classification' },
+      { id: 'vehicle', title: 'Vehicle Compatibility' },
+      { id: 'details', title: 'Part Details' }
+    ],
+    attributes: [
+      { 
+        id: 'listingType', 
+        label: 'Listing Type', 
+        type: 'enum', 
+        options: ['spare-part', 'accessory'],
+        postAd: { required: true, group: 'basics', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      // Spare Part Specific
+      { 
+        id: 'make', 
+        label: 'Vehicle Make', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'listingType', value: 'spare-part' },
+        postAd: { required: true, group: 'vehicle', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'model', 
+        label: 'Vehicle Model', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'make' },
+        postAd: { required: true, group: 'vehicle', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'compatibleYear', 
+        label: 'Compatible Year', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'model' },
+        postAd: { required: false, group: 'vehicle', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'partCategory', 
+        label: 'Part Category', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'compatibleYear' },
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'part', 
+        label: 'Spare Part', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'partCategory' },
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'position', 
+        label: 'Position', 
+        type: 'enum', 
+        options: ['Front', 'Rear', 'Left', 'Right', 'Upper', 'Lower', 'Inner', 'Outer'], 
+        dependsOn: { field: 'partCategory' },
+        postAd: { required: false, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'generation', 
+        label: 'Generation / Chassis', 
+        type: 'text', 
+        dependsOn: { field: 'make' },
+        postAd: { required: false, group: 'vehicle', uiType: 'text' },
+        search: { filterable: true, uiType: 'text' }
+      },
+      { 
+        id: 'engine', 
+        label: 'Engine Code', 
+        type: 'text', 
+        dependsOn: { field: 'make' },
+        postAd: { required: false, group: 'vehicle', uiType: 'text' },
+        search: { filterable: true, uiType: 'text' }
+      },
+      { 
+        id: 'oemNumber', 
+        label: 'OEM Part Number', 
+        type: 'text', 
+        dependsOn: { field: 'listingType', value: 'spare-part' },
+        postAd: { required: false, group: 'details', uiType: 'text' },
+        search: { filterable: true, uiType: 'text' }
+      },
+      // Accessories Specific
+      { 
+        id: 'category', 
+        label: 'Accessory Category', 
+        type: 'dynamic-cascade', 
+        cascadeLevel: 1, 
+        dependsOn: { field: 'listingType', value: 'accessory' },
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      { 
+        id: 'subcategory', 
+        label: 'Subcategory', 
+        type: 'dynamic-cascade', 
+        cascadeParent: 'category', 
+        dependsOn: { field: 'listingType', value: 'accessory' },
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      { 
+        id: 'item', 
+        label: 'Accessory Item', 
+        type: 'dynamic-cascade', 
+        cascadeParent: 'subcategory', 
+        cascadeGrandparent: 'category', 
+        dependsOn: { field: 'listingType', value: 'accessory' },
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      { 
+        id: 'universal', 
+        label: 'Universal Fit', 
+        type: 'enum', 
+        options: ['Yes', 'No'], 
+        dependsOn: { field: 'listingType', value: 'accessory' },
+        postAd: { required: true, group: 'vehicle', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'vehicleType', 
+        label: 'Vehicle Type', 
+        type: 'enum', 
+        options: ['Car', 'SUV', 'Pickup', 'Truck', 'Motorcycle'], 
+        dependsOn: { field: 'listingType', value: 'accessory' },
+        postAd: { required: false, group: 'vehicle', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      }
+    ]
+  },
+  property: {
+    groups: [
+      { id: 'classification', title: 'Property Classification' },
+      { id: 'features', title: 'Features & Amenities' }
+    ],
+    attributes: [
+      { 
+        id: 'listingCategory', 
+        label: 'Listing Category', 
+        type: 'enum', 
+        options: ['For Sale', 'For Rent', 'For Lease'],
+        postAd: { required: true, group: 'classification', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'propertyCategory', 
+        label: 'Property Category', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'listingCategory' },
+        postAd: { required: true, group: 'classification', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'propertyType', 
+        label: 'Property Type', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'propertyCategory' },
+        postAd: { required: true, group: 'classification', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'bedrooms', 
+        label: 'Bedrooms', 
+        type: 'enum', 
+        options: ['1', '2', '3', '4', '5+'],
+        postAd: { required: false, group: 'features', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'bathrooms', 
+        label: 'Bathrooms', 
+        type: 'enum', 
+        options: ['1', '2', '3+'],
+        postAd: { required: false, group: 'features', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'furnished', 
+        label: 'Furnished', 
+        type: 'enum', 
+        options: ['Furnished', 'Semi-Furnished', 'Unfurnished'],
+        postAd: { required: false, group: 'features', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'floors', 
+        label: 'Floor', 
+        type: 'enum', 
+        options: ['Ground', '1', '2', '3', '4', '5+'],
+        postAd: { required: false, group: 'features', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'parking', 
+        label: 'Parking Available', 
+        type: 'enum', 
+        options: ['Yes', 'No'],
+        postAd: { required: false, group: 'features', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'amenities', 
+        label: 'Amenities', 
+        type: 'enum', 
+        options: ['Swimming Pool', 'Gym', 'Backup Generator', 'Borehole', 'Elevator', 'Balcony', 'Garden', 'Security Guard', 'CCTV', 'Internet / Wi-Fi', 'Pet Friendly'],
+        postAd: { required: false, group: 'features', uiType: 'multicheck' },
+        search: { filterable: true, uiType: 'multicheck' }
+      }
+    ]
+  },
+  'phones-tablets': {
+    groups: [
+      { id: 'basics', title: 'Device Info' },
+      { id: 'specs', title: 'Technical Specifications' }
+    ],
+    attributes: [
+      { 
+        id: 'brand', 
+        label: 'Brand', 
+        type: 'dynamic-select',
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'series', 
+        label: 'Series', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'brand' },
+        postAd: { required: false, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'model', 
+        label: 'Model', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'series' },
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'storage', 
+        label: 'Internal Storage', 
+        type: 'enum', 
+        options: ['16GB', '32GB', '64GB', '128GB', '256GB', '512GB', '1TB'],
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'multicheck' }
+      },
+      { 
+        id: 'ram', 
+        label: 'RAM', 
+        type: 'enum', 
+        options: ['2GB', '3GB', '4GB', '6GB', '8GB', '12GB', '16GB+'],
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'multicheck' }
+      },
+      { 
+        id: 'network', 
+        label: 'Network', 
+        type: 'enum', 
+        options: ['3G', '4G LTE', '5G'],
+        postAd: { required: false, group: 'specs', uiType: 'radio' },
+        search: { filterable: true, uiType: 'multicheck' }
+      },
+      { 
+        id: 'os', 
+        label: 'Operating System', 
+        type: 'enum', 
+        options: ['Android', 'iOS', 'Windows', 'Other'],
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'color', 
+        label: 'Color', 
+        type: 'enum', 
+        options: ['Black', 'White', 'Silver', 'Gold', 'Blue', 'Red', 'Green', 'Other'],
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      }
+    ]
+  },
+  electronics: {
+    groups: [
+      { id: 'basics', title: 'Basic Information' },
+      { id: 'specs', title: 'Specifications' }
+    ],
+    attributes: [
+      { 
+        id: 'subcategory', 
+        label: 'Category', 
+        type: 'dynamic-select',
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      // Laptops
+      { 
+        id: 'brand', 
+        label: 'Brand', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'series', 
+        label: 'Series', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'brand' },
+        postAd: { required: false, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'model', 
+        label: 'Model', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'series' },
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'cpuBrand', 
+        label: 'Processor Brand', 
+        type: 'enum', 
+        options: ['Intel', 'AMD', 'Apple', 'Other'], 
+        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'cpuGen', 
+        label: 'Processor Generation', 
+        type: 'text', 
+        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
+        postAd: { required: false, group: 'specs', uiType: 'text' },
+        search: { filterable: true, uiType: 'text' }
+      },
+      { 
+        id: 'ram', 
+        label: 'RAM', 
+        type: 'enum', 
+        options: ['4GB', '8GB', '16GB', '32GB', '64GB'], 
+        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'multicheck' }
+      },
+      { 
+        id: 'storageType', 
+        label: 'Storage Type', 
+        type: 'enum', 
+        options: ['SSD', 'HDD', 'eMMC'], 
+        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
+        postAd: { required: true, group: 'specs', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'storageSize', 
+        label: 'Storage Size', 
+        type: 'enum', 
+        options: ['128GB', '256GB', '512GB', '1TB', '2TB+'], 
+        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'screenSize', 
+        label: 'Screen Size', 
+        type: 'enum', 
+        options: ['11"', '12"', '13"', '14"', '15"', '16"', '17"+'], 
+        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'gpu', 
+        label: 'Graphics Card', 
+        type: 'text', 
+        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
+        postAd: { required: false, group: 'specs', uiType: 'text' },
+        search: { filterable: true, uiType: 'text' }
+      },
+      // TVs
+      { 
+        id: 'tvBrand', 
+        label: 'Brand', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'subcategory', value: 'Televisions' },
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'tvSeries', 
+        label: 'Series', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'tvBrand' },
+        postAd: { required: false, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'screenSizeTv', 
+        label: 'Screen Size', 
+        type: 'enum', 
+        options: ['32"', '40"', '43"', '50"', '55"', '65"', '75"', '85"+'], 
+        dependsOn: { field: 'subcategory', value: 'Televisions' },
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'displayTech', 
+        label: 'Display Technology', 
+        type: 'enum', 
+        options: ['LED', 'OLED', 'QLED', 'NanoCell', 'Plasma'], 
+        dependsOn: { field: 'subcategory', value: 'Televisions' },
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'resolution', 
+        label: 'Resolution', 
+        type: 'enum', 
+        options: ['HD', 'Full HD', '4K UHD', '8K'], 
+        dependsOn: { field: 'subcategory', value: 'Televisions' },
+        postAd: { required: true, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'smartPlatform', 
+        label: 'Smart Platform', 
+        type: 'enum', 
+        options: ['Android TV', 'Google TV', 'WebOS', 'Tizen', 'VIDAA', 'Roku', 'Non Smart'], 
+        dependsOn: { field: 'subcategory', value: 'Televisions' },
+        postAd: { required: false, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      // Audio
+      { 
+        id: 'equipmentType', 
+        label: 'Equipment Type', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'subcategory', value: 'Audio & Music' },
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'audioBrand', 
+        label: 'Brand', 
+        type: 'dynamic-select', 
+        dependsOn: { field: 'equipmentType' },
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-select' }
+      },
+      { 
+        id: 'channels', 
+        label: 'Channels', 
+        type: 'enum', 
+        options: ['2.0', '2.1', '3.1', '5.0', '5.1', '7.1', '9.1', '11.1'], 
+        dependsOn: { field: 'subcategory', value: 'Audio & Music' },
+        postAd: { required: false, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'connectivity', 
+        label: 'Connectivity', 
+        type: 'enum', 
+        options: ['Bluetooth', 'Wi-Fi', 'HDMI', 'HDMI ARC', 'HDMI eARC', 'USB', 'Optical', 'AUX'], 
+        dependsOn: { field: 'subcategory', value: 'Audio & Music' },
+        postAd: { required: false, group: 'specs', uiType: 'multicheck' },
+        search: { filterable: true, uiType: 'multicheck' }
+      }
+    ]
+  },
+  jobs: {
+    groups: [
+      { id: 'basics', title: 'Job Details' },
+      { id: 'requirements', title: 'Requirements' },
+      { id: 'salary', title: 'Compensation' }
+    ],
+    attributes: [
+      { 
+        id: 'employmentType', 
+        label: 'Employment Type', 
+        type: 'enum', 
+        options: ['Full Time', 'Part Time', 'Contract', 'Internship', 'Freelance', 'Remote'],
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'multicheck' }
+      },
+      { 
+        id: 'workArrangement', 
+        label: 'Work Arrangement', 
+        type: 'enum', 
+        options: ['On-site', 'Remote', 'Hybrid'],
+        postAd: { required: true, group: 'basics', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'experienceLevel', 
+        label: 'Experience Level', 
+        type: 'enum', 
+        options: ['Entry Level', '1-3 Years', '3-5 Years', '5-10 Years', '10+ Years'],
+        postAd: { required: true, group: 'requirements', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'educationLevel', 
+        label: 'Education Level', 
+        type: 'enum', 
+        options: ['KCSE / O-Level', 'Certificate', 'Diploma', "Bachelor's Degree", "Master's Degree", 'PhD'],
+        postAd: { required: true, group: 'requirements', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'industry', 
+        label: 'Industry', 
+        type: 'enum', 
+        options: ['IT & Technology', 'Finance & Banking', 'Healthcare', 'Education', 'NGO', 'Hospitality', 'Transport & Logistics', 'Agriculture', 'Construction', 'Media & Marketing', 'Sales', 'Admin & HR', 'Legal', 'Government', 'Other'],
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      { 
+        id: 'salaryMin', 
+        label: 'Min Salary', 
+        type: 'number',
+        postAd: { required: false, group: 'salary', uiType: 'number' },
+        search: { filterable: true, uiType: 'range' }
+      },
+      { 
+        id: 'salaryMax', 
+        label: 'Max Salary', 
+        type: 'number',
+        postAd: { required: false, group: 'salary', uiType: 'number' },
+        search: { filterable: true, uiType: 'range' }
+      }
+    ]
+  },
+  default: {
+    groups: [],
+    attributes: []
+  }
+};
