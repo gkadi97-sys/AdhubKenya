@@ -9,6 +9,7 @@ import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { getLevel1Options, getLevel2Options, getLevel3Options } from '@/lib/filterEngine';
 import HeroSearch from '@/components/HeroSearch';
 import QuickFilters from '@/components/QuickFilters';
+import DynamicDataFilter from '@/components/filters/DynamicDataFilter';
 import DiscoveryRow from '@/components/DiscoveryRow';
 import FeaturedListings from '@/components/FeaturedListings';
 import RecentlyViewed from '@/components/RecentlyViewed';
@@ -184,19 +185,36 @@ function CategorySidebar({ onNavigate }) {
                         }
                       }
                       
-                      if (attr.type !== 'text' && attr.type !== 'number') {
+                      const uiType = attr.search?.uiType || attr.type;
+                      
+                      if (uiType !== 'text' && uiType !== 'number' && uiType !== 'dynamic-select' && uiType !== 'range') {
                         if (!opts || !opts.length) return null;
                       }
                       
                       const val = filters[attr.id] || '';
 
-                      if (attr.type === 'text' || attr.type === 'number') {
+                      if (uiType === 'dynamic-select') {
+                        return (
+                          <div key={attr.id}>
+                            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                            <DynamicDataFilter
+                              category={selectedSlug}
+                              urlParam={attr.id}
+                              filters={filters}
+                              value={val}
+                              onChange={(newVal) => setFilter(attr.id, newVal)}
+                            />
+                          </div>
+                        );
+                      }
+
+                      if (uiType === 'text' || uiType === 'number') {
                         return (
                           <div key={attr.id}>
                             <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
                             <div className="relative">
                               <input
-                                type={attr.type}
+                                type={uiType}
                                 placeholder={`Any ${attr.label}`}
                                 value={val}
                                 onChange={e => setFilter(attr.id, e.target.value)}
@@ -214,8 +232,35 @@ function CategorySidebar({ onNavigate }) {
                         );
                       }
 
+                      if (uiType === 'range') {
+                        const minKey = `${attr.id}_min`;
+                        const maxKey = `${attr.id}_max`;
+                        return (
+                          <div key={attr.id}>
+                            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                placeholder="Min"
+                                value={filters[minKey] || ''}
+                                onChange={e => setFilter(minKey, e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary/50"
+                              />
+                              <span className="text-muted-foreground text-[10px] font-medium">to</span>
+                              <input
+                                type="number"
+                                placeholder="Max"
+                                value={filters[maxKey] || ''}
+                                onChange={e => setFilter(maxKey, e.target.value)}
+                                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary/50"
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+
                       // ── radio: always render as wrapping chip buttons ──────
-                      if (attr.type === 'radio') {
+                      if (uiType === 'radio') {
                         return (
                           <div key={attr.id}>
                             <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
@@ -227,33 +272,6 @@ function CategorySidebar({ onNavigate }) {
                                     <button
                                       onClick={() => setFilter(attr.id, isSel ? '' : o)}
                                       className={`inline-flex items-center justify-center rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer border leading-tight ${
-                                        isSel ? 'border-primary bg-primary text-primary-foreground shadow-sm' : 'border-border bg-background hover:border-primary/40 text-foreground hover:bg-secondary/50'
-                                      }`}
-                                      title={o}
-                                    >
-                                      {o}
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          </div>
-                        );
-                      }
-
-                      // ── first dynamic-cascade with few options → chips ─────
-                      if (isFirst && attr.type === 'dynamic-cascade' && opts.length <= 25) {
-                        return (
-                          <div key={attr.id}>
-                            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
-                            <ul className="flex flex-wrap gap-1.5 mt-1">
-                              {opts.map(o => {
-                                const isSel = val === o;
-                                return (
-                                  <li key={o}>
-                                    <button
-                                      onClick={() => setFilter(attr.id, isSel ? '' : o)}
-                                      className={`inline-flex items-center justify-center rounded-lg px-2 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer border text-center leading-tight ${
                                         isSel ? 'border-primary bg-primary text-primary-foreground shadow-sm' : 'border-border bg-background hover:border-primary/40 text-foreground hover:bg-secondary/50'
                                       }`}
                                       title={o}

@@ -285,6 +285,19 @@ export default function FilterPanel({ isMobile = false, onClose }) {
         );
       }
 
+      if (uiType === 'text') {
+        return (
+          <FilterGroup key={attr.id} label={attr.label}>
+            <input
+              type="text"
+              placeholder={`Any ${attr.label}...`}
+              value={filters[attr.id] || ''}
+              onChange={e => updateFilter(attr.id, e.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
+            />
+          </FilterGroup>
+        );
+      }
 
       return null;
     });
