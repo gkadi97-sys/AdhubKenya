@@ -7,6 +7,7 @@ import ListingCard from '@/components/ListingCard';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
 import FilterPanel from '@/components/filters/FilterPanel';
+import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
 import { Filter, X, Search } from 'lucide-react';
 
 const CATEGORIES = CATEGORY_ICONS;
@@ -40,6 +41,41 @@ function BrowseContent() {
       toast.error('Failed to load listings. Please try again.');
     }
   }, [isError]);
+
+  // ── Auto-Correct 0-Result Searches ─────────────────────────
+  useEffect(() => {
+    if (!loading && !isError && data && data.total === 0) {
+      const activeKeys = [...searchParams.keys()].filter(k => 
+        k !== 'category' && k !== 'keyword' && k !== 'sort' && k !== 'page' && searchParams.get(k)
+      );
+      
+      if (activeKeys.length > 0) {
+        const schema = SCHEMA_REGISTRY[category]?.attributes || SCHEMA_REGISTRY.default?.attributes || [];
+        
+        // Find a leaf key (an active key that no other active key depends on)
+        let leafKey = null;
+        for (let i = activeKeys.length - 1; i >= 0; i--) {
+          const key = activeKeys[i];
+          const isParentOfActive = activeKeys.some(otherKey => {
+            const attr = schema.find(a => a.id === otherKey);
+            return attr && attr.dependsOn && attr.dependsOn.field === key;
+          });
+          if (!isParentOfActive) {
+            leafKey = key;
+            break; // take the first leaf we find (or last in array)
+          }
+        }
+        
+        if (leafKey) {
+          const next = new URLSearchParams(searchParams);
+          next.delete(leafKey);
+          next.delete('page');
+          toast.error(`No matches. Removed filter to broaden search.`, { id: 'auto-correct' });
+          navigate(`/browse?${next.toString()}`, { replace: true });
+        }
+      }
+    }
+  }, [loading, isError, data, searchParams, navigate, category]);
 
   const listings = data?.listings || [];
   const total = data?.total || 0;

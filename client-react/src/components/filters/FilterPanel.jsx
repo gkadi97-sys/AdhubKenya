@@ -15,6 +15,7 @@ import {
 import { SCHEMA_REGISTRY } from '@/lib/schemaRegistry';
 import LocationCascader from './LocationCascader';
 import PriceFilter from './PriceFilter';
+import DynamicDataFilter from './DynamicDataFilter';
 import { ChevronDown, ChevronLeft, X } from 'lucide-react';
 
 function FilterGroup({ label, children, defaultOpen = true }) {
@@ -121,18 +122,22 @@ export default function FilterPanel({ isMobile = false, onClose }) {
     
     // Dynamic Attribute Resets
     const schema = SCHEMA_REGISTRY[category]?.attributes || SCHEMA_REGISTRY.default.attributes;
-    const attrDef = schema.find(a => a.id === key);
-    if (attrDef && attrDef.type === 'dynamic-cascade') {
-      // If a parent changes, clear its children
-      if (attrDef.cascadeLevel === 1) {
-        const children = schema.filter(a => a.cascadeLevel > 1);
-        children.forEach(c => next.delete(c.id));
-      }
-      if (attrDef.cascadeLevel === 2) {
-        const children = schema.filter(a => a.cascadeLevel > 2);
-        children.forEach(c => next.delete(c.id));
-      }
-    }
+    
+    // Recursive function to find and delete all attributes that depend on the changed key
+    const clearDependentKeys = (parentKey) => {
+      schema.forEach(attr => {
+        if (attr.dependsOn && attr.dependsOn.field === parentKey) {
+          if (next.has(attr.id)) {
+            next.delete(attr.id);
+            // Recursively clear children of this attribute
+            clearDependentKeys(attr.id);
+          }
+        }
+      });
+    };
+
+    // If the value changed, trigger the cascade clear for its dependencies
+    clearDependentKeys(key);
 
     setLocalParams(next);
 
@@ -231,6 +236,20 @@ export default function FilterPanel({ isMobile = false, onClose }) {
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             </div>
+          </FilterGroup>
+        );
+      }
+
+      if (attr.type === 'dynamic-select') {
+        return (
+          <FilterGroup key={attr.id} label={attr.label}>
+            <DynamicDataFilter
+              category={category}
+              urlParam={attr.id}
+              filters={filters}
+              value={filters[attr.id] || ''}
+              onChange={(val) => updateFilter(attr.id, val)}
+            />
           </FilterGroup>
         );
       }
