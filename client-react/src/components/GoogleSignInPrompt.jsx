@@ -16,22 +16,23 @@ function GoogleIcon() {
 const STORAGE_KEY = 'adhub_google_prompt_dismissed';
 
 export default function GoogleSignInPrompt() {
-  const { user } = useAuth();
+  const { user, loading: authLoading, loginWithGoogle } = useAuth();
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
-  const { loginWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Don't show if already logged in or previously dismissed
+    // Wait until auth has resolved — prevents showing the modal to logged-in users
+    // before their session is loaded (user is `undefined` during hydration).
+    if (authLoading) return;
     if (user) return;
     const dismissed = sessionStorage.getItem(STORAGE_KEY);
     if (dismissed) return;
 
-    // Show after 3.5 seconds on first visit
-    const timer = setTimeout(() => setVisible(true), 3500);
+    // Show after 4 seconds on first visit
+    const timer = setTimeout(() => setVisible(true), 4000);
     return () => clearTimeout(timer);
-  }, [user]);
+  }, [authLoading, user]);
 
   const dismiss = () => {
     setExiting(true);
