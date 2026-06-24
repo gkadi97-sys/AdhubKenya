@@ -103,9 +103,21 @@ export default function Navbar() {
                 <Link to="/login" className="hidden rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-muted sm:inline-block">
                   Login
                 </Link>
-                <Link to="/register" className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90">
-                  Register
-                </Link>
+                <div className="relative group">
+                  <Link to="/register" className="rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 whitespace-nowrap inline-block">
+                    Create Account
+                  </Link>
+                  {/* Tooltip */}
+                  <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-card border border-border shadow-elevated p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Benefits</p>
+                    <ul className="text-xs text-foreground space-y-1.5 font-medium">
+                      <li className="flex items-center gap-2"><Heart className="w-3 h-3 text-primary" /> Save Listings</li>
+                      <li className="flex items-center gap-2"><MessageSquare className="w-3 h-3 text-primary" /> Message Sellers</li>
+                      <li className="flex items-center gap-2"><PlusCircle className="w-3 h-3 text-primary" /> Post Ads Faster</li>
+                      <li className="flex items-center gap-2"><Bell className="w-3 h-3 text-primary" /> Track Favorites</li>
+                    </ul>
+                  </div>
+                </div>
               </>
             )}
           </div>
