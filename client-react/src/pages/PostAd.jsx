@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -14,6 +14,7 @@ import JobForm from '@/components/JobForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { useSEO } from '@/lib/useSEO';
+import toast from 'react-hot-toast';
 import { Lock, Image as ImageIcon, Camera, Trash2, Rocket } from 'lucide-react';
 
 const STANDARD_CONDITIONS   = ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
@@ -98,6 +99,7 @@ export default function PostAdPage() {
         }
       } catch (err) {
         console.error(err);
+        toast.error('Failed to process one or more images. Please try again.');
       } finally {
         setProcessingImages(false);
         setBlurStatus('');
@@ -112,12 +114,18 @@ export default function PostAdPage() {
   };
 
   const removeImage = (i) => {
+    URL.revokeObjectURL(previews[i]);
     const newImages = images.filter((_, idx) => idx !== i);
     const newPreviews = previews.filter((_, idx) => idx !== i);
     setImages(newImages);
     setPreviews(newPreviews);
   };
 
+  useEffect(() => {
+    return () => {
+      previews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [previews]);
 
 
   const getTitlePlaceholder = (cat) => {

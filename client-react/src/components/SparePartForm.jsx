@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MASTER_SPARE_PARTS, MOCK_VEHICLE_HIERARCHY, POSITIONS } from '@/lib/autoSparesData';
-import { CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
+import CATEGORY_ATTRIBUTES from '@/lib/categoryData';
 
 const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
 

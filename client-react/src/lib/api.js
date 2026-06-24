@@ -269,22 +269,31 @@ export const createListing = async (listingData, imageFiles) => {
   // Upload images first
   const imageUrls = [];
   if (imageFiles && imageFiles.length > 0) {
-    for (const file of imageFiles) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${session.user.id}/${fileName}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('listing-images')
-        .upload(filePath, file);
+    try {
+      for (const file of imageFiles) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${session.user.id}/${fileName}`;
         
-      if (uploadError) throw uploadError;
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('listing-images')
-        .getPublicUrl(filePath);
+        const { error: uploadError } = await supabase.storage
+          .from('listing-images')
+          .upload(filePath, file);
+          
+        if (uploadError) throw uploadError;
         
-      imageUrls.push(publicUrl);
+        const { data: { publicUrl } } = supabase.storage
+          .from('listing-images')
+          .getPublicUrl(filePath);
+          
+        imageUrls.push({ url: publicUrl, path: filePath });
+      }
+    } catch (err) {
+      if (imageUrls.length > 0) {
+        // Cleanup uploaded images on failure
+        const paths = imageUrls.map(i => i.path);
+        await supabase.storage.from('listing-images').remove(paths);
+      }
+      throw err;
     }
   }
 
@@ -294,7 +303,7 @@ export const createListing = async (listingData, imageFiles) => {
     .insert([
       {
         ...listingData,
-        images: imageUrls,
+        images: imageUrls.map(i => i.url),
         seller_id: session.user.id,
         status: 'active'
       }
@@ -337,7 +346,8 @@ export const getCategories = async () => {
 export const getCategoryCounts = async () => {
   const { data, error } = await supabase
     .from('listings')
-    .select('category');
+    .select('category')
+    .or('status.eq.active,status.is.null');
   if (error) return {};
   const counts = {};
   (data || []).forEach(r => {

@@ -75,7 +75,7 @@ export default function ListingDetailPage() {
   const images = listing.images?.length ? listing.images : [];
   const whatsappMsg = encodeURIComponent(`Hi, I'm interested in your ad: "${listing.title}" on AdHub Kenya.`);
   const waNumber = listing.whatsapp?.replace(/\D/g,'') || listing.phone?.replace(/\D/g,'');
-  const waLink = `https://wa.me/${waNumber.startsWith('0') ? '254' + waNumber.slice(1) : waNumber}?text=${whatsappMsg}`;
+  const waLink = waNumber ? `https://wa.me/${waNumber.startsWith('0') ? '254' + waNumber.slice(1) : waNumber}?text=${whatsappMsg}` : null;
 
   return (
     <div style={{padding:'32px 0 60px'}}>
@@ -86,7 +86,7 @@ export default function ListingDetailPage() {
           <span>/</span>
           <Link to="/browse" style={{color:'var(--text-muted)'}}>Browse</Link>
           <span>/</span>
-          <Link to={`/category/${listing.category}`} style={{color:'var(--text-muted)',textTransform:'capitalize'}}>{listing.category}</Link>
+          <Link to={`/browse?category=${listing.category}`} style={{color:'var(--text-muted)',textTransform:'capitalize'}}>{listing.category}</Link>
           <span>/</span>
           <span style={{color:'var(--text)',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{listing.title}</span>
         </nav>

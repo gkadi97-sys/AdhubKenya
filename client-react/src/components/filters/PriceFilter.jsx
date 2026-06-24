@@ -32,8 +32,8 @@ export default function PriceFilter({ min = '', max = '', onChange }) {
       setLocalMax(cleanMax.toString());
     }
 
-    onChange('priceMin', cleanMin ? cleanMin.toString() : '');
-    onChange('priceMax', cleanMax ? cleanMax.toString() : '');
+    onChange('minPrice', cleanMin ? cleanMin.toString() : '');
+    onChange('maxPrice', cleanMax ? cleanMax.toString() : '');
   };
 
   const handleKeyDown = (e) => {
@@ -45,8 +45,8 @@ export default function PriceFilter({ min = '', max = '', onChange }) {
   const applyPreset = (preset) => {
     setLocalMin(preset.min);
     setLocalMax(preset.max);
-    onChange('priceMin', preset.min);
-    onChange('priceMax', preset.max);
+    onChange('minPrice', preset.min);
+    onChange('maxPrice', preset.max);
   };
 
   const inputClass = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
