@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { getSellerListings, deleteListing, formatPrice, timeAgo, imageUrl } from '@/lib/api';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { PlusCircle, MapPin, Eye, Clock, Trash2, ExternalLink, PackageOpen, Lock } from 'lucide-react';
 
 export default function MyAdsPage() {
@@ -18,14 +19,56 @@ export default function MyAdsPage() {
   }, [user]);
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this listing?')) return;
-    setDeleting(id);
-    try {
-      await deleteListing(id);
-      setListings(l => l.filter(x => x.id !== id));
-    } catch (e) { alert(e.message); }
-    finally { setDeleting(null); }
+    // Use toast-based confirmation instead of native browser dialog
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-semibold text-foreground">Delete this listing?</p>
+          <p className="text-xs text-muted-foreground">This action cannot be undone.</p>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border hover:bg-secondary transition-colors"
+            >Cancel</button>
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                setDeleting(id);
+                try {
+                  await deleteListing(id);
+                  setListings(l => l.filter(x => x.id !== id));
+                  toast.success('Listing deleted.');
+                } catch (e) {
+                  toast.error(e.message || 'Failed to delete listing.');
+                } finally {
+                  setDeleting(null);
+                }
+              }}
+              className="px-3 py-1.5 text-xs font-bold rounded-lg bg-destructive text-destructive-foreground hover:opacity-90 transition-opacity"
+            >Yes, Delete</button>
+          </div>
+        </div>
+      ),
+      { duration: Infinity }
+    );
   };
+
+  // user === undefined means AuthContext is still initialising
+  if (user === undefined) return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-20">
+      <div className="flex flex-col gap-4 w-full max-w-2xl">
+        {[...Array(3)].map((_,i) => (
+          <div key={i} className="flex h-[140px] w-full animate-pulse overflow-hidden rounded-2xl border border-border bg-card">
+            <div className="w-[140px] shrink-0 bg-secondary/50"></div>
+            <div className="flex-1 p-4 flex flex-col justify-between">
+              <div className="mb-3 h-5 w-3/4 rounded-md bg-secondary/60"></div>
+              <div className="h-4 w-1/4 rounded-md bg-secondary/50"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   if (!user) return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-20 text-center animate-in fade-in duration-500">

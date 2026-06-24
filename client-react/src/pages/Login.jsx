@@ -56,6 +56,8 @@ export default function LoginPage() {
       // Redirect handled by Supabase OAuth callback
     } catch (err) {
       setError(err.message);
+    } finally {
+      // Always reset loading — prevents permanently stuck spinner
       setGoogleLoading(false);
     }
   };
@@ -132,7 +134,6 @@ export default function LoginPage() {
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-semibold text-foreground">Password</label>
-                  <Link to="#" className="text-xs font-medium text-primary hover:underline">Forgot password?</Link>
                 </div>
                 <input 
                   className={inputClass} 

@@ -51,6 +51,16 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
     if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    // Validate Kenyan phone number (07xx, 01xx, or +254...)
+    const phoneRegex = /^(07\d{8}|01\d{8}|\+2547\d{8}|\+2541\d{8})$/;
+    if (form.phone && !phoneRegex.test(form.phone.replace(/\s/g, ''))) {
+      setError('Please enter a valid Kenyan phone number (e.g. 0712 345 678)');
+      return;
+    }
+    if (form.whatsapp && !phoneRegex.test(form.whatsapp.replace(/\s/g, ''))) {
+      setError('Please enter a valid WhatsApp number (e.g. 0712 345 678)');
+      return;
+    }
     setLoading(true);
     try {
       await register(form);

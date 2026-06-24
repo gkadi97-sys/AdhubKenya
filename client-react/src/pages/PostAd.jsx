@@ -79,6 +79,19 @@ export default function PostAdPage() {
   const isHeavyTruck = isVehicle && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers'].includes(make);
   const isPickupTruck = isVehicle && make === 'Pickups';
 
+  // Derive the correct condition options list from the selected category/subcategory
+  const getConditionOptions = () => {
+    if (isHeavyTruck || isPickupTruck) return TRUCK_CONDITIONS;
+    if (isVehicle) return VEHICLE_CONDITIONS;
+    if (isAutoSpares) return AUTOSPARES_CONDITIONS;
+    if (isPhone) return PHONE_CONDITIONS;
+    if (isLaptop) return LAPTOP_CONDITIONS;
+    if (isAudio) return AUDIO_CONDITIONS;
+    if (showStandardCondition) return STANDARD_CONDITIONS;
+    return null; // no condition field for jobs etc.
+  };
+  const conditionOptions = getConditionOptions();
+
   const handleImages = async (e) => {
     const maxImages = isProperty ? 15 : (isVehicle ? 10 : 5);
     const rawNewFiles = Array.from(e.target.files);
@@ -244,66 +257,12 @@ export default function PostAdPage() {
                 </select>
               </div>
 
-              {isVehicle && !isHeavyTruck && !isPickupTruck && (
+              {conditionOptions && (
                 <div>
                   <label className={labelClass}>Condition *</label>
                   <select className={inputClass} {...register("condition", { required: true })}>
                     <option value="">Select Condition</option>
-                    {VEHICLE_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              )}
-              {isAutoSpares && (
-                <div>
-                  <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} {...register("condition", { required: true })}>
-                    <option value="">Select Condition</option>
-                    {AUTOSPARES_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              )}
-              {isAudio && (
-                <div>
-                  <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} {...register("condition", { required: true })}>
-                    <option value="">Select Condition</option>
-                    {AUDIO_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              )}
-              {isPhone && (
-                <div>
-                  <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} {...register("condition", { required: true })}>
-                    <option value="">Select Condition</option>
-                    {PHONE_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              )}
-              {isLaptop && !isPhone && (
-                <div>
-                  <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} {...register("condition", { required: true })}>
-                    <option value="">Select Condition</option>
-                    {LAPTOP_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              )}
-              {(isHeavyTruck || isPickupTruck) && (
-                <div>
-                  <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} {...register("condition", { required: true })}>
-                    <option value="">Select Condition</option>
-                    {TRUCK_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              )}
-              {showStandardCondition && (
-                <div>
-                  <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} {...register("condition", { required: true })}>
-                    <option value="">Select Condition</option>
-                    {STANDARD_CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                    {conditionOptions.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
               )}

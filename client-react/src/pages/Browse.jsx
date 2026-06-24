@@ -272,16 +272,40 @@ function BrowseContent() {
                       <button className="px-4 py-2 text-sm font-semibold text-foreground hover:bg-secondary rounded-lg transition-colors" onClick={() => applyFilter({ page: page - 1 })}>← Prev</button>
                     )}
                     <div className="flex items-center gap-1">
-                      {[...Array(Math.min(pages, 7))].map((_,i) => {
-                        const p = i + 1;
-                        return (
-                          <button
-                            key={p}
-                            onClick={() => applyFilter({ page: p })}
-                            className={`w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition-colors ${page === p ? 'bg-primary text-primary-foreground shadow-sm' : 'text-foreground hover:bg-secondary'}`}
-                          >{p}</button>
+                      {(() => {
+                        // Build sliding window: always show first, last, current ±1, with ellipsis
+                        const delta = 1;
+                        const range = [];
+                        const rangeWithDots = [];
+                        let l;
+                        for (let i = 1; i <= pages; i++) {
+                          if (i === 1 || i === pages || (i >= page - delta && i <= page + delta)) {
+                            range.push(i);
+                          }
+                        }
+                        for (const i of range) {
+                          if (l !== undefined) {
+                            if (i - l === 2) {
+                              rangeWithDots.push(l + 1);
+                            } else if (i - l > 2) {
+                              rangeWithDots.push('...');
+                            }
+                          }
+                          rangeWithDots.push(i);
+                          l = i;
+                        }
+                        return rangeWithDots.map((item, idx) =>
+                          item === '...' ? (
+                            <span key={`dots-${idx}`} className="w-9 h-9 flex items-center justify-center text-muted-foreground text-sm select-none">…</span>
+                          ) : (
+                            <button
+                              key={item}
+                              onClick={() => applyFilter({ page: item })}
+                              className={`w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition-colors ${page === item ? 'bg-primary text-primary-foreground shadow-sm' : 'text-foreground hover:bg-secondary'}`}
+                            >{item}</button>
+                          )
                         );
-                      })}
+                      })()}
                     </div>
                     {page < pages && (
                       <button className="px-4 py-2 text-sm font-semibold text-foreground hover:bg-secondary rounded-lg transition-colors" onClick={() => applyFilter({ page: page + 1 })}>Next →</button>
