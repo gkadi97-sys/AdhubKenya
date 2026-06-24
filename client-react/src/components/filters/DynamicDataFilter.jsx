@@ -28,12 +28,16 @@ export default function DynamicDataFilter({ category, urlParam, filters, value, 
   return (
     <div className="relative">
       <select
-        className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 pr-8"
+        className={`w-full appearance-none rounded-xl border border-border px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 pr-8 ${options.length === 0 ? 'bg-secondary/30 text-muted-foreground cursor-not-allowed' : 'bg-background'}`}
         disabled={options.length === 0}
         value={value || ''}
         onChange={e => onChange(e.target.value)}
       >
-        <option value="">Any</option>
+        {options.length === 0 ? (
+          <option value="">None available</option>
+        ) : (
+          <option value="">Any</option>
+        )}
         {options.map(o => (
           <option key={o} value={o}>
             {o} ({counts[o]})
