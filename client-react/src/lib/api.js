@@ -81,15 +81,25 @@ export const getListings = async (params = {}) => {
   // Filter to active listings only
   query = query.or('status.eq.active,status.is.null');
 
-  // ── Top-level column filters (backward-compatible) ────────────────────────
+  // ── Top-level column filters (exact match) ──────────────────────────────
   if (params.category)  query = query.eq('category', params.category);
   if (params.location)  query = query.eq('location', params.location);
   if (params.minPrice)  query = query.gte('price', params.minPrice);
   if (params.maxPrice)  query = query.lte('price', params.maxPrice);
 
-  // ── Make: checks both top-level column AND specs JSONB ───────────────────
+  // ── Top-level structured columns (exact match — PostAd saves these as columns) ───
+  // make, model, year are extracted from attrs and saved as top-level DB columns.
+  // We check both the column AND specs JSONB for backward-compatibility.
   if (params.make) {
-    query = query.or(`make.ilike.%${params.make}%,specs->>make.ilike.%${params.make}%`);
+    // Exact match on top-level column; also check specs JSONB for legacy data
+    query = query.or(`make.eq.${params.make},specs->>make.eq.${params.make}`);
+  }
+  if (params.model) {
+    query = query.or(`model.eq.${params.model},specs->>model.eq.${params.model}`);
+  }
+  if (params.year) {
+    const yr = parseInt(params.year);
+    if (!isNaN(yr)) query = query.eq('year', yr);
   }
 
   // ── Backward-compat ALIAS filters (URL param → actual DB field name) ──────
@@ -126,8 +136,23 @@ export const getListings = async (params = {}) => {
   }
 
   // ── Standard JSONB specs filters (dynamic) ────────────────────────────────
-  // Any parameter that isn't a top-level column or reserved keyword is treated as a specs filter
-  const RESERVED_PARAMS = ['category', 'location', 'minPrice', 'maxPrice', 'keyword', 'sort', 'page', 'limit', 'county', 'town', 'area', 'engineCC_max', 'mileage_max', 'year_min', 'year_max', 'salaryMin_min', 'salaryMax_max', 'posted'];
+  // Any parameter that isn't a top-level column or reserved keyword is treated as a specs filter.
+  // STRUCTURED fields (enums/selects) use EXACT match. Free-text fields use ILIKE.
+  const RESERVED_PARAMS = ['category', 'location', 'minPrice', 'maxPrice', 'keyword', 'sort', 'page', 'limit', 'county', 'town', 'area', 'engineCC_max', 'mileage_max', 'year_min', 'year_max', 'year', 'salaryMin_min', 'salaryMax_max', 'posted'];
+
+  // Fields that come from structured dropdowns/radios → exact match
+  const EXACT_MATCH_FIELDS = new Set([
+    'fuelType', 'transmission', 'bodyType', 'driveType', 'color', 'condition',
+    'registered', 'exchange', 'seats', 'doors', 'usageType',
+    'listingType', 'partCategory', 'part', 'position', 'universal', 'vehicleType',
+    'listingCategory', 'propertyCategory', 'propertyType', 'bedrooms', 'bathrooms',
+    'furnished', 'floors', 'parking',
+    'brand', 'series', 'storage', 'ram', 'network', 'os',
+    'subcategory', 'cpuBrand', 'storageType', 'storageSize', 'screenSize', 'screenSizeTv',
+    'displayTech', 'resolution', 'smartPlatform', 'tvBrand', 'tvSeries',
+    'equipmentType', 'audioBrand', 'channels', 'connectivity',
+    'employmentType', 'workArrangement', 'experienceLevel', 'educationLevel', 'industry',
+  ]);
   
   Object.keys(params).forEach(key => {
     // Skip reserved params
@@ -136,18 +161,28 @@ export const getListings = async (params = {}) => {
     // Skip if empty
     if (!params[key]) return;
 
-    // For backwards compatibility mapping or special top-level alias, skip if already handled above
-    if (['make', 'fuel', 'drive', 'job_type', 'tv_size', 'tv_tech', 'seller_type', 'amenities'].includes(key)) return;
+    // Already handled explicitly above
+    if (['make', 'model', 'fuel', 'drive', 'job_type', 'tv_size', 'tv_tech', 'seller_type', 'amenities'].includes(key)) return;
 
     // Handle comma-separated multicheck values (e.g., "Petrol,Diesel") as OR clauses
     const values = params[key].split(',').map(v => v.trim()).filter(Boolean);
-    if (values.length === 1) {
-      // Single value: simple ILIKE
-      query = query.ilike(`specs->>${key}`, `%${values[0]}%`);
-    } else if (values.length > 1) {
-      // Multiple values: OR clause across all selected options
-      const orClause = values.map(v => `specs->>${key}.ilike.%${v}%`).join(',');
-      query = query.or(orClause);
+
+    if (EXACT_MATCH_FIELDS.has(key)) {
+      // Structured field → exact match (case-insensitive via ilike with no wildcards)
+      if (values.length === 1) {
+        query = query.ilike(`specs->>${key}`, values[0]); // exact, case-insensitive
+      } else if (values.length > 1) {
+        const orClause = values.map(v => `specs->>${key}.ilike.${v}`).join(',');
+        query = query.or(orClause);
+      }
+    } else {
+      // Free-text field → substring ILIKE
+      if (values.length === 1) {
+        query = query.ilike(`specs->>${key}`, `%${values[0]}%`);
+      } else if (values.length > 1) {
+        const orClause = values.map(v => `specs->>${key}.ilike.%${v}%`).join(',');
+        query = query.or(orClause);
+      }
     }
   });
 

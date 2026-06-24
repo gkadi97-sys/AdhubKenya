@@ -259,10 +259,32 @@ export default function FilterPanel({ isMobile = false, onClose }) {
         );
       }
 
-      // Placeholder for 'range' implementation later
       if (uiType === 'range') {
-        return null;
+        const minKey = `${attr.id}_min`;
+        const maxKey = `${attr.id}_max`;
+        return (
+          <FilterGroup key={attr.id} label={attr.label}>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                placeholder="Min"
+                value={filters[minKey] || ''}
+                onChange={e => updateFilter(minKey, e.target.value)}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+              />
+              <span className="text-muted-foreground text-xs font-medium shrink-0">to</span>
+              <input
+                type="number"
+                placeholder="Max"
+                value={filters[maxKey] || ''}
+                onChange={e => updateFilter(maxKey, e.target.value)}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+          </FilterGroup>
+        );
       }
+
 
       return null;
     });
