@@ -817,6 +817,14 @@ export const ATTRIBUTE_ENGINE = {
     ],
     attributes: [
       { 
+        id: 'subcategory', 
+        label: 'Job Category', 
+        type: 'dynamic-cascade', 
+        cascadeLevel: 1,
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      { 
         id: 'employmentType', 
         label: 'Employment Type', 
         type: 'enum', 
@@ -869,6 +877,54 @@ export const ATTRIBUTE_ENGINE = {
         type: 'number',
         postAd: { required: false, group: 'salary', uiType: 'number' },
         search: { filterable: true, uiType: 'range' }
+      }
+    ]
+  },
+  'seeking-work': {
+    groups: [
+      { id: 'basics', title: 'Professional Profile' },
+      { id: 'qualifications', title: 'Qualifications & Experience' }
+    ],
+    attributes: [
+      { 
+        id: 'subcategory', 
+        label: 'Profession / Field', 
+        type: 'dynamic-cascade', 
+        cascadeLevel: 1,
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      { 
+        id: 'employmentType', 
+        label: 'Employment Type Sought', 
+        type: 'enum', 
+        options: ['Full Time', 'Part Time', 'Contract', 'Internship', 'Freelance', 'Remote'],
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'multicheck' }
+      },
+      { 
+        id: 'workArrangement', 
+        label: 'Preferred Work Arrangement', 
+        type: 'enum', 
+        options: ['On-site', 'Remote', 'Hybrid'],
+        postAd: { required: true, group: 'basics', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'experienceLevel', 
+        label: 'Experience Level', 
+        type: 'enum', 
+        options: ['Entry Level', '1-3 Years', '3-5 Years', '5-10 Years', '10+ Years'],
+        postAd: { required: true, group: 'qualifications', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      { 
+        id: 'educationLevel', 
+        label: 'Highest Education Level', 
+        type: 'enum', 
+        options: ['KCSE / O-Level', 'Certificate', 'Diploma', "Bachelor's Degree", "Master's Degree", 'PhD'],
+        postAd: { required: true, group: 'qualifications', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
       }
     ]
   },
