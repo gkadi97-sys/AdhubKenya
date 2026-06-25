@@ -183,7 +183,10 @@ export const ATTRIBUTE_ENGINE = {
         type: 'dynamic-cascade',
         cascadeLevel: 2,
         cascadeParent: 'partCategory',
-        dependsOn: { field: 'partCategory' },
+        dependsOn: { and: [
+          { field: 'listingType', value: 'spare-part' },
+          { field: 'partCategory' }
+        ]},
         postAd: { required: true, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
@@ -224,7 +227,10 @@ export const ATTRIBUTE_ENGINE = {
         type: 'dynamic-cascade',
         cascadeLevel: 2,
         cascadeParent: 'category',
-        dependsOn: { field: 'category' }, // Only show after category is selected
+        dependsOn: { and: [
+          { field: 'listingType', value: 'accessory' },
+          { field: 'category' }
+        ]},
         postAd: { required: true, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
@@ -234,7 +240,10 @@ export const ATTRIBUTE_ENGINE = {
         type: 'dynamic-cascade',
         cascadeLevel: 3,
         cascadeParent: 'subcategory',
-        dependsOn: { field: 'subcategory' }, // Only show after subcategory is selected
+        dependsOn: { and: [
+          { field: 'listingType', value: 'accessory' },
+          { field: 'subcategory' }
+        ]},
         postAd: { required: true, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
@@ -251,7 +260,10 @@ export const ATTRIBUTE_ENGINE = {
           MAKE_SPECIFIC: 'Make Specific (e.g. Toyota, Nissan)',
           MODEL_SPECIFIC: 'Model Specific (e.g. Toyota Hilux)'
         },
-        dependsOn: { field: 'item' }, // Only show after the actual accessory item is picked
+        dependsOn: { and: [
+          { field: 'listingType', value: 'accessory' },
+          { field: 'item' }
+        ]},
         postAd: { required: true, group: 'vehicle', uiType: 'select' },
         search: { filterable: false }  // posting-only — buyers filter by class/make/model directly
       },
