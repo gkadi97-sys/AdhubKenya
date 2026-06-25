@@ -391,21 +391,21 @@ export const ATTRIBUTE_ENGINE = {
     ],
     attributes: [
       { 
-        id: 'brand',
-        label: 'Brand',
+        id: 'subcategory',
+        label: 'Device Type',
         type: 'dynamic-cascade',
         cascadeLevel: 1,
         postAd: { required: true, group: 'basics', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
-        id: 'series',
-        label: 'Series',
+        id: 'brand',
+        label: 'Brand',
         type: 'dynamic-cascade',
         cascadeLevel: 2,
-        cascadeParent: 'brand', 
-        dependsOn: { field: 'brand' },
-        postAd: { required: false, group: 'basics', uiType: 'select' },
+        cascadeParent: 'subcategory', 
+        dependsOn: { field: 'subcategory' },
+        postAd: { required: true, group: 'basics', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
@@ -413,8 +413,8 @@ export const ATTRIBUTE_ENGINE = {
         label: 'Model',
         type: 'dynamic-cascade',
         cascadeLevel: 3,
-        cascadeParent: 'series',
-        dependsOn: { field: 'series' },
+        cascadeParent: 'brand',
+        dependsOn: { field: 'brand' },
         postAd: { required: true, group: 'basics', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },

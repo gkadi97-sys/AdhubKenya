@@ -2469,14 +2469,13 @@ export const getDynamicOptions = (category, fieldId, dependsOnValue) => {
 
   // Logic for Phones & Tablets
   if (category === 'phones-tablets') {
-      if (fieldId === 'brand') return Object.keys(dataStore.data || {});
-      if (fieldId === 'series' && dependsOnValue) return dataStore.data[dependsOnValue]?.series || [];
+      if (fieldId === 'subcategory') return Object.keys(dataStore.data || {});
+      if (fieldId === 'brand' && dependsOnValue) return Object.keys(dataStore.data[dependsOnValue] || {});
       if (fieldId === 'model' && dependsOnValue) {
-          // This needs the parent brand, but our current simple schema dependency only passes 'series'.
-          // For simplicity in this demo, let's just return a generic list or search across all brands if we don't know it.
-          for (const brand of Object.keys(dataStore.data)) {
-              if (dataStore.data[brand].models[dependsOnValue]) {
-                  return dataStore.data[brand].models[dependsOnValue];
+          // dependsOnValue is the brand (e.g. 'Samsung')
+          for (const subCat of Object.keys(dataStore.data)) {
+              if (dataStore.data[subCat][dependsOnValue]) {
+                  return dataStore.data[subCat][dependsOnValue];
               }
           }
           return [];
