@@ -209,7 +209,7 @@ export const ATTRIBUTE_ENGINE = {
         type: 'text',
         dependsOn: { field: 'listingType', value: 'spare-part' },
         postAd: { required: false, group: 'details', uiType: 'text' },
-        search: { filterable: false } // posting-only metadata — buyers don't search by OEM number
+        search: { filterable: true, uiType: 'text' }
       },
 
       // ─── STEP 2B: ACCESSORIES cascade ────────────────────────────────────
