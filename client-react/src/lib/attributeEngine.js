@@ -159,6 +159,10 @@ export const ATTRIBUTE_ENGINE = {
         label: 'Listing Type',
         type: 'enum',
         options: ['spare-part', 'accessory'],
+        optionLabels: {
+          'spare-part': 'Spare Part',
+          'accessory': 'Accessory'
+        },
         postAd: { required: true, group: 'basics', uiType: 'radio' },
         search: { filterable: true, uiType: 'radio' }
       },

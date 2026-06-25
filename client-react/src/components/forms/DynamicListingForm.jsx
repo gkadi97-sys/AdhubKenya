@@ -114,7 +114,7 @@ export default function DynamicListingForm({ category, register, control, watch,
                               className="accent-primary"
                               {...register(`attrs.${attr.id}`, { required: attr.postAd.required ? 'This field is required' : false })}
                             />
-                            {opt}
+                            {attr.optionLabels?.[opt] || opt}
                           </label>
                         ))}
                       </div>
