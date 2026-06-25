@@ -38,7 +38,7 @@ export function getLevel1Options(categorySlug, filters = {}, attrId = null) {
 
   if (categorySlug === 'auto-spares') {
     if (attrId === 'make') return Object.keys(CATEGORY_ATTRIBUTES.vehicles.data || {});
-    if (filters.listingType === 'accessory' || attrId === 'category') return Object.keys(MASTER_ACCESSORIES);
+    if (filters.listingType === 'accessory' || attrId === 'accCategory') return Object.keys(MASTER_ACCESSORIES);
     return Object.keys(MASTER_SPARE_PARTS);
   }
 
@@ -68,7 +68,7 @@ export function getLevel2Options(categorySlug, level1Value, filters = {}, attrId
     if (attrId === 'model' || (filters.make && level1Value === filters.make)) {
       return CATEGORY_ATTRIBUTES.vehicles.data?.[level1Value] || [];
     }
-    if (filters.listingType === 'accessory' || attrId === 'subcategory') {
+    if (filters.listingType === 'accessory' || attrId === 'accSubcategory') {
       const data = MASTER_ACCESSORIES[level1Value];
       return data ? Object.keys(data) : [];
     }
@@ -199,7 +199,7 @@ export const CASCADE_URL_PARAMS = {
  */
 export function getAutoSparesConfig(filters = {}) {
   if (filters.listingType === 'accessory') {
-    return { level1: 'category', level2: 'subcategory', level3: 'item' };
+    return { level1: 'accCategory', level2: 'accSubcategory', level3: 'item' };
   }
   return { level1: 'partCategory', level2: 'part', level3: null };
 }

@@ -213,7 +213,7 @@ export const ATTRIBUTE_ENGINE = {
 
       // ─── STEP 2B: ACCESSORIES cascade ────────────────────────────────────
       {
-        id: 'category',
+        id: 'accCategory',
         label: 'Accessory Group',
         type: 'dynamic-cascade',
         cascadeLevel: 1,
@@ -222,14 +222,14 @@ export const ATTRIBUTE_ENGINE = {
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       {
-        id: 'subcategory',
+        id: 'accSubcategory',
         label: 'Accessory Category',
         type: 'dynamic-cascade',
         cascadeLevel: 2,
-        cascadeParent: 'category',
+        cascadeParent: 'accCategory',
         dependsOn: { and: [
           { field: 'listingType', value: 'accessory' },
-          { field: 'category' }
+          { field: 'accCategory' }
         ]},
         postAd: { required: true, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
@@ -239,10 +239,10 @@ export const ATTRIBUTE_ENGINE = {
         label: 'Accessory Item',
         type: 'dynamic-cascade',
         cascadeLevel: 3,
-        cascadeParent: 'subcategory',
+        cascadeParent: 'accSubcategory',
         dependsOn: { and: [
           { field: 'listingType', value: 'accessory' },
-          { field: 'subcategory' }
+          { field: 'accSubcategory' }
         ]},
         postAd: { required: true, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
