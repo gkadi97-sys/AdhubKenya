@@ -117,17 +117,26 @@ export default function DynamicListingForm({ category, register, control, watch,
 
                     {attr.postAd.uiType === 'radio' && options && (
                       <div className="flex flex-wrap gap-3">
-                        {options.map(opt => (
-                          <label key={opt} className="flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-sm hover:bg-muted focus-within:border-primary">
-                            <input
-                              type="radio"
-                              value={opt}
-                              className="accent-primary"
-                              {...register(`attrs.${attr.id}`, { required: attr.postAd.required ? 'This field is required' : false })}
-                            />
-                            {attr.optionLabels?.[opt] || opt}
-                          </label>
-                        ))}
+                        {options.map(opt => {
+                          const isSelected = allValues?.attrs?.[attr.id] === opt;
+                          return (
+                            <label key={opt} className={`flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-3 text-sm transition-colors ${isSelected ? 'border-primary bg-primary/5' : 'border-border bg-background hover:bg-muted'}`}>
+                              <input
+                                type="radio"
+                                value={opt}
+                                className="accent-primary"
+                                {...register(`attrs.${attr.id}`, { required: attr.postAd.required ? 'This field is required' : false })}
+                                onClick={(e) => {
+                                  if (isSelected) {
+                                    e.preventDefault(); // Prevent default radio selection
+                                    setValue(`attrs.${attr.id}`, ''); // Clear the value
+                                  }
+                                }}
+                              />
+                              {attr.optionLabels?.[opt] || opt}
+                            </label>
+                          );
+                        })}
                       </div>
                     )}
 
