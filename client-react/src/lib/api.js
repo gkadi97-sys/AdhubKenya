@@ -134,11 +134,17 @@ export const getListings = async (params = {}) => {
   if (params.amenities) {
     query = query.ilike('specs->>amenities', `%${params.amenities}%`);
   }
+  // oemNumber: stored in attrs JSONB (DynamicListingForm) — partial match so partial entries still find the part
+  if (params.oemNumber) {
+    query = query.or(
+      `attrs->>oemNumber.ilike.%${params.oemNumber}%,specs->>oemNumber.ilike.%${params.oemNumber}%`
+    );
+  }
 
   // ── Standard JSONB specs filters (dynamic) ────────────────────────────────
   // Any parameter that isn't a top-level column or reserved keyword is treated as a specs filter.
   // STRUCTURED fields (enums/selects) use EXACT match. Free-text fields use ILIKE.
-  const RESERVED_PARAMS = ['category', 'location', 'minPrice', 'maxPrice', 'keyword', 'sort', 'page', 'limit', 'county', 'town', 'area', 'engineCC_max', 'mileage_max', 'year_min', 'year_max', 'year', 'salaryMin_min', 'salaryMax_max', 'posted'];
+  const RESERVED_PARAMS = ['category', 'location', 'minPrice', 'maxPrice', 'keyword', 'sort', 'page', 'limit', 'county', 'town', 'area', 'engineCC_max', 'mileage_max', 'year_min', 'year_max', 'year', 'salaryMin_min', 'salaryMax_max', 'posted', 'oemNumber'];
 
   // Fields that come from structured dropdowns/radios → exact match
   const EXACT_MATCH_FIELDS = new Set([
@@ -162,7 +168,7 @@ export const getListings = async (params = {}) => {
     if (!params[key]) return;
 
     // Already handled explicitly above
-    if (['make', 'model', 'fuel', 'drive', 'job_type', 'tv_size', 'tv_tech', 'seller_type', 'amenities'].includes(key)) return;
+    if (['make', 'model', 'fuel', 'drive', 'job_type', 'tv_size', 'tv_tech', 'seller_type', 'amenities', 'oemNumber'].includes(key)) return;
 
     // Handle comma-separated multicheck values (e.g., "Petrol,Diesel") as OR clauses
     const values = params[key].split(',').map(v => v.trim()).filter(Boolean);
