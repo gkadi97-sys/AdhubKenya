@@ -134,11 +134,9 @@ export const getListings = async (params = {}) => {
   if (params.amenities) {
     query = query.ilike('specs->>amenities', `%${params.amenities}%`);
   }
-  // oemNumber: stored in attrs JSONB (DynamicListingForm) — partial match so partial entries still find the part
+  // oemNumber: PostAd.jsx spreads all attrs into listingData.specs (line 210), so it's always in specs JSONB
   if (params.oemNumber) {
-    query = query.or(
-      `attrs->>oemNumber.ilike.%${params.oemNumber}%,specs->>oemNumber.ilike.%${params.oemNumber}%`
-    );
+    query = query.ilike('specs->>oemNumber', `%${params.oemNumber}%`);
   }
 
   // ── Standard JSONB specs filters (dynamic) ────────────────────────────────
