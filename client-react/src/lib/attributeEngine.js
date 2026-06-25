@@ -193,14 +193,15 @@ export const ATTRIBUTE_ENGINE = {
       {
         id: 'position',
         label: 'Position',
-        type: 'enum',
-        options: ['Front', 'Rear', 'Left', 'Right', 'Upper', 'Lower', 'Inner', 'Outer'],
-        dependsOn: { 
-          field: 'partCategory', 
-          value: ['Drivetrain', 'Steering', 'Suspension', 'Brakes', 'Lighting', 'Body Parts', 'Glass', 'Interior', 'Wheels & Tyres', 'Sensors'] 
-        },
+        type: 'dynamic-cascade',
+        cascadeLevel: 3,
+        cascadeParent: 'part',
+        dependsOn: { and: [
+          { field: 'listingType', value: 'spare-part' },
+          { field: 'part' } 
+        ]},
         postAd: { required: false, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       {
         id: 'oemNumber',

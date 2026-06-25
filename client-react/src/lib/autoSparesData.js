@@ -168,6 +168,52 @@ export const MOCK_VEHICLE_HIERARCHY = {
   }
 };
 
-export const POSITIONS = [
-  'Front', 'Rear', 'Left', 'Right', 'Front Left', 'Front Right', 'Rear Left', 'Rear Right', 'Upper', 'Lower', 'N/A'
-];
+export const PART_POSITIONS = {
+  'Steering Knuckle': ['Left', 'Right'],
+  'Tie Rod': ['Left', 'Right'],
+  'Tie Rod End': ['Left', 'Right', 'Inner', 'Outer'],
+  'Rack End': ['Left', 'Right'],
+  'Headlight': ['Left', 'Right'],
+  'Tail Light': ['Left', 'Right'],
+  'Indicator': ['Left', 'Right', 'Front', 'Rear'],
+  'Fog Light': ['Left', 'Right'],
+  'Fender': ['Left', 'Right', 'Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'Door': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'Mirror': ['Left', 'Right'],
+  'Mirror Glass': ['Left', 'Right'],
+  'Window Regulator': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'Door Glass': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'Quarter Glass': ['Left', 'Right'],
+  'Brake Pads': ['Front', 'Rear'],
+  'Brake Disc': ['Front', 'Rear'],
+  'Brake Caliper': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'Brake Shoes': ['Rear'],
+  'ABS Sensor': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'Shock Absorber': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'Strut': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'Coil Spring': ['Front', 'Rear'],
+  'Control Arm': ['Upper Left', 'Upper Right', 'Lower Left', 'Lower Right'],
+  'Ball Joint': ['Upper Left', 'Upper Right', 'Lower Left', 'Lower Right'],
+  'Stabilizer Link': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'CV Axle': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'CV Joint': ['Inner', 'Outer'],
+  'Wheel Hub': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right'],
+  'Hub Bearing': ['Front', 'Rear'],
+  'Axle Shaft': ['Left', 'Right'],
+  'Differential': ['Front', 'Rear'],
+  'Oxygen Sensor': ['Bank 1 Sensor 1', 'Bank 1 Sensor 2', 'Bank 2 Sensor 1', 'Bank 2 Sensor 2', 'Upstream', 'Downstream'],
+  'Engine Mount': ['Front', 'Rear', 'Left', 'Right'],
+  'Transmission Mount': ['Front', 'Rear', 'Left', 'Right'],
+  'Seat Belt': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right', 'Rear Center'],
+  'Seats': ['Front Left', 'Front Right', 'Rear'],
+  
+  CATEGORY_DEFAULTS: {
+    'Lighting': ['Left', 'Right', 'Front', 'Rear'],
+    'Suspension': ['Front Left', 'Front Right', 'Rear Left', 'Rear Right', 'Upper', 'Lower'],
+    'Brakes': ['Front', 'Rear', 'Left', 'Right'],
+    'Steering': ['Left', 'Right'],
+    'Drivetrain': ['Front', 'Rear', 'Left', 'Right'],
+    'Body Parts': ['Front', 'Rear', 'Left', 'Right'],
+    'Glass': ['Front', 'Rear', 'Left', 'Right']
+  }
+};

@@ -82,6 +82,10 @@ export default function DynamicListingForm({ category, register, control, watch,
                     const parentField = attr.cascadeParent || (attr.dependsOn && attr.dependsOn.field);
                     const parentValue = parentField ? watch(`attrs.${parentField}`) : null;
                     options = getDynamicOptions(category, attr.id, parentValue);
+                    
+                    if (!options || options.length === 0) {
+                        return null; // Hide the field entirely if there are no dynamic options applicable
+                    }
                 }
 
                 return (

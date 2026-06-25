@@ -1,4 +1,4 @@
-import { MASTER_SPARE_PARTS, MASTER_ACCESSORIES } from './autoSparesData';
+import { MASTER_SPARE_PARTS, MASTER_ACCESSORIES, PART_POSITIONS } from './autoSparesData';
 
 // ============================================================
 //  ADHUB KENYA — Category Attributes Data (Comprehensive Edition)
@@ -2457,6 +2457,17 @@ export const getDynamicOptions = (category, fieldId, dependsOnValue) => {
       }
       if (fieldId === 'partCategory') return Object.keys(MASTER_SPARE_PARTS || {});
       if (fieldId === 'part' && dependsOnValue) return MASTER_SPARE_PARTS[dependsOnValue] || [];
+      if (fieldId === 'position' && dependsOnValue) {
+          if (PART_POSITIONS[dependsOnValue]) return PART_POSITIONS[dependsOnValue];
+          // Determine parent category to check defaults
+          for (const cat of Object.keys(MASTER_SPARE_PARTS)) {
+              if (MASTER_SPARE_PARTS[cat].includes(dependsOnValue)) {
+                  if (PART_POSITIONS.CATEGORY_DEFAULTS[cat]) return PART_POSITIONS.CATEGORY_DEFAULTS[cat];
+                  break;
+              }
+          }
+          return []; // If we reach here, it shouldn't show position
+      }
       
       // Accessories
       if (fieldId === 'category') return Object.keys(MASTER_ACCESSORIES || {});
