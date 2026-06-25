@@ -153,10 +153,21 @@ export const ATTRIBUTE_ENGINE = {
       { 
         id: 'make', 
         label: 'Vehicle Make', 
-        type: 'dynamic-select', 
+        type: 'enum', 
+        options: [
+          'Alfa Romeo', 'Audi', 'BMW', 'Chevrolet', 'Chrysler',
+          'Citroën', 'Daihatsu', 'Dodge', 'Ferrari', 'Fiat',
+          'Ford', 'GAC', 'GMC', 'Great Wall', 'Honda',
+          'Hyundai', 'Infiniti', 'Isuzu', 'Jaguar', 'Jeep',
+          'Kia', 'Lamborghini', 'Land Rover', 'Lexus', 'Mahindra',
+          'Maserati', 'Mazda', 'Mercedes-Benz', 'Mini', 'Mitsubishi',
+          'Nissan', 'Peugeot', 'Porsche', 'Renault', 'Rolls-Royce',
+          'Rover', 'Saab', 'Ssangyong', 'Subaru', 'Suzuki',
+          'Toyota', 'Volkswagen', 'Volvo',
+        ],
         dependsOn: { field: 'listingType', value: 'spare-part' },
         postAd: { required: true, group: 'vehicle', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'select' }
       },
       { 
         id: 'model', 
