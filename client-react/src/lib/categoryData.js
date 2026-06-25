@@ -2473,8 +2473,8 @@ export const getDynamicOptions = (category, fieldId, dependsOnValue) => {
       }
       
       // Accessories
-      if (fieldId === 'category') return Object.keys(MASTER_ACCESSORIES || {});
-      if (fieldId === 'subcategory' && dependsOnValue) return Object.keys(MASTER_ACCESSORIES[dependsOnValue] || {});
+      if (fieldId === 'accCategory') return Object.keys(MASTER_ACCESSORIES || {});
+      if (fieldId === 'accSubcategory' && dependsOnValue) return Object.keys(MASTER_ACCESSORIES[dependsOnValue] || {});
       if (fieldId === 'item' && dependsOnValue) {
           for (const cat of Object.keys(MASTER_ACCESSORIES)) {
               if (MASTER_ACCESSORIES[cat][dependsOnValue]) {
