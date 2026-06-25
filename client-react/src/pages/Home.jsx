@@ -394,6 +394,15 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* ── DEV NOTICE BANNER ─────────────────────────────────────────── */}
+      <div className="w-full bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-amber-800 dark:text-amber-300">
+          <span className="text-base">🔧</span>
+          <span className="font-semibold">Beta Mode:</span>
+          <span className="opacity-80">Our team is still fine-tuning features. Some things may change — thanks for bearing with us!</span>
+        </div>
+      </div>
+
       {/* ── TWO-COLUMN LAYOUT ─────────────────────────────────────── */}
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
         <div className="flex gap-6 pt-6">
