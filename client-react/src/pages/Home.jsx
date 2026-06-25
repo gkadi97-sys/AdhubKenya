@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
-import { getLevel1Options, getLevel2Options, getLevel3Options } from '@/lib/filterEngine';
+import { getLevel1Options, getLevel2Options, getLevel3Options, getCascadeConfig } from '@/lib/filterEngine';
 import HeroSearch from '@/components/HeroSearch';
 import QuickFilters from '@/components/QuickFilters';
 import DynamicDataFilter from '@/components/filters/DynamicDataFilter';
@@ -163,25 +163,19 @@ function CategorySidebar({ onNavigate }) {
                       let opts = [];
                       if (attr.options) opts = attr.options;
                       else if (attr.type === 'dynamic-cascade') {
-                        if (attr.cascadeParent) {
-                          const parentVal = filters[attr.cascadeParent];
-                          // If there's a cascadeGrandparent, pass it as level1Value, and parent as level2Value
-                          if (attr.cascadeGrandparent) {
-                            const gpVal = filters[attr.cascadeGrandparent];
-                            if (gpVal && parentVal) opts = getLevel3Options(selectedSlug, gpVal, parentVal, filters, attr.id);
-                          } else {
-                            if (parentVal) opts = getLevel2Options(selectedSlug, parentVal, filters, attr.id);
-                          }
-                        } else if (attr.cascadeLevel === 1) {
+                        const config = getCascadeConfig(selectedSlug, filters.subcategory || filters.bodyType);
+                        if (attr.cascadeLevel === 1) {
                           opts = getLevel1Options(selectedSlug, filters, attr.id);
                         } else if (attr.cascadeLevel === 2) {
-                          const l1Attr = schema.attributes.find(a => a.cascadeLevel === 1 && a.type === 'dynamic-cascade');
-                          if (l1Attr && filters[l1Attr.id]) opts = getLevel2Options(selectedSlug, filters[l1Attr.id], filters, attr.id);
+                          const parentKey = attr.cascadeParent || (config && config.level1) || schema.attributes.find(a => a.cascadeLevel === 1)?.id;
+                          if (filters[parentKey]) {
+                            opts = getLevel2Options(selectedSlug, filters[parentKey], filters, attr.id);
+                          }
                         } else if (attr.cascadeLevel === 3) {
-                          const l1Attr = schema.attributes.find(a => a.cascadeLevel === 1 && a.type === 'dynamic-cascade');
-                          const l2Attr = schema.attributes.find(a => a.cascadeLevel === 2 && a.type === 'dynamic-cascade');
-                          if (l1Attr && l2Attr && filters[l1Attr.id] && filters[l2Attr.id]) {
-                            opts = getLevel3Options(selectedSlug, filters[l1Attr.id], filters[l2Attr.id], filters, attr.id);
+                          const l1 = config?.level1 || schema.attributes.find(a => a.cascadeLevel === 1)?.id;
+                          const l2 = config?.level2 || schema.attributes.find(a => a.cascadeLevel === 2)?.id;
+                          if (filters[l1] && filters[l2]) {
+                            opts = getLevel3Options(selectedSlug, filters[l1], filters[l2], filters, attr.id);
                           }
                         }
                       }
