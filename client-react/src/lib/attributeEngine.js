@@ -192,7 +192,10 @@ export const ATTRIBUTE_ENGINE = {
         label: 'Position',
         type: 'enum',
         options: ['Front', 'Rear', 'Left', 'Right', 'Upper', 'Lower', 'Inner', 'Outer'],
-        dependsOn: { field: 'listingType', value: 'spare-part' },
+        dependsOn: { 
+          field: 'partCategory', 
+          value: ['Drivetrain', 'Steering', 'Suspension', 'Brakes', 'Lighting', 'Body Parts', 'Glass', 'Interior', 'Wheels & Tyres', 'Sensors'] 
+        },
         postAd: { required: false, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'select' }
       },
