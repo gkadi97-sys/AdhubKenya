@@ -1,4 +1,4 @@
-import { MASTER_SPARE_PARTS } from './autoSparesData';
+import { MASTER_SPARE_PARTS, MASTER_ACCESSORIES } from './autoSparesData';
 
 // ============================================================
 //  ADHUB KENYA — Category Attributes Data (Comprehensive Edition)
@@ -2445,8 +2445,8 @@ export const getDynamicOptions = (category, fieldId, dependsOnValue) => {
 
   // Logic for Auto Spares
   if (category === 'auto-spares') {
-      if (fieldId === 'make') return MASTER_SPARE_PARTS.makes;
-      if (fieldId === 'model' && dependsOnValue) return MASTER_SPARE_PARTS.models[dependsOnValue] || [];
+      if (fieldId === 'make') return Object.keys(CATEGORY_ATTRIBUTES.vehicles.data || {});
+      if (fieldId === 'model' && dependsOnValue) return CATEGORY_ATTRIBUTES.vehicles.data[dependsOnValue] || [];
       if (fieldId === 'compatibleYear') {
           const currentYear = new Date().getFullYear();
           const years = [];
@@ -2455,10 +2455,20 @@ export const getDynamicOptions = (category, fieldId, dependsOnValue) => {
           }
           return years;
       }
-      if (fieldId === 'partCategory') return Object.keys(MASTER_SPARE_PARTS.parts || {});
-      if (fieldId === 'part' && dependsOnValue) return MASTER_SPARE_PARTS.parts[dependsOnValue] || [];
+      if (fieldId === 'partCategory') return Object.keys(MASTER_SPARE_PARTS || {});
+      if (fieldId === 'part' && dependsOnValue) return MASTER_SPARE_PARTS[dependsOnValue] || [];
+      
       // Accessories
-      if (fieldId === 'category') return Object.keys(MASTER_SPARE_PARTS.accessories || {});
+      if (fieldId === 'category') return Object.keys(MASTER_ACCESSORIES || {});
+      if (fieldId === 'subcategory' && dependsOnValue) return Object.keys(MASTER_ACCESSORIES[dependsOnValue] || {});
+      if (fieldId === 'item' && dependsOnValue) {
+          for (const cat of Object.keys(MASTER_ACCESSORIES)) {
+              if (MASTER_ACCESSORIES[cat][dependsOnValue]) {
+                  return MASTER_ACCESSORIES[cat][dependsOnValue];
+              }
+          }
+          return [];
+      }
   }
 
   // Logic for Property

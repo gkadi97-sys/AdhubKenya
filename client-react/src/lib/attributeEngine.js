@@ -205,7 +205,7 @@ export const ATTRIBUTE_ENGINE = {
         label: 'Part Category', 
         type: 'dynamic-cascade',
         cascadeLevel: 1,
-        dependsOn: { field: 'compatibleYear' },
+        dependsOn: { field: 'listingType', value: 'spare-part' },
         postAd: { required: true, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
@@ -224,7 +224,7 @@ export const ATTRIBUTE_ENGINE = {
         label: 'Position', 
         type: 'enum', 
         options: ['Front', 'Rear', 'Left', 'Right', 'Upper', 'Lower', 'Inner', 'Outer'], 
-        dependsOn: { field: 'partCategory' },
+        dependsOn: { field: 'listingType', value: 'spare-part' },
         postAd: { required: false, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'select' }
       },
