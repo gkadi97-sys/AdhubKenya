@@ -263,20 +263,11 @@ export const ATTRIBUTE_ENGINE = {
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
-        id: 'subcategory', 
-        label: 'Subcategory', 
-        type: 'dynamic-cascade', 
-        cascadeParent: 'category', 
-        dependsOn: { field: 'listingType', value: 'accessory' },
-        postAd: { required: true, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-cascade' }
-      },
-      { 
         id: 'item', 
         label: 'Accessory Item', 
         type: 'dynamic-cascade', 
-        cascadeParent: 'subcategory', 
-        cascadeGrandparent: 'category', 
+        cascadeLevel: 2,
+        cascadeParent: 'category', 
         dependsOn: { field: 'listingType', value: 'accessory' },
         postAd: { required: true, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
