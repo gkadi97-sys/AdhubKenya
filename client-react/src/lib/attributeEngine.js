@@ -207,7 +207,6 @@ export const ATTRIBUTE_ENGINE = {
         id: 'oemNumber',
         label: 'OEM Part Number',
         type: 'text',
-        dependsOn: { field: 'listingType', value: 'spare-part' },
         postAd: { required: false, group: 'details', uiType: 'text' },
         search: { filterable: true, uiType: 'text' }
       },
