@@ -7,6 +7,8 @@
  * and the Browse Sidebar (FilterPanel).
  */
 
+import * as LaptopEnums from './laptopSchemaEnums';
+
 export const ATTRIBUTE_ENGINE = {
   vehicles: {
     groups: [
@@ -518,8 +520,30 @@ export const ATTRIBUTE_ENGINE = {
     ]
   },
   electronics: {
-    groups: [
+        groups: [
       { id: 'basics', title: 'Basic Information' },
+      { id: 'cpu', title: 'Processor (CPU)' },
+      { id: 'ram', title: 'Memory (RAM)' },
+      { id: 'storage', title: 'Storage' },
+      { id: 'gpu', title: 'Graphics (GPU)' },
+      { id: 'display', title: 'Display' },
+      { id: 'camera', title: 'Camera' },
+      { id: 'battery', title: 'Battery & Charging' },
+      { id: 'form_factor', title: 'Form Factor' },
+      { id: 'build_design', title: 'Build & Design' },
+      { id: 'input', title: 'Input Devices' },
+      { id: 'audio', title: 'Audio' },
+      { id: 'os', title: 'Operating System' },
+      { id: 'connectivity', title: 'Connectivity' },
+      { id: 'ports', title: 'Ports' },
+      { id: 'security', title: 'Security' },
+      { id: 'business', title: 'Business Features' },
+      { id: 'gaming', title: 'Gaming Features' },
+      { id: 'cooling', title: 'Cooling' },
+      { id: 'condition_details', title: 'Condition Details' },
+      { id: 'included', title: 'Included Accessories' },
+      { id: 'commercial', title: 'Commercial Details' },
+      { id: 'seller', title: 'Seller Details' },
       { id: 'specs', title: 'Specifications' }
     ],
     attributes: [
@@ -531,97 +555,162 @@ export const ATTRIBUTE_ENGINE = {
         postAd: { required: true, group: 'basics', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
-      // Laptops
-      { 
-        id: 'brand',
-        label: 'Brand',
-        type: 'dynamic-cascade',
-        cascadeLevel: 1, 
-        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
-        postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-cascade' }
-      },
-      { 
-        id: 'series',
-        label: 'Series',
-        type: 'dynamic-cascade',
-        cascadeLevel: 2,
-        cascadeParent: 'brand', 
-        dependsOn: { field: 'brand' },
-        postAd: { required: false, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-cascade' }
-      },
-      { 
-        id: 'model',
-        label: 'Model',
-        type: 'dynamic-cascade',
-        cascadeLevel: 3,
-        cascadeParent: 'series',
-        dependsOn: { field: 'series' },
-        postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-cascade' }
-      },
-      { 
-        id: 'cpuBrand', 
-        label: 'Processor Brand', 
-        type: 'enum', 
-        options: ['Intel', 'AMD', 'Apple', 'Other'], 
-        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
-        postAd: { required: true, group: 'specs', uiType: 'select' },
-        search: { filterable: true, uiType: 'select' }
-      },
-      { 
-        id: 'cpuGen', 
-        label: 'Processor Generation', 
-        type: 'text', 
-        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
-        postAd: { required: false, group: 'specs', uiType: 'text' },
-        search: { filterable: true, uiType: 'text' }
-      },
-      { 
-        id: 'ram', 
-        label: 'RAM', 
-        type: 'enum', 
-        options: ['4GB', '8GB', '16GB', '32GB', '64GB'], 
-        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
-        postAd: { required: true, group: 'specs', uiType: 'select' },
-        search: { filterable: true, uiType: 'multicheck' }
-      },
-      { 
-        id: 'storageType', 
-        label: 'Storage Type', 
-        type: 'enum', 
-        options: ['SSD', 'HDD', 'eMMC'], 
-        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
-        postAd: { required: true, group: 'specs', uiType: 'radio' },
-        search: { filterable: true, uiType: 'radio' }
-      },
-      { 
-        id: 'storageSize', 
-        label: 'Storage Size', 
-        type: 'enum', 
-        options: ['128GB', '256GB', '512GB', '1TB', '2TB+'], 
-        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
-        postAd: { required: true, group: 'specs', uiType: 'select' },
-        search: { filterable: true, uiType: 'select' }
-      },
-      { 
-        id: 'screenSize', 
-        label: 'Screen Size', 
-        type: 'enum', 
-        options: ['11"', '12"', '13"', '14"', '15"', '16"', '17"+'], 
-        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
-        postAd: { required: true, group: 'specs', uiType: 'select' },
-        search: { filterable: true, uiType: 'select' }
-      },
-      { 
-        id: 'gpu', 
-        label: 'Graphics Card', 
-        type: 'text', 
-        dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
-        postAd: { required: false, group: 'specs', uiType: 'text' },
-        search: { filterable: true, uiType: 'text' }
-      },
+      // Laptops - Complete Master List
+
+      // 1. BASIC CLASSIFICATION
+      { id: 'brand', label: 'Brand', type: 'dynamic-cascade', cascadeLevel: 1, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'basics', uiType: 'select' }, search: { filterable: true, uiType: 'dynamic-cascade' } },
+      { id: 'series', label: 'Series', type: 'dynamic-cascade', cascadeLevel: 2, cascadeParent: 'brand', dependsOn: { field: 'brand' }, postAd: { required: false, group: 'basics', uiType: 'select' }, search: { filterable: true, uiType: 'dynamic-cascade' } },
+      { id: 'model', label: 'Model', type: 'dynamic-cascade', cascadeLevel: 3, cascadeParent: 'series', dependsOn: { field: 'series' }, postAd: { required: true, group: 'basics', uiType: 'select' }, search: { filterable: true, uiType: 'dynamic-cascade' } },
+      { id: 'deviceType', label: 'Device Type', type: 'enum', options: LaptopEnums.DEVICE_TYPES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'basics', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'releaseYear', label: 'Release Year', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'basics', uiType: 'text' }, search: { filterable: true, uiType: 'text' } },
+
+      // 2. PROCESSOR (CPU)
+      { id: 'cpuBrand', label: 'Processor Brand', type: 'enum', options: LaptopEnums.CPU_BRANDS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'cpu', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'cpuFamily', label: 'Processor Family', type: 'enum', options: LaptopEnums.CPU_FAMILIES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'cpu', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'cpuGen', label: 'Processor Generation', type: 'enum', options: LaptopEnums.CPU_GENERATIONS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'cpu', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'cpuModel', label: 'Processor Model', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'cpu', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'cpuSpeed', label: 'Processor Speed (GHz)', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'cpu', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'coreCount', label: 'Core Count', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'cpu', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'threadCount', label: 'Thread Count', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'cpu', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'turboBoostSpeed', label: 'Turbo Boost Speed', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'cpu', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'cpuArchitecture', label: 'CPU Architecture', type: 'enum', options: LaptopEnums.CPU_ARCHITECTURES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'cpu', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+
+      // 3. MEMORY (RAM)
+      { id: 'ram', label: 'RAM Size', type: 'enum', options: LaptopEnums.RAM_MAX_SUPPORTED, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'ram', uiType: 'select' }, search: { filterable: true, uiType: 'multicheck' } },
+      { id: 'ramType', label: 'RAM Type', type: 'enum', options: LaptopEnums.RAM_TYPES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'ram', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'ramSpeed', label: 'RAM Speed', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'ram', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'ramSlots', label: 'RAM Slots', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'ram', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'maxSupportedRam', label: 'Maximum Supported RAM', type: 'enum', options: LaptopEnums.RAM_MAX_SUPPORTED, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'ram', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'ramUpgradeable', label: 'RAM Upgradeable', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'ram', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 4. STORAGE
+      { id: 'storageType', label: 'Storage Type', type: 'enum', options: LaptopEnums.STORAGE_TYPES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'storage', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'storageSize', label: 'Storage Capacity', type: 'enum', options: ['128GB', '256GB', '512GB', '1TB', '2TB', '4TB', '8TB+'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'storage', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'secondaryStorage', label: 'Secondary Storage', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'storage', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'storageSlots', label: 'Storage Slots', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'storage', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'numberOfDrives', label: 'Number of Drives', type: 'enum', options: LaptopEnums.NUMBER_OF_DRIVES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'storage', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'expandableStorage', label: 'Expandable Storage', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'storage', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'raidSupport', label: 'RAID Support', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'storage', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 5. GRAPHICS (GPU)
+      { id: 'gpuType', label: 'GPU Type', type: 'enum', options: LaptopEnums.GPU_TYPES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'gpu', uiType: 'radio' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'gpuBrand', label: 'GPU Brand', type: 'enum', options: LaptopEnums.GPU_BRANDS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'gpu', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'gpuSeries', label: 'GPU Series', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'gpu', uiType: 'text' }, search: { filterable: true, uiType: 'text' } },
+      { id: 'gpu', label: 'GPU Model', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'gpu', uiType: 'text' }, search: { filterable: true, uiType: 'text' } },
+      { id: 'gpuMemory', label: 'GPU Memory', type: 'enum', options: LaptopEnums.GPU_MEMORY, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'gpu', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'graphicsGeneration', label: 'Graphics Generation', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'gpu', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'muxSwitch', label: 'MUX Switch', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'gpu', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'gpuPower', label: 'GPU Power (W)', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'gpu', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+
+      // 6. DISPLAY
+      { id: 'screenSize', label: 'Screen Size', type: 'enum', options: ['11"', '12"', '13"', '13.3"', '14"', '15"', '15.6"', '16"', '17"', '18"'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'display', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'resolution', label: 'Resolution', type: 'enum', options: ['HD (1366x768)', 'FHD (1920x1080)', 'WUXGA (1920x1200)', 'QHD (2560x1440)', 'QHD+ (2560x1600)', '3K', '4K UHD (3840x2160)'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'display', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'refreshRate', label: 'Refresh Rate', type: 'enum', options: LaptopEnums.SCREEN_RATES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'display', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'panelType', label: 'Panel Type', type: 'enum', options: LaptopEnums.PANEL_TYPES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'display', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'screenFinish', label: 'Screen Finish', type: 'enum', options: LaptopEnums.SCREEN_FINISHES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'display', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'brightness', label: 'Brightness (nits)', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'display', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'aspectRatio', label: 'Aspect Ratio', type: 'enum', options: LaptopEnums.ASPECT_RATIOS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'display', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'colorAccuracy', label: 'Color Accuracy', type: 'enum', options: LaptopEnums.COLOR_ACCURACY, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'display', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'touchscreen', label: 'Touchscreen', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'display', uiType: 'radio' }, search: { filterable: true, uiType: 'radio' } },
+      { id: 'screenToBodyRatio', label: 'Screen-to-Body Ratio', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'display', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+
+      // 7. CAMERA
+      { id: 'webcamResolution', label: 'Webcam Resolution', type: 'enum', options: LaptopEnums.WEBCAM_RESOLUTIONS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'camera', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'privacyShutter', label: 'Privacy Shutter', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'camera', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 8. BATTERY & CHARGING
+      { id: 'batteryHealth', label: 'Battery Health', type: 'enum', options: LaptopEnums.BATTERY_HEALTH, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'battery', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'batteryCondition', label: 'Battery Condition', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'battery', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'batteryLife', label: 'Battery Life (Hours)', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'battery', uiType: 'text' }, search: { filterable: false, uiType: 'text' }, },
+      { id: 'batteryCapacity', label: 'Battery Capacity (Wh)', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'battery', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'chargingType', label: 'Charging Type', type: 'enum', options: LaptopEnums.CHARGING_TYPES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'battery', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'fastCharging', label: 'Fast Charging', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'battery', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'chargerWattage', label: 'Charger Wattage (W)', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'battery', uiType: 'text' }, search: { filterable: false, uiType: 'text' }, },
+      { id: 'originalCharger', label: 'Original Charger Included', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'battery', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 9. FORM FACTOR
+      { id: 'formFactor', label: 'Laptop Form Factor', type: 'enum', options: LaptopEnums.FORM_FACTORS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'form_factor', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'openingAngle', label: 'Opening Angle', type: 'enum', options: LaptopEnums.OPENING_ANGLES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'form_factor', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'foldType', label: 'Fold Type', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'form_factor', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+
+      // 10. BUILD & DESIGN
+      { id: 'color', label: 'Color', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'build_design', uiType: 'text' }, search: { filterable: true, uiType: 'text' } },
+      { id: 'material', label: 'Material', type: 'enum', options: LaptopEnums.MATERIALS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'build_design', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'weight', label: 'Weight (kg)', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'build_design', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'bodyCondition', label: 'Body Condition', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'build_design', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'scratchLevel', label: 'Scratch Level', type: 'enum', options: LaptopEnums.SCRATCH_LEVELS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'build_design', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'screenCondition', label: 'Screen Condition', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'build_design', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'keyboardCondition', label: 'Keyboard Condition', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'build_design', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'hingeCondition', label: 'Hinge Condition', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'build_design', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+
+      // 11. INPUT DEVICES
+      { id: 'keyboardType', label: 'Keyboard Type', type: 'enum', options: LaptopEnums.KEYBOARD_TYPES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'input', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'keyboardLayout', label: 'Keyboard Layout', type: 'enum', options: LaptopEnums.KEYBOARD_LAYOUTS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'input', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'keyboardBacklight', label: 'Keyboard Backlight', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'input', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'numericKeypad', label: 'Numeric Keypad', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'input', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'trackpadType', label: 'Trackpad Type', type: 'enum', options: LaptopEnums.TRACKPAD_TYPES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'input', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'stylusSupport', label: 'Stylus Support', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'input', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'stylusIncluded', label: 'Stylus Included', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'input', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 12. AUDIO
+      { id: 'speakerCount', label: 'Speaker Count', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'audio', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'audioCertification', label: 'Audio Certification', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'audio', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'builtInMicrophone', label: 'Built-in Microphone', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'audio', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 13. OPERATING SYSTEM
+      { id: 'os', label: 'Operating System', type: 'enum', options: ['Windows 10', 'Windows 11', 'macOS', 'Linux', 'ChromeOS', 'DOS / No OS'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'os', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'osVersion', label: 'OS Version', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'os', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'licenseIncluded', label: 'License Included', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'os', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 14. CONNECTIVITY
+      { id: 'wifi', label: 'Wi-Fi', type: 'enum', options: LaptopEnums.WI_FI_STANDARDS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'connectivity', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'bluetooth', label: 'Bluetooth', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'connectivity', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'lte', label: 'LTE Support', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'connectivity', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: '5g', label: '5G Support', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'connectivity', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'ethernet', label: 'Ethernet', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'connectivity', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 15. PORTS (MULTI-SELECT)
+      { id: 'ports', label: 'Ports', type: 'multicheck', options: LaptopEnums.LAPTOP_PORTS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'ports', uiType: 'multicheck' }, search: { filterable: true, uiType: 'multicheck' } },
+
+      // 16. SECURITY
+      { id: 'fingerprintReader', label: 'Fingerprint Reader', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'security', uiType: 'radio' }, search: { filterable: true, uiType: 'radio' } },
+      { id: 'faceUnlock', label: 'Face Unlock', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'security', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'tpm', label: 'TPM', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'security', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'smartCardReader', label: 'Smart Card Reader', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'security', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'kensingtonLock', label: 'Kensington Lock', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'security', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 17. BUSINESS FEATURES
+      { id: 'dockingSupport', label: 'Docking Support', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'business', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'vPro', label: 'vPro', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'business', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+      { id: 'enterpriseGrade', label: 'Enterprise Grade', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'business', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 18. GAMING FEATURES
+      { id: 'rgbKeyboard', label: 'RGB Keyboard', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'gaming', uiType: 'radio' }, search: { filterable: true, uiType: 'radio' } },
+      { id: 'rgbZones', label: 'RGB Zones', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'gaming', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'vrReady', label: 'VR Ready', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'gaming', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 19. COOLING
+      { id: 'coolingType', label: 'Cooling Type', type: 'enum', options: LaptopEnums.COOLING_TYPES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'cooling', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'coolingCondition', label: 'Cooling Condition', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'cooling', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+
+      // 20. CONDITION
+      { id: 'condition', label: 'Condition', type: 'enum', options: LaptopEnums.CONDITIONS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: true, group: 'condition_details', uiType: 'select' }, search: { filterable: true, uiType: 'select' } },
+      { id: 'physicalCondition', label: 'Physical Condition', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'condition_details', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'usageHistory', label: 'Usage History', type: 'enum', options: LaptopEnums.USAGE_HISTORY, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'condition_details', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'ownership', label: 'Ownership', type: 'enum', options: LaptopEnums.OWNERSHIPS, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'condition_details', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+
+      // 21. INCLUDED ACCESSORIES
+      { id: 'includedAccessories', label: 'Included Accessories', type: 'multicheck', options: LaptopEnums.INCLUDED_ACCESSORIES, dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'included', uiType: 'multicheck' }, search: { filterable: true, uiType: 'multicheck' } },
+
+      // 22. COMMERCIAL DETAILS
+      { id: 'warranty', label: 'Warranty', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'commercial', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'availability', label: 'Availability', type: 'enum', options: ['In Stock', 'Pre-order', 'Out of Stock'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'commercial', uiType: 'select' }, search: { filterable: false, uiType: 'select' } },
+      { id: 'negotiable', label: 'Negotiable', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'commercial', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
+
+      // 23. SELLER DETAILS
+      { id: 'reasonForSelling', label: 'Reason For Selling', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'seller', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'purchaseDate', label: 'Purchase Date', type: 'text', dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'seller', uiType: 'text' }, search: { filterable: false, uiType: 'text' } },
+      { id: 'receiptAvailable', label: 'Receipt Available', type: 'enum', options: ['Yes', 'No'], dependsOn: { field: 'subcategory', value: 'Laptops & Computers' }, postAd: { required: false, group: 'seller', uiType: 'radio' }, search: { filterable: false, uiType: 'radio' } },
       // TVs
       { 
         id: 'tvBrand', 
