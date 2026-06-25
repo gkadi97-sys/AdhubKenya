@@ -149,23 +149,125 @@ export const ATTRIBUTE_ENGINE = {
   'auto-spares': {
     groups: [
       { id: 'basics', title: 'Part Classification' },
-      { id: 'vehicle', title: 'Vehicle Compatibility' },
-      { id: 'details', title: 'Part Details' }
+      { id: 'details', title: 'Part Details' },
+      { id: 'vehicle', title: 'Vehicle Compatibility' }
     ],
     attributes: [
-      { 
-        id: 'listingType', 
-        label: 'Listing Type', 
-        type: 'enum', 
+      // ─── STEP 1: Listing Type ─────────────────────────────────────────────
+      {
+        id: 'listingType',
+        label: 'Listing Type',
+        type: 'enum',
         options: ['spare-part', 'accessory'],
         postAd: { required: true, group: 'basics', uiType: 'radio' },
         search: { filterable: true, uiType: 'radio' }
       },
-      // Spare Part Specific
-      { 
-        id: 'make', 
-        label: 'Vehicle Make', 
-        type: 'enum', 
+
+      // ─── STEP 2A: SPARE PARTS cascade ────────────────────────────────────
+      {
+        id: 'partCategory',
+        label: 'Part Category',
+        type: 'dynamic-cascade',
+        cascadeLevel: 1,
+        dependsOn: { field: 'listingType', value: 'spare-part' },
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'part',
+        label: 'Spare Part',
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        cascadeParent: 'partCategory',
+        dependsOn: { field: 'partCategory' },
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'position',
+        label: 'Position',
+        type: 'enum',
+        options: ['Front', 'Rear', 'Left', 'Right', 'Upper', 'Lower', 'Inner', 'Outer'],
+        dependsOn: { field: 'listingType', value: 'spare-part' },
+        postAd: { required: false, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      {
+        id: 'oemNumber',
+        label: 'OEM Part Number',
+        type: 'text',
+        dependsOn: { field: 'listingType', value: 'spare-part' },
+        postAd: { required: false, group: 'details', uiType: 'text' },
+        search: { filterable: true, uiType: 'text' }
+      },
+
+      // ─── STEP 2B: ACCESSORIES cascade ────────────────────────────────────
+      {
+        id: 'category',
+        label: 'Accessory Group',
+        type: 'dynamic-cascade',
+        cascadeLevel: 1,
+        dependsOn: { field: 'listingType', value: 'accessory' },
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'subcategory',
+        label: 'Accessory Category',
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        cascadeParent: 'category',
+        dependsOn: { field: 'listingType', value: 'accessory' },
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'item',
+        label: 'Accessory Item',
+        type: 'dynamic-cascade',
+        cascadeLevel: 3,
+        cascadeParent: 'subcategory',
+        dependsOn: { field: 'listingType', value: 'accessory' },
+        postAd: { required: true, group: 'details', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+
+      // ─── STEP 3: COMPATIBILITY SELECTOR (Accessories only) ───────────────
+      {
+        id: 'compatibility',
+        label: 'Compatibility',
+        type: 'enum',
+        options: ['UNIVERSAL', 'VEHICLE_CLASS', 'MAKE_SPECIFIC', 'MODEL_SPECIFIC'],
+        optionLabels: {
+          UNIVERSAL: 'Universal (fits any vehicle)',
+          VEHICLE_CLASS: 'Vehicle Class (e.g. SUV, Pickup, Truck)',
+          MAKE_SPECIFIC: 'Make Specific (e.g. Toyota, Nissan)',
+          MODEL_SPECIFIC: 'Model Specific (e.g. Toyota Hilux)'
+        },
+        dependsOn: { field: 'listingType', value: 'accessory' },
+        postAd: { required: true, group: 'vehicle', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+
+      // ─── STEP 4A: Vehicle Class (only when compatibility = VEHICLE_CLASS) ─
+      {
+        id: 'vehicleClass',
+        label: 'Vehicle Class',
+        type: 'enum',
+        options: ['Car', 'SUV', 'Pickup', 'Truck', 'Motorcycle', 'Van', 'Bus', 'Commercial'],
+        dependsOn: { and: [
+          { field: 'listingType', value: 'accessory' },
+          { field: 'compatibility', value: 'VEHICLE_CLASS' }
+        ]},
+        postAd: { required: true, group: 'vehicle', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+
+      // ─── STEP 4B: Vehicle Make (spare-parts OR make/model specific accessories)
+      {
+        id: 'make',
+        label: 'Vehicle Make',
+        type: 'enum',
         options: [
           'Alfa Romeo', 'Audi', 'BMW', 'Chevrolet', 'Chrysler',
           'Citroën', 'Daihatsu', 'Dodge', 'Ferrari', 'Fiat',
@@ -177,13 +279,21 @@ export const ATTRIBUTE_ENGINE = {
           'Rover', 'Saab', 'Ssangyong', 'Subaru', 'Suzuki',
           'Toyota', 'Volkswagen', 'Volvo',
         ],
-        dependsOn: { field: 'listingType', value: 'spare-part' },
+        dependsOn: [
+          { field: 'listingType', value: 'spare-part' },
+          { and: [
+            { field: 'listingType', value: 'accessory' },
+            { field: 'compatibility', value: ['MAKE_SPECIFIC', 'MODEL_SPECIFIC'] }
+          ]}
+        ],
         postAd: { required: true, group: 'vehicle', uiType: 'select' },
         search: { filterable: true, uiType: 'select' }
       },
-      { 
-        id: 'model', 
-        label: 'Vehicle Model', 
+
+      // ─── STEP 4C: Vehicle Model (cascades from Make) ──────────────────────
+      {
+        id: 'model',
+        label: 'Vehicle Model',
         type: 'dynamic-cascade',
         cascadeLevel: 2,
         cascadeParent: 'make',
@@ -191,114 +301,32 @@ export const ATTRIBUTE_ENGINE = {
         postAd: { required: true, group: 'vehicle', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
-      { 
-        id: 'compatibleYear', 
-        label: 'Compatible Year', 
-        type: 'enum', 
+
+      // ─── STEP 4D: Year, Generation, Engine ───────────────────────────────
+      {
+        id: 'compatibleYear',
+        label: 'Compatible Year',
+        type: 'enum',
         options: Array.from({length: 36}, (_, i) => (new Date().getFullYear() - i).toString()),
-        dependsOn: { field: 'model' },
+        dependsOn: { field: 'make' },
         postAd: { required: false, group: 'vehicle', uiType: 'select' },
         search: { filterable: true, uiType: 'select' }
       },
-      { 
-        id: 'partCategory', 
-        label: 'Part Category', 
-        type: 'dynamic-cascade',
-        cascadeLevel: 1,
-        dependsOn: { field: 'listingType', value: 'spare-part' },
-        postAd: { required: true, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-cascade' }
-      },
-      { 
-        id: 'part', 
-        label: 'Spare Part', 
-        type: 'dynamic-cascade',
-        cascadeLevel: 2,
-        cascadeParent: 'partCategory',
-        dependsOn: { field: 'partCategory' },
-        postAd: { required: true, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-cascade' }
-      },
-      { 
-        id: 'position', 
-        label: 'Position', 
-        type: 'enum', 
-        options: ['Front', 'Rear', 'Left', 'Right', 'Upper', 'Lower', 'Inner', 'Outer'], 
-        dependsOn: { field: 'listingType', value: 'spare-part' },
-        postAd: { required: false, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'select' }
-      },
-      { 
-        id: 'generation', 
-        label: 'Generation / Chassis', 
-        type: 'text', 
+      {
+        id: 'generation',
+        label: 'Generation / Chassis',
+        type: 'text',
         dependsOn: { field: 'make' },
         postAd: { required: false, group: 'vehicle', uiType: 'text' },
         search: { filterable: true, uiType: 'text' }
       },
-      { 
-        id: 'engine', 
-        label: 'Engine Code', 
-        type: 'text', 
+      {
+        id: 'engine',
+        label: 'Engine Code',
+        type: 'text',
         dependsOn: { field: 'make' },
         postAd: { required: false, group: 'vehicle', uiType: 'text' },
         search: { filterable: true, uiType: 'text' }
-      },
-      { 
-        id: 'oemNumber', 
-        label: 'OEM Part Number', 
-        type: 'text', 
-        dependsOn: { field: 'listingType', value: 'spare-part' },
-        postAd: { required: false, group: 'details', uiType: 'text' },
-        search: { filterable: true, uiType: 'text' }
-      },
-      // Accessories Specific
-      { 
-        id: 'category', 
-        label: 'Accessory Category', 
-        type: 'dynamic-cascade', 
-        cascadeLevel: 1, 
-        dependsOn: { field: 'listingType', value: 'accessory' },
-        postAd: { required: true, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-cascade' }
-      },
-      { 
-        id: 'subcategory', 
-        label: 'Subcategory', 
-        type: 'dynamic-cascade', 
-        cascadeLevel: 2,
-        cascadeParent: 'category', 
-        dependsOn: { field: 'listingType', value: 'accessory' },
-        postAd: { required: true, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-cascade' }
-      },
-      { 
-        id: 'item', 
-        label: 'Accessory Item', 
-        type: 'dynamic-cascade', 
-        cascadeLevel: 3,
-        cascadeParent: 'subcategory', 
-        dependsOn: { field: 'listingType', value: 'accessory' },
-        postAd: { required: true, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-cascade' }
-      },
-      { 
-        id: 'universal', 
-        label: 'Universal Fit', 
-        type: 'enum', 
-        options: ['Yes', 'No'], 
-        dependsOn: { field: 'listingType', value: 'accessory' },
-        postAd: { required: true, group: 'vehicle', uiType: 'radio' },
-        search: { filterable: true, uiType: 'radio' }
-      },
-      { 
-        id: 'vehicleType', 
-        label: 'Vehicle Type', 
-        type: 'enum', 
-        options: ['Car', 'SUV', 'Pickup', 'Truck', 'Motorcycle'], 
-        dependsOn: { field: 'listingType', value: 'accessory' },
-        postAd: { required: false, group: 'vehicle', uiType: 'select' },
-        search: { filterable: true, uiType: 'select' }
       }
     ]
   },

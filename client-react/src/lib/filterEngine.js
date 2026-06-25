@@ -181,13 +181,25 @@ export function getCascadeDepth(categorySlug, subcategory) {
 }
 
 export const CASCADE_URL_PARAMS = {
-  vehicles:       { level1: 'make',        level2: 'model',  level3: null },
-  'auto-spares':  { level1: 'partCategory',      level2: 'part',   level3: null },
-  'phones-tablets': { level1: 'subcategory', level2: 'brand', level3: 'model' },
-  electronics:    { level1: 'subcategory', level2: 'brand',  level3: 'model' },
-  'home-furniture': { level1: 'subcategory', level2: 'model', level3: null },
-  property:       { level1: 'propertyCategory', level2: 'propertyType',  level3: null },
-  fashion:        { level1: 'subcategory', level2: 'model',  level3: null },
-  jobs:           { level1: 'subcategory', level2: 'model',  level3: null },
-  'animals-pets': { level1: 'animal_type', level2: 'model',  level3: null },
+  vehicles:         { level1: 'make',         level2: 'model',       level3: null },
+  'auto-spares':    { level1: 'partCategory', level2: 'part',        level3: null },
+  'phones-tablets': { level1: 'subcategory',  level2: 'brand',       level3: 'model' },
+  electronics:      { level1: 'subcategory',  level2: 'brand',       level3: 'model' },
+  'home-furniture': { level1: 'subcategory',  level2: 'model',       level3: null },
+  property:         { level1: 'propertyCategory', level2: 'propertyType', level3: null },
+  fashion:          { level1: 'subcategory',  level2: 'model',       level3: null },
+  jobs:             { level1: 'subcategory',  level2: 'model',       level3: null },
+  'animals-pets':   { level1: 'animal_type', level2: 'model',       level3: null },
 };
+
+/**
+ * Returns the correct cascade config for auto-spares based on listing type.
+ * Accessories use a 3-level Group/Subcategory/Item tree.
+ * Spare parts use a 2-level PartCategory/Part tree.
+ */
+export function getAutoSparesConfig(filters = {}) {
+  if (filters.listingType === 'accessory') {
+    return { level1: 'category', level2: 'subcategory', level3: 'item' };
+  }
+  return { level1: 'partCategory', level2: 'part', level3: null };
+}

@@ -7,16 +7,33 @@ export default function DynamicListingForm({ category, register, control, watch,
   const schema = ATTRIBUTE_ENGINE[category] || ATTRIBUTE_ENGINE.default;
   const { groups, attributes } = schema;
 
-  // Helper to evaluate cascading dependencies
-  const checkDependencies = (dependsOn) => {
-    if (!dependsOn) return true;
-    const { field, value } = dependsOn;
+  const checkSingleDependency = (dep) => {
+    if (dep.and) {
+      return dep.and.every(d => checkSingleDependency(d));
+    }
+    const { field, value, notValue } = dep;
     const parentValue = watch(`attrs.${field}`);
     
     if (!parentValue) return false;
-    if (value && parentValue !== value) return false;
+    
+    if (Array.isArray(value)) {
+      if (!value.includes(parentValue)) return false;
+    } else if (value && parentValue !== value) {
+      return false;
+    }
+
+    if (notValue && parentValue === notValue) return false;
     
     return true;
+  };
+
+  // Helper to evaluate cascading dependencies
+  const checkDependencies = (dependsOn) => {
+    if (!dependsOn) return true;
+    if (Array.isArray(dependsOn)) {
+      return dependsOn.some(dep => checkSingleDependency(dep));
+    }
+    return checkSingleDependency(dependsOn);
   };
 
   const visibleAttributes = useMemo(() => {
@@ -75,7 +92,9 @@ export default function DynamicListingForm({ category, register, control, watch,
                       >
                         <option value="">Select {attr.label}</option>
                         {options?.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
+                          <option key={opt} value={opt}>
+                            {attr.optionLabels?.[opt] || opt}
+                          </option>
                         ))}
                       </select>
                     )}

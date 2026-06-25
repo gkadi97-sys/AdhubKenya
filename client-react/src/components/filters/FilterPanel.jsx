@@ -174,9 +174,29 @@ export default function FilterPanel({ isMobile = false, onClose }) {
 
       // Check dependencies
       if (attr.dependsOn) {
-        const depVal = filters[attr.dependsOn.field];
-        const required = Array.isArray(attr.dependsOn.value) ? attr.dependsOn.value : [attr.dependsOn.value];
-        if (!depVal || (attr.dependsOn.value && !required.includes(depVal))) return null;
+        const checkSingle = (dep) => {
+          if (dep.and) {
+            return dep.and.every(d => checkSingle(d));
+          }
+          const { field, value, notValue } = dep;
+          const parentValue = filters[field];
+          if (!parentValue) return false;
+          
+          if (Array.isArray(value)) {
+            if (!value.includes(parentValue)) return false;
+          } else if (value && parentValue !== value) {
+            return false;
+          }
+
+          if (notValue && parentValue === notValue) return false;
+          return true;
+        };
+
+        const isValid = Array.isArray(attr.dependsOn) 
+          ? attr.dependsOn.some(dep => checkSingle(dep))
+          : checkSingle(attr.dependsOn);
+
+        if (!isValid) return null;
       }
 
       const uiType = attr.search.uiType;
