@@ -484,7 +484,7 @@ export default function HomePage() {
                 <div className="max-w-2xl">
                   <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium backdrop-blur shadow-sm">
                     <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    Live from 47 counties · 236 ads today
+                    Live from 47 counties · 0 ads today
                   </span>
                   <h1 className="mt-4 font-display text-3xl font-bold leading-tight tracking-tight sm:text-5xl drop-shadow-sm">
                     Buy. Sell. Discover.{' '}
@@ -525,7 +525,7 @@ export default function HomePage() {
               
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-6 py-6 relative z-10">
                 {[
-                  { icon: BadgeCheck, n: '12,000+', l: 'Live Ads' },
+                  { icon: BadgeCheck, n: '0', l: 'Live Ads' },
                   { icon: MapPin,     n: '47',      l: 'Counties Covered' },
                   { icon: ShieldCheck,n: '100%',    l: 'Verified Sellers' },
                   { icon: Sparkles,   n: 'Free',    l: 'Always Free Posting' },
@@ -626,7 +626,7 @@ export default function HomePage() {
                     <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Sell smarter</span>
                     <h2 className="mt-3 font-display text-2xl font-bold leading-tight sm:text-4xl">
                       Got something to sell?<br />
-                      <span className="text-gold-grad">Reach 12,000+ buyers today.</span>
+                      <span className="text-gold-grad">Reach buyers today.</span>
                     </h2>
                     <p className="mt-3 max-w-lg text-sm opacity-90">
                       Snap a photo, set your price, get offers in minutes. No fees, no middlemen.
