@@ -128,10 +128,13 @@ function CategorySidebar({ onNavigate }) {
     const p = new URLSearchParams();
     p.set('category', selectedSlug);
     Object.entries(activeFilters).forEach(([k, v]) => p.set(k, v));
+    // OEM number is a special shortcut — always inject it if present regardless of filterable flag
+    if (filters['oemNumber']) p.set('oemNumber', filters['oemNumber']);
     onNavigate(`/browse?${p.toString()}`);
   };
 
-  const activeCount = Object.keys(activeFilters).length;
+  // Include oemNumber in active count so the Browse button badge reflects it
+  const activeCount = Object.keys(activeFilters).length + (filters['oemNumber'] ? 1 : 0);
 
   // ── ACCORDION CATEGORIES LIST ──────────────────────────────────────────────
   return (
