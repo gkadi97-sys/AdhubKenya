@@ -180,34 +180,40 @@ export const ATTRIBUTE_ENGINE = {
       { 
         id: 'model', 
         label: 'Vehicle Model', 
-        type: 'dynamic-select', 
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        cascadeParent: 'make',
         dependsOn: { field: 'make' },
         postAd: { required: true, group: 'vehicle', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'compatibleYear', 
         label: 'Compatible Year', 
-        type: 'dynamic-select', 
+        type: 'enum', 
+        options: Array.from({length: 36}, (_, i) => (new Date().getFullYear() - i).toString()),
         dependsOn: { field: 'model' },
         postAd: { required: false, group: 'vehicle', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'select' }
       },
       { 
         id: 'partCategory', 
         label: 'Part Category', 
-        type: 'dynamic-select', 
+        type: 'dynamic-cascade',
+        cascadeLevel: 1,
         dependsOn: { field: 'compatibleYear' },
         postAd: { required: true, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'part', 
         label: 'Spare Part', 
-        type: 'dynamic-select', 
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        cascadeParent: 'partCategory',
         dependsOn: { field: 'partCategory' },
         postAd: { required: true, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'position', 
