@@ -374,14 +374,16 @@ export default function FilterPanel({ isMobile = false, onClose }) {
           />
         </FilterGroup>
 
-        {/* 5. Condition (Global Standard) */}
-        <FilterGroup label="Condition">
-          <RadioGroup 
-            options={['Brand New', 'Used', 'Refurbished', 'Ex-UK/Ex-Japan']} 
-            value={filters.condition || ''} 
-            onChange={(val) => updateFilter('condition', val)} 
-          />
-        </FilterGroup>
+        {/* 5. Condition (Global Standard - exclude non-physical goods) */}
+        {!['jobs', 'services', 'property'].includes(filters.category) && (
+          <FilterGroup label="Condition">
+            <RadioGroup 
+              options={['Brand New', 'Used', 'Refurbished', 'Ex-UK/Ex-Japan']} 
+              value={filters.condition || ''} 
+              onChange={(val) => updateFilter('condition', val)} 
+            />
+          </FilterGroup>
+        )}
 
         {/* 6. Dynamic Attributes */}
         {renderDynamicAttributes()}
