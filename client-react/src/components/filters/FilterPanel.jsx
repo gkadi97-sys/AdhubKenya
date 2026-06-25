@@ -375,7 +375,7 @@ export default function FilterPanel({ isMobile = false, onClose }) {
         </FilterGroup>
 
         {/* 5. Condition (Global Standard - exclude non-physical goods) */}
-        {!['jobs', 'services', 'property'].includes(filters.category) && (
+        {!['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
           <FilterGroup label="Condition">
             <RadioGroup 
               options={['Brand New', 'Used', 'Refurbished', 'Ex-UK/Ex-Japan']} 
