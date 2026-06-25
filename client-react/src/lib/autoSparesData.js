@@ -66,61 +66,67 @@ export const MASTER_SPARE_PARTS = {
 
 export const MASTER_ACCESSORIES = {
   'INTERIOR ACCESSORIES': {
-    'Seat & Cabin Protection': ['Seat Covers', 'Leather Seat Covers', 'Fabric Seat Covers', 'PU Seat Covers', 'Custom Seat Covers', 'Seat Cushions', 'Massage Cushions', 'Headrest Covers', 'Seat Back Protectors', 'Armrest Covers', 'Child Seat Protectors', 'Pet Seat Covers', 'Seat Organizers', 'Lumbar Supports', 'Heated Seat Pads', 'Cooling Seat Pads'],
-    'Floor & Cargo': ['Floor Mats', 'Rubber Mats', '3D Mats', 'PVC Mats', 'Carpet Mats', 'Cargo Mats', 'Boot Mats', 'Trunk Mats', 'Boot Liners', 'Cargo Liners', 'Luggage Nets'],
-    'Storage & Organization': ['Center Consoles', 'Storage Boxes', 'Cup Holders', 'Console Organizers', 'Seat Gap Fillers', 'Trash Bins', 'Hooks', 'Overhead Organizers', 'Under Seat Organizers'],
-    'Dashboard & Styling': ['Dashboard Covers', 'Dashboard Cameras', 'Instrument Trim', 'Steering Covers', 'Pedal Covers', 'Shift Knobs', 'Trim Kits', 'Interior LED Kits', 'Decorative Panels', 'Ambient Lighting']
+    'Seat & Cabin Protection': ['Seat Covers', 'Leather Seat Covers', 'Fabric Seat Covers', 'PU Seat Covers', 'Custom Seat Covers', 'Seat Cushions', 'Massage Seat Cushions', 'Heated Seat Pads', 'Cooling Seat Pads', 'Seat Organizers', 'Seat Back Protectors', 'Armrest Covers', 'Lumbar Supports', 'Headrest Covers', 'Child Seat Protectors', 'Child Car Seats', 'Booster Seats'],
+    'Floor & Cargo': ['Floor Mats', '3D Floor Mats', 'Rubber Mats', 'PVC Mats', 'Carpet Mats', 'Cargo Mats', 'Boot Mats', 'Trunk Mats', 'Boot Liners', 'Cargo Liners', 'Trunk Organizers', 'Luggage Nets'],
+    'Dashboard & Steering': ['Dashboard Covers', 'Dashboard Trims', 'Dashboard Cameras', 'Steering Wheel Covers', 'Steering Knobs', 'Gear Knobs', 'Shift Knobs', 'Pedal Covers'],
+    'Storage & Organization': ['Center Consoles', 'Storage Boxes', 'Cup Holders', 'Console Organizers', 'Seat Gap Fillers', 'Trash Bins', 'Hooks', 'Overhead Organizers', 'Under Seat Organizers', 'Rear Seat Tables'],
+    'Mirrors & Sun Protection': ['Sun Shades', 'Sun Visors', 'Privacy Curtains', 'Interior Mirrors', 'Vanity Mirrors'],
+    'Interior Styling': ['Ambient Lighting', 'Interior LED Kits', 'Decorative Trim Kits', 'Trim Kits', 'Decorative Panels']
   },
   'EXTERIOR ACCESSORIES': {
-    'Protection': ['Mud Flaps', 'Splash Guards', 'Stone Guards', 'Door Edge Guards', 'Door Sill Protectors', 'Bonnet Protectors', 'Bumper Protectors', 'Mirror Guards', 'Scratch Guards', 'Rain Guards'],
-    'Body Styling': ['Body Kits', 'Spoilers', 'Lip Kits', 'Diffusers', 'Mirror Covers', 'Chrome Kits', 'Window Trims', 'Side Skirts', 'Wrap Kits', 'Graphics', 'Decals'],
-    'Roof Systems': ['Roof Rails', 'Roof Racks', 'Roof Boxes', 'Roof Baskets', 'Cargo Carriers', 'Kayak Racks', 'Bike Racks', 'Luggage Platforms'],
-    'Utility': ['Tow Bars', 'Tow Hooks', 'Bull Bars', 'Side Steps', 'Rear Steps', 'Ladders', 'Loading Ramps']
-  },
-  'AUDIO & MULTIMEDIA': {
-    'Audio': ['Speakers', 'Component Speakers', 'Coaxial Speakers', 'Tweeters', 'Midrange Speakers', 'Subwoofers', 'Amplifiers', 'Bass Tubes', 'Sound Processors'],
-    'Head Units': ['Android Screens', 'Head Units', 'Touch Screens', 'Car Radios', 'Apple CarPlay Units', 'Android Auto Units', 'Navigation Systems'],
-    'Connectivity': ['Bluetooth Modules', 'FM Transmitters', 'USB Hubs', 'WiFi Modules', 'Wireless Adapters', 'Microphones']
+    'Protection': ['Mud Flaps', 'Splash Guards', 'Stone Guards', 'Door Edge Guards', 'Door Sill Protectors', 'Bumper Protectors', 'Bonnet Protectors', 'Mirror Guards', 'Scratch Guards', 'Rain Guards', 'Window Visors', 'Wind Deflectors'],
+    'Body Styling': ['Body Kits', 'Front Lips', 'Rear Lips', 'Spoilers', 'Side Skirts', 'Diffusers', 'Fender Flares', 'Wheel Arch Covers', 'Mirror Covers', 'Door Handle Covers', 'Body Side Moldings'],
+    'Exterior Trim & Wrap': ['Wrap Kits', 'Graphics', 'Decals', 'Chrome Trims', 'Chrome Kits', 'Window Trims', 'Exterior Trim Kits', 'Rear Garnish', 'Grille Covers', 'Hood Scoops'],
+    'Roof Systems & Cargo': ['Roof Rails', 'Roof Racks', 'Roof Boxes', 'Roof Baskets', 'Roof Platforms', 'Cargo Carriers', 'Kayak Racks', 'Bike Racks', 'Ladder Racks', 'Canoe Racks'],
+    'Utility & Towing': ['Tow Bars', 'Tow Hooks', 'Bull Bars', 'Nudge Bars', 'Side Steps', 'Rear Steps', 'Running Boards', 'Loading Ramps', 'Ladders']
   },
   'LIGHTING': {
-    'Exterior Lighting': ['LED Bulbs', 'Halogen Bulbs', 'Xenon Kits', 'Laser Lights', 'Fog Lights', 'Driving Lights', 'Light Bars', 'Spot Lights', 'Headlights', 'Tail Lights', 'Indicators', 'DRLs'],
-    'Interior Lighting': ['Ambient Lights', 'Footwell Lights', 'Cabin Lights', 'LED Strips', 'Door Projector Lights']
+    'Exterior Lighting': ['LED Bulbs', 'Halogen Bulbs', 'Xenon Kits', 'HID Kits', 'Laser Lights', 'Fog Lights', 'Spot Lights', 'Driving Lights', 'Daytime Running Lights', 'DRLs', 'Light Bars', 'Auxiliary Lights', 'Headlights', 'Tail Lights', 'Indicators', 'Reverse Lights', 'Brake Lights', 'Number Plate Lights'],
+    'Interior & Accent Lighting': ['Underglow Kits', 'Interior LED Strips', 'Door Projector Lights', 'Footwell Lights', 'Ambient Lights', 'Cabin Lights']
   },
-  'SECURITY & SAFETY': {
-    'Security': ['Car Alarms', 'GPS Trackers', 'Immobilizers', 'Steering Locks', 'Wheel Locks', 'Gear Locks', 'OBD Locks'],
-    'Safety': ['Dash Cameras', 'Reverse Cameras', '360 Cameras', 'Parking Sensors', 'Blind Spot Sensors', 'TPMS', 'Fire Extinguishers', 'Emergency Kits', 'First Aid Kits']
+  'AUDIO & MULTIMEDIA': {
+    'Audio': ['Speakers', 'Component Speakers', 'Coaxial Speakers', 'Tweeters', 'Midrange Speakers', 'Subwoofers', 'Amplifiers', 'Bass Tubes', 'Sound Processors', 'DSP Systems'],
+    'Head Units & Screens': ['Head Units', 'Android Screens', 'Touch Screens', 'Apple CarPlay Units', 'Android Auto Units', 'Navigation Systems', 'Car Radios', 'CD Players', 'DVD Players', 'Media Players', 'Rear Entertainment Screens', 'TV Tuners'],
+    'Connectivity': ['Bluetooth Receivers', 'Bluetooth Modules', 'FM Transmitters', 'USB Hubs', 'WiFi Modules', 'Streaming Devices', 'Wireless Adapters', 'Microphones']
   },
   'ELECTRONICS & SMART ACCESSORIES': {
-    'Power': ['USB Chargers', 'Wireless Chargers', 'Power Banks', 'Power Inverters', 'Charging Cables', 'Jump Starters'],
-    'Smart Devices': ['HUD Displays', 'OBD Scanners', 'Vehicle Monitors', 'Digital Gauges', 'Remote Start Systems', 'Smart Controllers']
+    'Power': ['USB Chargers', 'Wireless Chargers', 'Fast Chargers', 'Charging Cables', 'Power Banks', 'Power Inverters', 'Jump Starters'],
+    'Cameras & Sensors': ['Dash Cameras', 'Reverse Cameras', '360 Cameras', 'Parking Sensors', 'Blind Spot Sensors', 'TPMS Sensors'],
+    'Smart Devices': ['OBD Scanners', 'HUD Displays', 'Digital Gauges', 'GPS Trackers', 'Vehicle Trackers', 'Vehicle Monitors', 'Remote Starters', 'Smart Controllers', 'Key Finders', 'Electronic Mirrors']
   },
-  'OFFROAD ACCESSORIES': {
-    'Recovery': ['Recovery Straps', 'Winches', 'Shackles', 'Tow Recovery Kits', 'Traction Boards', 'Air Compressors'],
-    'Protection': ['Skid Plates', 'Rock Sliders', 'Snorkels', 'Underbody Guards', 'Diff Guards']
-  },
-  'CAMPING & TRAVEL': {
-    'Camping': ['Roof Tents', 'Vehicle Tents', 'Camping Fridges', 'Portable Freezers', 'Sleeping Platforms', 'Portable Showers'],
-    'Travel': ['Coolers', 'Travel Boxes', 'Storage Systems', 'Portable Tables', 'Portable Chairs']
-  },
-  'CLEANING & DETAILING': {
-    'Cleaning': ['Pressure Washers', 'Foam Cannons', 'Car Vacuums', 'Buckets', 'Cleaning Brushes', 'Microfiber Kits'],
-    'Detailing': ['Wax', 'Polish', 'Ceramic Coating', 'Interior Cleaner', 'Leather Cleaner', 'Glass Cleaner', 'Tyre Shine', 'Plastic Restorer']
-  },
-  'COMFORT & LIFESTYLE': {
-    'Comfort': ['Air Fresheners', 'Neck Pillows', 'Fans', 'Humidifiers', 'Massage Devices', 'Portable Heaters']
+  'SECURITY & SAFETY': {
+    'Security': ['Car Alarms', 'Immobilizers', 'Steering Locks', 'Gear Locks', 'Wheel Locks', 'Pedal Locks', 'OBD Locks', 'Anti-Theft Devices', 'GPS Security Systems', 'Motion Sensors', 'Panic Alarms'],
+    'Safety': ['Emergency Beacons', 'Fire Extinguishers', 'Emergency Kits', 'First Aid Kits', 'Dash Cameras']
   },
   'TYRE & WHEEL ACCESSORIES': {
-    'Tyres': ['Tyre Covers', 'Valve Caps', 'Tyre Inflators', 'Pressure Gauges', 'Repair Kits', 'Wheel Covers', 'Wheel Locks']
+    'Tyres & Wheels': ['Wheel Covers', 'Hub Caps', 'Alloy Wheel Covers', 'Valve Caps', 'Wheel Locks', 'Wheel Spacers', 'Wheel Accessories', 'Rim Protectors'],
+    'Tyre Maintenance': ['Tyre Inflators', 'Air Compressors', 'Pressure Gauges', 'Tyre Repair Kits', 'Tyre Bags', 'Tyre Covers']
+  },
+  'CLEANING & DETAILING': {
+    'Cleaning Equipment': ['Pressure Washers', 'Foam Cannons', 'Car Vacuums', 'Buckets', 'Wash Mitts', 'Drying Towels', 'Cleaning Brushes', 'Microfiber Kits'],
+    'Detailing & Chemicals': ['Detailing Kits', 'Wax', 'Polish', 'Ceramic Coating', 'Paint Sealants', 'Glass Cleaners', 'Interior Cleaners', 'Leather Cleaners', 'Tyre Shine', 'Plastic Restorers', 'Water Repellents']
+  },
+  'OFFROAD ACCESSORIES': {
+    'Recovery': ['Winches', 'Recovery Straps', 'Tow Straps', 'Shackles', 'Recovery Kits', 'Traction Boards', 'Air Compressors'],
+    'Protection & Hardware': ['Snorkels', 'Skid Plates', 'Rock Sliders', 'Differential Guards', 'Diff Guards', 'Underbody Guards', 'Lift Kits', 'Offroad Lighting']
+  },
+  'CAMPING & TRAVEL': {
+    'Camping': ['Roof Tents', 'Vehicle Tents', 'Sleeping Platforms', 'Portable Showers', 'Camping Tables', 'Camping Chairs'],
+    'Travel & Storage': ['Coolers', 'Portable Fridges', 'Camping Fridges', 'Portable Freezers', 'Travel Boxes', 'Storage Systems', 'Organizers', 'Cargo Nets', 'Cargo Bars']
   },
   'PICKUP & TRUCK ACCESSORIES': {
-    'Pickup': ['Canopies', 'Truck Bed Covers', 'Bedliners', 'Cargo Nets', 'Tool Boxes', 'Bed Extenders'],
-    'Commercial': ['Beacon Lights', 'Reflective Kits', 'Trailer Accessories', 'Mud Guards', 'Safety Equipment']
+    'Pickup': ['Canopies', 'Truck Bed Covers', 'Bedliners', 'Cargo Nets', 'Tool Boxes', 'Bed Extenders', 'Ladder Holders'],
+    'Commercial': ['Trailer Accessories', 'Beacon Lights', 'Commercial Safety Kits', 'Reflective Kits', 'Mud Guards']
   },
   'MOTORCYCLE ACCESSORIES': {
-    'Rider': ['Phone Mounts', 'Helmet Locks', 'Top Boxes', 'Tank Bags', 'Handle Covers', 'Crash Guards', 'Backrests']
+    'Rider & Storage': ['Top Boxes', 'Side Boxes', 'Tank Bags', 'Luggage Systems', 'Phone Mounts'],
+    'Protection & Parts': ['Crash Guards', 'Handle Covers', 'Helmet Locks', 'Backrests', 'Windscreens']
   },
   'WEATHER ACCESSORIES': {
-    'Rain': ['Windshield Covers', 'Snow Covers', 'Window Covers', 'Rain Repellent']
+    'Weather': ['Windshield Covers', 'Snow Covers', 'Window Covers', 'Rain Repellent']
+  },
+  'COMFORT & LIFESTYLE': {
+    'Comfort': ['Cabin Air Fresheners', 'Neck Pillows', 'Travel Pillows', 'Cabin Fans', 'Humidifiers', 'Massage Devices', 'Portable Heaters', 'Air Fresheners']
   },
   'PET ACCESSORIES': {
     'Pet Travel': ['Pet Barriers', 'Pet Seat Covers', 'Pet Carriers', 'Pet Harnesses', 'Pet Ramps']
