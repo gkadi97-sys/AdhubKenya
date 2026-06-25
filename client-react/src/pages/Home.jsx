@@ -169,7 +169,59 @@ function CategorySidebar({ onNavigate }) {
 
                 return (
                   <div className="pl-11 pr-3 py-3 flex flex-col gap-4 border-b border-border/50 mb-2">
+
+                    {/* ── OEM QUICK-ACCESS (Auto Spares only) ── */}
+                    {selectedSlug === 'auto-spares' && (
+                      <div className="rounded-xl border border-amber-400/40 bg-amber-50/60 dark:bg-amber-900/10 px-3 py-2.5 flex flex-col gap-1.5">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                          ⚡ OEM Part Number
+                        </p>
+                        <p className="text-[10px] text-amber-700/70 dark:text-amber-400/60 leading-tight">
+                          Know the exact part no.? Skip the search.
+                        </p>
+                        <div className="relative mt-0.5">
+                          <input
+                            type="text"
+                            placeholder="e.g. 45503-09220"
+                            value={filters['oemNumber'] || ''}
+                            onChange={e => setFilter('oemNumber', e.target.value)}
+                            className={`w-full rounded-lg border px-3 py-2 text-xs font-medium outline-none transition ${
+                              filters['oemNumber']
+                                ? 'border-amber-400 bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-100'
+                                : 'border-amber-300/60 bg-white dark:bg-background text-foreground placeholder:text-amber-400/60'
+                            } focus:border-amber-400`}
+                          />
+                          {filters['oemNumber'] && (
+                            <button
+                              onClick={() => clearFilter('oemNumber')}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-amber-500 hover:text-destructive cursor-pointer"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                        {filters['oemNumber'] && (
+                          <button
+                            onClick={browse}
+                            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-[11px] font-bold text-white transition cursor-pointer"
+                          >
+                            Find by OEM No. →
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* ── DIVIDER ── */}
+                    {selectedSlug === 'auto-spares' && (
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-px bg-border" />
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">or browse by</span>
+                        <div className="flex-1 h-px bg-border" />
+                      </div>
+                    )}
+
                     {visibleAttrs.map((attr, idx) => {
+
                       const isFirst = idx === 0;
                       let opts = [];
                       if (attr.options) opts = attr.options;
