@@ -1,5 +1,5 @@
-import { useMemo, useEffect } from 'react';
-import { Controller } from 'react-hook-form';
+import { useMemo } from 'react';
+import { Controller, useWatch } from 'react-hook-form';
 import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { getDynamicOptions } from '@/lib/categoryData'; // We will create this
 
@@ -7,12 +7,16 @@ export default function DynamicListingForm({ category, register, control, watch,
   const schema = ATTRIBUTE_ENGINE[category] || ATTRIBUTE_ENGINE.default;
   const { groups, attributes } = schema;
 
+  // useWatch subscribes to ALL field changes reactively — this is critical so that
+  // visibleAttributes recomputes whenever a dropdown/radio changes (e.g. listingType)
+  const allValues = useWatch({ control });
+
   const checkSingleDependency = (dep) => {
     if (dep.and) {
       return dep.and.every(d => checkSingleDependency(d));
     }
     const { field, value, notValue } = dep;
-    const parentValue = watch(`attrs.${field}`);
+    const parentValue = allValues?.attrs?.[field];
     
     if (!parentValue) return false;
     
@@ -43,7 +47,9 @@ export default function DynamicListingForm({ category, register, control, watch,
       const dep = attr.postAd.dependsOn !== undefined ? attr.postAd.dependsOn : attr.dependsOn;
       return checkDependencies(dep);
     });
-  }, [attributes, watch()]); 
+  // allValues is the reactive snapshot — recomputes whenever any field changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allValues, attributes]);
 
   // Group the visible attributes
   const attributesByGroup = useMemo(() => {
@@ -81,7 +87,7 @@ export default function DynamicListingForm({ category, register, control, watch,
                     // Level-1 fields (e.g. Accessory Group, Part Category) have NO cascadeParent,
                     // so parentValue must be null — not derived from dependsOn which is a visibility rule.
                     const parentField = attr.cascadeParent || null;
-                    const parentValue = parentField ? watch(`attrs.${parentField}`) : null;
+                    const parentValue = parentField ? (allValues?.attrs?.[parentField] ?? null) : null;
                     options = getDynamicOptions(category, attr.id, parentValue);
                     
                     if (!options || options.length === 0) {
