@@ -201,7 +201,7 @@ export const ATTRIBUTE_ENGINE = {
           { field: 'part' } 
         ]},
         postAd: { required: false, group: 'details', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-cascade' }
+        search: { filterable: false } // position is part-specific; not meaningful as a browse filter
       },
       {
         id: 'oemNumber',
@@ -209,7 +209,7 @@ export const ATTRIBUTE_ENGINE = {
         type: 'text',
         dependsOn: { field: 'listingType', value: 'spare-part' },
         postAd: { required: false, group: 'details', uiType: 'text' },
-        search: { filterable: true, uiType: 'text' }
+        search: { filterable: false } // posting-only metadata — buyers don't search by OEM number
       },
 
       // ─── STEP 2B: ACCESSORIES cascade ────────────────────────────────────
@@ -347,7 +347,7 @@ export const ATTRIBUTE_ENGINE = {
         type: 'text',
         dependsOn: { field: 'make' },
         postAd: { required: false, group: 'vehicle', uiType: 'text' },
-        search: { filterable: true, uiType: 'text' }
+        search: { filterable: false } // free-text; useless as a browse filter
       },
       {
         id: 'engine',
@@ -355,7 +355,7 @@ export const ATTRIBUTE_ENGINE = {
         type: 'text',
         dependsOn: { field: 'make' },
         postAd: { required: false, group: 'vehicle', uiType: 'text' },
-        search: { filterable: true, uiType: 'text' }
+        search: { filterable: false } // free-text; useless as a browse filter
       }
     ]
   },
