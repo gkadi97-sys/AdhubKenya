@@ -2458,15 +2458,18 @@ export const getDynamicOptions = (category, fieldId, dependsOnValue) => {
       if (fieldId === 'partCategory') return Object.keys(MASTER_SPARE_PARTS || {});
       if (fieldId === 'part' && dependsOnValue) return MASTER_SPARE_PARTS[dependsOnValue] || [];
       if (fieldId === 'position' && dependsOnValue) {
-          if (PART_POSITIONS[dependsOnValue]) return PART_POSITIONS[dependsOnValue];
-          // Determine parent category to check defaults
+          // Check if this specific part has an explicit mapping (including empty [])
+          if (Object.prototype.hasOwnProperty.call(PART_POSITIONS, dependsOnValue)) {
+              return PART_POSITIONS[dependsOnValue]; // [] = hide, [...] = show those options
+          }
+          // Fall back to the category default
           for (const cat of Object.keys(MASTER_SPARE_PARTS)) {
               if (MASTER_SPARE_PARTS[cat].includes(dependsOnValue)) {
                   if (PART_POSITIONS.CATEGORY_DEFAULTS[cat]) return PART_POSITIONS.CATEGORY_DEFAULTS[cat];
                   break;
               }
           }
-          return []; // If we reach here, it shouldn't show position
+          return []; // No position applicable for this part
       }
       
       // Accessories
