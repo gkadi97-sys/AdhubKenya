@@ -18,25 +18,29 @@ export const ATTRIBUTE_ENGINE = {
       { 
         id: 'make', 
         label: 'Make', 
-        type: 'dynamic-select', 
+        type: 'dynamic-cascade', 
+        cascadeLevel: 1,
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'model', 
         label: 'Model', 
-        type: 'dynamic-select', 
+        type: 'dynamic-cascade', 
+        cascadeLevel: 2,
+        cascadeParent: 'make',
         dependsOn: { field: 'make' },
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'year', 
         label: 'Year of Manufacture', 
-        type: 'dynamic-select', 
+        type: 'enum', 
+        options: Array.from({length: 36}, (_, i) => (new Date().getFullYear() - i).toString()),
         dependsOn: { field: 'model' },
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'select' }
       },
       { 
         id: 'mileage', 
@@ -312,20 +316,23 @@ export const ATTRIBUTE_ENGINE = {
         search: { filterable: true, uiType: 'radio' }
       },
       { 
-        id: 'propertyCategory', 
-        label: 'Property Category', 
-        type: 'dynamic-select', 
+        id: 'propertyCategory',
+        label: 'Property Category',
+        type: 'dynamic-cascade',
+        cascadeLevel: 1, 
         dependsOn: { field: 'listingCategory' },
         postAd: { required: true, group: 'classification', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
-        id: 'propertyType', 
-        label: 'Property Type', 
-        type: 'dynamic-select', 
+        id: 'propertyType',
+        label: 'Property Type',
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        cascadeParent: 'propertyCategory', 
         dependsOn: { field: 'propertyCategory' },
         postAd: { required: true, group: 'classification', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'bedrooms', 
@@ -384,27 +391,32 @@ export const ATTRIBUTE_ENGINE = {
     ],
     attributes: [
       { 
-        id: 'brand', 
-        label: 'Brand', 
-        type: 'dynamic-select',
+        id: 'brand',
+        label: 'Brand',
+        type: 'dynamic-cascade',
+        cascadeLevel: 1,
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
-        id: 'series', 
-        label: 'Series', 
-        type: 'dynamic-select', 
+        id: 'series',
+        label: 'Series',
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        cascadeParent: 'brand', 
         dependsOn: { field: 'brand' },
         postAd: { required: false, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
-        id: 'model', 
-        label: 'Model', 
-        type: 'dynamic-select', 
+        id: 'model',
+        label: 'Model',
+        type: 'dynamic-cascade',
+        cascadeLevel: 3,
+        cascadeParent: 'series',
         dependsOn: { field: 'series' },
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'storage', 
@@ -455,36 +467,42 @@ export const ATTRIBUTE_ENGINE = {
     ],
     attributes: [
       { 
-        id: 'subcategory', 
-        label: 'Category', 
-        type: 'dynamic-select',
+        id: 'subcategory',
+        label: 'Category',
+        type: 'dynamic-cascade',
+        cascadeLevel: 1,
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       // Laptops
       { 
-        id: 'brand', 
-        label: 'Brand', 
-        type: 'dynamic-select', 
+        id: 'brand',
+        label: 'Brand',
+        type: 'dynamic-cascade',
+        cascadeLevel: 1, 
         dependsOn: { field: 'subcategory', value: 'Laptops & Computers' },
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
-        id: 'series', 
-        label: 'Series', 
-        type: 'dynamic-select', 
+        id: 'series',
+        label: 'Series',
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        cascadeParent: 'brand', 
         dependsOn: { field: 'brand' },
         postAd: { required: false, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
-        id: 'model', 
-        label: 'Model', 
-        type: 'dynamic-select', 
+        id: 'model',
+        label: 'Model',
+        type: 'dynamic-cascade',
+        cascadeLevel: 3,
+        cascadeParent: 'series',
         dependsOn: { field: 'series' },
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'cpuBrand', 
@@ -551,18 +569,22 @@ export const ATTRIBUTE_ENGINE = {
       { 
         id: 'tvBrand', 
         label: 'Brand', 
-        type: 'dynamic-select', 
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        cascadeParent: 'subcategory',
         dependsOn: { field: 'subcategory', value: 'Televisions' },
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'tvSeries', 
-        label: 'Series', 
-        type: 'dynamic-select', 
+        label: 'Series / Line', 
+        type: 'dynamic-cascade',
+        cascadeLevel: 3,
+        cascadeParent: 'tvBrand',
         dependsOn: { field: 'tvBrand' },
         postAd: { required: false, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'screenSizeTv', 
@@ -602,20 +624,24 @@ export const ATTRIBUTE_ENGINE = {
       },
       // Audio
       { 
-        id: 'equipmentType', 
-        label: 'Equipment Type', 
-        type: 'dynamic-select', 
+        id: 'equipmentType',
+        label: 'Equipment Type',
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        cascadeParent: 'subcategory', 
         dependsOn: { field: 'subcategory', value: 'Audio & Music' },
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'audioBrand', 
         label: 'Brand', 
-        type: 'dynamic-select', 
+        type: 'dynamic-cascade',
+        cascadeLevel: 3,
+        cascadeParent: 'equipmentType',
         dependsOn: { field: 'equipmentType' },
         postAd: { required: true, group: 'basics', uiType: 'select' },
-        search: { filterable: true, uiType: 'dynamic-select' }
+        search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       { 
         id: 'channels', 
