@@ -77,9 +77,10 @@ export default function DynamicListingForm({ category, register, control, watch,
                 // Fetch dynamic options if needed
                 let options = attr.options;
                 if (attr.type === 'dynamic-select' || attr.type === 'dynamic-cascade') {
-                    // For dynamic-cascade, the data parent is cascadeParent.
-                    // For dynamic-select, it might be dependsOn.field.
-                    const parentField = attr.cascadeParent || (attr.dependsOn && attr.dependsOn.field);
+                    // cascadeParent is the data parent (e.g. subcategory's parent is category).
+                    // Level-1 fields (e.g. Accessory Group, Part Category) have NO cascadeParent,
+                    // so parentValue must be null — not derived from dependsOn which is a visibility rule.
+                    const parentField = attr.cascadeParent || null;
                     const parentValue = parentField ? watch(`attrs.${parentField}`) : null;
                     options = getDynamicOptions(category, attr.id, parentValue);
                     
