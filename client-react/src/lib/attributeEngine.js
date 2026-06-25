@@ -221,7 +221,7 @@ export const ATTRIBUTE_ENGINE = {
         type: 'dynamic-cascade',
         cascadeLevel: 2,
         cascadeParent: 'category',
-        dependsOn: { field: 'listingType', value: 'accessory' },
+        dependsOn: { field: 'category' }, // Only show after category is selected
         postAd: { required: true, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
@@ -231,7 +231,7 @@ export const ATTRIBUTE_ENGINE = {
         type: 'dynamic-cascade',
         cascadeLevel: 3,
         cascadeParent: 'subcategory',
-        dependsOn: { field: 'listingType', value: 'accessory' },
+        dependsOn: { field: 'subcategory' }, // Only show after subcategory is selected
         postAd: { required: true, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
@@ -248,7 +248,7 @@ export const ATTRIBUTE_ENGINE = {
           MAKE_SPECIFIC: 'Make Specific (e.g. Toyota, Nissan)',
           MODEL_SPECIFIC: 'Model Specific (e.g. Toyota Hilux)'
         },
-        dependsOn: { field: 'listingType', value: 'accessory' },
+        dependsOn: { field: 'item' }, // Only show after the actual accessory item is picked
         postAd: { required: true, group: 'vehicle', uiType: 'select' },
         search: { filterable: false }  // posting-only — buyers filter by class/make/model directly
       },
