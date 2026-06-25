@@ -55,6 +55,7 @@ function CategorySidebar({ onNavigate }) {
     const { field, value } = dependsOn;
     const currentVal = currentFilters[field];
     if (!currentVal) return false;
+    if (value === undefined) return true;
     return Array.isArray(value) ? value.includes(currentVal) : currentVal === value;
   };
 
