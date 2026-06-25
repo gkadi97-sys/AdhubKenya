@@ -473,8 +473,8 @@ export default function HomePage() {
           <main className="flex-1 min-w-0">
 
             {/* Hero */}
-            <section className="relative overflow-hidden rounded-3xl mb-6">
-              <div className="absolute inset-0 -z-10">
+            <section className="relative mb-6 z-20">
+              <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl">
                 <img src={heroNairobi} alt="Nairobi marketplace" width={1920} height={800} className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/60 to-background" />
                 <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/20 to-background/70" />
