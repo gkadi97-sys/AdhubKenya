@@ -131,6 +131,14 @@ export const ATTRIBUTE_ENGINE = {
         options: ['Local', 'Import / Ex-Japan', 'Import / Ex-UK', 'Ex-Lease', 'Diplomatic'],
         postAd: { required: true, group: 'details', uiType: 'select' },
         search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'condition',
+        label: 'Condition',
+        type: 'enum',
+        options: ['Brand New', 'Foreign Used', 'Local Used'],
+        postAd: { required: true, group: 'details', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
       }
     ]
   },
@@ -686,6 +694,194 @@ export const ATTRIBUTE_ENGINE = {
       }
     ]
   },
+  fashion: {
+    groups: [
+      { id: 'item', title: 'Item Details' },
+      { id: 'specs', title: 'Specifications' },
+    ],
+    attributes: [
+      {
+        id: 'category',
+        label: 'Category',
+        type: 'dynamic-cascade',
+        cascadeLevel: 1,
+        postAd: { required: true, group: 'item', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'subcategory',
+        label: 'Item',
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        dependsOn: { field: 'category' },
+        postAd: { required: true, group: 'item', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'gender',
+        label: 'Gender',
+        type: 'enum',
+        options: ['Men', 'Women', 'Unisex', 'Kids'],
+        postAd: { required: true, group: 'specs', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'size',
+        label: 'Size',
+        type: 'enum',
+        options: ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'Free Size', 'US 6', 'US 7', 'US 8', 'US 9', 'US 10', 'US 11', 'US 12'],
+        postAd: { required: false, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      {
+        id: 'brand',
+        label: 'Brand',
+        type: 'text',
+        postAd: { required: false, group: 'specs', uiType: 'text' },
+        search: { filterable: true, uiType: 'text' }
+      },
+      {
+        id: 'color',
+        label: 'Color',
+        type: 'enum',
+        options: ['Black', 'White', 'Grey', 'Brown', 'Beige', 'Navy', 'Blue', 'Red', 'Green', 'Yellow', 'Pink', 'Purple', 'Orange', 'Multi-color'],
+        postAd: { required: false, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+    ]
+  },
+
+  'home-furniture': {
+    groups: [
+      { id: 'item', title: 'Item Details' },
+      { id: 'specs', title: 'Specifications' },
+    ],
+    attributes: [
+      {
+        id: 'category',
+        label: 'Category',
+        type: 'dynamic-cascade',
+        cascadeLevel: 1,
+        postAd: { required: true, group: 'item', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'subcategory',
+        label: 'Item',
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        dependsOn: { field: 'category' },
+        postAd: { required: true, group: 'item', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'brand',
+        label: 'Brand',
+        type: 'text',
+        postAd: { required: false, group: 'specs', uiType: 'text' },
+        search: { filterable: true, uiType: 'text' }
+      },
+      {
+        id: 'color',
+        label: 'Color',
+        type: 'enum',
+        options: ['Black', 'White', 'Grey', 'Brown', 'Beige', 'Cream', 'Blue', 'Green', 'Red', 'Multi-color', 'Other'],
+        postAd: { required: false, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      {
+        id: 'material',
+        label: 'Material',
+        type: 'enum',
+        options: ['Wood', 'Metal', 'Plastic', 'Glass', 'Fabric / Upholstered', 'Leather', 'Rattan / Wicker', 'Other'],
+        postAd: { required: false, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+    ]
+  },
+
+  services: {
+    groups: [
+      { id: 'basics', title: 'Service Details' },
+    ],
+    attributes: [
+      {
+        id: 'category',
+        label: 'Service Category',
+        type: 'dynamic-cascade',
+        cascadeLevel: 1,
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'subcategory',
+        label: 'Service Type',
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        dependsOn: { field: 'category' },
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'serviceMode',
+        label: 'Service Mode',
+        type: 'enum',
+        options: ['On-site', 'Remote / Online', 'Both'],
+        postAd: { required: false, group: 'basics', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'experience',
+        label: 'Years of Experience',
+        type: 'enum',
+        options: ['Less than 1 Year', '1-3 Years', '3-5 Years', '5-10 Years', '10+ Years'],
+        postAd: { required: false, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+    ]
+  },
+
+  beauty: {
+    groups: [
+      { id: 'item', title: 'Product Details' },
+      { id: 'specs', title: 'Specifications' },
+    ],
+    attributes: [
+      {
+        id: 'category',
+        label: 'Category',
+        type: 'dynamic-cascade',
+        cascadeLevel: 1,
+        postAd: { required: true, group: 'item', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'subcategory',
+        label: 'Item',
+        type: 'dynamic-cascade',
+        cascadeLevel: 2,
+        dependsOn: { field: 'category' },
+        postAd: { required: true, group: 'item', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'brand',
+        label: 'Brand',
+        type: 'text',
+        postAd: { required: false, group: 'specs', uiType: 'text' },
+        search: { filterable: true, uiType: 'text' }
+      },
+      {
+        id: 'targetGender',
+        label: 'For',
+        type: 'enum',
+        options: ['Women', 'Men', 'Unisex'],
+        postAd: { required: false, group: 'specs', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+    ]
+  },
+
   default: {
     groups: [],
     attributes: []
