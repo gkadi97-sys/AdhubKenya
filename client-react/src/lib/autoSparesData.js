@@ -65,21 +65,38 @@ export const MASTER_SPARE_PARTS = {
 };
 
 export const MASTER_ACCESSORIES = {
-  'Exterior Accessories': [
-    'Car Covers', 'Bull Bars & Grille Guards', 'Roof Racks & Boxes', 'Mud Flaps', 'Spoilers', 'Towing Accessories'
-  ],
-  'Interior Accessories': [
-    'Floor Mats', 'Seat Covers', 'Steering Wheel Covers', 'Sunshades', 'Dashboard Organizers'
-  ],
-  'Car Electronics': [
-    'Dash Cams', 'Car Stereos & Radios', 'GPS Trackers', 'Alarm Systems', 'Car Speakers'
-  ],
-  'Lighting': [
-    'LED Light Bars', 'HID Kits', 'Underglow Lights'
-  ],
-  'Maintenance & Care': [
-    'Car Wash Shampoo', 'Waxes & Polishes', 'Tire Inflators', 'Jumper Cables', 'Tool Kits'
-  ]
+  'Exterior Accessories': {
+    'Body Styling': ['Spoilers', 'Body Kits', 'Bumper Guards', 'Side Steps', 'Fender Flares', 'Grilles'],
+    'Protection': ['Car Covers', 'Mud Flaps', 'Window Visors', 'Bug Deflectors', 'Paint Protection Film'],
+    'Utility': ['Roof Racks', 'Roof Boxes', 'Tow Hitches', 'Bike Racks', 'Cargo Carriers'],
+    'Mirrors': ['Side Mirrors', 'Blind Spot Mirrors', 'Towing Mirrors']
+  },
+  'Interior Accessories': {
+    'Comfort & Protection': ['Seat Covers', 'Floor Mats', 'Steering Wheel Covers', 'Sunshades', 'Seat Cushions'],
+    'Organization': ['Boot Organizers', 'Dashboard Organizers', 'Center Consoles', 'Seatback Organizers'],
+    'Styling': ['Custom Pedals', 'Shift Knobs', 'LED Ambient Lighting', 'Dashboard Trim Kits']
+  },
+  'Car Electronics & Audio': {
+    'Audio & Video': ['Head Units (Android Radios)', 'Speakers', 'Subwoofers', 'Amplifiers', 'Equalizers'],
+    'Safety & Security': ['Dash Cams', 'Reverse Cameras', 'GPS Trackers', 'Car Alarms', 'Parking Sensors'],
+    'Power & Gadgets': ['Car Chargers', 'Power Inverters', 'FM Transmitters', 'Bluetooth Kits', 'Heads-up Displays']
+  },
+  'Wheels & Tires': {
+    'Rims & Tires': ['Alloy Rims', 'Steel Wheels', 'Off-Road Tires', 'Spare Tires'],
+    'Wheel Accessories': ['Wheel Covers / Hubcaps', 'Lug Nuts', 'Tire Pressure Monitors (TPMS)', 'Wheel Spacers']
+  },
+  'Auto Care & Maintenance': {
+    'Cleaning Supplies': ['Car Wash Shampoo', 'Microfiber Cloths', 'Waxes & Polishes', 'Tire Shine', 'Glass Cleaners'],
+    'Tools & Emergency': ['Jump Starters', 'Jumper Cables', 'Tool Kits', 'Tire Inflators / Compressors', 'Warning Triangles', 'Fire Extinguishers']
+  },
+  'Lighting': {
+    'Upgrades': ['LED Headlight Bulbs', 'HID Kits', 'Halogen Bulbs', 'Fog Lights', 'Tail Lights'],
+    'Auxiliary': ['Light Bars', 'Spotlights', 'Underglow Kits', 'Interior LED Bulbs']
+  },
+  'Performance Parts': {
+    'Engine & Exhaust': ['Cold Air Intakes', 'Exhaust Tips', 'Performance Mufflers', 'Performance Chips', 'Headers'],
+    'Suspension': ['Lowering Springs', 'Coilovers', 'Lift Kits', 'Strut Braces']
+  }
 };
 
 // Mock Hierarchical Data for cascade testing

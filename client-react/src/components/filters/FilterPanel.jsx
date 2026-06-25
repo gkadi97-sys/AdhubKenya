@@ -193,8 +193,8 @@ export default function FilterPanel({ isMobile = false, onClose }) {
             options = getLevel2Options(category, filters[parentKey], filters, attr.id);
           }
         } else if (attr.cascadeLevel === 3) {
-          const l1 = config?.level1 || 'brand';
-          const l2 = config?.level2 || 'series';
+          const l1 = attr.cascadeGrandparent || config?.level1 || schema.find(a => a.cascadeLevel === 1)?.id;
+          const l2 = attr.cascadeParent || config?.level2 || schema.find(a => a.cascadeLevel === 2)?.id;
           if (filters[l1] && filters[l2]) {
             options = getLevel3Options(category, filters[l1], filters[l2], filters, attr.id);
           }

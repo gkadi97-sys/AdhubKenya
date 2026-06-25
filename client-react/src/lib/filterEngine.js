@@ -68,7 +68,10 @@ export function getLevel2Options(categorySlug, level1Value, filters = {}, attrId
     if (attrId === 'model' || (filters.make && level1Value === filters.make)) {
       return CATEGORY_ATTRIBUTES.vehicles.data?.[level1Value] || [];
     }
-    if (filters.listingType === 'accessory' || attrId === 'subcategory') return MASTER_ACCESSORIES[level1Value] || [];
+    if (filters.listingType === 'accessory' || attrId === 'subcategory') {
+      const data = MASTER_ACCESSORIES[level1Value];
+      return data ? Object.keys(data) : [];
+    }
     return MASTER_SPARE_PARTS[level1Value] || [];
   }
 
@@ -105,6 +108,14 @@ export function getLevel3Options(categorySlug, level1Value, level2Value, filters
   let subcategory = null;
   if (categorySlug === 'electronics') subcategory = filters.subcategory;
   if (categorySlug === 'vehicles') subcategory = filters.bodyType;
+
+  if (categorySlug === 'auto-spares' && filters.listingType === 'accessory') {
+    const data = MASTER_ACCESSORIES[level1Value];
+    if (data && data[level2Value]) {
+      return data[level2Value];
+    }
+    return [];
+  }
 
   if (categorySlug === 'electronics' && subcategory) {
     const tree = getElectronicsTree(subcategory);
