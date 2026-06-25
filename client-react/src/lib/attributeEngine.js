@@ -232,7 +232,7 @@ export const ATTRIBUTE_ENGINE = {
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
 
-      // ─── STEP 3: COMPATIBILITY SELECTOR (Accessories only) ───────────────
+      // ─── STEP 3: COMPATIBILITY SELECTOR (Accessories only — posting only) ─
       {
         id: 'compatibility',
         label: 'Compatibility',
@@ -246,10 +246,10 @@ export const ATTRIBUTE_ENGINE = {
         },
         dependsOn: { field: 'listingType', value: 'accessory' },
         postAd: { required: true, group: 'vehicle', uiType: 'select' },
-        search: { filterable: true, uiType: 'select' }
+        search: { filterable: false }  // posting-only — buyers filter by class/make/model directly
       },
 
-      // ─── STEP 4A: Vehicle Class (only when compatibility = VEHICLE_CLASS) ─
+      // ─── STEP 4A: Vehicle Class — shown in discovery for accessories ───────
       {
         id: 'vehicleClass',
         label: 'Vehicle Class',
@@ -260,7 +260,8 @@ export const ATTRIBUTE_ENGINE = {
           { field: 'compatibility', value: 'VEHICLE_CLASS' }
         ]},
         postAd: { required: true, group: 'vehicle', uiType: 'select' },
-        search: { filterable: true, uiType: 'select' }
+        // In discovery, always show for accessories so buyers can filter by class
+        search: { filterable: true, uiType: 'radio' }
       },
 
       // ─── STEP 4B: Vehicle Make (spare-parts OR make/model specific accessories)
@@ -279,14 +280,22 @@ export const ATTRIBUTE_ENGINE = {
           'Rover', 'Saab', 'Ssangyong', 'Subaru', 'Suzuki',
           'Toyota', 'Volkswagen', 'Volvo',
         ],
+        // In discovery, show Make for accessories whenever listingType=accessory
         dependsOn: [
           { field: 'listingType', value: 'spare-part' },
-          { and: [
-            { field: 'listingType', value: 'accessory' },
-            { field: 'compatibility', value: ['MAKE_SPECIFIC', 'MODEL_SPECIFIC'] }
-          ]}
+          { field: 'listingType', value: 'accessory' }
         ],
-        postAd: { required: true, group: 'vehicle', uiType: 'select' },
+        postAd: {
+          // posting: only show for spare-parts or make/model-specific accessories
+          required: true, group: 'vehicle', uiType: 'select',
+          dependsOn: [
+            { field: 'listingType', value: 'spare-part' },
+            { and: [
+              { field: 'listingType', value: 'accessory' },
+              { field: 'compatibility', value: ['MAKE_SPECIFIC', 'MODEL_SPECIFIC'] }
+            ]}
+          ]
+        },
         search: { filterable: true, uiType: 'select' }
       },
 

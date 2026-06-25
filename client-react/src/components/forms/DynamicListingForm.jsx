@@ -37,7 +37,12 @@ export default function DynamicListingForm({ category, register, control, watch,
   };
 
   const visibleAttributes = useMemo(() => {
-    return attributes.filter(attr => checkDependencies(attr.dependsOn));
+    return attributes.filter(attr => {
+      if (!attr.postAd) return false;
+      // Use postAd-specific dependency if defined (e.g. make field varies between posting and discovery)
+      const dep = attr.postAd.dependsOn !== undefined ? attr.postAd.dependsOn : attr.dependsOn;
+      return checkDependencies(dep);
+    });
   }, [attributes, watch()]); 
 
   // Group the visible attributes

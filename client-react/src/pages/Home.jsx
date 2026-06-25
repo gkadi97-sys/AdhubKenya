@@ -50,16 +50,27 @@ function CategorySidebar({ onNavigate }) {
 
   const selectCategory = (slug) => { setSelectedSlug(slug); setFilters({}); };
 
-  const evaluateDependsOn = (dependsOn, currentFilters) => {
-    if (!dependsOn) return true;
-    const { field, value } = dependsOn;
+  const evaluateSingleDep = (dep, currentFilters) => {
+    if (dep.and) return dep.and.every(d => evaluateSingleDep(d, currentFilters));
+    const { field, value, notValue } = dep;
     const currentVal = currentFilters[field];
     if (!currentVal) return false;
+    if (notValue && currentVal === notValue) return false;
     if (value === undefined) return true;
-    return Array.isArray(value) ? value.includes(currentVal) : currentVal === value;
+    if (Array.isArray(value)) return value.includes(currentVal);
+    return currentVal === value;
   };
 
-  const visibleAttrs = schema ? (schema.attributes || []).filter(attr => evaluateDependsOn(attr.dependsOn, filters)) : [];
+  const evaluateDependsOn = (dependsOn, currentFilters) => {
+    if (!dependsOn) return true;
+    if (Array.isArray(dependsOn)) return dependsOn.some(dep => evaluateSingleDep(dep, currentFilters));
+    return evaluateSingleDep(dependsOn, currentFilters);
+  };
+
+  const visibleAttrs = schema ? (schema.attributes || []).filter(attr => {
+    if (!attr.search || attr.search.filterable === false) return false;
+    return evaluateDependsOn(attr.dependsOn, filters);
+  }) : [];
   
   const activeFilters = {};
   visibleAttrs.forEach(attr => {
