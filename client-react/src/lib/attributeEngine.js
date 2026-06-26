@@ -925,6 +925,74 @@ export const ATTRIBUTE_ENGINE = {
         options: ['KCSE / O-Level', 'Certificate', 'Diploma', "Bachelor's Degree", "Master's Degree", 'PhD'],
         postAd: { required: true, group: 'qualifications', uiType: 'select' },
         search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'industry',
+        label: 'Industry',
+        type: 'enum',
+        options: [
+          'IT & Technology', 'Finance & Banking', 'Healthcare & Medical',
+          'Education & Teaching', 'NGO & Development', 'Hospitality & Tourism',
+          'Transport & Logistics', 'Agriculture & Farming', 'Construction & Engineering',
+          'Media & Marketing', 'Sales & Business Development', 'Admin & HR',
+          'Legal & Compliance', 'Government & Public Sector', 'Manufacturing',
+          'Security & Safety', 'Retail & Wholesale', 'Domestic & Household', 'Other'
+        ],
+        postAd: { required: true, group: 'basics', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      {
+        id: 'availability',
+        label: 'Availability',
+        type: 'enum',
+        options: ['Immediately', '2 Weeks Notice', '1 Month Notice', 'Negotiable'],
+        postAd: { required: true, group: 'basics', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'employmentStatus',
+        label: 'Current Employment Status',
+        type: 'enum',
+        options: ['Employed', 'Unemployed', 'Self-employed', 'Student'],
+        postAd: { required: true, group: 'basics', uiType: 'radio' },
+        search: { filterable: false }
+      },
+      {
+        id: 'skills',
+        label: 'Key Skills',
+        type: 'text',
+        postAd: { required: false, group: 'qualifications', uiType: 'tags' },
+        search: { filterable: true, uiType: 'text' }
+      },
+      {
+        id: 'languages',
+        label: 'Languages',
+        type: 'enum',
+        options: ['English', 'Swahili', 'French', 'Arabic', 'Somali', 'Kikuyu', 'Luo', 'Kamba', 'Luhya', 'Kalenjin', 'Other'],
+        postAd: { required: false, group: 'qualifications', uiType: 'select' },
+        search: { filterable: true, uiType: 'multicheck' }
+      },
+      {
+        id: 'salaryMin',
+        label: 'Expected Min Salary (KES)',
+        type: 'number',
+        postAd: { required: false, group: 'qualifications', uiType: 'number' },
+        search: { filterable: true, uiType: 'range' }
+      },
+      {
+        id: 'salaryMax',
+        label: 'Expected Max Salary (KES)',
+        type: 'number',
+        postAd: { required: false, group: 'qualifications', uiType: 'number' },
+        search: { filterable: true, uiType: 'range' }
+      },
+      {
+        id: 'salaryPeriod',
+        label: 'Salary Period',
+        type: 'enum',
+        options: ['Monthly', 'Annual'],
+        postAd: { required: false, group: 'qualifications', uiType: 'radio' },
+        search: { filterable: false }
       }
     ]
   },

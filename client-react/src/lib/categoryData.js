@@ -1056,17 +1056,51 @@ export const CATEGORY_ATTRIBUTES = {
     level2Label: 'Role',
     hasYear: false,
     data: {
-      'Professional CVs': [
-        'IT Professionals','Accountants','Marketers','Engineers',
-        'Teachers','Healthcare Professionals'
+      'IT & Technology': [
+        'Software Engineer', 'Web Developer', 'Mobile Developer', 'Data Analyst',
+        'Data Scientist', 'Network Engineer', 'System Administrator', 'Cybersecurity Analyst',
+        'IT Support Technician', 'UI/UX Designer', 'DevOps Engineer', 'Database Administrator',
+        'Product Manager', 'Business Analyst', 'IT Project Manager', 'Other IT & Tech'
       ],
-      'Skilled Trade': [
-        'Drivers','Plumbers','Electricians','Carpenters',
-        'Mechanics','Tailors'
+      'Finance & Accounting': [
+        'Accountant', 'CPA / Auditor', 'Finance Manager', 'Bookkeeper',
+        'Financial Analyst', 'Tax Consultant', 'Credit Officer', 'Insurance Agent',
+        'Investment Analyst', 'Payroll Officer', 'Procurement Officer', 'Other Finance'
       ],
-      'Casual Labor': [
-        'House Helps / Maids','Cleaners','Security Guards',
-        'Construction Workers','Farm Workers'
+      'Healthcare & Medical': [
+        'Doctor / Physician', 'Nurse', 'Clinical Officer', 'Pharmacist',
+        'Laboratory Technician', 'Radiographer', 'Physiotherapist', 'Nutritionist',
+        'Community Health Worker', 'Dental Technician', 'Midwife', 'Other Healthcare'
+      ],
+      'Education & Teaching': [
+        'Primary School Teacher', 'Secondary School Teacher', 'University Lecturer',
+        'Early Childhood Teacher (ECDE)', 'Tutor / Private Tutor', 'Curriculum Developer',
+        'School Administrator / Head', 'Special Needs Teacher', 'Other Education'
+      ],
+      'Transport & Logistics': [
+        'Driver (Class B)', 'Driver (Class BCE)', 'Truck Driver', 'Bus Driver',
+        'Delivery Rider / Courier', 'Logistics Coordinator', 'Clearing & Forwarding Agent',
+        'Fleet Manager', 'Pilot / Co-pilot', 'Other Transport'
+      ],
+      'Skilled Trades': [
+        'Electrician', 'Plumber', 'Carpenter / Joiner', 'Welder / Fabricator',
+        'Mechanic / Auto Technician', 'Painter', 'Mason / Bricklayer', 'Tailor / Seamstress',
+        'Catering / Chef', 'Beautician / Hair Stylist', 'Technician (HVAC)', 'Other Trades'
+      ],
+      'Sales & Marketing': [
+        'Sales Representative', 'Marketing Officer', 'Brand Manager', 'Digital Marketer',
+        'Social Media Manager', 'Business Development Manager', 'Customer Service Agent',
+        'PR & Communications Officer', 'Retail Shop Assistant', 'Other Sales & Marketing'
+      ],
+      'Admin & Management': [
+        'Personal Assistant (PA)', 'Office Administrator', 'Receptionist', 'Data Entry Clerk',
+        'HR Manager / Officer', 'Operations Manager', 'Project Manager', 'Executive Secretary',
+        'Records Clerk', 'Other Admin'
+      ],
+      'Casual & Domestic': [
+        'House Help / Maid', 'Cook', 'Cleaner / Housekeeper', 'Nanny / Childminder',
+        'Security Guard', 'Gardener / Groundskeeper', 'Farm Worker / Labourer',
+        'Construction Labourer', 'Watchman', 'Other Casual Labour'
       ]
     }
   },

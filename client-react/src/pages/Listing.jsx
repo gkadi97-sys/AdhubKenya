@@ -6,6 +6,7 @@ import { SCHEMA_ATTRIBUTES } from '@/lib/schemaEngine';
 import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
+import CandidateProfile from '@/components/CandidateProfile';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -90,8 +91,13 @@ export default function ListingDetailPage() {
   return (
     <div style={{padding:'32px 0 60px'}}>
       <div className="container">
-        {/* Breadcrumb */}
-        <nav style={{display:'flex',gap:8,alignItems:'center',marginBottom:24,fontSize:'0.85rem',color:'var(--text-muted)'}}>
+        {/* Render separate CV profile layout if seeking-work */}
+        {listing.category === 'seeking-work' ? (
+          <CandidateProfile listing={listing} />
+        ) : (
+          <>
+            {/* Breadcrumb */}
+            <nav style={{display:'flex',gap:8,alignItems:'center',marginBottom:24,fontSize:'0.85rem',color:'var(--text-muted)'}}>
           <Link to="/" style={{color:'var(--text-muted)'}}>Home</Link>
           <span>/</span>
           <Link to="/browse" style={{color:'var(--text-muted)'}}>Browse</Link>
@@ -389,6 +395,8 @@ export default function ListingDetailPage() {
             </div>
           </aside>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { createListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
@@ -48,6 +48,8 @@ export default function PostAdPage() {
   const [blurStatus, setBlurStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+
 
   if (!user) return (
     <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
@@ -226,12 +228,22 @@ export default function PostAdPage() {
       <div className="mx-auto" style={{ maxWidth: (isVehicle || isProperty) ? 960 : 780 }}>
         <div className="mb-8">
           <h1 className="font-display text-3xl font-bold tracking-tight mb-2">
-            {category === 'jobs' ? 'Post a Job' : category === 'seeking-work' ? 'Post Your CV / Profile' : 'Post a Free Ad'}
+            {category === 'jobs' ? 'Post a Job' : 'Post a Free Ad'}
           </h1>
           <p className="text-muted-foreground">
-            {category === 'jobs' ? 'Fill in the job details below to attract the right candidates' : category === 'seeking-work' ? 'Share your skills and experience to connect with employers' : 'Fill in the details below to list your item for sale'}
+            {category === 'jobs' ? 'Fill in the job details below to attract the right candidates' : 'Fill in the details below to list your item for sale'}
           </p>
         </div>
+
+        {/* ── CV Banner ───────────────────────────────── */}
+        <a href="/post-cv" className="mb-6 flex items-center gap-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5 hover:bg-primary/10 transition-colors group">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground text-2xl shadow-sm">📄</div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-foreground">Looking for Work? Post Your CV Instead</p>
+            <p className="text-sm text-muted-foreground mt-0.5">Use the dedicated CV wizard to create a professional candidate profile and get discovered by employers.</p>
+          </div>
+          <svg className="h-5 w-5 text-primary shrink-0 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+        </a>
 
         <form onSubmit={rhfHandleSubmit(onSubmit)}>
           {error && <div className="mb-6 rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive border border-destructive/20">{error}</div>}
@@ -245,7 +257,7 @@ export default function PostAdPage() {
                 <label className={labelClass}>Category *</label>
                 <select className={inputClass} {...register("category", { required: true })}>
                   <option value="">Select Category</option>
-                  {TOP_CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.icon} {c.name}</option>)}
+                  {TOP_CATEGORIES.filter(c => c.slug !== 'seeking-work').map(c => <option key={c.slug} value={c.slug}>{c.icon} {c.name}</option>)}
                 </select>
               </div>
 

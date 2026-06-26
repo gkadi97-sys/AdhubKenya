@@ -63,6 +63,16 @@ function MultiCheck({ options, value = '', onChange }) {
   );
 }
 
+function DebouncedInput({ value: initialValue, onChange, ...props }) {
+  const [value, setValue] = useState(initialValue);
+  useEffect(() => { setValue(initialValue); }, [initialValue]);
+  useEffect(() => {
+    const timeout = setTimeout(() => { onChange(value); }, 400);
+    return () => clearTimeout(timeout);
+  }, [value, onChange]);
+  return <input {...props} value={value} onChange={e => setValue(e.target.value)} />;
+}
+
 export default function FilterPanel({ isMobile = false, onClose }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -141,8 +151,8 @@ export default function FilterPanel({ isMobile = false, onClose }) {
 
     setLocalParams(next);
 
-    // If Desktop, push to URL immediately (with a tiny debounce in the UI via the user typing, but inputs are handled in child components)
-    if (!isMobile) {
+    // If Desktop and NOT seeking-work (CVs have many filters, better to use Apply button), push to URL immediately
+    if (!isMobile && category !== 'seeking-work') {
       navigate(`/browse?${next.toString()}`, { replace: true });
     }
   };
@@ -308,11 +318,11 @@ export default function FilterPanel({ isMobile = false, onClose }) {
       if (uiType === 'text') {
         return (
           <FilterGroup key={attr.id} label={attr.label}>
-            <input
+            <DebouncedInput
               type="text"
               placeholder={`Any ${attr.label}...`}
               value={filters[attr.id] || ''}
-              onChange={e => updateFilter(attr.id, e.target.value)}
+              onChange={val => updateFilter(attr.id, val)}
               className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
             />
           </FilterGroup>
@@ -366,13 +376,15 @@ export default function FilterPanel({ isMobile = false, onClose }) {
         </FilterGroup>
 
         {/* 4. Price */}
-        <FilterGroup label="Price">
-          <PriceFilter 
-            min={filters.priceMin} 
-            max={filters.priceMax} 
-            onChange={updateFilter} 
-          />
-        </FilterGroup>
+        {!['jobs', 'seeking-work'].includes(filters.category) && (
+          <FilterGroup label="Price">
+            <PriceFilter 
+              min={filters.priceMin} 
+              max={filters.priceMax} 
+              onChange={updateFilter} 
+            />
+          </FilterGroup>
+        )}
 
         {/* 5. Condition (Global Standard - exclude non-physical goods) */}
         {!['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
@@ -387,22 +399,60 @@ export default function FilterPanel({ isMobile = false, onClose }) {
 
         {/* 6. Dynamic Attributes */}
         {renderDynamicAttributes()}
+
+        {/* 7. CV Specific Custom Toggles */}
+        {filters.category === 'seeking-work' && (
+          <>
+            <FilterGroup label="Profile Status">
+              <label className="flex items-center gap-3 py-1 cursor-pointer group">
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    className="peer h-5 w-5 appearance-none rounded border-2 border-border transition-all checked:border-primary checked:bg-primary"
+                    checked={filters.verified === 'true'}
+                    onChange={(e) => updateFilter('verified', e.target.checked ? 'true' : '')}
+                  />
+                  <svg className="absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-primary-foreground opacity-0 transition-opacity peer-checked:opacity-100 pointer-events-none" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Verified Candidates Only</span>
+              </label>
+              
+              <label className="flex items-center gap-3 py-1 cursor-pointer group mt-2">
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    className="peer h-5 w-5 appearance-none rounded border-2 border-border transition-all checked:border-primary checked:bg-primary"
+                    checked={filters.has_cv === 'true'}
+                    onChange={(e) => updateFilter('has_cv', e.target.checked ? 'true' : '')}
+                  />
+                  <svg className="absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-primary-foreground opacity-0 transition-opacity peer-checked:opacity-100 pointer-events-none" viewBox="0 0 16 16" fill="none">
+                    <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Has CV Uploaded</span>
+              </label>
+            </FilterGroup>
+          </>
+        )}
       </div>
 
       {/* Footer / Actions */}
-      <div className={`border-t border-border bg-background p-4 flex items-center gap-3 ${isMobile ? 'sticky bottom-0 z-10' : 'mt-4'}`}>
+      <div className={`border-t border-border bg-background p-4 flex items-center gap-3 ${isMobile ? 'sticky bottom-0 z-10' : 'mt-4 sticky bottom-0 z-10 pb-6'}`}>
         <button 
           onClick={handleClearAll}
           className="flex-1 rounded-xl border border-border bg-background py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
         >
           Clear All
         </button>
-        {isMobile && (
+        {/* On mobile, ALWAYS show the apply button. On desktop, show it for seeking-work since there are many complex filters that would cause lag if auto-applying on every keystroke. */}
+        {(isMobile || filters.category === 'seeking-work') && (
           <button 
             onClick={handleApply}
             className="flex-[2] rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
           >
-            Show {liveCount.toLocaleString()} Results
+            {isMobile ? `Show ${liveCount.toLocaleString()} Results` : 'Apply Filters'}
           </button>
         )}
       </div>

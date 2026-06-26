@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, LayoutList, Settings, LogOut, Menu, X, ShieldAlert, FileText, Bell, CreditCard, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, LayoutList, Settings, LogOut, Menu, X, ShieldAlert, FileText, Bell, CreditCard, Activity, Briefcase } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useSEO } from '@/lib/useSEO';
 
@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
   { label: 'User Management', icon: Users, path: '/admin/users' },
   { label: 'Ad Management', icon: LayoutList, path: '/admin/ads' },
+  { label: 'CV Marketplace', icon: Briefcase, path: '/admin/cvs' },
   { label: 'Payments & Revenue', icon: CreditCard, path: '/admin/payments' },
   { label: 'Reports & Mod', icon: ShieldAlert, path: '/admin/reports' },
   { label: 'CMS & Content', icon: FileText, path: '/admin/cms' },

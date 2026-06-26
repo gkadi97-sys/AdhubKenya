@@ -4,6 +4,7 @@ import { getListings, saveSearch } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import ListingCard from '@/components/ListingCard';
+import CandidateCard from '@/components/CandidateCard';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
 import FilterPanel from '@/components/filters/FilterPanel';
@@ -156,11 +157,11 @@ function BrowseContent() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
-                {catLabel ? `${catLabel}` : 'Browse Ads'}
+                {category === 'seeking-work' ? 'Browse Candidates' : (catLabel ? `${catLabel}` : 'Browse Ads')}
                 {keyword && <span className="text-muted-foreground font-normal ml-2">"{keyword}"</span>}
               </h1>
               <p className="text-muted-foreground mt-2 text-sm font-medium">
-                {total.toLocaleString()} listing{total !== 1 ? 's' : ''} found
+                {category === 'seeking-work' ? `Find your next hire among ${total.toLocaleString()} profile${total !== 1 ? 's' : ''}` : `${total.toLocaleString()} listing${total !== 1 ? 's' : ''} found`}
               </p>
             </div>
             {/* Mobile filter button */}
@@ -242,8 +243,18 @@ function BrowseContent() {
                   onChange={e => applyFilter({ sort: e.target.value })}
                 >
                   <option value="createdAt">Newest First</option>
-                  <option value="price_asc">Price: Low → High</option>
-                  <option value="price_desc">Price: High → Low</option>
+                  {category !== 'seeking-work' && (
+                    <>
+                      <option value="price_asc">Price: Low → High</option>
+                      <option value="price_desc">Price: High → Low</option>
+                    </>
+                  )}
+                  {category === 'seeking-work' && (
+                    <>
+                      <option value="experience_desc">Most Experienced</option>
+                      <option value="salary_asc">Lowest Salary Expectation</option>
+                    </>
+                  )}
                 </select>
               </div>
             </div>
@@ -266,7 +277,7 @@ function BrowseContent() {
             ) : listings.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {listings.map(l => <ListingCard key={l.id} listing={l} />)}
+                  {listings.map(l => category === 'seeking-work' ? <CandidateCard key={l.id} listing={l} /> : <ListingCard key={l.id} listing={l} />)}
                 </div>
                 {pages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-12">
@@ -321,8 +332,12 @@ function BrowseContent() {
                 <div className="w-16 h-16 bg-background rounded-full flex items-center justify-center shadow-sm mb-6">
                   <Search className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">No exact matches found</h3>
-                <p className="text-muted-foreground mb-8 max-w-md">Try widening your search or removing some filters to see more results.</p>
+                <h3 className="text-xl font-bold text-foreground mb-2">
+                  {category === 'seeking-work' ? 'No candidates match your search' : 'No exact matches found'}
+                </h3>
+                <p className="text-muted-foreground mb-8 max-w-md">
+                  {category === 'seeking-work' ? 'Try widening your search, removing some filters, or browsing broader categories to find the right talent.' : 'Try widening your search or removing some filters to see more results.'}
+                </p>
                 
                 {activeChips.length > 0 && (
                   <div className="flex flex-wrap justify-center gap-3 max-w-2xl mb-8">

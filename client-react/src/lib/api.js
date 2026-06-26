@@ -142,7 +142,7 @@ export const getListings = async (params = {}) => {
   // ── Standard JSONB specs filters (dynamic) ────────────────────────────────
   // Any parameter that isn't a top-level column or reserved keyword is treated as a specs filter.
   // STRUCTURED fields (enums/selects) use EXACT match. Free-text fields use ILIKE.
-  const RESERVED_PARAMS = ['category', 'location', 'minPrice', 'maxPrice', 'keyword', 'sort', 'page', 'limit', 'county', 'town', 'area', 'engineCC_max', 'mileage_max', 'year_min', 'year_max', 'year', 'salaryMin_min', 'salaryMax_max', 'posted', 'oemNumber'];
+  const RESERVED_PARAMS = ['category', 'location', 'minPrice', 'maxPrice', 'keyword', 'sort', 'page', 'limit', 'county', 'town', 'area', 'engineCC_max', 'mileage_max', 'year_min', 'year_max', 'year', 'salaryMin_min', 'salaryMax_max', 'cvSalaryMin_min', 'cvSalaryMax_max', 'posted', 'oemNumber', 'has_cv', 'skills'];
 
   // Fields that come from structured dropdowns/radios → exact match
   const EXACT_MATCH_FIELDS = new Set([
@@ -156,6 +156,8 @@ export const getListings = async (params = {}) => {
     'displayTech', 'resolution', 'smartPlatform', 'tvBrand', 'tvSeries',
     'equipmentType', 'audioBrand', 'channels', 'connectivity',
     'employmentType', 'workArrangement', 'experienceLevel', 'educationLevel', 'industry',
+    // CV / seeking-work specific
+    'availability', 'employmentStatus', 'languages', 'salaryPeriod',
   ]);
   
   Object.keys(params).forEach(key => {
@@ -198,6 +200,13 @@ export const getListings = async (params = {}) => {
   // Salary range for jobs
   if (params.salaryMin_min) query = query.gte(`specs->>salaryMin`, params.salaryMin_min);
   if (params.salaryMax_max) query = query.lte(`specs->>salaryMax`, params.salaryMax_max);
+  // CV expected salary range
+  if (params.cvSalaryMin_min) query = query.gte(`specs->>salaryMin`, params.cvSalaryMin_min);
+  if (params.cvSalaryMax_max) query = query.lte(`specs->>salaryMax`, params.cvSalaryMax_max);
+  // Skills substring search (stored as comma-separated string in specs.skills)
+  if (params.skills) query = query.ilike(`specs->>skills`, `%${params.skills}%`);
+  // Has CV file uploaded
+  if (params.has_cv === 'true') query = query.not(`specs->>cvFileUrl`, 'is', null);
 
   // ── Date-posted filter ────────────────────────────────────────────────────
   if (params.posted) {
@@ -287,6 +296,37 @@ export const getSellerListings = async (sellerId) => {
     
   if (error) throw error;
   return data;
+};
+
+// ── CV Document Upload ─────────────────────────────────────────────────────
+/**
+ * Uploads a CV document (PDF/DOC/DOCX) to Supabase storage.
+ * Falls back gracefully if the cv-documents bucket doesn't exist yet.
+ * Returns the public URL or null on failure.
+ */
+export const uploadCvDocument = async (file, userId) => {
+  if (!file) return null;
+  const ext = file.name.split('.').pop();
+  const path = `${userId}/${Date.now()}_cv.${ext}`;
+  const { data, error } = await supabase.storage
+    .from('cv-documents')
+    .upload(path, file, { contentType: file.type, upsert: true });
+  if (error) {
+    console.warn('CV document upload failed:', error.message);
+    return null;
+  }
+  const { data: { publicUrl } } = supabase.storage.from('cv-documents').getPublicUrl(data.path);
+  return publicUrl;
+};
+
+// ── CV Analytics ──────────────────────────────────────────────────────────
+export const logCvEvent = async (listingId, eventType) => {
+  try {
+    await supabase.from('listing_events').insert({
+      listing_id: listingId,
+      event_type: eventType
+    });
+  } catch (_) { /* non-critical */ }
 };
 
 // Instead of passing FormData directly to Supabase, we need to handle image uploads separately

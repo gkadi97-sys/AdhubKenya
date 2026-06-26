@@ -19,6 +19,7 @@ import Register from '@/pages/Register.jsx';
 import PostAd from '@/pages/PostAd.jsx';
 import MyAds from '@/pages/MyAds.jsx';
 import SavedSearches from '@/pages/SavedSearches.jsx';
+import PostCvPage from '@/pages/PostCv.jsx';
 
 // --- Admin Layout & Pages ---
 import AdminLayout from '@/layouts/AdminLayout.jsx';
@@ -26,6 +27,7 @@ import AdminLogin from '@/pages/admin/AdminLogin.jsx';
 import AdminDashboard from '@/pages/admin/AdminDashboard.jsx';
 import AdminUsers from '@/pages/admin/AdminUsers.jsx';
 import AdminAds from '@/pages/admin/AdminAds.jsx';
+import AdminCVs from '@/pages/admin/AdminCVs.jsx';
 import AdminPayments from '@/pages/admin/AdminPayments.jsx';
 import AdminReports from '@/pages/admin/AdminReports.jsx';
 import AdminCMS from '@/pages/admin/AdminCMS.jsx';
@@ -61,6 +63,7 @@ function AppLayout() {
           <Route path="/browse" element={<Browse />} />
           <Route path="/category/:slug" element={<Category />} />
           <Route path="/listing/:id" element={<Listing />} />
+          <Route path="/post-cv" element={<ProtectedRoute><PostCvPage /></ProtectedRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/post-ad" element={<ProtectedRoute><PostAd /></ProtectedRoute>} />
@@ -97,6 +100,7 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="ads" element={<AdminAds />} />
+            <Route path="cvs" element={<AdminCVs />} />
             <Route path="payments" element={<AdminPayments />} />
             <Route path="reports" element={<AdminReports />} />
             <Route path="cms" element={<AdminCMS />} />
