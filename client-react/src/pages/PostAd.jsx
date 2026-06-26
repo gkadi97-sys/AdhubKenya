@@ -235,16 +235,6 @@ export default function PostAdPage() {
           </p>
         </div>
 
-        {/* ── CV Banner ───────────────────────────────── */}
-        <a href="/post-cv" className="mb-6 flex items-center gap-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-5 hover:bg-primary/10 transition-colors group">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground text-2xl shadow-sm">📄</div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-foreground">Looking for Work? Post Your CV Instead</p>
-            <p className="text-sm text-muted-foreground mt-0.5">Use the dedicated CV wizard to create a professional candidate profile and get discovered by employers.</p>
-          </div>
-          <svg className="h-5 w-5 text-primary shrink-0 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
-        </a>
-
         <form onSubmit={rhfHandleSubmit(onSubmit)}>
           {error && <div className="mb-6 rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive border border-destructive/20">{error}</div>}
 
