@@ -245,9 +245,19 @@ export default function PostAdPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               <div>
                 <label className={labelClass}>Category *</label>
-                <select className={inputClass} {...register("category", { required: true })}>
+                <select
+                  className={inputClass}
+                  {...register("category", { required: true })}
+                  onChange={e => {
+                    if (e.target.value === 'seeking-work') {
+                      window.location.href = '/post-cv';
+                    } else {
+                      register("category").onChange(e);
+                    }
+                  }}
+                >
                   <option value="">Select Category</option>
-                  {TOP_CATEGORIES.filter(c => c.slug !== 'seeking-work').map(c => <option key={c.slug} value={c.slug}>{c.icon} {c.name}</option>)}
+                  {TOP_CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.icon} {c.name}</option>)}
                 </select>
               </div>
 
