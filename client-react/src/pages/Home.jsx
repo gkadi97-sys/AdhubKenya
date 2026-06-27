@@ -80,6 +80,14 @@ function CategorySidebar({ onNavigate, onCategoryFocus }) {
     }, 150);
   };
 
+  // Escape key exits focus mode
+  useEffect(() => {
+    if (!focusMode) return;
+    const handler = (e) => { if (e.key === 'Escape') exitFocus(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [focusMode]);
+
   const evaluateSingleDep = (dep, currentFilters) => {
     if (dep.and) return dep.and.every(d => evaluateSingleDep(d, currentFilters));
     const { field, value, notValue } = dep;
@@ -551,7 +559,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="mt-6">
-                  <HeroSearch />
+                  <HeroSearch stickyCategory={focusedCat} />
                 </div>
 
                 {/* Mobile Category Chips — visible only on mobile, desktop uses sidebar */}

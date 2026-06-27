@@ -8,7 +8,7 @@ import { CATEGORY_ICONS } from '@/lib/categoryData';
 const COUNTIES = ['All Kenya', 'Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Nyeri', 'Meru'];
 const RECENT_SEARCHES_KEY = 'adhub_recent_searches';
 
-export default function HeroSearch() {
+export default function HeroSearch({ stickyCategory = null }) {
   const [keyword, setKeyword] = useState('');
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [location, setLocation] = useState('All Kenya');
@@ -107,7 +107,8 @@ export default function HeroSearch() {
     if (e) e.preventDefault();
     
     const finalKeyword = explicitKeyword !== null ? explicitKeyword : keyword;
-    const finalCategory = explicitCategory !== null ? explicitCategory : categoryTab;
+    // Explicit > categoryTab pill > stickyCategory from focused sidebar
+    const finalCategory = explicitCategory !== null ? explicitCategory : (categoryTab || stickyCategory || '');
     
     if (finalKeyword) saveRecentSearch(finalKeyword);
     
