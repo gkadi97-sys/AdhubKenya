@@ -8,7 +8,7 @@ import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import CandidateProfile from '@/components/CandidateProfile';
 import ListingCard from '@/components/ListingCard';
-import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft } from 'lucide-react';
+import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft, AlertCircle } from 'lucide-react';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -21,6 +21,7 @@ export default function ListingDetailPage() {
   const [descExpanded, setDescExpanded] = useState(false);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [showNumber, setShowNumber] = useState(false);
+  const [showAllSpecs, setShowAllSpecs] = useState(false);
 
   useSEO({
     title: listing ? `${listing.title} – ${formatPrice(listing.price)} | AdHub Kenya` : 'View Listing | AdHub Kenya',
@@ -124,6 +125,7 @@ export default function ListingDetailPage() {
     landSize: 'Land Size', builtArea: 'Built-up Area', floors: 'Floors',
     bedrooms: 'Bedrooms', bathrooms: 'Bathrooms', livingRooms: 'Living Rooms',
     meetingRooms: 'Meeting Rooms', agencyName: 'Agency / Company', website: 'Website',
+    partNumber: 'OEM Part No.', generationChassis: 'Chassis', compatibleYear: 'Compatible Year'
   };
 
   const flatSchema = {};
@@ -134,7 +136,7 @@ export default function ListingDetailPage() {
   if (listing.specs) {
     Object.entries(listing.specs).forEach(([k, v]) => {
       if (FEATURE_KEYS.includes(k)) return;
-      if (v === '' || v === null || v === undefined) return;
+      if (v === '' || v === null || v === undefined || v === 'N/A' || String(v).trim().toLowerCase() === 'n/a') return;
       const schemaAttr = SCHEMA_ATTRIBUTES[k] || flatSchema[k];
       const isBoolean = v === true || v === false || schemaAttr?.type === 'checkbox' || (schemaAttr?.type === 'radio' && v === 'Yes');
       const label = schemaAttr?.label || FRIENDLY_LABELS[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
@@ -157,6 +159,8 @@ export default function ListingDetailPage() {
   };
 
   const isVerifiedSeller = listing.seller?.created_at && (new Date() - new Date(listing.seller.created_at)) / (1000 * 60 * 60 * 24) > 30;
+  const isDescriptionShort = listing.description?.length < 150;
+  const isDescriptionLong = listing.description?.length > 250;
 
   return (
     <div className="py-4 sm:py-8 pb-32 sm:pb-16 px-4 sm:px-6 bg-background">
@@ -277,13 +281,21 @@ export default function ListingDetailPage() {
                       <span className="text-primary">📋</span> Specifications
                     </h3>
                     <div className="grid grid-cols-2 gap-px bg-border rounded-xl overflow-hidden border border-border">
-                      {keyValueSpecs.map(item => (
-                        <div key={item.key} className="bg-background px-4 py-3 flex flex-col justify-center">
-                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">{item.label}</span>
+                      {(showAllSpecs ? keyValueSpecs : keyValueSpecs.slice(0, 12)).map(item => (
+                        <div key={item.key} className="bg-background px-4 py-2 flex flex-col justify-center min-h-[44px]">
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{item.label}</span>
                           <span className="font-semibold text-sm text-foreground">{item.val}</span>
                         </div>
                       ))}
                     </div>
+                    {keyValueSpecs.length > 12 && (
+                      <button 
+                        onClick={() => setShowAllSpecs(!showAllSpecs)}
+                        className="mt-3 text-sm font-semibold text-primary hover:underline flex items-center gap-1"
+                      >
+                        {showAllSpecs ? 'Hide full specifications' : `View all ${keyValueSpecs.length} specifications`}
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -317,43 +329,27 @@ export default function ListingDetailPage() {
                 )}
 
                 {/* 4. DESCRIPTION (Expandable) */}
-                <div className="rounded-2xl border border-border bg-card p-5 sm:p-7 relative overflow-hidden">
-                   <h3 className="font-bold text-lg mb-4">Description</h3>
-                   <div className={`text-muted-foreground leading-relaxed whitespace-pre-wrap transition-all duration-300 relative ${!descExpanded ? 'max-h-40 overflow-hidden' : ''}`}>
+                <div className={`rounded-2xl border border-border bg-card ${isDescriptionShort ? 'p-5' : 'p-5 sm:p-7'} relative overflow-hidden`}>
+                   <h3 className="font-bold text-lg mb-3">Description</h3>
+                   <div className={`text-muted-foreground leading-relaxed whitespace-pre-wrap transition-all duration-300 relative ${isDescriptionLong && !descExpanded ? 'line-clamp-3' : ''}`}>
                      {listing.description}
-                     {!descExpanded && (
-                       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-card to-transparent pointer-events-none" />
-                     )}
                    </div>
                    
                    {/* Toggle Button */}
-                   {listing.description?.length > 300 && (
+                   {isDescriptionLong && (
                      <button 
                        onClick={() => setDescExpanded(!descExpanded)}
-                       className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-secondary/50 hover:bg-secondary rounded-xl text-sm font-semibold transition-colors"
+                       className="mt-3 text-sm font-semibold text-primary hover:underline flex items-center gap-1"
                      >
                        {descExpanded ? 'Show Less' : 'Read More'}
-                       {descExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                      </button>
                    )}
                 </div>
-
-                {/* 5. RELATED CONTENT */}
-                {relatedListings.length > 0 && (
-                  <div className="mt-8 pt-8 border-t border-border">
-                    <h3 className="font-display text-2xl font-bold mb-6">Similar Items</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {relatedListings.map(item => (
-                        <ListingCard key={item.id} listing={item} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
+                
               </div>
 
               {/* ── RIGHT COLUMN: Contact card (sticky on desktop) ── */}
-              <aside className="lg:sticky lg:top-24 z-10">
+              <aside className="lg:sticky lg:top-24 z-10 flex flex-col gap-4">
                 <div className="rounded-2xl border border-border bg-card shadow-sm flex flex-col">
                   
                   {/* Seller Info (Compact) */}
@@ -364,26 +360,14 @@ export default function ListingDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="font-bold text-foreground text-lg truncate">{listing.seller?.name || 'Seller'}</div>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                        <Clock className="w-3 h-3" /> Member since {new Date(listing.seller?.created_at || listing.created_at).getFullYear()}
+                         Member since {new Date(listing.seller?.created_at || listing.created_at).getFullYear()}
                       </div>
-                    </div>
-                  </div>
-                  
-                  {/* Trust Indicators (Mocked for visual UX per request) */}
-                  <div className="px-5 pb-5 grid grid-cols-2 gap-2 text-center text-xs">
-                    <div className="bg-secondary/50 rounded-lg p-2 flex flex-col justify-center border border-border">
-                      <span className="font-semibold text-foreground">~20 min</span>
-                      <span className="text-muted-foreground">Response time</span>
-                    </div>
-                    <div className="bg-secondary/50 rounded-lg p-2 flex flex-col justify-center border border-border">
-                      <span className="font-semibold text-foreground">12</span>
-                      <span className="text-muted-foreground">Active ads</span>
                     </div>
                   </div>
                   
                   {isVerifiedSeller && (
                     <div className="px-5 pb-4">
-                      <div className="flex items-center justify-center gap-1.5 w-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border border-green-200 dark:border-green-800">
+                      <div className="flex items-center justify-center gap-1.5 w-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border border-green-200 dark:border-green-800">
                         <ShieldCheck className="w-4 h-4" /> Verified Seller
                       </div>
                     </div>
@@ -391,13 +375,41 @@ export default function ListingDetailPage() {
 
                   <hr className="border-border" />
 
+                  {/* Trust Indicators Section */}
+                  <div className="px-5 py-4 grid grid-cols-2 gap-y-3 gap-x-2 text-xs">
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground font-semibold">Joined</span>
+                      <span className="font-bold text-foreground">{new Date(listing.seller?.created_at || listing.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground font-semibold">Listings</span>
+                      <span className="font-bold text-foreground">12</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground font-semibold">Last Active</span>
+                      <span className="font-bold text-foreground">Today</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-muted-foreground font-semibold">Response</span>
+                      <span className="font-bold text-foreground">~15 min</span>
+                    </div>
+                  </div>
+
+                  <hr className="border-border" />
+                  
+                  {/* Contact Conversion Banner */}
+                  <div className="px-5 pt-4 text-xs font-medium text-muted-foreground flex flex-col gap-1">
+                     <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5" /> Viewed 146 times</span>
+                     <span className="flex items-center gap-1.5 text-foreground"><MessageCircle className="w-3.5 h-3.5 text-primary" /> 23 people contacted seller</span>
+                  </div>
+
                   {/* Contact Buttons (Redesigned) */}
                   <div className="p-5 flex flex-col gap-3">
                     {user ? (
                       <>
                         {(listing.whatsapp || listing.phone) && (
                           <a href={waLink} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 w-full rounded-xl py-3.5 px-4 font-bold text-white text-sm hover:opacity-90 transition-opacity shadow-sm"
+                            className="flex items-center justify-center gap-2 w-full rounded-xl py-[13px] px-4 font-bold text-white text-sm hover:opacity-90 transition-opacity shadow-sm"
                             style={{ background: '#25D366' }}>
                             <MessageCircle className="w-5 h-5 fill-current" /> Chat on WhatsApp
                           </a>
@@ -405,16 +417,16 @@ export default function ListingDetailPage() {
                         
                         {!showNumber ? (
                           <button onClick={() => setShowNumber(true)}
-                            className="flex items-center justify-center gap-2 w-full rounded-xl py-3.5 px-4 font-bold text-foreground text-sm border border-border bg-background hover:bg-secondary transition-colors">
+                            className="flex items-center justify-center gap-2 w-full rounded-xl py-2.5 px-4 font-bold text-foreground text-sm border border-border bg-background hover:bg-secondary transition-colors">
                             <Phone className="w-4 h-4" /> Show Phone Number
                           </button>
                         ) : (
                           <div className="flex gap-2">
                              <a href={`tel:${listing.phone}`}
-                              className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3.5 px-4 font-bold text-white text-sm bg-primary hover:bg-primary/90 transition-colors">
+                              className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 font-bold text-white text-sm bg-primary hover:bg-primary/90 transition-colors">
                               <Phone className="w-4 h-4" /> Call Now
                             </a>
-                            <div className="flex-1 flex items-center justify-center rounded-xl bg-secondary border border-border px-4 py-3.5 text-center font-bold text-sm tracking-wide">
+                            <div className="flex-1 flex items-center justify-center rounded-xl bg-secondary border border-border px-4 py-2.5 text-center font-bold text-sm tracking-wide">
                               {listing.phone}
                             </div>
                           </div>
@@ -423,8 +435,8 @@ export default function ListingDetailPage() {
                     ) : (
                       <div className="relative">
                         <div className="blur-[4px] pointer-events-none select-none opacity-60 flex flex-col gap-3">
-                          <div className="flex items-center justify-center gap-2 w-full rounded-xl py-3.5 px-4 font-bold text-white text-sm" style={{ background: '#25D366' }}><MessageCircle className="w-5 h-5" /> Chat on WhatsApp</div>
-                          <div className="flex items-center justify-center gap-2 w-full rounded-xl py-3.5 px-4 font-bold text-foreground text-sm border border-border bg-background"><Phone className="w-4 h-4" /> Show Phone Number</div>
+                          <div className="flex items-center justify-center gap-2 w-full rounded-xl py-[13px] px-4 font-bold text-white text-sm" style={{ background: '#25D366' }}><MessageCircle className="w-5 h-5" /> Chat on WhatsApp</div>
+                          <div className="flex items-center justify-center gap-2 w-full rounded-xl py-2.5 px-4 font-bold text-foreground text-sm border border-border bg-background"><Phone className="w-4 h-4" /> Show Phone Number</div>
                         </div>
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-card/80 rounded-xl backdrop-blur-sm p-4 text-center border border-border shadow-sm">
                           <div className="text-3xl">🔒</div>
@@ -437,32 +449,48 @@ export default function ListingDetailPage() {
                       </div>
                     )}
                     
-                    {/* Action Row (Save / Share) */}
-                    <div className="flex gap-3 mt-2">
-                       <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold">
+                    {/* Action Row (Save / Share Inline) */}
+                    <div className="flex gap-3 mt-1">
+                       <button className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold">
                          <Heart className="w-4 h-4" /> Save
                        </button>
-                       <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold">
+                       <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold">
                          <Share2 className="w-4 h-4" /> Share
                        </button>
                     </div>
                   </div>
-                  
-                  {/* Footer Meta */}
-                  <div className="p-4 bg-secondary/30 rounded-b-2xl border-t border-border flex flex-col gap-3 text-xs">
-                     <button className="flex items-center gap-1.5 text-muted-foreground hover:text-destructive transition-colors w-fit font-medium">
-                       <Flag className="w-3.5 h-3.5" /> Report this ad
-                     </button>
-                     <div className="text-muted-foreground flex gap-1 items-start bg-primary/5 p-3 rounded-xl border border-primary/10">
-                        <span className="text-primary mt-0.5">💡</span>
-                        <p>Safety tip: Meet in a public place. Never send money in advance. Inspect the item before buying.</p>
-                     </div>
-                  </div>
                 </div>
+
+                {/* Footer Meta */}
+                <div className="flex flex-col gap-3">
+                   <button className="flex items-center gap-1.5 text-muted-foreground hover:text-destructive transition-colors w-fit font-semibold text-sm group mx-1">
+                     <Flag className="w-4 h-4 group-hover:fill-destructive" /> Report this listing
+                   </button>
+                   <div className="text-muted-foreground flex gap-2 items-start bg-secondary/50 p-3 rounded-xl border border-border text-xs">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-primary mt-0.5" />
+                      <div className="flex flex-col gap-1">
+                        <p>Meet in a public place. Never send money in advance.</p>
+                        <Link to="/safety" className="text-primary font-semibold hover:underline">Learn More →</Link>
+                      </div>
+                   </div>
+                </div>
+
               </aside>
 
             </div>
           </>
+        )}
+
+        {/* 5. RELATED CONTENT (Moved outside the grid to span full width above footer) */}
+        {listing.category !== 'seeking-work' && relatedListings.length > 0 && (
+          <div className="mt-16 border-t border-border pt-12">
+            <h3 className="font-display text-2xl font-bold mb-6">You may also like</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {relatedListings.map(item => (
+                <ListingCard key={item.id} listing={item} />
+              ))}
+            </div>
+          </div>
         )}
       </div>
 

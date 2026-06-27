@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border bg-card">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+    <footer className="border-t border-border bg-card mt-20">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <div className="flex items-center gap-2">
@@ -17,9 +17,8 @@ export default function Footer() {
                 </span>
               </div>
             </div>
-            <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-              Kenya's home for buying and selling — built for real sellers and
-              serious buyers, from Nairobi to Kisumu.
+            <p className="mt-4 max-w-xs text-sm font-semibold text-muted-foreground">
+              Buy. Sell. Discover.
             </p>
           </div>
 
