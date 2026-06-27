@@ -452,8 +452,6 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-
-
       {/* Announcement strip */}
       <div className="gradient-emerald text-primary-foreground">
         <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm">
@@ -462,7 +460,14 @@ export default function HomePage() {
         </div>
       </div>
 
-
+      {/* ── DEV NOTICE BANNER ─────────────────────────────────────────── */}
+      <div className="w-full bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-amber-800 dark:text-amber-300">
+          <span className="animate-bounce inline-block text-base">🔧</span>
+          <span className="font-semibold">Heads up!</span>
+          <span className="opacity-80">Our devs are still tinkering — expect a few sparks. We're building something great for you. 🚀</span>
+        </div>
+      </div>
 
       {/* ── TWO-COLUMN LAYOUT ─────────────────────────────────────── */}
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
