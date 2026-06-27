@@ -15,9 +15,26 @@ export default function HeroSearch() {
   const [categoryTab, setCategoryTab] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
   
   const searchRef = useRef(null);
   const navigate = useNavigate();
+
+  const PLACEHOLDERS = [
+    'Search vehicles...',
+    'Search apartments...',
+    'Search jobs...',
+    'Search phones...',
+    'Search electronics...',
+    'Search services...'
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIdx(prev => (prev + 1) % PLACEHOLDERS.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     try {
@@ -185,16 +202,18 @@ export default function HeroSearch() {
         <div className="flex flex-1 items-center gap-3 px-3 py-2 sm:py-1">
           <Search className="h-5 w-5 text-muted-foreground shrink-0" />
           <label htmlFor="heroSearch" className="sr-only">Search listings</label>
-          <input
-            id="heroSearch"
-            type="text"
-            placeholder="Search vehicles, property, electronics…"
-            value={keyword}
-            onChange={e => setKeyword(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            className="min-w-0 flex-1 bg-transparent text-base sm:text-sm outline-none placeholder:text-muted-foreground"
-            autoComplete="off"
-          />
+          <div className="relative flex-1">
+            <input
+              id="heroSearch"
+              type="text"
+              placeholder={isFocused ? 'Type to search...' : PLACEHOLDERS[placeholderIdx]}
+              value={keyword}
+              onChange={e => setKeyword(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              className="w-full bg-transparent text-base sm:text-sm outline-none placeholder:text-muted-foreground transition-all duration-500 placeholder:transition-opacity"
+              autoComplete="off"
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

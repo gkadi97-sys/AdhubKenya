@@ -1108,24 +1108,34 @@ export const CATEGORY_ATTRIBUTES = {
 };
 
 export const CATEGORY_ICONS = [
-  { slug: 'auto-spares',          name: 'Auto Spares',                  icon: '⚙️', count: 0 },
-  { slug: 'vehicles',             name: 'Vehicles',                     icon: '🚗', count: 0 },
-  { slug: 'property',             name: 'Property',                     icon: '🏠', count: 0 },
-  { slug: 'phones-tablets',       name: 'Phones & Tablets',             icon: '📱', count: 0 },
-  { slug: 'electronics',          name: 'Electronics',                  icon: '💻', count: 0 },
-  { slug: 'home-furniture',       name: 'Home & Furniture',             icon: '🛋️', count: 0 },
-  { slug: 'fashion',              name: 'Fashion',                      icon: '👗', count: 0 },
-  { slug: 'beauty',               name: 'Beauty & Personal Care',       icon: '✨', count: 0 },
-  { slug: 'services',             name: 'Services',                     icon: '🔧', count: 0 },
-  { slug: 'repair-construction',  name: 'Repair & Construction',        icon: '🛠️', count: 0 },
-  { slug: 'commercial-equipment', name: 'Commercial Equipment',         icon: '🚜', count: 0 },
-  { slug: 'leisure',              name: 'Leisure & Sports',             icon: '⚽', count: 0 },
-  { slug: 'babies-kids',          name: 'Babies & Kids',                icon: '🧸', count: 0 },
-  { slug: 'food-agriculture',     name: 'Agriculture & Food',           icon: '🍎', count: 0 },
-  { slug: 'animals-pets',         name: 'Animals & Pets',               icon: '🐶', count: 0 },
-  { slug: 'jobs',                 name: 'Jobs',                         icon: '💼', count: 0 },
-  { slug: 'seeking-work',         name: 'CVs & Resumes',                icon: '📄', count: 0 },
+  { slug: 'auto-spares',          name: 'Auto Parts & Accessories',     icon: '⚙️', count: 0, activity: 60, clicks: 50, searchDemand: 70 },
+  { slug: 'vehicles',             name: 'Vehicles',                     icon: '🚗', count: 127, activity: 90, clicks: 95, searchDemand: 100 },
+  { slug: 'property',             name: 'Property',                     icon: '🏠', count: 0, activity: 85, clicks: 80, searchDemand: 90 },
+  { slug: 'phones-tablets',       name: 'Phones & Tablets',             icon: '📱', count: 42, activity: 80, clicks: 85, searchDemand: 90 },
+  { slug: 'electronics',          name: 'Electronics',                  icon: '💻', count: 15, activity: 70, clicks: 75, searchDemand: 80 },
+  { slug: 'home-furniture',       name: 'Home & Living',                icon: '🛋️', count: 30, activity: 60, clicks: 65, searchDemand: 70 },
+  { slug: 'fashion',              name: 'Fashion & Beauty',             icon: '👗', count: 58, activity: 75, clicks: 70, searchDemand: 80 },
+  { slug: 'services',             name: 'Services',                     icon: '🔧', count: 12, activity: 65, clicks: 60, searchDemand: 75 },
+  { slug: 'repair-construction',  name: 'Repair & Construction',        icon: '🛠️', count: 0, activity: 30, clicks: 40, searchDemand: 50 },
+  { slug: 'commercial-equipment', name: 'Business & Industrial',        icon: '🚜', count: 5, activity: 40, clicks: 45, searchDemand: 40 },
+  { slug: 'leisure',              name: 'Hobbies & Entertainment',      icon: '⚽', count: 0, activity: 20, clicks: 25, searchDemand: 30 },
+  { slug: 'babies-kids',          name: 'Babies & Kids',                icon: '🧸', count: 8, activity: 45, clicks: 50, searchDemand: 55 },
+  { slug: 'food-agriculture',     name: 'Agriculture & Food',           icon: '🍎', count: 2, activity: 30, clicks: 35, searchDemand: 40 },
+  { slug: 'animals-pets',         name: 'Animals & Pets',               icon: '🐶', count: 0, activity: 50, clicks: 55, searchDemand: 60 },
+  { slug: 'jobs',                 name: 'Jobs',                         icon: '💼', count: 0, activity: 80, clicks: 85, searchDemand: 95 },
+  { slug: 'seeking-work',         name: 'CVs & Resumes',                icon: '📄', count: 0, activity: 40, clicks: 45, searchDemand: 50 },
 ];
+
+export function getRankedCategories(slugs) {
+  return slugs
+    .map(slug => CATEGORY_ICONS.find(c => c.slug === slug))
+    .filter(Boolean)
+    .sort((a, b) => {
+      const scoreA = (0.4 * a.count) + (0.3 * a.activity) + (0.2 * a.clicks) + (0.1 * a.searchDemand);
+      const scoreB = (0.4 * b.count) + (0.3 * b.activity) + (0.2 * b.clicks) + (0.1 * b.searchDemand);
+      return scoreB - scoreA;
+    });
+}
 
 export const TOP_CATEGORIES = CATEGORY_ICONS;
 export const MANUFACTURE_YEARS = Array.from({length: 30}, (_, i) => new Date().getFullYear() - i);

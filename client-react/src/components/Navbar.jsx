@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Search, PlusCircle, MessageSquare, Heart, Bell, User, LogOut, FileText } from 'lucide-react';
@@ -8,6 +8,8 @@ export default function Navbar() {
   const [search, setSearch] = useState('');
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHomepage = location.pathname === '/';
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -34,21 +36,26 @@ export default function Navbar() {
             </div>
           </Link>
 
-          <div className="hidden min-w-0 md:flex">
-            <form onSubmit={handleSearch} className="flex w-full max-w-xl items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 shadow-sm transition focus-within:border-primary/50 focus-within:shadow-elevated">
-              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search Toyota, iPhone, apartment…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-              />
-              <kbd className="hidden rounded-md border border-border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground lg:inline">
-                Enter
-              </kbd>
-            </form>
-          </div>
+          {/* Header Search (Hidden on Homepage) */}
+          {!isHomepage && (
+            <div className="hidden min-w-0 md:flex transition-all duration-300 ease-in-out">
+              <form onSubmit={handleSearch} className="flex w-full max-w-xl items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 shadow-sm transition focus-within:border-primary/50 focus-within:shadow-elevated">
+                <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search Toyota, iPhone, apartment…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                />
+                <kbd className="hidden rounded-md border border-border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground lg:inline">
+                  Enter
+                </kbd>
+              </form>
+            </div>
+          )}
+          
+          {isHomepage && <div className="hidden md:block flex-1" />}
 
           <div className="flex shrink-0 items-center gap-2">
             <Link to="/post-ad" className="hidden items-center gap-2 rounded-full gradient-emerald px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-elevated transition hover:opacity-95 sm:inline-flex">
