@@ -23,6 +23,13 @@ export const MODEL_SPECS = {
         network: ['4G LTE', '5G'],
         os: ['Android'],
         color: ['Black', 'Grey', 'Violet', 'Yellow', 'Other']
+      },
+      'Galaxy A04': {
+        ram: ['3GB', '4GB', '6GB', '8GB'],
+        storage: ['32GB', '64GB', '128GB'],
+        network: ['2G', '3G', '4G LTE'], // No 5G
+        os: ['Android'],
+        color: ['Black', 'Green', 'Copper', 'White', 'Other']
       }
     },
     'Apple': {

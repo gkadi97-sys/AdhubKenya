@@ -10,13 +10,11 @@ import { getCascadeConfig } from './filterEngine';
 
 /**
  * Helper to determine the level 1 and level 2 values based on current filters and category.
+ * In our modelSpecs.js, Level 1 is always the Brand/Make, and Level 2 is always the Model.
  */
 function getActiveLevels(categorySlug, filters) {
-  const config = getCascadeConfig(categorySlug, filters.subcategory || filters.bodyType);
-  if (!config) return { l1: null, l2: null };
-  
-  const l1Value = filters[config.level1];
-  const l2Value = filters[config.level2];
+  const l1Value = filters.brand || filters.make;
+  const l2Value = filters.model;
   
   return { l1: l1Value, l2: l2Value };
 }
