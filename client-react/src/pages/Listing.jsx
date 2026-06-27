@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getListing, imageUrl, formatPrice, timeAgo } from '@/lib/api';
+import { getListing, getListings, imageUrl, formatPrice, timeAgo } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { SCHEMA_ATTRIBUTES } from '@/lib/schemaEngine';
 import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import CandidateProfile from '@/components/CandidateProfile';
+import ListingCard from '@/components/ListingCard';
+import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft } from 'lucide-react';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -15,6 +17,10 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
+  const [relatedListings, setRelatedListings] = useState([]);
+  const [descExpanded, setDescExpanded] = useState(false);
+  const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
+  const [showNumber, setShowNumber] = useState(false);
 
   useSEO({
     title: listing ? `${listing.title} – ${formatPrice(listing.price)} | AdHub Kenya` : 'View Listing | AdHub Kenya',
@@ -50,7 +56,9 @@ export default function ListingDetailPage() {
   }, [listing, id]);
 
   useEffect(() => {
+    window.scrollTo(0, 0); // Reset scroll position when id changes
     if (id) {
+      setLoading(true);
       getListing(id).then(data => {
         setListing(data);
         if (data) addListing(data);
@@ -59,11 +67,23 @@ export default function ListingDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  useEffect(() => {
+    if (listing?.category) {
+      getListings({ category: listing.category, limit: 5 }).then(data => {
+        // filter out current listing and take top 4
+        setRelatedListings(data.filter(item => item.id !== listing.id).slice(0, 4));
+      }).catch(() => {});
+    }
+  }, [listing?.category, listing?.id]);
+
   if (loading) return (
     <div className="py-16 px-4 sm:px-6 max-w-6xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-        <div className="rounded-2xl bg-secondary animate-pulse" style={{ aspectRatio: '4/3' }} />
-        <div className="rounded-2xl bg-secondary animate-pulse h-72" />
+        <div className="space-y-4">
+          <div className="h-8 bg-secondary rounded w-3/4 animate-pulse" />
+          <div className="rounded-2xl bg-secondary animate-pulse" style={{ aspectRatio: '4/3' }} />
+        </div>
+        <div className="rounded-2xl bg-secondary animate-pulse h-96" />
       </div>
     </div>
   );
@@ -124,232 +144,319 @@ export default function ListingDetailPage() {
   }
   const featureSpecs = listing.specs ? Object.entries(listing.specs).filter(([k, v]) => FEATURE_KEYS.includes(k) && Array.isArray(v) && v.length > 0) : [];
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: listing.title,
+        url: window.location.href,
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  const isVerifiedSeller = listing.seller?.created_at && (new Date() - new Date(listing.seller.created_at)) / (1000 * 60 * 60 * 24) > 30;
+
   return (
-    <div className="py-8 pb-16 px-4 sm:px-6 bg-background">
+    <div className="py-4 sm:py-8 pb-32 sm:pb-16 px-4 sm:px-6 bg-background">
       <div className="mx-auto max-w-6xl">
 
         {listing.category === 'seeking-work' ? (
           <CandidateProfile listing={listing} />
         ) : (
           <>
-            {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 mb-6 text-sm text-muted-foreground flex-wrap">
-              <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
-              <span>/</span>
-              <Link to="/browse" className="hover:text-foreground transition-colors">Browse</Link>
-              <span>/</span>
-              <Link to={`/browse?category=${listing.category}`} className="hover:text-foreground transition-colors capitalize">{listing.category?.replace(/-/g, ' ')}</Link>
-              <span>/</span>
-              <span className="text-foreground truncate max-w-[200px]">{listing.title}</span>
+            {/* Breadcrumb - Truncated earlier items, only active final */}
+            <nav className="flex items-center gap-1 sm:gap-2 mb-4 text-xs sm:text-sm text-muted-foreground flex-nowrap overflow-x-auto pb-2 scrollbar-none whitespace-nowrap">
+              <Link to="/" className="hover:text-foreground transition-colors shrink-0">Home</Link>
+              <span className="shrink-0 text-[10px] sm:text-xs">▶</span>
+              <Link to="/browse" className="hover:text-foreground transition-colors shrink-0">Browse</Link>
+              <span className="shrink-0 text-[10px] sm:text-xs">▶</span>
+              <Link to={`/browse?category=${listing.category}`} className="hover:text-foreground transition-colors capitalize shrink-0">{listing.category?.replace(/-/g, ' ')}</Link>
+              <span className="shrink-0 text-[10px] sm:text-xs">▶</span>
+              <span className="text-foreground font-semibold truncate flex-1 min-w-[100px]">{listing.title}</span>
             </nav>
 
-            {/* Main grid: left = images + details, right = contact card */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
-
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 lg:gap-8 items-start">
+              
               {/* ── LEFT COLUMN ── */}
-              <div className="min-w-0">
+              <div className="min-w-0 flex flex-col gap-6">
 
-                {/* Image gallery */}
-                <div className="rounded-2xl overflow-hidden border border-border bg-card">
-                  {images.length > 0 ? (
-                    <>
-                      <img
-                        src={imageUrl(images[activeImg])}
-                        alt={listing.title}
-                        className="w-full object-cover"
-                        style={{ aspectRatio: '4/3', maxHeight: 500 }}
-                        onError={e => { e.target.src = 'https://placehold.co/800x600/1a2b1e/00d168?text=AdHub'; }}
-                      />
-                      {images.length > 1 && (
-                        <div className="flex gap-2 p-3 overflow-x-auto">
-                          {images.map((img, i) => (
-                            <img key={i} src={imageUrl(img)} alt=""
-                              onClick={() => setActiveImg(i)}
-                              className={`h-16 w-16 rounded-lg object-cover cursor-pointer flex-shrink-0 border-2 transition-all ${i === activeImg ? 'border-primary shadow-sm' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                              onError={e => { e.target.src = 'https://placehold.co/72x72/1a2b1e/00d168?text=img'; }}
-                            />
+                {/* 1. TITLE & PRICE BLOCK */}
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-extrabold text-foreground mb-3 leading-tight">
+                      {listing.title}
+                    </h1>
+                    
+                    {/* Quick Facts Chips */}
+                    <div className="flex flex-wrap gap-2 text-xs font-semibold">
+                      {listing.condition && (
+                         <span className="inline-flex items-center rounded-full bg-secondary text-secondary-foreground px-2.5 py-1">
+                          {listing.condition}
+                        </span>
+                      )}
+                      <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-1 capitalize">
+                        {listing.category?.replace(/-/g, ' ')}
+                      </span>
+                      {listing.make && (
+                        <span className="inline-flex items-center rounded-full bg-border text-foreground px-2.5 py-1">
+                           {listing.make} {listing.model}
+                        </span>
+                      )}
+                      <span className="inline-flex items-center gap-1 text-muted-foreground px-2 py-1">
+                        <MapPin className="w-3 h-3" /> {listing.location}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-muted-foreground px-2 py-1">
+                        <Eye className="w-3 h-3" /> {listing.views} Views
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {listing.price > 0 && (
+                    <div className="shrink-0 text-right">
+                      <div className="text-3xl sm:text-4xl font-display font-black text-primary">{formatPrice(listing.price)}</div>
+                      {listing.negotiable && <div className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-1 uppercase tracking-wider">Negotiable</div>}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. IMAGE GALLERY */}
+                <div className="flex flex-col gap-3">
+                  <div className="relative rounded-2xl overflow-hidden border border-border bg-[#0f1411] dark:bg-black group flex items-center justify-center">
+                    {images.length > 0 ? (
+                      <>
+                        <img
+                          src={imageUrl(images[activeImg])}
+                          alt={listing.title}
+                          className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105"
+                          style={{ maxHeight: 'max(380px, min(65vh, 520px))' }}
+                          onError={e => { e.target.src = 'https://placehold.co/800x600/1a2b1e/00d168?text=AdHub'; }}
+                        />
+                        {/* Image Counter Overlay */}
+                        <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full z-10 shadow-sm border border-white/10">
+                          {activeImg + 1} / {images.length}
+                        </div>
+                        {/* Fullscreen Hint */}
+                        <button 
+                          onClick={() => setIsZoomModalOpen(true)}
+                          className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white p-2 rounded-full z-10 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black border border-white/10 shadow-sm">
+                          <Maximize2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="flex items-center justify-center text-6xl bg-secondary w-full" style={{ height: 400 }}>🖼️</div>
+                    )}
+                  </div>
+                  
+                  {/* Thumbnail Strip (Moved below image) */}
+                  {images.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-2 snap-x scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+                      {images.map((img, i) => (
+                        <button 
+                          key={i} 
+                          onClick={() => setActiveImg(i)}
+                          className={`snap-start relative h-16 w-20 sm:h-20 sm:w-28 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all duration-200 ${i === activeImg ? 'border-primary ring-2 ring-primary/20 scale-[1.02]' : 'border-transparent opacity-60 hover:opacity-100 hover:scale-95'}`}
+                        >
+                          <img 
+                            src={imageUrl(img)} 
+                            alt=""
+                            className="w-full h-full object-cover"
+                            onError={e => { e.target.src = 'https://placehold.co/72x72/1a2b1e/00d168?text=img'; }}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. SPECS (Moved up) */}
+                {keyValueSpecs.length > 0 && (
+                  <div className="rounded-2xl border border-border bg-card p-5 sm:p-7">
+                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                      <span className="text-primary">📋</span> Specifications
+                    </h3>
+                    <div className="grid grid-cols-2 gap-px bg-border rounded-xl overflow-hidden border border-border">
+                      {keyValueSpecs.map(item => (
+                        <div key={item.key} className="bg-background px-4 py-3 flex flex-col justify-center">
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">{item.label}</span>
+                          <span className="font-semibold text-sm text-foreground">{item.val}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Features (Boolean) */}
+                {(booleanFeatures.length > 0 || featureSpecs.length > 0) && (
+                   <div className="rounded-2xl border border-border bg-card p-5 sm:p-7">
+                     <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                      <span className="text-primary">✨</span> Features & Amenities
+                    </h3>
+                    <div className="flex flex-col gap-5">
+                      {booleanFeatures.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {booleanFeatures.map(f => (
+                            <span key={f} className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary text-foreground">✓ {f}</span>
                           ))}
                         </div>
                       )}
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-center text-6xl bg-secondary" style={{ aspectRatio: '4/3' }}>🖼️</div>
-                  )}
-                </div>
-
-                {/* Details card */}
-                <div className="mt-4 rounded-2xl border border-border bg-card p-5 sm:p-7">
-
-                  {/* Title, badges, price */}
-                  <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
-                    <div className="flex-1 min-w-0">
-                      <h1 className="text-2xl font-display font-bold text-foreground mb-2 leading-tight">{listing.title}</h1>
-                      <div className="flex gap-2 flex-wrap">
-                        <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold capitalize">
-                          {listing.category?.replace(/-/g, ' ')}
-                        </span>
-                        {['vehicles', 'phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids', 'auto-spares'].includes(listing.category) && listing.condition && (
-                          <span className="inline-flex items-center rounded-full bg-secondary text-secondary-foreground px-3 py-1 text-xs font-semibold">{listing.condition}</span>
-                        )}
-                        {listing.negotiable && (
-                          <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-3 py-1 text-xs font-semibold">Negotiable</span>
-                        )}
-                      </div>
-                    </div>
-                    {listing.price > 0 && (
-                      <div className="text-3xl font-display font-extrabold text-primary whitespace-nowrap">{formatPrice(listing.price)}</div>
-                    )}
-                  </div>
-
-                  {/* Make / Model / Year */}
-                  {(listing.make || listing.model || listing.year) && (
-                    <div className="flex gap-4 flex-wrap mb-4 p-3 bg-secondary/50 rounded-xl border border-border">
-                      {listing.make && (
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Make / Type</span>
-                          <span className="font-bold text-sm">{listing.make}</span>
-                        </div>
-                      )}
-                      {listing.model && (
-                        <div className="flex flex-col gap-0.5 pl-4 border-l border-border">
-                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Model</span>
-                          <span className="font-bold text-sm">{listing.model}</span>
-                        </div>
-                      )}
-                      {listing.year && (
-                        <div className="flex flex-col gap-0.5 pl-4 border-l border-border">
-                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Year</span>
-                          <span className="font-bold text-sm">{listing.year}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Meta */}
-                  <div className="flex gap-4 text-sm text-muted-foreground mb-5 flex-wrap">
-                    <span>📍 {listing.location}</span>
-                    <span>👁️ {listing.views} views</span>
-                    <span>🕐 {timeAgo(listing.created_at || listing.createdAt)}</span>
-                  </div>
-
-                  <hr className="border-border mb-5" />
-
-                  {/* Specs grid */}
-                  {keyValueSpecs.length > 0 && (
-                    <div className="mb-5">
-                      <h3 className="font-bold text-base mb-3">Specifications</h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-border rounded-xl overflow-hidden border border-border mb-2">
-                        {keyValueSpecs.map(item => (
-                          <div key={item.key} className="bg-background px-3 py-2.5 flex flex-col gap-0.5">
-                            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{item.label}</span>
-                            <span className="font-semibold text-sm text-foreground">{item.val}</span>
+                      
+                      {featureSpecs.map(([key, features]) => (
+                        <div key={key}>
+                          <h4 className="text-xs font-bold mb-2 text-muted-foreground uppercase tracking-wider">{FEATURE_LABELS[key]}</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {features.map(f => (
+                              <span key={f} className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary text-foreground">✓ {f}</span>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                   </div>
+                )}
 
-                  {/* Boolean feature pills */}
-                  {booleanFeatures.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-bold mb-2">✨ Included Features</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {booleanFeatures.map(f => (
-                          <span key={f} className="px-3 py-1 rounded-full text-xs font-medium border border-primary/30 bg-primary/5 text-primary">✓ {f}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Legacy feature pill groups */}
-                  {featureSpecs.map(([key, features]) => (
-                    <div key={key} className="mb-4">
-                      <h4 className="text-sm font-bold mb-2">{FEATURE_LABELS[key]}</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {features.map(f => (
-                          <span key={f} className="px-3 py-1 rounded-full text-xs font-medium border border-primary/30 bg-primary/5 text-primary">✓ {f}</span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Description */}
-                  <h3 className="font-bold text-base mb-3">Description</h3>
-                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{listing.description}</p>
+                {/* 4. DESCRIPTION (Expandable) */}
+                <div className="rounded-2xl border border-border bg-card p-5 sm:p-7 relative overflow-hidden">
+                   <h3 className="font-bold text-lg mb-4">Description</h3>
+                   <div className={`text-muted-foreground leading-relaxed whitespace-pre-wrap transition-all duration-300 relative ${!descExpanded ? 'max-h-40 overflow-hidden' : ''}`}>
+                     {listing.description}
+                     {!descExpanded && (
+                       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-card to-transparent pointer-events-none" />
+                     )}
+                   </div>
+                   
+                   {/* Toggle Button */}
+                   {listing.description?.length > 300 && (
+                     <button 
+                       onClick={() => setDescExpanded(!descExpanded)}
+                       className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-secondary/50 hover:bg-secondary rounded-xl text-sm font-semibold transition-colors"
+                     >
+                       {descExpanded ? 'Show Less' : 'Read More'}
+                       {descExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                     </button>
+                   )}
                 </div>
+
+                {/* 5. RELATED CONTENT */}
+                {relatedListings.length > 0 && (
+                  <div className="mt-8 pt-8 border-t border-border">
+                    <h3 className="font-display text-2xl font-bold mb-6">Similar Items</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {relatedListings.map(item => (
+                        <ListingCard key={item.id} listing={item} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
               </div>
 
               {/* ── RIGHT COLUMN: Contact card (sticky on desktop) ── */}
-              <aside className="lg:sticky lg:top-24">
-                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-
-                  {/* Seller info */}
-                  <div className="flex items-center gap-3 mb-5 pb-5 border-b border-border">
-                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-xl font-bold text-primary-foreground flex-shrink-0">
+              <aside className="lg:sticky lg:top-24 z-10">
+                <div className="rounded-2xl border border-border bg-card shadow-sm flex flex-col">
+                  
+                  {/* Seller Info (Compact) */}
+                  <div className="p-5 flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary flex-shrink-0 border border-primary/20">
                       {listing.seller?.name?.[0]?.toUpperCase() || 'S'}
                     </div>
-                    <div className="min-w-0">
-                      <div className="font-bold text-foreground truncate">{listing.seller?.name || 'Seller'}</div>
-                      <div className="text-xs text-muted-foreground">📍 {listing.seller?.location || listing.location}</div>
-                      <div className="text-xs text-muted-foreground">
-                        Member since {new Date(listing.seller?.created_at || listing.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-foreground text-lg truncate">{listing.seller?.name || 'Seller'}</div>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                        <Clock className="w-3 h-3" /> Member since {new Date(listing.seller?.created_at || listing.created_at).getFullYear()}
                       </div>
                     </div>
                   </div>
-
-                  {/* Price (repeated for easy reference in sidebar) */}
-                  {listing.price > 0 && (
-                    <div className="mb-4">
-                      <div className="text-2xl font-display font-extrabold text-primary">{formatPrice(listing.price)}</div>
-                      {listing.negotiable && <div className="text-xs text-muted-foreground mt-0.5">Price is negotiable</div>}
+                  
+                  {/* Trust Indicators (Mocked for visual UX per request) */}
+                  <div className="px-5 pb-5 grid grid-cols-2 gap-2 text-center text-xs">
+                    <div className="bg-secondary/50 rounded-lg p-2 flex flex-col justify-center border border-border">
+                      <span className="font-semibold text-foreground">~20 min</span>
+                      <span className="text-muted-foreground">Response time</span>
+                    </div>
+                    <div className="bg-secondary/50 rounded-lg p-2 flex flex-col justify-center border border-border">
+                      <span className="font-semibold text-foreground">12</span>
+                      <span className="text-muted-foreground">Active ads</span>
+                    </div>
+                  </div>
+                  
+                  {isVerifiedSeller && (
+                    <div className="px-5 pb-4">
+                      <div className="flex items-center justify-center gap-1.5 w-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border border-green-200 dark:border-green-800">
+                        <ShieldCheck className="w-4 h-4" /> Verified Seller
+                      </div>
                     </div>
                   )}
 
-                  {/* Contact buttons */}
-                  <div className="flex flex-col gap-3">
+                  <hr className="border-border" />
+
+                  {/* Contact Buttons (Redesigned) */}
+                  <div className="p-5 flex flex-col gap-3">
                     {user ? (
                       <>
                         {(listing.whatsapp || listing.phone) && (
                           <a href={waLink} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 w-full rounded-xl py-3 px-4 font-semibold text-white text-sm hover:opacity-90 transition-opacity"
-                            style={{ background: '#25D366', boxShadow: '0 4px 15px rgba(37,211,102,0.3)' }}>
-                            💬 WhatsApp Seller
+                            className="flex items-center justify-center gap-2 w-full rounded-xl py-3.5 px-4 font-bold text-white text-sm hover:opacity-90 transition-opacity shadow-sm"
+                            style={{ background: '#25D366' }}>
+                            <MessageCircle className="w-5 h-5 fill-current" /> Chat on WhatsApp
                           </a>
                         )}
-                        <a href={`tel:${listing.phone}`}
-                          className="flex items-center justify-center gap-2 w-full rounded-xl py-3 px-4 font-semibold text-foreground text-sm border border-border bg-secondary hover:bg-secondary/70 transition-colors">
-                          📞 Call Seller
-                        </a>
-                        <div className="rounded-xl bg-secondary/50 border border-border px-4 py-3 text-center text-sm text-muted-foreground">
-                          📱 {listing.phone}
-                        </div>
+                        
+                        {!showNumber ? (
+                          <button onClick={() => setShowNumber(true)}
+                            className="flex items-center justify-center gap-2 w-full rounded-xl py-3.5 px-4 font-bold text-foreground text-sm border border-border bg-background hover:bg-secondary transition-colors">
+                            <Phone className="w-4 h-4" /> Show Phone Number
+                          </button>
+                        ) : (
+                          <div className="flex gap-2">
+                             <a href={`tel:${listing.phone}`}
+                              className="flex-1 flex items-center justify-center gap-2 rounded-xl py-3.5 px-4 font-bold text-white text-sm bg-primary hover:bg-primary/90 transition-colors">
+                              <Phone className="w-4 h-4" /> Call Now
+                            </a>
+                            <div className="flex-1 flex items-center justify-center rounded-xl bg-secondary border border-border px-4 py-3.5 text-center font-bold text-sm tracking-wide">
+                              {listing.phone}
+                            </div>
+                          </div>
+                        )}
                       </>
                     ) : (
                       <div className="relative">
-                        <div className="blur-sm pointer-events-none select-none opacity-60 flex flex-col gap-3">
-                          <div className="flex items-center justify-center gap-2 w-full rounded-xl py-3 px-4 font-semibold text-white text-sm" style={{ background: '#25D366' }}>💬 WhatsApp Seller</div>
-                          <div className="flex items-center justify-center gap-2 w-full rounded-xl py-3 px-4 font-semibold text-foreground text-sm border border-border bg-secondary">📞 Call Seller</div>
-                          <div className="rounded-xl bg-secondary/50 border border-border px-4 py-3 text-center text-sm">📱 07XX XXX XXX</div>
+                        <div className="blur-[4px] pointer-events-none select-none opacity-60 flex flex-col gap-3">
+                          <div className="flex items-center justify-center gap-2 w-full rounded-xl py-3.5 px-4 font-bold text-white text-sm" style={{ background: '#25D366' }}><MessageCircle className="w-5 h-5" /> Chat on WhatsApp</div>
+                          <div className="flex items-center justify-center gap-2 w-full rounded-xl py-3.5 px-4 font-bold text-foreground text-sm border border-border bg-background"><Phone className="w-4 h-4" /> Show Phone Number</div>
                         </div>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/50 rounded-2xl backdrop-blur-sm p-5 text-center">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-card/80 rounded-xl backdrop-blur-sm p-4 text-center border border-border shadow-sm">
                           <div className="text-3xl">🔒</div>
-                          <div className="text-white font-bold text-sm">Contact details hidden</div>
-                          <div className="text-white/70 text-xs">Sign in to contact this seller</div>
-                          <Link to="/login" state={{ from: `/listing/${listing.id}` }}
-                            className="w-full rounded-xl bg-primary text-primary-foreground py-2.5 px-4 font-semibold text-sm text-center hover:opacity-90 transition-opacity">
-                            🔑 Sign In
-                          </Link>
-                          <Link to="/register" state={{ from: `/listing/${listing.id}` }}
-                            className="w-full rounded-xl border border-white/30 text-white py-2 px-4 font-semibold text-xs text-center hover:bg-white/10 transition-colors">
-                            ✨ Create Free Account
-                          </Link>
+                          <div className="font-bold text-sm">Sign in to contact</div>
+                          <div className="flex gap-2 w-full">
+                            <Link to="/login" state={{ from: `/listing/${listing.id}` }} className="flex-1 rounded-lg bg-primary text-primary-foreground py-2 font-semibold text-xs text-center hover:opacity-90 transition-opacity">Login</Link>
+                            <Link to="/register" state={{ from: `/listing/${listing.id}` }} className="flex-1 rounded-lg border border-border bg-secondary py-2 font-semibold text-xs text-center hover:bg-secondary/70 transition-colors">Register</Link>
+                          </div>
                         </div>
                       </div>
                     )}
+                    
+                    {/* Action Row (Save / Share) */}
+                    <div className="flex gap-3 mt-2">
+                       <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold">
+                         <Heart className="w-4 h-4" /> Save
+                       </button>
+                       <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold">
+                         <Share2 className="w-4 h-4" /> Share
+                       </button>
+                    </div>
                   </div>
-
-                  <div className="mt-4 rounded-xl bg-primary/5 border border-primary/20 p-3 text-xs text-primary/80">
-                    ⚠️ Safety tip: Meet in a public place. Never send money in advance. Always inspect before buying.
+                  
+                  {/* Footer Meta */}
+                  <div className="p-4 bg-secondary/30 rounded-b-2xl border-t border-border flex flex-col gap-3 text-xs">
+                     <button className="flex items-center gap-1.5 text-muted-foreground hover:text-destructive transition-colors w-fit font-medium">
+                       <Flag className="w-3.5 h-3.5" /> Report this ad
+                     </button>
+                     <div className="text-muted-foreground flex gap-1 items-start bg-primary/5 p-3 rounded-xl border border-primary/10">
+                        <span className="text-primary mt-0.5">💡</span>
+                        <p>Safety tip: Meet in a public place. Never send money in advance. Inspect the item before buying.</p>
+                     </div>
                   </div>
                 </div>
               </aside>
@@ -358,6 +465,88 @@ export default function ListingDetailPage() {
           </>
         )}
       </div>
+
+      {/* MOBILE STICKY BOTTOM ACTION BAR */}
+      {listing.category !== 'seeking-work' && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border p-3 px-4 z-40 flex items-center justify-between gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+          <div className="flex flex-col min-w-0">
+             {listing.price > 0 && <span className="font-display font-black text-xl text-primary">{formatPrice(listing.price)}</span>}
+             <span className="text-xs text-muted-foreground truncate">{listing.seller?.name || 'Seller'}</span>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            {user ? (
+               <>
+                 {listing.phone && (
+                   <a href={`tel:${listing.phone}`} className="flex items-center justify-center w-11 h-11 rounded-full bg-secondary border border-border text-foreground">
+                     <Phone className="w-5 h-5" />
+                   </a>
+                 )}
+                 {(listing.whatsapp || listing.phone) && (
+                   <a href={waLink} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 h-11 px-5 rounded-full text-white font-bold text-sm shadow-md" style={{ background: '#25D366' }}>
+                     <MessageCircle className="w-5 h-5 fill-current" /> Chat
+                   </a>
+                 )}
+               </>
+            ) : (
+               <Link to="/login" state={{ from: `/listing/${listing.id}` }} className="flex items-center justify-center h-11 px-6 rounded-full bg-primary text-primary-foreground font-bold text-sm">
+                 Sign in to Contact
+               </Link>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ZOOM MODAL */}
+      {isZoomModalOpen && images.length > 0 && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4">
+          <button 
+            onClick={() => setIsZoomModalOpen(false)}
+            className="absolute top-4 right-4 sm:top-8 sm:right-8 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+          >
+            ✕
+          </button>
+          
+          <div className="relative w-full max-w-5xl h-[80vh] flex items-center justify-center">
+            {images.length > 1 && (
+              <button 
+                onClick={() => setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1)}
+                className="absolute left-0 sm:-left-12 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+            
+            <img 
+              src={imageUrl(images[activeImg])} 
+              alt={listing.title}
+              className="max-w-full max-h-full object-contain"
+            />
+
+            {images.length > 1 && (
+              <button 
+                onClick={() => setActiveImg(prev => (prev + 1) % images.length)}
+                className="absolute right-0 sm:-right-12 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+          </div>
+          
+          {/* Zoom Modal Thumbnails */}
+          <div className="absolute bottom-4 sm:bottom-8 flex gap-2 overflow-x-auto max-w-full px-4 snap-x py-2">
+             {images.map((img, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => setActiveImg(i)}
+                  className={`snap-start relative h-16 w-20 sm:h-20 sm:w-28 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${i === activeImg ? 'border-white scale-105 opacity-100' : 'border-transparent opacity-40 hover:opacity-100'}`}
+                >
+                  <img src={imageUrl(img)} alt="" className="w-full h-full object-cover" />
+                </button>
+             ))}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
