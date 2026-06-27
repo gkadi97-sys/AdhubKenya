@@ -16,7 +16,6 @@ export default function ListingDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
 
-  // Dynamic SEO: updates as listing loads
   useSEO({
     title: listing ? `${listing.title} – ${formatPrice(listing.price)} | AdHub Kenya` : 'View Listing | AdHub Kenya',
     description: listing
@@ -25,7 +24,6 @@ export default function ListingDetailPage() {
     canonicalPath: `/listing/${id}`
   });
 
-  // JSON-LD Product structured data for Google rich results
   useEffect(() => {
     if (!listing) return;
     const scriptId = 'listing-jsonld';
@@ -55,346 +53,308 @@ export default function ListingDetailPage() {
     if (id) {
       getListing(id).then(data => {
         setListing(data);
-        if (data) {
-          addListing(data);
-        }
-      }).catch(()=>setListing(null)).finally(()=>setLoading(false));
+        if (data) addListing(data);
+      }).catch(() => setListing(null)).finally(() => setLoading(false));
     }
-    // Note: addListing is deliberately excluded from deps to avoid infinite loops, 
-    // it's a stable function from the hook but standard practice is to omit it or destructure.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (loading) return (
-    <div className="container" style={{padding:'60px 20px'}}>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 360px',gap:32}}>
-        <div><div className="skeleton" style={{aspectRatio:'4/3',borderRadius:'var(--radius-lg)'}}/></div>
-        <div><div className="skeleton" style={{height:300,borderRadius:'var(--radius-lg)'}}/></div>
+    <div className="py-16 px-4 sm:px-6 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+        <div className="rounded-2xl bg-secondary animate-pulse" style={{ aspectRatio: '4/3' }} />
+        <div className="rounded-2xl bg-secondary animate-pulse h-72" />
       </div>
     </div>
   );
 
   if (!listing) return (
-    <div className="empty-state" style={{padding:'100px 20px'}}>
-      <div className="icon">😕</div>
-      <h3>Listing not found</h3>
-      <p>This ad may have been removed or expired</p>
-      <Link to="/browse" className="btn btn-primary">Browse Ads</Link>
+    <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+      <div className="text-6xl mb-4">😕</div>
+      <h3 className="font-display text-2xl font-bold mb-2">Listing not found</h3>
+      <p className="text-muted-foreground mb-6">This ad may have been removed or expired</p>
+      <Link to="/browse" className="rounded-xl bg-primary text-primary-foreground px-6 py-3 font-semibold text-sm hover:opacity-90 transition-opacity">Browse Ads</Link>
     </div>
   );
 
   const images = listing.images?.length ? listing.images : [];
   const whatsappMsg = encodeURIComponent(`Hi, I'm interested in your ad: "${listing.title}" on AdHub Kenya.`);
-  const waNumber = listing.whatsapp?.replace(/\D/g,'') || listing.phone?.replace(/\D/g,'');
+  const waNumber = listing.whatsapp?.replace(/\D/g, '') || listing.phone?.replace(/\D/g, '');
   const waLink = waNumber ? `https://wa.me/${waNumber.startsWith('0') ? '254' + waNumber.slice(1) : waNumber}?text=${whatsappMsg}` : null;
 
+  const FEATURE_KEYS = ['comfortFeatures', 'infotainmentFeatures', 'safetyFeatures', 'exteriorFeatures', 'conditionDetails', 'residentialFeatures', 'commercialFeatures', 'amenities', 'legalInfo'];
+  const FEATURE_LABELS = {
+    comfortFeatures: '❄️ Comfort & Convenience', infotainmentFeatures: '📱 Infotainment & Connectivity',
+    safetyFeatures: '🛡️ Safety Features', exteriorFeatures: '✨ Exterior Features',
+    conditionDetails: '📋 Condition Details', residentialFeatures: '✨ Residential Features',
+    commercialFeatures: '💼 Commercial Features', amenities: '🏊‍♂️ Amenities & Facilities', legalInfo: '⚖️ Legal & Compliance',
+  };
+  const FRIENDLY_LABELS = {
+    vehicleType: 'Vehicle Type', bodyStyle: 'Body Style', variant: 'Variant / Trim',
+    regYear: 'Year of Registration', regNumber: 'Registration No.',
+    mileage: 'Mileage', mileageUnit: 'Mileage Unit', prevOwners: 'Previous Owners',
+    usageType: 'Usage Type', serviceHistory: 'Service History',
+    fuelType: 'Fuel Type', engineCC: 'Engine (CC)', engineSize: 'Engine Size',
+    horsepower: 'Horsepower', cylinders: 'Cylinders', engineConfig: 'Engine Config',
+    turbocharged: 'Turbocharged', transmission: 'Transmission', numGears: 'No. Gears',
+    driveType: 'Drive Type', color: 'Exterior Colour', colorType: 'Colour Type',
+    numDoors: 'Doors', numSeats: 'Seats', wheelSize: 'Wheel Size',
+    engineCapacityCc: 'Engine Size (cc)', bodyType: 'Body Type', interiorColor: 'Interior Color',
+    exteriorColor: 'Exterior Color', seatingCapacity: 'Seating Capacity', mileageKm: 'Mileage (km)',
+    landSize: 'Land Size', builtArea: 'Built-up Area', floors: 'Floors',
+    bedrooms: 'Bedrooms', bathrooms: 'Bathrooms', livingRooms: 'Living Rooms',
+    meetingRooms: 'Meeting Rooms', agencyName: 'Agency / Company', website: 'Website',
+  };
+
+  const flatSchema = {};
+  Object.values(ATTRIBUTE_ENGINE).forEach(cat => { if (cat.attributes) cat.attributes.forEach(attr => { flatSchema[attr.id] = attr; }); });
+
+  const booleanFeatures = [];
+  const keyValueSpecs = [];
+  if (listing.specs) {
+    Object.entries(listing.specs).forEach(([k, v]) => {
+      if (FEATURE_KEYS.includes(k)) return;
+      if (v === '' || v === null || v === undefined) return;
+      const schemaAttr = SCHEMA_ATTRIBUTES[k] || flatSchema[k];
+      const isBoolean = v === true || v === false || schemaAttr?.type === 'checkbox' || (schemaAttr?.type === 'radio' && v === 'Yes');
+      const label = schemaAttr?.label || FRIENDLY_LABELS[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+      if (isBoolean) { if (v === true) booleanFeatures.push(label); }
+      else { keyValueSpecs.push({ key: k, label, val: String(v) }); }
+    });
+  }
+  const featureSpecs = listing.specs ? Object.entries(listing.specs).filter(([k, v]) => FEATURE_KEYS.includes(k) && Array.isArray(v) && v.length > 0) : [];
+
   return (
-    <div style={{padding:'32px 0 60px'}}>
-      <div className="container">
-        {/* Render separate CV profile layout if seeking-work */}
+    <div className="py-8 pb-16 px-4 sm:px-6 bg-background">
+      <div className="mx-auto max-w-6xl">
+
         {listing.category === 'seeking-work' ? (
           <CandidateProfile listing={listing} />
         ) : (
           <>
             {/* Breadcrumb */}
-            <nav style={{display:'flex',gap:8,alignItems:'center',marginBottom:24,fontSize:'0.85rem',color:'var(--text-muted)'}}>
-          <Link to="/" style={{color:'var(--text-muted)'}}>Home</Link>
-          <span>/</span>
-          <Link to="/browse" style={{color:'var(--text-muted)'}}>Browse</Link>
-          <span>/</span>
-          <Link to={`/browse?category=${listing.category}`} style={{color:'var(--text-muted)',textTransform:'capitalize'}}>{listing.category}</Link>
-          <span>/</span>
-          <span style={{color:'var(--text)',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{listing.title}</span>
-        </nav>
+            <nav className="flex items-center gap-2 mb-6 text-sm text-muted-foreground flex-wrap">
+              <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
+              <span>/</span>
+              <Link to="/browse" className="hover:text-foreground transition-colors">Browse</Link>
+              <span>/</span>
+              <Link to={`/browse?category=${listing.category}`} className="hover:text-foreground transition-colors capitalize">{listing.category?.replace(/-/g, ' ')}</Link>
+              <span>/</span>
+              <span className="text-foreground truncate max-w-[200px]">{listing.title}</span>
+            </nav>
 
-        <div className="listing-detail-grid">
-          {/* LEFT: Images + Details */}
-          <div>
-            {/* Image gallery */}
-            <div className="image-gallery">
-              {images.length > 0 ? (
-                <>
-                  <img className="main-image" src={imageUrl(images[activeImg])} alt={listing.title}
-                    style={{borderRadius:'var(--radius-lg)',width:'100%',aspectRatio:'4/3',objectFit:'cover'}}
-                    onError={e=>{e.target.src=`https://placehold.co/800x600/1a2b1e/00d168?text=AdHub`;}}
-                  />
-                  {images.length > 1 && (
-                    <div className="thumb-strip" style={{marginTop:8}}>
-                      {images.map((img,i) => (
-                        <img key={i} src={imageUrl(img)} alt="" className={i===activeImg?'active':''}
-                          onClick={()=>setActiveImg(i)}
-                          onError={e=>{e.target.src=`https://placehold.co/72x72/1a2b1e/00d168?text=img`;}}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div style={{aspectRatio:'4/3',background:'var(--surface)',borderRadius:'var(--radius-lg)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'4rem'}}>🖼️</div>
-              )}
-            </div>
+            {/* Main grid: left = images + details, right = contact card */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
 
-            {/* Details */}
-            <div className="card" style={{marginTop:24,padding:28}}>
-              <div style={{display:'flex',alignItems:'start',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginBottom:16}}>
-                <div>
-                  <h1 style={{fontSize:'1.6rem',marginBottom:8}}>{listing.title}</h1>
-                  <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                    <span className="badge badge-primary" style={{textTransform:'capitalize'}}>{listing.category}</span>
-                    {['vehicles', 'phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids'].includes(listing.category) && listing.condition && (
-                      <span className="badge badge-gray">{listing.condition}</span>
-                    )}
-                    {listing.negotiable && <span className="badge badge-accent">Negotiable</span>}
-                  </div>
-                </div>
-                <div style={{fontSize:'2rem',fontWeight:800,color:'var(--primary-light)',fontFamily:'var(--font-display)',whiteSpace:'nowrap'}}>
-                  {formatPrice(listing.price)}
-                </div>
-              </div>
+              {/* ── LEFT COLUMN ── */}
+              <div className="min-w-0">
 
-              {(listing.make || listing.model || listing.year) && (
-                <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:16,padding:'12px 16px',background:'var(--surface-2)',borderRadius:'var(--radius)',border:'1px solid var(--border)'}}>
-                  {listing.make && (
-                    <div style={{display:'flex',flexDirection:'column',gap:2,minWidth:90}}>
-                      <span style={{fontSize:'0.7rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Make / Type</span>
-                      <span style={{fontWeight:600,fontSize:'0.9rem'}}>{listing.make}</span>
-                    </div>
-                  )}
-                  {listing.model && (
-                    <div style={{display:'flex',flexDirection:'column',gap:2,minWidth:90,paddingLeft:listing.make?16:0,borderLeft:listing.make?'1px solid var(--border)':'none'}}>
-                      <span style={{fontSize:'0.7rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Model</span>
-                      <span style={{fontWeight:600,fontSize:'0.9rem'}}>{listing.model}</span>
-                    </div>
-                  )}
-                  {listing.year && (
-                    <div style={{display:'flex',flexDirection:'column',gap:2,minWidth:60,paddingLeft:16,borderLeft:'1px solid var(--border)'}}>
-                      <span style={{fontSize:'0.7rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Year</span>
-                      <span style={{fontWeight:600,fontSize:'0.9rem'}}>{listing.year}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div style={{display:'flex',gap:20,fontSize:'0.85rem',color:'var(--text-muted)',marginBottom:24,flexWrap:'wrap'}}>
-                <span>📍 {listing.location}</span>
-                <span>👁️ {listing.views} views</span>
-                <span>🕐 {timeAgo(listing.created_at || listing.createdAt)}</span>
-              </div>
-
-              <hr style={{border:'none',borderTop:'1px solid var(--border)',margin:'0 0 24px'}}/>
-
-              {listing.specs && Object.keys(listing.specs).filter(k => listing.specs[k] && listing.specs[k] !== '' && (Array.isArray(listing.specs[k]) ? listing.specs[k].length > 0 : true)).length > 0 && (() => {
-                const FRIENDLY_LABELS = {
-                  // Vehicle
-                  vehicleType: 'Vehicle Type', bodyStyle: 'Body Style', variant: 'Variant / Trim',
-                  regYear: 'Year of Registration', regNumber: 'Registration No.',
-                  mileage: 'Mileage', mileageUnit: 'Mileage Unit', prevOwners: 'Previous Owners',
-                  usageType: 'Usage Type', serviceHistory: 'Service History',
-                  fuelType: 'Fuel Type', engineCC: 'Engine (CC)', engineSize: 'Engine Size',
-                  horsepower: 'Horsepower', cylinders: 'Cylinders', engineConfig: 'Engine Config',
-                  turbocharged: 'Turbocharged', transmission: 'Transmission', numGears: 'No. Gears',
-                  driveType: 'Drive Type', color: 'Exterior Colour', colorType: 'Colour Type',
-                  numDoors: 'Doors', numSeats: 'Seats', wheelSize: 'Wheel Size',
-                  engineCapacityCc: 'Engine Size (cc)', bodyType: 'Body Type', interiorColor: 'Interior Color',
-                  exteriorColor: 'Exterior Color', seatingCapacity: 'Seating Capacity', mileageKm: 'Mileage (km)',
-                  listingCategory: 'Listing Category', currency: 'Currency', listingId: 'Listing ID',
-                  landSize: 'Land Size', builtArea: 'Built-up Area', floors: 'Floors',
-                  bedrooms: 'Bedrooms', bathrooms: 'Bathrooms', livingRooms: 'Living Rooms',
-                  meetingRooms: 'Meeting Rooms', agencyName: 'Agency / Company', website: 'Website',
-                };
-                
-                // Legacy feature arrays
-                const FEATURE_KEYS = [
-                  'comfortFeatures', 'infotainmentFeatures', 'safetyFeatures', 'exteriorFeatures', 'conditionDetails',
-                  'residentialFeatures', 'commercialFeatures', 'amenities', 'legalInfo'
-                ];
-                
-                const FEATURE_LABELS = {
-                  comfortFeatures: '❄️ Comfort & Convenience',
-                  infotainmentFeatures: '📱 Infotainment & Connectivity',
-                  safetyFeatures: '🛡️ Safety Features',
-                  exteriorFeatures: '✨ Exterior Features',
-                  conditionDetails: '📋 Condition Details',
-                  residentialFeatures: '✨ Residential Features',
-                  commercialFeatures: '💼 Commercial Features',
-                  amenities: '🏊‍♂️ Amenities & Facilities',
-                  legalInfo: '⚖️ Legal & Compliance',
-                };
-                
-                // Flatten the ATTRIBUTE_ENGINE to easily lookup labels
-                const flatSchema = {};
-                Object.values(ATTRIBUTE_ENGINE).forEach(cat => {
-                  if (cat.attributes) {
-                    cat.attributes.forEach(attr => {
-                      flatSchema[attr.id] = attr;
-                    });
-                  }
-                });
-                
-                const booleanFeatures = [];
-                const keyValueSpecs = [];
-                
-                Object.entries(listing.specs).forEach(([k, v]) => {
-                  if (FEATURE_KEYS.includes(k)) return; // handled by legacy array loop below
-                  if (v === '' || v === null || v === undefined) return;
-                  
-                  const schemaAttr = SCHEMA_ATTRIBUTES[k] || flatSchema[k];
-                  const isBoolean = v === true || v === false || schemaAttr?.type === 'checkbox' || schemaAttr?.type === 'radio' && v === 'Yes';
-                  const label = schemaAttr?.label || FRIENDLY_LABELS[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
-                  
-                  if (isBoolean) {
-                    if (v === true) booleanFeatures.push(label);
-                  } else {
-                    keyValueSpecs.push({ key: k, label, val: v });
-                  }
-                });
-
-                const featureSpecs = Object.entries(listing.specs).filter(([k, v]) => FEATURE_KEYS.includes(k) && Array.isArray(v) && v.length > 0);
-
-                return (
-                  <div style={{ marginBottom: 28 }}>
-                    {/* Key/Value Specs Grid */}
-                    {keyValueSpecs.length > 0 && (
-                      <>
-                        <h3 style={{ marginBottom: 14, fontSize: '1rem' }}>Specifications</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1px', background: 'var(--border)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: 24 }}>
-                          {keyValueSpecs.map((item) => (
-                            <div key={item.key} style={{ background: 'var(--surface)', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                              <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
-                                {item.label}
-                              </span>
-                              <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{item.val}</span>
-                            </div>
+                {/* Image gallery */}
+                <div className="rounded-2xl overflow-hidden border border-border bg-card">
+                  {images.length > 0 ? (
+                    <>
+                      <img
+                        src={imageUrl(images[activeImg])}
+                        alt={listing.title}
+                        className="w-full object-cover"
+                        style={{ aspectRatio: '4/3', maxHeight: 500 }}
+                        onError={e => { e.target.src = 'https://placehold.co/800x600/1a2b1e/00d168?text=AdHub'; }}
+                      />
+                      {images.length > 1 && (
+                        <div className="flex gap-2 p-3 overflow-x-auto">
+                          {images.map((img, i) => (
+                            <img key={i} src={imageUrl(img)} alt=""
+                              onClick={() => setActiveImg(i)}
+                              className={`h-16 w-16 rounded-lg object-cover cursor-pointer flex-shrink-0 border-2 transition-all ${i === activeImg ? 'border-primary shadow-sm' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                              onError={e => { e.target.src = 'https://placehold.co/72x72/1a2b1e/00d168?text=img'; }}
+                            />
                           ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-center text-6xl bg-secondary" style={{ aspectRatio: '4/3' }}>🖼️</div>
+                  )}
+                </div>
+
+                {/* Details card */}
+                <div className="mt-4 rounded-2xl border border-border bg-card p-5 sm:p-7">
+
+                  {/* Title, badges, price */}
+                  <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
+                    <div className="flex-1 min-w-0">
+                      <h1 className="text-2xl font-display font-bold text-foreground mb-2 leading-tight">{listing.title}</h1>
+                      <div className="flex gap-2 flex-wrap">
+                        <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold capitalize">
+                          {listing.category?.replace(/-/g, ' ')}
+                        </span>
+                        {['vehicles', 'phones-tablets', 'electronics', 'home-furniture', 'fashion', 'repair-construction', 'commercial-equipment', 'leisure', 'babies-kids', 'auto-spares'].includes(listing.category) && listing.condition && (
+                          <span className="inline-flex items-center rounded-full bg-secondary text-secondary-foreground px-3 py-1 text-xs font-semibold">{listing.condition}</span>
+                        )}
+                        {listing.negotiable && (
+                          <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-3 py-1 text-xs font-semibold">Negotiable</span>
+                        )}
+                      </div>
+                    </div>
+                    {listing.price > 0 && (
+                      <div className="text-3xl font-display font-extrabold text-primary whitespace-nowrap">{formatPrice(listing.price)}</div>
+                    )}
+                  </div>
+
+                  {/* Make / Model / Year */}
+                  {(listing.make || listing.model || listing.year) && (
+                    <div className="flex gap-4 flex-wrap mb-4 p-3 bg-secondary/50 rounded-xl border border-border">
+                      {listing.make && (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Make / Type</span>
+                          <span className="font-bold text-sm">{listing.make}</span>
+                        </div>
+                      )}
+                      {listing.model && (
+                        <div className="flex flex-col gap-0.5 pl-4 border-l border-border">
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Model</span>
+                          <span className="font-bold text-sm">{listing.model}</span>
+                        </div>
+                      )}
+                      {listing.year && (
+                        <div className="flex flex-col gap-0.5 pl-4 border-l border-border">
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Year</span>
+                          <span className="font-bold text-sm">{listing.year}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Meta */}
+                  <div className="flex gap-4 text-sm text-muted-foreground mb-5 flex-wrap">
+                    <span>📍 {listing.location}</span>
+                    <span>👁️ {listing.views} views</span>
+                    <span>🕐 {timeAgo(listing.created_at || listing.createdAt)}</span>
+                  </div>
+
+                  <hr className="border-border mb-5" />
+
+                  {/* Specs grid */}
+                  {keyValueSpecs.length > 0 && (
+                    <div className="mb-5">
+                      <h3 className="font-bold text-base mb-3">Specifications</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-border rounded-xl overflow-hidden border border-border mb-2">
+                        {keyValueSpecs.map(item => (
+                          <div key={item.key} className="bg-background px-3 py-2.5 flex flex-col gap-0.5">
+                            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{item.label}</span>
+                            <span className="font-semibold text-sm text-foreground">{item.val}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Boolean feature pills */}
+                  {booleanFeatures.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-bold mb-2">✨ Included Features</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {booleanFeatures.map(f => (
+                          <span key={f} className="px-3 py-1 rounded-full text-xs font-medium border border-primary/30 bg-primary/5 text-primary">✓ {f}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Legacy feature pill groups */}
+                  {featureSpecs.map(([key, features]) => (
+                    <div key={key} className="mb-4">
+                      <h4 className="text-sm font-bold mb-2">{FEATURE_LABELS[key]}</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {features.map(f => (
+                          <span key={f} className="px-3 py-1 rounded-full text-xs font-medium border border-primary/30 bg-primary/5 text-primary">✓ {f}</span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Description */}
+                  <h3 className="font-bold text-base mb-3">Description</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{listing.description}</p>
+                </div>
+              </div>
+
+              {/* ── RIGHT COLUMN: Contact card (sticky on desktop) ── */}
+              <aside className="lg:sticky lg:top-24">
+                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+
+                  {/* Seller info */}
+                  <div className="flex items-center gap-3 mb-5 pb-5 border-b border-border">
+                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-xl font-bold text-primary-foreground flex-shrink-0">
+                      {listing.seller?.name?.[0]?.toUpperCase() || 'S'}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-foreground truncate">{listing.seller?.name || 'Seller'}</div>
+                      <div className="text-xs text-muted-foreground">📍 {listing.seller?.location || listing.location}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Member since {new Date(listing.seller?.created_at || listing.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price (repeated for easy reference in sidebar) */}
+                  {listing.price > 0 && (
+                    <div className="mb-4">
+                      <div className="text-2xl font-display font-extrabold text-primary">{formatPrice(listing.price)}</div>
+                      {listing.negotiable && <div className="text-xs text-muted-foreground mt-0.5">Price is negotiable</div>}
+                    </div>
+                  )}
+
+                  {/* Contact buttons */}
+                  <div className="flex flex-col gap-3">
+                    {user ? (
+                      <>
+                        {(listing.whatsapp || listing.phone) && (
+                          <a href={waLink} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 w-full rounded-xl py-3 px-4 font-semibold text-white text-sm hover:opacity-90 transition-opacity"
+                            style={{ background: '#25D366', boxShadow: '0 4px 15px rgba(37,211,102,0.3)' }}>
+                            💬 WhatsApp Seller
+                          </a>
+                        )}
+                        <a href={`tel:${listing.phone}`}
+                          className="flex items-center justify-center gap-2 w-full rounded-xl py-3 px-4 font-semibold text-foreground text-sm border border-border bg-secondary hover:bg-secondary/70 transition-colors">
+                          📞 Call Seller
+                        </a>
+                        <div className="rounded-xl bg-secondary/50 border border-border px-4 py-3 text-center text-sm text-muted-foreground">
+                          📱 {listing.phone}
                         </div>
                       </>
-                    )}
-                    
-                    {/* Boolean Feature Pills */}
-                    {booleanFeatures.length > 0 && (
-                      <div style={{ marginBottom: 20 }}>
-                        <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: 10, color: 'var(--text-secondary)' }}>✨ Included Features & Amenities</h4>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                          {booleanFeatures.map(f => (
-                            <span key={f} style={{
-                              padding: '5px 12px', background: 'var(--primary-glow)',
-                              border: '1px solid var(--primary)', borderRadius: 20,
-                              fontSize: '0.78rem', color: 'var(--primary-light)', fontWeight: 500
-                            }}>✓ {f}</span>
-                          ))}
+                    ) : (
+                      <div className="relative">
+                        <div className="blur-sm pointer-events-none select-none opacity-60 flex flex-col gap-3">
+                          <div className="flex items-center justify-center gap-2 w-full rounded-xl py-3 px-4 font-semibold text-white text-sm" style={{ background: '#25D366' }}>💬 WhatsApp Seller</div>
+                          <div className="flex items-center justify-center gap-2 w-full rounded-xl py-3 px-4 font-semibold text-foreground text-sm border border-border bg-secondary">📞 Call Seller</div>
+                          <div className="rounded-xl bg-secondary/50 border border-border px-4 py-3 text-center text-sm">📱 07XX XXX XXX</div>
+                        </div>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/50 rounded-2xl backdrop-blur-sm p-5 text-center">
+                          <div className="text-3xl">🔒</div>
+                          <div className="text-white font-bold text-sm">Contact details hidden</div>
+                          <div className="text-white/70 text-xs">Sign in to contact this seller</div>
+                          <Link to="/login" state={{ from: `/listing/${listing.id}` }}
+                            className="w-full rounded-xl bg-primary text-primary-foreground py-2.5 px-4 font-semibold text-sm text-center hover:opacity-90 transition-opacity">
+                            🔑 Sign In
+                          </Link>
+                          <Link to="/register" state={{ from: `/listing/${listing.id}` }}
+                            className="w-full rounded-xl border border-white/30 text-white py-2 px-4 font-semibold text-xs text-center hover:bg-white/10 transition-colors">
+                            ✨ Create Free Account
+                          </Link>
                         </div>
                       </div>
                     )}
-                    
-                    {/* Legacy Feature Pill Groups */}
-                    {featureSpecs.map(([key, features]) => (
-                      <div key={key} style={{ marginBottom: 20 }}>
-                        <h4 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: 10, color: 'var(--text-secondary)' }}>{FEATURE_LABELS[key]}</h4>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                          {features.map(f => (
-                            <span key={f} style={{
-                              padding: '5px 12px', background: 'var(--primary-glow)',
-                              border: '1px solid var(--primary)', borderRadius: 20,
-                              fontSize: '0.78rem', color: 'var(--primary-light)', fontWeight: 500
-                            }}>✓ {f}</span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
                   </div>
-                );
-              })()}
 
-              <h3 style={{marginBottom:12,fontSize:'1rem'}}>Description</h3>
-              <p style={{color:'var(--text-secondary)',lineHeight:1.8,whiteSpace:'pre-wrap'}}>{listing.description}</p>
-            </div>
-          </div>
-
-          {/* RIGHT: Contact Card */}
-          <aside>
-            <div className="contact-card">
-              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20,paddingBottom:20,borderBottom:'1px solid var(--border)'}}>
-                <div style={{width:48,height:48,borderRadius:'50%',background:'var(--primary)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.2rem',fontWeight:700,color:'#fff',flexShrink:0}}>
-                  {listing.seller?.name?.[0]?.toUpperCase() || 'S'}
-                </div>
-                <div>
-                  <div className="seller-name">{listing.seller?.name || 'Seller'}</div>
-                  <div className="seller-info">📍 {listing.seller?.location || listing.location}</div>
-                  <div className="seller-info">Member since {new Date(listing.seller?.created_at || listing.seller?.createdAt || listing.created_at || listing.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
-                </div>
-              </div>
-
-              <div style={{fontSize:'1.5rem',fontWeight:800,color:'var(--primary-light)',marginBottom:4}}>{formatPrice(listing.price)}</div>
-              {listing.negotiable && <div style={{fontSize:'0.8rem',color:'var(--text-muted)',marginBottom:16}}>Price is negotiable</div>}
-
-              <div className="contact-btns">
-                {user ? (
-                  // ── LOGGED IN: show full contact details ──
-                  <>
-                    {(listing.whatsapp || listing.phone) && (
-                      <a href={waLink} target="_blank" rel="noopener noreferrer"
-                        className="btn btn-primary btn-full btn-lg"
-                        style={{background:'#25D366',boxShadow:'0 4px 15px rgba(37,211,102,0.3)'}}>
-                        <span>💬</span> WhatsApp Seller
-                      </a>
-                    )}
-                    <a href={`tel:${listing.phone}`} className="btn btn-ghost btn-full btn-lg">
-                      <span>📞</span> Call Seller
-                    </a>
-                    <div style={{background:'var(--bg-3)',borderRadius:'var(--radius)',padding:'12px 16px',textAlign:'center',fontSize:'0.85rem',color:'var(--text-muted)',border:'1px solid var(--border)'}}>
-                      📱 {listing.phone}
-                    </div>
-                  </>
-                ) : (
-                  // ── GUEST: blurred lock gate ──
-                  <div style={{ position: 'relative' }}>
-                    {/* Blurred ghost buttons */}
-                    <div style={{ filter: 'blur(5px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.6 }}>
-                      <div className="btn btn-primary btn-full btn-lg" style={{background:'#25D366', marginBottom: 10}}>
-                        <span>💬</span> WhatsApp Seller
-                      </div>
-                      <div className="btn btn-ghost btn-full btn-lg" style={{ marginBottom: 10 }}>
-                        <span>📞</span> Call Seller
-                      </div>
-                      <div style={{background:'var(--bg-3)',borderRadius:'var(--radius)',padding:'12px 16px',textAlign:'center',fontSize:'0.85rem',border:'1px solid var(--border)'}}>
-                        📱 07XX XXX XXX
-                      </div>
-                    </div>
-
-                    {/* Overlay CTA */}
-                    <div style={{
-                      position: 'absolute', inset: 0,
-                      display: 'flex', flexDirection: 'column',
-                      alignItems: 'center', justifyContent: 'center',
-                      background: 'rgba(0,0,0,0.45)',
-                      borderRadius: 'var(--radius)',
-                      backdropFilter: 'blur(2px)',
-                      gap: 10, padding: 20, textAlign: 'center'
-                    }}>
-                      <div style={{ fontSize: '1.8rem' }}>🔒</div>
-                      <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem' }}>Contact details are hidden</div>
-                      <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.78rem', marginBottom: 4 }}>Sign in or create a free account to contact this seller</div>
-                      <Link to="/login" state={{ from: `/listing/${listing.id}` }}
-                        className="btn btn-primary btn-sm"
-                        style={{ width: '100%', justifyContent: 'center' }}>
-                        🔑 Sign In
-                      </Link>
-                      <Link to="/register" state={{ from: `/listing/${listing.id}` }}
-                        className="btn btn-ghost btn-sm"
-                        style={{ width: '100%', justifyContent: 'center', fontSize: '0.8rem', borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}>
-                        ✨ Create Free Account
-                      </Link>
-                    </div>
+                  <div className="mt-4 rounded-xl bg-primary/5 border border-primary/20 p-3 text-xs text-primary/80">
+                    ⚠️ Safety tip: Meet in a public place. Never send money in advance. Always inspect before buying.
                   </div>
-                )}
-              </div>
+                </div>
+              </aside>
 
-              <div style={{marginTop:20,padding:'12px',background:'var(--primary-glow)',borderRadius:'var(--radius)',border:'1px solid var(--primary)',fontSize:'0.78rem',color:'var(--primary-light)'}}>
-                ⚠️ Safety tip: Meet in a public place. Never send money in advance. Always inspect before buying.
-              </div>
             </div>
-          </aside>
-        </div>
           </>
         )}
       </div>
