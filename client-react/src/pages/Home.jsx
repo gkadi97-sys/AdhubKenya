@@ -503,8 +503,14 @@ export default function HomePage() {
             {/* Hero */}
             <section className="relative mb-2 z-20">
               <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl bg-background">
-                <img src={heroNairobi} alt="Nairobi marketplace" width={1920} height={800} className="h-full w-full object-cover blur-sm" />
-                <div className="absolute inset-0 bg-white/75 dark:bg-black/75" />
+                <img 
+                  src={heroNairobi} 
+                  alt="Nairobi marketplace" 
+                  width={1920} 
+                  height={800} 
+                  className="h-full w-full object-cover blur-[2px] scale-[1.03] saturate-[.95] opacity-[.92]" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,247,242,0.82)] via-[rgba(248,247,242,0.55)] via-45% to-[rgba(248,247,242,0.20)] dark:from-[rgba(10,10,10,0.85)] dark:via-[rgba(10,10,10,0.65)] dark:via-45% dark:to-[rgba(10,10,10,0.25)]" />
               </div>
 
               <div className="px-6 pb-6 pt-4 sm:px-8 sm:pt-6">
