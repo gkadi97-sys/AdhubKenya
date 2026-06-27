@@ -13,6 +13,7 @@ import {
   getCascadeConfig,
 } from '@/lib/filterEngine';
 import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
+import { getValidOptions } from '@/lib/filterValidation';
 import LocationCascader from './LocationCascader';
 import PriceFilter from './PriceFilter';
 import DynamicDataFilter from './DynamicDataFilter';
@@ -211,6 +212,13 @@ export default function FilterPanel({ isMobile = false, onClose }) {
 
       const uiType = attr.search.uiType;
 
+      // Filter options based on dependent constraints if any exist
+      let validOptionsList = attr.options || [];
+      const constraints = getValidOptions(category, filters, attr.id);
+      if (constraints) {
+        validOptionsList = validOptionsList.filter(o => constraints.includes(o));
+      }
+
       if (uiType === 'dynamic-cascade') {
         const config = getCascadeConfig(category, filters.subcategory || filters.bodyType);
         
@@ -242,22 +250,25 @@ export default function FilterPanel({ isMobile = false, onClose }) {
       }
 
       if (uiType === 'radio') {
+        if (!validOptionsList.length) return null;
         return (
           <FilterGroup key={attr.id} label={attr.label}>
-            <RadioGroup options={attr.options || []} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
+            <RadioGroup options={validOptionsList} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
           </FilterGroup>
         );
       }
 
       if (uiType === 'multicheck') {
+        if (!validOptionsList.length) return null;
         return (
           <FilterGroup key={attr.id} label={attr.label}>
-             <MultiCheck options={attr.options || []} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
+             <MultiCheck options={validOptionsList} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
           </FilterGroup>
         );
       }
 
       if (uiType === 'select') {
+        if (!validOptionsList.length) return null;
         return (
           <FilterGroup key={attr.id} label={attr.label}>
             <div className="relative">
@@ -267,7 +278,7 @@ export default function FilterPanel({ isMobile = false, onClose }) {
                 className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 pr-8"
               >
                 <option value="">Any</option>
-                {(attr.options || []).map(o => <option key={o} value={o}>{o}</option>)}
+                {validOptionsList.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             </div>

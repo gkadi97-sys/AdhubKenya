@@ -11,6 +11,7 @@ import { useSEO } from '@/lib/useSEO';
 import FilterPanel from '@/components/filters/FilterPanel';
 import { Filter, X, Search, Bell, PlusCircle, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { cleanInvalidFilters } from '@/lib/filterValidation';
 
 const CATEGORIES = CATEGORY_ICONS;
 
@@ -57,10 +58,23 @@ function BrowseContent() {
     if (v) queryParams[k] = v;
   }
 
+  // Validate and clean parameters synchronously before the API call
+  const { cleaned: finalParams, changed: paramsChanged } = category 
+    ? cleanInvalidFilters(category, queryParams) 
+    : { cleaned: queryParams, changed: false };
+
+  useEffect(() => {
+    if (paramsChanged) {
+      // Replace URL with cleaned params silently
+      navigate(`/browse?${new URLSearchParams(finalParams).toString()}`, { replace: true });
+      toast('Filters updated to match available configurations.', { icon: '✨', id: 'filter-clean' });
+    }
+  }, [paramsChanged, finalParams, navigate]);
+
   const { data, isLoading: loading, isError } = useQuery({
-    queryKey: ['browse-listings', queryParams],
-    queryFn: () => getListings(queryParams),
-    staleTime: 1000 * 60 * 5,
+    queryKey: ['listings', finalParams],
+    queryFn: () => getListings(finalParams),
+    staleTime: 1000 * 60,
   });
 
   useEffect(() => {

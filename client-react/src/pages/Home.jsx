@@ -10,6 +10,7 @@ import {
 } from '@/lib/categoryData';
 import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { getLevel1Options, getLevel2Options, getLevel3Options, getCascadeConfig } from '@/lib/filterEngine';
+import { getValidOptions, cleanInvalidFilters } from '@/lib/filterValidation';
 import HeroSearch from '@/components/HeroSearch';
 import QuickFilters from '@/components/QuickFilters';
 import DynamicDataFilter from '@/components/filters/DynamicDataFilter';
@@ -59,6 +60,21 @@ function CategorySidebar({ onNavigate, onCategoryFocus }) {
   const focusMode = selectedSlug !== null;
   const cat      = CATEGORY_ICONS.find(c => c.slug === selectedSlug);
   const schema   = selectedSlug ? (ATTRIBUTE_ENGINE[selectedSlug] || ATTRIBUTE_ENGINE.default) : null;
+  
+  // Track if we just auto-cleaned filters to show a brief toast
+  const [showCleanToast, setShowCleanToast] = useState(false);
+
+  // Auto-clean invalid filters when cascade options change
+  useEffect(() => {
+    if (focusMode && selectedSlug) {
+      const { cleaned, changed } = cleanInvalidFilters(selectedSlug, filters);
+      if (changed) {
+        setFilters(cleaned);
+        setShowCleanToast(true);
+        setTimeout(() => setShowCleanToast(false), 3000);
+      }
+    }
+  }, [filters, selectedSlug, focusMode]);
 
   const selectCategory = (slug) => {
     setAnimating(true);
@@ -251,7 +267,14 @@ function CategorySidebar({ onNavigate, onCategoryFocus }) {
                   if (filters[l1] && filters[l2]) opts = getLevel3Options(selectedSlug, filters[l1], filters[l2], filters, attr.id);
                 }
               }
-              const uiType = attr.search?.uiType || attr.type;
+                const uiType = attr.search?.uiType || attr.type;
+              
+              // Apply dependent validation constraints
+              const validOpts = getValidOptions(selectedSlug, filters, attr.id);
+              if (validOpts) {
+                opts = opts.filter(o => validOpts.includes(o));
+              }
+
               if (uiType !== 'text' && uiType !== 'number' && uiType !== 'dynamic-select' && uiType !== 'range' && (!opts || !opts.length)) return null;
               const val = filters[attr.id] || '';
 
@@ -328,6 +351,13 @@ function CategorySidebar({ onNavigate, onCategoryFocus }) {
             </p>
           )}
         </div>
+
+        {/* Toast for auto-cleanup */}
+        {showCleanToast && (
+          <div className="px-3 py-2 text-[10px] font-semibold text-amber-700 bg-amber-50 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 rounded-lg shadow-sm animate-in fade-in slide-in-from-top-1 text-center leading-tight">
+            Filters updated to match available configurations.
+          </div>
+        )}
 
         {/* Active filter pills */}
         {activeCount > 0 && (
