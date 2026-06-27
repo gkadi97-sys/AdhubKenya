@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 import {
   MapPin, BadgeCheck, ShieldCheck, Sparkles,
   ChevronRight, ArrowUpRight, PlusCircle, X, ChevronDown
@@ -410,6 +411,18 @@ function CategorySidebar({ onNavigate }) {
 // ─── HomePage ────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const navigate = useNavigate();
+  const [liveAdCount, setLiveAdCount] = useState(null);
+
+  useEffect(() => {
+    supabase
+      .from('listings')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active')
+      .then(({ count }) => {
+        if (count !== null) setLiveAdCount(count);
+      })
+      .catch(() => {});
+  }, []);
 
   useSEO({
     title: 'AdHub Kenya – Buy & Sell Anything in Kenya',
@@ -449,14 +462,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── DEV NOTICE BANNER ─────────────────────────────────────────── */}
-      <div className="w-full bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-amber-800 dark:text-amber-300">
-          <span className="animate-bounce inline-block text-base">🔧</span>
-          <span className="font-semibold">Heads up!</span>
-          <span className="opacity-80">Our devs are still tinkering — expect a few sparks. We're building something great for you. 🚀</span>
-        </div>
-      </div>
+
 
       {/* ── TWO-COLUMN LAYOUT ─────────────────────────────────────── */}
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
@@ -483,8 +489,12 @@ export default function HomePage() {
               <div className="px-6 pb-6 pt-8 sm:px-8 sm:pt-10">
                 <div className="max-w-2xl">
                   <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium backdrop-blur shadow-sm">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    Live from 47 counties · 0 ads today
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                    </span>
+                    Live from 47 counties
+                    {liveAdCount !== null && ` · ${liveAdCount.toLocaleString()} active ads`}
                   </span>
                   <h1 className="mt-4 font-display text-3xl font-bold leading-tight tracking-tight sm:text-5xl drop-shadow-sm">
                     Buy. Sell. Discover.{' '}
@@ -525,7 +535,7 @@ export default function HomePage() {
               
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-6 py-6 relative z-10">
                 {[
-                  { icon: BadgeCheck, n: '0', l: 'Live Ads' },
+                  { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Live Ads' },
                   { icon: MapPin,     n: '47',      l: 'Counties Covered' },
                   { icon: ShieldCheck,n: '100%',    l: 'Verified Sellers' },
                   { icon: Sparkles,   n: 'Free',    l: 'Always Free Posting' },
