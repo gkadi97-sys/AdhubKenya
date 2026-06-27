@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import {
   MapPin, BadgeCheck, ShieldCheck, Sparkles,
-  ChevronRight, ArrowUpRight, PlusCircle, X, ChevronDown
+  ChevronRight, ArrowUpRight, PlusCircle, X, ChevronDown, Grid
 } from 'lucide-react';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
