@@ -169,10 +169,10 @@ export default function HeroSearch() {
             key={tab.id}
             type="button"
             onClick={() => setCategoryTab(tab.id)}
-            className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1 rounded-full text-[10px] transition-colors cursor-pointer ${
               categoryTab === tab.id 
-                ? 'bg-primary text-primary-foreground shadow-sm' 
-                : 'bg-background/80 backdrop-blur border border-border text-foreground hover:bg-background'
+                ? 'bg-primary text-primary-foreground shadow-sm font-semibold' 
+                : 'bg-background/60 backdrop-blur border border-border/50 text-foreground/80 hover:bg-background/90 font-medium'
             }`}
           >
             {tab.label}
@@ -180,9 +180,9 @@ export default function HeroSearch() {
         ))}
       </div>
 
-      <form onSubmit={(e) => handleSearch(e)} className="flex flex-col sm:flex-row gap-2 rounded-2xl border border-border bg-card/95 backdrop-blur p-2 shadow-elevated relative z-20">
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 rounded-2xl bg-white dark:bg-card shadow-[0_12px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] border border-black/10 dark:border-white/10 p-2 sm:p-2.5 relative z-20 transition-all focus-within:shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
         
-        <div className="flex flex-1 items-center gap-3 rounded-xl bg-background px-4 py-3 sm:py-0 ring-1 ring-border focus-within:ring-2 focus-within:ring-primary/40">
+        <div className="flex flex-1 items-center gap-3 px-3 py-2 sm:py-1">
           <Search className="h-5 w-5 text-muted-foreground shrink-0" />
           <label htmlFor="heroSearch" className="sr-only">Search listings</label>
           <input
@@ -198,7 +198,7 @@ export default function HeroSearch() {
         </div>
 
         <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 rounded-xl bg-background px-3 py-3 sm:py-2.5 ring-1 ring-border hover:ring-primary/40 min-w-[120px]">
+          <label className="flex items-center gap-2 rounded-xl bg-transparent hover:bg-secondary/50 px-3 py-3 sm:py-2.5 transition min-w-[120px]">
             <MapPin className="h-4 w-4 shrink-0 text-primary" />
             <select 
               value={location} 
