@@ -22,15 +22,16 @@ import heroNairobi from '@/assets/hero-nairobi.jpg';
 import catVehicles from '@/assets/cat-vehicles.jpg';
 import catPhones from '@/assets/cat-phones.jpg';
 import catProperty from '@/assets/cat-property.jpg';
-import catFashion from '@/assets/cat-fashion.jpg';
+import catFashion from '@/assets/cat-fashion.png';
 import catElectronics from '@/assets/cat-electronics.jpg';
 import catFurniture from '@/assets/cat-furniture.jpg';
-import catServices from '@/assets/cat-services.jpg';
+import catServices from '@/assets/cat-services.png';
+import catJobs from '@/assets/cat-jobs.png';
 
 const CAT_IMAGES = {
   vehicles: catVehicles, 'phones-tablets': catPhones, property: catProperty,
   fashion: catFashion, electronics: catElectronics, 'home-furniture': catFurniture,
-  jobs: catServices, services: catServices,
+  jobs: catJobs, services: catServices,
 };
 const CAT_TINTS = {
   vehicles: 'from-emerald-900/70', 'phones-tablets': 'from-amber-900/60',
