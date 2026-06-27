@@ -161,9 +161,9 @@ function CategorySidebar({ onNavigate }) {
                 <span className={`flex-1 text-[13px] leading-tight ${isSelected ? 'font-bold text-primary' : 'font-medium text-foreground group-hover:text-primary'}`}>
                   {c.name}
                 </span>
-                {!isSelected && (
+                {!isSelected && c.count > 0 && (
                   <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
-                    {c.count === 0 ? 'Coming soon' : c.count.toLocaleString()}
+                    {c.count.toLocaleString()}
                   </span>
                 )}
                 <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${isSelected ? 'rotate-180 text-primary' : '-rotate-90 text-muted-foreground opacity-0 group-hover:opacity-100'}`} />
@@ -501,16 +501,16 @@ export default function HomePage() {
           <main className="flex-1 min-w-0">
 
             {/* Hero */}
-            <section className="relative mb-2 z-20">
+            <section className="relative mb-2 z-20 group">
               <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl bg-background">
                 <img 
                   src={heroNairobi} 
                   alt="Nairobi marketplace" 
                   width={1920} 
                   height={800} 
-                  className="h-full w-full object-cover blur-[2px] scale-[1.03] saturate-[.95] opacity-[.92]" 
+                  className="h-full w-full object-cover blur-[1.5px] scale-100 saturate-[.95] opacity-[.92] transition-transform duration-[800ms] ease-out group-hover:scale-[1.02]" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,247,242,0.82)] via-[rgba(248,247,242,0.55)] via-45% to-[rgba(248,247,242,0.20)] dark:from-[rgba(10,10,10,0.85)] dark:via-[rgba(10,10,10,0.65)] dark:via-45% dark:to-[rgba(10,10,10,0.25)]" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,247,242,0.78)] via-[rgba(248,247,242,0.45)] via-45% to-[rgba(248,247,242,0.10)] dark:from-[rgba(10,10,10,0.85)] dark:via-[rgba(10,10,10,0.65)] dark:via-45% dark:to-[rgba(10,10,10,0.15)] pointer-events-none" />
               </div>
 
               <div className="px-6 pb-6 pt-4 sm:px-8 sm:pt-6">
@@ -552,7 +552,7 @@ export default function HomePage() {
                     <Link
                       key={term}
                       to={`/browse?keyword=${encodeURIComponent(term)}`}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-background/60 backdrop-blur border border-border/50 px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-background hover:border-primary/40 shadow-sm hover:shadow"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-background/50 backdrop-blur border border-border/40 px-3 py-1.5 text-[10px] font-medium text-foreground/80 transition hover:bg-background/90 hover:border-primary/40 shadow-sm hover:shadow"
                     >
                       {term} <span className="text-muted-foreground text-[10px]">({count})</span>
                     </Link>
