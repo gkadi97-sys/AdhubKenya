@@ -162,7 +162,9 @@ function CategorySidebar({ onNavigate }) {
                   {c.name}
                 </span>
                 {!isSelected && (
-                  <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">{c.count.toLocaleString()}</span>
+                  <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
+                    {c.count === 0 ? 'Coming soon' : c.count.toLocaleString()}
+                  </span>
                 )}
                 <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${isSelected ? 'rotate-180 text-primary' : '-rotate-90 text-muted-foreground opacity-0 group-hover:opacity-100'}`} />
               </button>
@@ -412,6 +414,12 @@ function CategorySidebar({ onNavigate }) {
 export default function HomePage() {
   const navigate = useNavigate();
   const [liveAdCount, setLiveAdCount] = useState(null);
+  const [showDevBanner, setShowDevBanner] = useState(() => localStorage.getItem('adhub_hide_dev') !== 'true');
+
+  const dismissDevBanner = () => {
+    setShowDevBanner(false);
+    localStorage.setItem('adhub_hide_dev', 'true');
+  };
 
   useEffect(() => {
     supabase
@@ -461,20 +469,29 @@ export default function HomePage() {
       </div>
 
       {/* ── DEV NOTICE BANNER ─────────────────────────────────────────── */}
-      <div className="w-full bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm text-amber-800 dark:text-amber-300">
-          <span className="animate-bounce inline-block text-base">🔧</span>
-          <span className="font-semibold">Heads up!</span>
-          <span className="opacity-80">Our devs are still tinkering — expect a few sparks. We're building something great for you. 🚀</span>
+      {showDevBanner && (
+        <div className="w-full bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800 relative h-12 flex items-center">
+          <div className="mx-auto flex max-w-[1400px] w-full items-center justify-center gap-2 px-10 text-xs sm:text-sm text-amber-800 dark:text-amber-300">
+            <span className="animate-bounce inline-block text-base">🔧</span>
+            <span className="font-semibold">Heads up!</span>
+            <span className="opacity-80">We're improving AdHub — some features may still be evolving.</span>
+          </div>
+          <button 
+            onClick={dismissDevBanner} 
+            className="absolute right-4 text-amber-700 hover:text-amber-900 transition-colors"
+            aria-label="Dismiss banner"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-      </div>
+      )}
 
       {/* ── TWO-COLUMN LAYOUT ─────────────────────────────────────── */}
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
         <div className="flex gap-6 pt-6">
 
           {/* ── LEFT SIDEBAR: Categories ──────────────────────────── */}
-          <aside className="hidden lg:block w-[240px] shrink-0">
+          <aside className="hidden lg:block w-[270px] shrink-0">
             <div className="sticky top-4 rounded-2xl border border-border bg-card shadow-sm p-4 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-thin">
               <CategorySidebar onNavigate={navigate} />
             </div>
@@ -484,25 +501,27 @@ export default function HomePage() {
           <main className="flex-1 min-w-0">
 
             {/* Hero */}
-            <section className="relative mb-6 z-20">
-              <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl">
-                <img src={heroNairobi} alt="Nairobi marketplace" width={1920} height={800} className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/60 to-background" />
-                <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/20 to-background/70" />
+            <section className="relative mb-2 z-20">
+              <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl bg-background">
+                <img src={heroNairobi} alt="Nairobi marketplace" width={1920} height={800} className="h-full w-full object-cover blur-sm" />
+                <div className="absolute inset-0 bg-white/75 dark:bg-black/75" />
               </div>
 
-              <div className="px-6 pb-6 pt-8 sm:px-8 sm:pt-10">
+              <div className="px-6 pb-6 pt-4 sm:px-8 sm:pt-6">
                 <div className="max-w-2xl">
                   <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium backdrop-blur shadow-sm">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                     </span>
-                    Live from 47 counties
-                    {liveAdCount !== null && ` · ${liveAdCount.toLocaleString()} active ads`}
+                    {(liveAdCount !== null && liveAdCount >= 100) ? (
+                       `Live from 47 counties · ${liveAdCount.toLocaleString()} active ads`
+                    ) : (
+                       `Live across Kenya`
+                    )}
                   </span>
-                  <h1 className="mt-4 font-display text-3xl font-bold leading-tight tracking-tight sm:text-5xl drop-shadow-sm">
-                    Buy. Sell. Discover.{' '}
+                  <h1 className="mt-4 font-display text-4xl font-bold leading-tight tracking-tight sm:text-[68px] drop-shadow-sm line-clamp-2">
+                    Buy. Sell. Discover.<br />
                     <span className="text-gold-grad">Across Kenya.</span>
                   </h1>
                   <p className="mt-2 max-w-lg text-sm text-muted-foreground sm:text-base">
@@ -517,13 +536,19 @@ export default function HomePage() {
                 {/* Trending Searches */}
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <span className="text-xs font-semibold text-muted-foreground mr-1">Trending:</span>
-                  {['Toyota Premio', 'Land for Sale', 'iPhone 15', 'Apartments in Nairobi', 'PS5'].map(term => (
+                  {[
+                    {term: 'Toyota Premio', count: 42}, 
+                    {term: 'Land for Sale', count: 18}, 
+                    {term: 'iPhone 15', count: 27}, 
+                    {term: 'Apartments in Nairobi', count: 56}, 
+                    {term: 'PS5', count: 14}
+                  ].map(({term, count}) => (
                     <Link
                       key={term}
                       to={`/browse?keyword=${encodeURIComponent(term)}`}
-                      className="inline-flex items-center rounded-full bg-background/60 backdrop-blur border border-border/50 px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-background hover:border-primary/40 shadow-sm hover:shadow"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-background/60 backdrop-blur border border-border/50 px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-background hover:border-primary/40 shadow-sm hover:shadow"
                     >
-                      {term}
+                      {term} <span className="text-muted-foreground text-[10px]">({count})</span>
                     </Link>
                   ))}
                 </div>
@@ -534,16 +559,16 @@ export default function HomePage() {
             <FeaturedListings />
 
             {/* Live counters (Moved up for Trust) */}
-            <div className="mb-6 rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-elevated">
+            <div className="mb-6 rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-elevated mt-4">
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-[100%] group-hover:animate-[shimmer_2s_infinite]"></div>
               
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-6 py-6 relative z-10">
                 {[
-                  { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Live Ads' },
+                  { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Active Listings' },
+                  { icon: Grid,       n: '15+',     l: 'Categories' },
                   { icon: MapPin,     n: '47',      l: 'Counties Covered' },
-                  { icon: ShieldCheck,n: '100%',    l: 'Verified Sellers' },
-                  { icon: Sparkles,   n: 'Free',    l: 'Always Free Posting' },
+                  { icon: Sparkles,   n: '100%',    l: 'Free Posting' },
                 ].map(({ icon: Icon, n, l }) => (
                   <div key={l} className="flex flex-col items-center text-center gap-2">
                     <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-foreground/10 ring-1 ring-primary-foreground/20 text-gold shadow-inner">

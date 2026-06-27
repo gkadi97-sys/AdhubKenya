@@ -162,13 +162,14 @@ export default function HeroSearch() {
 
   return (
     <div ref={searchRef} className="relative w-full max-w-3xl mt-6">
-      <div className="flex flex-wrap gap-2 mb-3">
-        {[{ id: '', label: 'All' }, { id: 'vehicles', label: 'Vehicles' }, { id: 'property', label: 'Property' }, { id: 'electronics', label: 'Electronics' }].map(tab => (
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <span className="text-xs font-semibold text-muted-foreground mr-1">Popular searches:</span>
+        {[{ id: '', label: 'All' }, { id: 'vehicles', label: 'Vehicles' }, { id: 'property', label: 'Property' }, { id: 'electronics', label: 'Electronics' }, { id: 'phones-tablets', label: 'Phones' }].map(tab => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setCategoryTab(tab.id)}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-colors cursor-pointer ${
               categoryTab === tab.id 
                 ? 'bg-primary text-primary-foreground shadow-sm' 
                 : 'bg-background/80 backdrop-blur border border-border text-foreground hover:bg-background'
@@ -183,9 +184,11 @@ export default function HeroSearch() {
         
         <div className="flex flex-1 items-center gap-3 rounded-xl bg-background px-4 py-3 sm:py-0 ring-1 ring-border focus-within:ring-2 focus-within:ring-primary/40">
           <Search className="h-5 w-5 text-muted-foreground shrink-0" />
+          <label htmlFor="heroSearch" className="sr-only">Search listings</label>
           <input
+            id="heroSearch"
             type="text"
-            placeholder="Search Toyota, iPhone, apartment…"
+            placeholder="Search vehicles, property, electronics…"
             value={keyword}
             onChange={e => setKeyword(e.target.value)}
             onFocus={() => setIsFocused(true)}
@@ -209,7 +212,7 @@ export default function HeroSearch() {
             type="submit" 
             className="inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-6 py-3 sm:py-2.5 text-sm font-semibold text-primary-foreground shadow transition hover:opacity-95 cursor-pointer"
           >
-            <Search className="h-4 w-4 hidden sm:block" /> <span className="sm:hidden">Search</span>
+            Search
           </button>
         </div>
       </form>

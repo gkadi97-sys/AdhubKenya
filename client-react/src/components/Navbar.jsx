@@ -18,14 +18,14 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl shadow-sm">
         <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-4 sm:px-6">
           <Link to="/" className="flex shrink-0 items-center gap-2">
-            <div className="grid h-10 w-10 place-items-center rounded-xl gradient-emerald text-primary-foreground shadow-elevated">
-              <span className="font-display text-lg font-bold">A</span>
+            <div className="grid h-11 w-11 place-items-center rounded-xl gradient-emerald text-primary-foreground shadow-elevated">
+              <span className="font-display text-xl font-bold">A</span>
             </div>
             <div className="leading-none hidden sm:block">
-              <div className="font-display text-lg font-bold tracking-tight">
+              <div className="font-display text-xl font-bold tracking-tight">
                 Ad<span className="text-primary">Hub</span>
               </div>
               <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -35,7 +35,7 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden min-w-0 md:flex">
-            <form onSubmit={handleSearch} className="flex w-full max-w-2xl items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 shadow-sm transition focus-within:border-primary/50 focus-within:shadow-elevated">
+            <form onSubmit={handleSearch} className="flex w-full max-w-xl items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 shadow-sm transition focus-within:border-primary/50 focus-within:shadow-elevated">
               <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
               <input
                 type="text"
