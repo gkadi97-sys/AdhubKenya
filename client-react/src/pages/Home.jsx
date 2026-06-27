@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import {
   MapPin, BadgeCheck, ShieldCheck, Sparkles,
-  ChevronRight, ArrowUpRight, PlusCircle, X, ChevronDown, Grid
+  ChevronRight, ChevronLeft, ArrowUpRight, PlusCircle, X, ChevronDown, Grid
 } from 'lucide-react';
 import { 
   CATEGORY_ICONS, TOP_CATEGORIES, getRankedCategories 
@@ -50,15 +50,35 @@ const MORE_SLUGS = CATEGORY_ICONS.filter(c => !SIDEBAR_SECTIONS.some(s => s.slug
 SIDEBAR_SECTIONS.push({ id: 'more', title: 'MORE CATEGORIES', slugs: MORE_SLUGS });
 
 // ─── Left Category Sidebar ───────────────────────────────────────────────────
-function CategorySidebar({ onNavigate }) {
+function CategorySidebar({ onNavigate, onCategoryFocus }) {
   const [selectedSlug, setSelectedSlug] = useState(null);
   const [filters, setFilters]           = useState({});
   const [showAll, setShowAll]           = useState(false);
+  const [animating, setAnimating]       = useState(false);
 
+  const focusMode = selectedSlug !== null;
   const cat      = CATEGORY_ICONS.find(c => c.slug === selectedSlug);
   const schema   = selectedSlug ? (ATTRIBUTE_ENGINE[selectedSlug] || ATTRIBUTE_ENGINE.default) : null;
 
-  const selectCategory = (slug) => { setSelectedSlug(slug); setFilters({}); };
+  const selectCategory = (slug) => {
+    setAnimating(true);
+    setTimeout(() => {
+      setSelectedSlug(slug);
+      setFilters({});
+      onCategoryFocus?.(slug);
+      setAnimating(false);
+    }, 150);
+  };
+
+  const exitFocus = () => {
+    setAnimating(true);
+    setTimeout(() => {
+      setSelectedSlug(null);
+      setFilters({});
+      onCategoryFocus?.(null);
+      setAnimating(false);
+    }, 150);
+  };
 
   const evaluateSingleDep = (dep, currentFilters) => {
     if (dep.and) return dep.and.every(d => evaluateSingleDep(d, currentFilters));
@@ -139,21 +159,221 @@ function CategorySidebar({ onNavigate }) {
 
   const activeCount = Object.keys(activeFilters).length + (filters['oemNumber'] ? 1 : 0);
 
+  const transitionClass = `transition-all duration-200 ease-out ${animating ? 'opacity-0 translate-y-1 scale-[0.98]' : 'opacity-100 translate-y-0 scale-100'}`;
+
+  // ─── FOCUSED MODE ──────────────────────────────────────────────────────────
+  if (focusMode) {
+    const isPreview = cat && cat.count === 0;
+    return (
+      <nav className={`flex flex-col gap-4 ${transitionClass}`}>
+        {/* ← Change Category */}
+        <button
+          onClick={exitFocus}
+          className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer group -mx-1 px-2 py-1 rounded-lg hover:bg-muted/50 w-fit"
+        >
+          <ChevronLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+          Change Category
+        </button>
+
+        {/* Selected category header */}
+        <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-primary/5 border border-primary/20 shadow-sm">
+          <span className="text-2xl leading-none">{cat?.icon}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-primary leading-tight truncate">{cat?.name}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-primary/50 mt-0.5">Active</p>
+          </div>
+          {isPreview && (
+            <span className="text-[9px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 dark:bg-amber-500/10 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-500/20 shrink-0">
+              Preview
+            </span>
+          )}
+        </div>
+
+        {/* Filters header */}
+        <div className="flex items-center gap-2 px-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Filters</p>
+          <div className="flex-1 h-px bg-border" />
+          {activeCount > 0 && (
+            <span className="text-[10px] font-bold text-primary bg-primary/10 rounded-full px-1.5 py-0.5">{activeCount} active</span>
+          )}
+        </div>
+
+        {/* OEM Quick-Access (Auto Spares) */}
+        {selectedSlug === 'auto-spares' && (
+          <div className="rounded-xl border border-amber-400/40 bg-amber-50/60 dark:bg-amber-900/10 px-3 py-2.5 flex flex-col gap-1.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400 flex items-center gap-1">⚡ OEM Part Number</p>
+            <p className="text-[10px] text-amber-700/70 dark:text-amber-400/60 leading-tight">Know the exact part no.? Skip the search.</p>
+            <div className="relative mt-0.5">
+              <input
+                type="text"
+                placeholder="e.g. 45503-09220"
+                value={filters['oemNumber'] || ''}
+                onChange={e => setFilter('oemNumber', e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-xs font-medium outline-none transition border-amber-300/60 bg-white dark:bg-background"
+              />
+              {filters['oemNumber'] && (
+                <button onClick={() => clearFilter('oemNumber')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-amber-500 hover:text-destructive cursor-pointer">
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+            {filters['oemNumber'] && (
+              <button onClick={browse} className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-[11px] font-bold text-white transition cursor-pointer">
+                Find by OEM No. →
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Filter attributes */}
+        <div className="flex flex-col gap-3">
+          {visibleAttrs.length > 0 ? (
+            visibleAttrs.map((attr) => {
+              let opts = [];
+              if (attr.options) opts = attr.options;
+              else if (attr.type === 'dynamic-cascade') {
+                const config = getCascadeConfig(selectedSlug, filters.subcategory || filters.bodyType);
+                if (attr.cascadeLevel === 1) opts = getLevel1Options(selectedSlug, filters, attr.id);
+                else if (attr.cascadeLevel === 2) {
+                  const parentKey = attr.cascadeParent || (config && config.level1) || schema.attributes.find(a => a.cascadeLevel === 1)?.id;
+                  if (filters[parentKey]) opts = getLevel2Options(selectedSlug, filters[parentKey], filters, attr.id);
+                } else if (attr.cascadeLevel === 3) {
+                  const l1 = config?.level1 || schema.attributes.find(a => a.cascadeLevel === 1)?.id;
+                  const l2 = config?.level2 || schema.attributes.find(a => a.cascadeLevel === 2)?.id;
+                  if (filters[l1] && filters[l2]) opts = getLevel3Options(selectedSlug, filters[l1], filters[l2], filters, attr.id);
+                }
+              }
+              const uiType = attr.search?.uiType || attr.type;
+              if (uiType !== 'text' && uiType !== 'number' && uiType !== 'dynamic-select' && uiType !== 'range' && (!opts || !opts.length)) return null;
+              const val = filters[attr.id] || '';
+
+              if (uiType === 'dynamic-select') {
+                return (
+                  <div key={attr.id}>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                    <DynamicDataFilter category={selectedSlug} urlParam={attr.id} filters={filters} value={val} onChange={(newVal) => setFilter(attr.id, newVal)} />
+                  </div>
+                );
+              }
+              if (uiType === 'text' || uiType === 'number') {
+                return (
+                  <div key={attr.id}>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                    <div className="relative">
+                      <input type={uiType} placeholder={`Any ${attr.label}`} value={val} onChange={e => setFilter(attr.id, e.target.value)} className={`w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition ${val ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-foreground'} focus:border-primary/50`} />
+                      {val && <button onClick={() => clearFilter(attr.id)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer"><X className="w-3 h-3" /></button>}
+                    </div>
+                  </div>
+                );
+              }
+              if (uiType === 'range') {
+                const minKey = `${attr.id}_min`;
+                const maxKey = `${attr.id}_max`;
+                return (
+                  <div key={attr.id}>
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                    <div className="flex items-center gap-2">
+                      <input type="number" placeholder="Min" value={filters[minKey] || ''} onChange={e => setFilter(minKey, e.target.value)} className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary/50" />
+                      <span className="text-muted-foreground text-[10px] font-medium shrink-0">to</span>
+                      <input type="number" placeholder="Max" value={filters[maxKey] || ''} onChange={e => setFilter(maxKey, e.target.value)} className="w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary/50" />
+                    </div>
+                  </div>
+                );
+              }
+              if (uiType === 'radio') {
+                return (
+                  <div key={attr.id}>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                    <ul className="flex flex-wrap gap-1.5">
+                      {opts.map(o => {
+                        const isSel = val === o;
+                        return (
+                          <li key={o}>
+                            <button onClick={() => setFilter(attr.id, isSel ? '' : o)} className={`inline-flex items-center justify-center rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer border leading-tight ${isSel ? 'border-primary bg-primary text-primary-foreground shadow-sm' : 'border-border bg-background hover:border-primary/40 text-foreground hover:bg-secondary/50'}`}>{o}</button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                );
+              }
+              return (
+                <div key={attr.id}>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
+                  <div className="relative">
+                    <select value={val} onChange={e => setFilter(attr.id, e.target.value)} className={`w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition cursor-pointer ${val ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-foreground'} focus:border-primary/50`}>
+                      <option value="">Any {attr.label}</option>
+                      {opts.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                    {val && (
+                      <button onClick={() => clearFilter(attr.id)} className="absolute right-[28px] top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer bg-primary/10 pl-1">
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-xs text-muted-foreground px-1 py-3 text-center italic">
+              No filter options configured for this category.
+            </p>
+          )}
+        </div>
+
+        {/* Active filter pills */}
+        {activeCount > 0 && (
+          <div className="flex flex-wrap gap-1.5 border-t border-border pt-3">
+            {Object.entries(activeFilters).map(([k, v]) => (
+              <span key={k} className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/30 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                {v}
+                <button onClick={() => clearFilter(k)} className="cursor-pointer"><X className="w-2.5 h-2.5" /></button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Info for preview (zero-listing) categories */}
+        {isPreview && (
+          <div className="rounded-xl bg-muted/40 border border-border/60 px-3 py-3 text-center">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Filters available for browsing &amp; testing.<br />
+              Listings will appear here once posted.
+            </p>
+          </div>
+        )}
+
+        {/* Browse CTA */}
+        <button
+          onClick={browse}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-4 py-2.5 text-sm font-bold text-primary-foreground shadow hover:opacity-90 transition cursor-pointer"
+        >
+          Browse {cat?.name}
+          {activeCount > 0 && <span className="rounded-full bg-white/25 px-1.5 py-0.5 text-[10px] font-bold">{activeCount}</span>}
+        </button>
+
+        {/* Browse all link */}
+        <div className="border-t border-border pt-3">
+          <Link to="/browse" className="flex items-center gap-2 text-xs font-semibold text-primary hover:underline">
+            Browse all listings <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </nav>
+    );
+  }
+
+  // ─── DEFAULT MODE: Full category list ──────────────────────────────────────
   return (
-    <nav className="flex flex-col gap-6">
+    <nav className={`flex flex-col gap-6 ${transitionClass}`}>
       {SIDEBAR_SECTIONS.map((section) => {
         if (!showAll && (section.id === 'specialized' || section.id === 'more')) return null;
-        
         const rankedCategories = getRankedCategories(section.slugs);
         if (!rankedCategories.length) return null;
-
         return (
           <div key={section.id}>
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-3 mb-3">{section.title}</p>
             <ul className="flex flex-col gap-1">
               {rankedCategories.map(c => {
-                const isSelected = selectedSlug === c.slug;
-                
                 let countBadge = null;
                 if (c.count > 0) {
                   countBadge = <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">{c.count.toLocaleString()}</span>;
@@ -162,104 +382,17 @@ function CategorySidebar({ onNavigate }) {
                 } else if (['property', 'vehicles', 'services'].includes(c.slug)) {
                   countBadge = <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70 shrink-0">Coming soon</span>;
                 }
-
                 return (
-                  <li key={c.slug} className="flex flex-col">
+                  <li key={c.slug}>
                     <button
-                      onClick={() => isSelected ? selectCategory(null) : selectCategory(c.slug)}
-                      className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-all duration-200 cursor-pointer ${
-                        isSelected ? 'bg-primary/5 border border-primary/20 shadow-sm' : 'border border-transparent hover:bg-secondary hover:border-border hover:shadow-sm'
-                      }`}
+                      onClick={() => selectCategory(c.slug)}
+                      className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-all duration-200 cursor-pointer border border-transparent hover:bg-secondary hover:border-border hover:shadow-sm"
                     >
-                      <span className={`text-xl w-7 text-center leading-none shrink-0 transition-transform ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>{c.icon}</span>
-                      <span className={`flex-1 text-[13px] leading-tight ${isSelected ? 'font-bold text-primary' : 'font-medium text-foreground group-hover:text-primary'}`}>
-                        {c.name}
-                      </span>
-                      {!isSelected && countBadge}
-                      <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${isSelected ? 'rotate-180 text-primary' : '-rotate-90 text-muted-foreground opacity-0 group-hover:opacity-100'}`} />
+                      <span className="text-xl w-7 text-center leading-none shrink-0 transition-transform group-hover:scale-110">{c.icon}</span>
+                      <span className="flex-1 text-[13px] leading-tight font-medium text-foreground group-hover:text-primary">{c.name}</span>
+                      {countBadge}
+                      <ChevronRight className="w-3.5 h-3.5 shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                     </button>
-
-                    {isSelected && schema && (() => {
-                      if (!visibleAttrs.length) return null;
-                      return (
-                        <div className="pl-11 pr-3 py-3 flex flex-col gap-4 border-b border-border/50 mb-2">
-                          {selectedSlug === 'auto-spares' && (
-                            <div className="rounded-xl border border-amber-400/40 bg-amber-50/60 dark:bg-amber-900/10 px-3 py-2.5 flex flex-col gap-1.5">
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400 flex items-center gap-1">⚡ OEM Part Number</p>
-                              <div className="relative mt-0.5">
-                                <input
-                                  type="text"
-                                  placeholder="e.g. 45503-09220"
-                                  value={filters['oemNumber'] || ''}
-                                  onChange={e => setFilter('oemNumber', e.target.value)}
-                                  className="w-full rounded-lg border px-3 py-2 text-xs font-medium outline-none transition border-amber-300/60 bg-white dark:bg-background"
-                                />
-                                {filters['oemNumber'] && (
-                                  <button onClick={() => clearFilter('oemNumber')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-amber-500 hover:text-destructive cursor-pointer">
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                )}
-                              </div>
-                              {filters['oemNumber'] && (
-                                <button onClick={browse} className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-[11px] font-bold text-white transition cursor-pointer">
-                                  Find by OEM No. →
-                                </button>
-                              )}
-                            </div>
-                          )}
-                          {visibleAttrs.map((attr, idx) => {
-                            let opts = [];
-                            if (attr.options) opts = attr.options;
-                            else if (attr.type === 'dynamic-cascade') {
-                              const config = getCascadeConfig(selectedSlug, filters.subcategory || filters.bodyType);
-                              if (attr.cascadeLevel === 1) opts = getLevel1Options(selectedSlug, filters, attr.id);
-                              else if (attr.cascadeLevel === 2) {
-                                const parentKey = attr.cascadeParent || (config && config.level1) || schema.attributes.find(a => a.cascadeLevel === 1)?.id;
-                                if (filters[parentKey]) opts = getLevel2Options(selectedSlug, filters[parentKey], filters, attr.id);
-                              } else if (attr.cascadeLevel === 3) {
-                                const l1 = config?.level1 || schema.attributes.find(a => a.cascadeLevel === 1)?.id;
-                                const l2 = config?.level2 || schema.attributes.find(a => a.cascadeLevel === 2)?.id;
-                                if (filters[l1] && filters[l2]) opts = getLevel3Options(selectedSlug, filters[l1], filters[l2], filters, attr.id);
-                              }
-                            }
-                            const uiType = attr.search?.uiType || attr.type;
-                            if (uiType !== 'text' && uiType !== 'number' && uiType !== 'dynamic-select' && uiType !== 'range' && (!opts || !opts.length)) return null;
-                            const val = filters[attr.id] || '';
-                            if (uiType === 'dynamic-select') {
-                              return (
-                                <div key={attr.id}>
-                                  <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
-                                  <DynamicDataFilter category={selectedSlug} urlParam={attr.id} filters={filters} value={val} onChange={(newVal) => setFilter(attr.id, newVal)} />
-                                </div>
-                              );
-                            }
-                            if (uiType === 'text' || uiType === 'number') {
-                              return (
-                                <div key={attr.id}>
-                                  <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
-                                  <div className="relative">
-                                    <input type={uiType} placeholder={`Any ${attr.label}`} value={val} onChange={e => setFilter(attr.id, e.target.value)} className="w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition" />
-                                    {val && <button onClick={() => clearFilter(attr.id)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer"><X className="w-3 h-3" /></button>}
-                                  </div>
-                                </div>
-                              );
-                            }
-                            return (
-                              <div key={attr.id}>
-                                <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">{attr.label}</p>
-                                <select value={val} onChange={e => setFilter(attr.id, e.target.value)} className="w-full rounded-xl border px-3 py-2 text-xs font-medium outline-none transition cursor-pointer">
-                                  <option value="">Any {attr.label}</option>
-                                  {opts.map(o => <option key={o} value={o}>{o}</option>)}
-                                </select>
-                              </div>
-                            );
-                          })}
-                          <button onClick={browse} className="w-full inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-4 py-2.5 text-sm font-bold text-primary-foreground shadow transition cursor-pointer mt-1">
-                            Browse {cat?.name} {activeCount > 0 && <span className="rounded-full bg-white/25 px-1.5 py-0.5 text-[10px] font-bold">{activeCount}</span>}
-                          </button>
-                        </div>
-                      );
-                    })()}
                   </li>
                 );
               })}
@@ -285,6 +418,7 @@ function CategorySidebar({ onNavigate }) {
 export default function HomePage() {
   const navigate = useNavigate();
   const [liveAdCount, setLiveAdCount] = useState(null);
+  const [focusedCat, setFocusedCat] = useState(null);
   const [showDevBanner, setShowDevBanner] = useState(() => localStorage.getItem('adhub_hide_dev') !== 'true');
 
   const dismissDevBanner = () => {
@@ -363,8 +497,18 @@ export default function HomePage() {
 
           {/* ── LEFT SIDEBAR: Categories ──────────────────────────── */}
           <aside className="hidden lg:block w-full">
-            <div className="sticky top-4 rounded-2xl border border-border bg-card shadow-sm p-4 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-thin">
-              <CategorySidebar onNavigate={navigate} />
+            {/* Breadcrumb — visible when a category is focused */}
+            {focusedCat && (
+              <nav className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-3 px-1" aria-label="Breadcrumb">
+                <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
+                <ChevronRight className="w-3 h-3 shrink-0" />
+                <span className="text-foreground font-semibold truncate">
+                  {CATEGORY_ICONS.find(c => c.slug === focusedCat)?.name}
+                </span>
+              </nav>
+            )}
+            <div className="sticky top-4 rounded-2xl border border-border bg-card shadow-sm p-4 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-thin transition-all duration-200">
+              <CategorySidebar onNavigate={navigate} onCategoryFocus={setFocusedCat} />
             </div>
           </aside>
 
@@ -408,6 +552,26 @@ export default function HomePage() {
 
                 <div className="mt-6">
                   <HeroSearch />
+                </div>
+
+                {/* Mobile Category Chips — visible only on mobile, desktop uses sidebar */}
+                <div className="mt-4 lg:hidden overflow-x-auto scrollbar-hide flex gap-2 pb-1 -mx-6 px-6">
+                  {getRankedCategories(SIDEBAR_SECTIONS[0].slugs).map(c => (
+                    <Link
+                      key={c.slug}
+                      to={`/browse?category=${c.slug}`}
+                      className="flex items-center gap-1.5 shrink-0 rounded-full bg-card/80 backdrop-blur border border-border/60 px-3 py-2 text-xs font-semibold text-foreground hover:border-primary/40 hover:bg-primary/5 transition shadow-sm whitespace-nowrap"
+                    >
+                      <span className="text-base leading-none">{c.icon}</span>
+                      <span>{c.name}</span>
+                    </Link>
+                  ))}
+                  <Link
+                    to="/browse"
+                    className="flex items-center gap-1 shrink-0 rounded-full bg-primary/10 border border-primary/20 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/15 transition whitespace-nowrap"
+                  >
+                    All →
+                  </Link>
                 </div>
 
                 {/* Trending Searches */}
