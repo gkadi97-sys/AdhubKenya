@@ -12,14 +12,14 @@ export default function DiscoveryRow({ title, subtitle, sort = 'createdAt', limi
   });
 
   return (
-    <section className="mb-10">
-      <div className="mb-4 flex items-end justify-between gap-4">
+    <section className="mb-0">
+      <div className="mt-12 mb-5 flex items-end justify-between gap-4">
         <div>
-          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">{subtitle}</span>
-          <h2 className="mt-1 font-display text-xl font-bold sm:text-2xl">{title}</h2>
+          {subtitle && <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">{subtitle}</span>}
+          <h2 className="mt-1 font-display text-xl font-bold sm:text-2xl tracking-tight">{title}</h2>
         </div>
-        <Link to={linkTo} className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
-          See all <ChevronRight className="h-3.5 w-3.5" />
+        <Link to={linkTo} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 group transition-colors">
+          View All <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Link>
       </div>
 
@@ -33,7 +33,7 @@ export default function DiscoveryRow({ title, subtitle, sort = 'createdAt', limi
         ) : data?.listings?.length > 0 ? (
           <div className="flex gap-4" style={{ width: 'max-content' }}>
             {data.listings.map((listing, i) => (
-              <div key={listing.id} className="w-[280px] shrink-0">
+              <div key={listing.id} className="w-[280px] sm:w-[320px] shrink-0">
                 <ListingCard listing={listing} featured={i < 2} />
               </div>
             ))}

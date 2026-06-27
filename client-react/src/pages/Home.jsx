@@ -471,7 +471,7 @@ export default function HomePage() {
       {/* ── DEV NOTICE BANNER ─────────────────────────────────────────── */}
       {showDevBanner && (
         <div className="w-full bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800 relative h-12 flex items-center">
-          <div className="mx-auto flex max-w-[1400px] w-full items-center justify-center gap-2 px-10 text-xs sm:text-sm text-amber-800 dark:text-amber-300">
+          <div className="mx-auto flex max-w-[1600px] w-full items-center justify-center gap-2 px-10 text-xs sm:text-sm text-amber-800 dark:text-amber-300">
             <span className="animate-bounce inline-block text-base">🔧</span>
             <span className="font-semibold">Heads up!</span>
             <span className="opacity-80">We're improving AdHub — some features may still be evolving.</span>
@@ -487,11 +487,11 @@ export default function HomePage() {
       )}
 
       {/* ── TWO-COLUMN LAYOUT ─────────────────────────────────────── */}
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
-        <div className="flex gap-6 pt-6">
+      <div className="mx-auto max-w-[1600px] px-4 sm:px-8 lg:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(820px,1fr)] gap-6 pt-6">
 
           {/* ── LEFT SIDEBAR: Categories ──────────────────────────── */}
-          <aside className="hidden lg:block w-[270px] shrink-0">
+          <aside className="hidden lg:block w-full">
             <div className="sticky top-4 rounded-2xl border border-border bg-card shadow-sm p-4 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-thin">
               <CategorySidebar onNavigate={navigate} />
             </div>
@@ -559,11 +559,11 @@ export default function HomePage() {
             <FeaturedListings />
 
             {/* Live counters (Moved up for Trust) */}
-            <div className="mb-6 rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-elevated mt-4">
+            <div className="mb-8 rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-elevated mt-0">
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-[100%] group-hover:animate-[shimmer_2s_infinite]"></div>
               
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-6 py-6 relative z-10">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-6 py-4 relative z-10 divide-x divide-primary-foreground/10">
                 {[
                   { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Active Listings' },
                   { icon: Grid,       n: '15+',     l: 'Categories' },
@@ -583,6 +583,8 @@ export default function HomePage() {
               </div>
             </div>
 
+            <hr className="my-8 border-border/50" />
+
             {/* Trust & Safety */}
             <div className="mb-6">
               <TrustSafety />
@@ -595,50 +597,46 @@ export default function HomePage() {
             <ContinueBrowsing />
 
             {/* Mobile category row (lg hidden) */}
-            <div className="lg:hidden mb-6 overflow-x-auto pb-2">
-              <div className="flex gap-2" style={{ width: 'max-content' }}>
-                {CATEGORY_ICONS.map(c => (
-                  <Link
-                    key={c.slug}
-                    to={`/browse?category=${c.slug}`}
-                    className="flex flex-col items-center gap-1 rounded-2xl border border-border bg-card px-3 py-3 text-center hover:border-primary/40 hover:bg-primary/5 transition"
-                  >
-                    <span className="text-2xl leading-none">{c.icon}</span>
-                    <span className="text-[11px] font-semibold whitespace-nowrap text-foreground">{c.name}</span>
-                  </Link>
-                ))}
-              </div>
+            <div className="lg:hidden mb-6 flex overflow-x-auto snap-x snap-mandatory gap-3 pb-2 scrollbar-hide">
+              {CATEGORY_ICONS.map(c => (
+                <Link
+                  key={c.slug}
+                  to={`/browse?category=${c.slug}`}
+                  className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-border bg-card px-4 py-4 text-center hover:border-primary/40 hover:bg-primary/5 transition min-w-[120px] snap-center shrink-0 shadow-sm"
+                >
+                  <span className="text-3xl leading-none mb-1">{c.icon}</span>
+                  <span className="text-xs font-bold whitespace-nowrap text-foreground">{c.name}</span>
+                </Link>
+              ))}
             </div>
 
             {/* Featured Categories */}
             <section className="mb-10">
-              <div className="mb-4 flex items-end justify-between gap-4">
+              <div className="mt-12 mb-5 flex items-end justify-between gap-4">
                 <div>
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">Featured</span>
-                  <h2 className="mt-1 font-display text-xl font-bold sm:text-2xl">Popular categories</h2>
+                  <h2 className="font-display text-2xl font-bold sm:text-3xl tracking-tight">Popular categories</h2>
                 </div>
-                <Link to="/browse" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
-                  All <ChevronRight className="h-3.5 w-3.5" />
+                <Link to="/browse" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 transition-colors group">
+                  See all categories <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0 lg:gap-6">
                 {FEATURED_SLUGS.map(slug => {
                   const c = CATEGORY_ICONS.find(x => x.slug === slug);
                   if (!c) return null;
                   return (
-                    <Link key={slug} to={`/browse?category=${slug}`} className="group relative aspect-[5/4] overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated block">
-                      <img src={CAT_IMAGES[slug] || catServices} alt={c.name} loading="lazy" width={600} height={480} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110" />
-                      <div className={`absolute inset-0 bg-gradient-to-t ${CAT_TINTS[slug] || 'from-gray-900/60'} via-transparent to-transparent opacity-90 group-hover:opacity-100 transition-opacity`} />
-                      <div className="absolute inset-0 flex flex-col justify-between p-3">
+                    <Link key={slug} to={`/browse?category=${slug}`} className="group relative aspect-[4/3] sm:aspect-[3/2] lg:h-[180px] xl:h-[220px] shrink-0 w-[240px] sm:w-[280px] lg:w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated block snap-center">
+                      <img src={CAT_IMAGES[slug] || catServices} alt={c.name} loading="lazy" width={600} height={480} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                      <div className={`absolute inset-0 bg-gradient-to-t ${CAT_TINTS[slug] || 'from-gray-900/70'} via-transparent to-transparent opacity-90 group-hover:opacity-100 transition-opacity`} />
+                      <div className="absolute inset-0 flex flex-col justify-between p-4">
                         <div className="flex items-center justify-between">
-                          <div className="grid h-8 w-8 place-items-center rounded-full bg-background/90 backdrop-blur text-lg">{c.icon}</div>
-                          <ArrowUpRight className="h-3.5 w-3.5 text-background opacity-0 transition group-hover:opacity-100" />
+                          <div className="grid h-10 w-10 place-items-center rounded-xl bg-background/95 backdrop-blur text-xl shadow-sm border border-border/50">{c.icon}</div>
+                          <ArrowUpRight className="h-4 w-4 text-background opacity-0 transition group-hover:opacity-100" />
                         </div>
                         <div className="text-background">
-                          <div className="font-display text-base font-bold leading-tight">{c.name}</div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] font-medium opacity-90">{c.count.toLocaleString()} Ads</span>
-                            <span className="text-[9px] font-bold text-gold bg-gold/20 px-1.5 py-0.5 rounded-sm">+{Math.max(12, Math.floor(c.count * 0.05))} Today</span>
+                          <div className="font-display text-lg font-bold leading-tight tracking-wide">{c.name}</div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs font-semibold opacity-95">{c.count.toLocaleString()} Listings</span>
                           </div>
                         </div>
                       </div>
@@ -648,14 +646,22 @@ export default function HomePage() {
               </div>
             </section>
 
-            {/* Trending Listings */}
-            <DiscoveryRow title="Trending Deals" subtitle="Hot Right Now" sort="price_asc" limit={8} />
+            {/* Grid for Discovery Rows */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 xl:gap-8 mb-6">
+              {/* Trending Listings */}
+              <DiscoveryRow title="Trending Deals" sort="price_asc" limit={8} />
 
-            {/* Fresh Listings */}
-            <DiscoveryRow title="New Listings Today" subtitle="Freshly Posted" sort="createdAt" limit={8} />
+              {/* Fresh Listings */}
+              <DiscoveryRow title="New Listings Today" sort="createdAt" limit={8} />
+            </div>
 
-            {/* Recently Viewed */}
-            <RecentlyViewed />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 xl:gap-8 mb-10">
+              {/* Recently Viewed */}
+              <RecentlyViewed />
+
+              {/* Recommended */}
+              <DiscoveryRow title="Recommended for you" sort="clicks" limit={8} />
+            </div>
 
             {/* Sell CTA */}
             <section className="mb-10">

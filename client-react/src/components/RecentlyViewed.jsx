@@ -9,11 +9,10 @@ export default function RecentlyViewed() {
   if (!recentListings || recentListings.length === 0) return null;
 
   return (
-    <section className="mb-10">
-      <div className="mb-4 flex items-center justify-between">
+    <section className="mb-0">
+      <div className="mt-12 mb-5 flex items-end justify-between">
         <div className="flex items-center gap-2">
-          <History className="w-5 h-5 text-muted-foreground" />
-          <h2 className="font-display text-xl font-bold sm:text-2xl">Recently Viewed</h2>
+          <h2 className="font-display text-xl font-bold sm:text-2xl tracking-tight">Recently Viewed</h2>
         </div>
         <button 
           onClick={clearHistory}
@@ -25,7 +24,7 @@ export default function RecentlyViewed() {
 
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
         {recentListings.map((listing) => (
-          <div key={listing.id} className="w-[280px] shrink-0">
+          <div key={listing.id} className="w-[280px] sm:w-[320px] shrink-0">
             <ListingCard listing={listing} />
           </div>
         ))}

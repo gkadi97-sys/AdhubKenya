@@ -70,7 +70,7 @@ export default function ListingCard({ listing, featured }) {
         </div>
 
         <div className="p-4 flex flex-col flex-1">
-          <h3 className="line-clamp-1 font-display text-base font-semibold text-foreground">
+          <h3 className="line-clamp-2 font-display text-base font-semibold text-foreground leading-snug h-[44px]">
             {listing.title}
           </h3>
 
