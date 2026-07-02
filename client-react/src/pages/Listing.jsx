@@ -9,6 +9,7 @@ import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import CandidateProfile from '@/components/CandidateProfile';
 import ListingCard from '@/components/ListingCard';
 import MessageButton from '@/components/MessageButton';
+import ReportModal from '@/components/ReportModal';
 import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function ListingDetailPage() {
@@ -24,6 +25,7 @@ export default function ListingDetailPage() {
   const [relatedListings, setRelatedListings] = useState([]);
   const [descExpanded, setDescExpanded] = useState(false);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [showNumber, setShowNumber] = useState(false);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
 
@@ -504,7 +506,7 @@ export default function ListingDetailPage() {
 
                 {/* Footer Meta */}
                 <div className="flex flex-col gap-3">
-                   <button className="flex items-center gap-1.5 text-muted-foreground hover:text-destructive transition-colors w-fit font-semibold text-sm group mx-1">
+                   <button onClick={() => setIsReportModalOpen(true)} className="flex items-center gap-1.5 text-muted-foreground hover:text-destructive transition-colors w-fit font-semibold text-sm group mx-1">
                      <Flag className="w-4 h-4 group-hover:fill-destructive" /> Report this listing
                    </button>
                    <div className="text-muted-foreground flex gap-2 items-start bg-secondary/50 p-3 rounded-xl border border-border text-xs">
@@ -606,13 +608,32 @@ export default function ListingDetailPage() {
                 className="absolute right-0 sm:-right-12 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
               >
                 <ChevronRight className="w-6 h-6" />
-              </button>
-            )}
+          {/* Zoom Modal Header */}
+          <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/50 to-transparent">
+             <span className="text-white/80 font-medium">{activeImg + 1} / {images.length}</span>
+             <button onClick={() => setIsZoomModalOpen(false)} aria-label="Close zoom" className="text-white/80 hover:text-white transition p-2 bg-black/20 rounded-full backdrop-blur-md">
+               <X className="w-6 h-6" />
+             </button>
           </div>
-          
-          {/* Keyboard hint */}
-          <div className="absolute bottom-[7rem] text-white/40 text-xs select-none hidden sm:block">
-            ← → to navigate · Esc to close
+
+          {/* Zoom Modal Main Image Container */}
+          <div className="flex-1 flex items-center justify-center relative overflow-hidden" tabIndex={0} autoFocus onKeyDown={handleZoomKeyDown}>
+             {/* Main Image */}
+             <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-12">
+               <img src={imageUrl(images[activeImg])} alt="" className="max-w-full max-h-full object-contain drop-shadow-2xl" />
+             </div>
+
+             {/* Prev/Next Controls */}
+             {images.length > 1 && (
+               <>
+                 <button onClick={() => setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1)} aria-label="Previous image" className="absolute left-4 sm:left-8 p-3 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 transition backdrop-blur-md">
+                   <ChevronLeft className="w-6 h-6" />
+                 </button>
+                 <button onClick={() => setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1)} aria-label="Next image" className="absolute right-4 sm:right-8 p-3 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 transition backdrop-blur-md">
+                   <ChevronRight className="w-6 h-6" />
+                 </button>
+               </>
+             )}
           </div>
 
           {/* Zoom Modal Thumbnails */}
@@ -631,6 +652,12 @@ export default function ListingDetailPage() {
         </div>
       )}
 
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        listingId={listing.id}
+        listingTitle={listing.title}
+      />
     </div>
   );
 }

@@ -30,7 +30,7 @@ export default function AdminUsers() {
     try {
       let query = supabase
         .from('profiles')
-        .select('id, name, email, phone, role, created_at, location', { count: 'exact' })
+        .select('id, name, email, phone, role, created_at, location, status', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range((page - 1) * LIMIT, page * LIMIT - 1);
 
@@ -57,6 +57,30 @@ export default function AdminUsers() {
   };
   const toggleAll = () => {
     setSelectedIds(selectedIds.length === users.length ? [] : users.map(u => u.id));
+  };
+
+  const handleStatusChange = async (id, status) => {
+    if (!confirm(`Are you sure you want to mark this user as ${status}?`)) return;
+    try {
+      const { error } = await supabase.from('profiles').update({ status }).eq('id', id);
+      if (error) throw error;
+      fetchUsers();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleBulkStatusChange = async (status) => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Are you sure you want to mark ${selectedIds.length} users as ${status}?`)) return;
+    try {
+      const { error } = await supabase.from('profiles').update({ status }).in('id', selectedIds);
+      if (error) throw error;
+      setSelectedIds([]);
+      fetchUsers();
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   const totalPages = Math.ceil(total / LIMIT);
@@ -108,10 +132,13 @@ export default function AdminUsers() {
       {selectedIds.length > 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
           <span className="text-sm font-semibold text-primary">{selectedIds.length} selected</span>
-          <button className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-600 hover:bg-amber-500/20 transition">
+          <button onClick={() => handleBulkStatusChange('active')} className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-xs font-bold text-green-600 hover:bg-green-500/20 transition">
+            Activate All
+          </button>
+          <button onClick={() => handleBulkStatusChange('suspended')} className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-600 hover:bg-amber-500/20 transition">
             Suspend All
           </button>
-          <button className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive hover:bg-destructive/20 transition">
+          <button onClick={() => handleBulkStatusChange('banned')} className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive hover:bg-destructive/20 transition">
             Ban All
           </button>
         </div>
@@ -129,7 +156,7 @@ export default function AdminUsers() {
                 <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-widest text-muted-foreground">User</th>
                 <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">Email</th>
                 <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-widest text-muted-foreground hidden lg:table-cell">Location</th>
-                <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-widest text-muted-foreground">Role</th>
+                <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-widest text-muted-foreground">Status</th>
                 <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-widest text-muted-foreground hidden md:table-cell">Joined</th>
                 <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-widest text-muted-foreground">Actions</th>
               </tr>
@@ -167,22 +194,36 @@ export default function AdminUsers() {
                     <td className="py-4 px-4 hidden md:table-cell text-sm text-muted-foreground">{u.email || '—'}</td>
                     <td className="py-4 px-4 hidden lg:table-cell text-sm text-muted-foreground">{u.location || '—'}</td>
                     <td className="py-4 px-4">
-                      <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold ${roleBadge.class}`}>{roleBadge.label}</span>
+                      {(() => {
+                        const sBadge = STATUS_BADGES[u.status] || STATUS_BADGES.active;
+                        return (
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold ${sBadge.class}`}>
+                            <sBadge.icon className="h-3 w-3" />
+                            {sBadge.label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="py-4 px-4 hidden md:table-cell text-sm text-muted-foreground">
                       {new Date(u.created_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
-                        <button className="rounded-lg p-2 text-muted-foreground hover:bg-primary/10 hover:text-primary transition" title="View Profile">
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <button className="rounded-lg p-2 text-muted-foreground hover:bg-amber-500/10 hover:text-amber-600 transition" title="Suspend User">
-                          <ShieldOff className="h-4 w-4" />
-                        </button>
-                        <button className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition" title="Delete User">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {u.status !== 'active' && (
+                          <button onClick={() => handleStatusChange(u.id, 'active')} className="rounded-lg p-2 text-muted-foreground hover:bg-green-500/10 hover:text-green-600 transition" title="Activate User">
+                            <CheckCircle className="h-4 w-4" />
+                          </button>
+                        )}
+                        {u.status !== 'suspended' && (
+                          <button onClick={() => handleStatusChange(u.id, 'suspended')} className="rounded-lg p-2 text-muted-foreground hover:bg-amber-500/10 hover:text-amber-600 transition" title="Suspend User">
+                            <ShieldOff className="h-4 w-4" />
+                          </button>
+                        )}
+                        {u.status !== 'banned' && (
+                          <button onClick={() => handleStatusChange(u.id, 'banned')} className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition" title="Ban User">
+                            <XCircle className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Users, FileText, CheckCircle, AlertTriangle, TrendingUp, DollarSign } from 'lucide-react';
-import { getAdminStats } from '@/lib/api';
+import { getAdminStats, timeAgo } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -10,11 +12,19 @@ export default function AdminDashboard() {
     revenue: 0,
     users: 0
   });
+  const [recentAds, setRecentAds] = useState([]);
 
   useEffect(() => {
     getAdminStats().then(res => {
       setStats(res);
     }).catch(console.error);
+
+    supabase.from('listings')
+      .select('id, title, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5)
+      .then(({ data }) => setRecentAds(data || []))
+      .catch(console.error);
   }, []);
 
   const statCards = [
@@ -51,19 +61,21 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity Mock */}
+        {/* Recent Activity */}
         <div className="rounded-2xl border border-border bg-card p-6">
           <h3 className="mb-4 text-lg font-bold text-foreground">Recent Activity</h3>
           <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-start gap-4 border-b border-border pb-4 last:border-0 last:pb-0">
-                <div className="mt-0.5 h-2 w-2 rounded-full bg-primary ring-4 ring-primary/20"></div>
+            {recentAds.length > 0 ? recentAds.map((ad, i) => (
+              <div key={ad.id} className="flex items-start gap-4 border-b border-border pb-4 last:border-0 last:pb-0">
+                <div className={`mt-0.5 h-2 w-2 rounded-full ${ad.status === 'active' ? 'bg-green-500 ring-green-500/20' : 'bg-primary ring-primary/20'} ring-4`}></div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">New Ad posted: Toyota Fielder {2015 + i}</p>
-                  <p className="text-xs text-muted-foreground">{i * 12} minutes ago by User #{1000 + i}</p>
+                  <p className="text-sm font-semibold text-foreground truncate max-w-[200px] sm:max-w-xs">{ad.title}</p>
+                  <p className="text-xs text-muted-foreground">{timeAgo(ad.created_at)}</p>
                 </div>
               </div>
-            ))}
+            )) : (
+              <p className="text-sm text-muted-foreground">No recent activity.</p>
+            )}
           </div>
         </div>
 
@@ -71,18 +83,18 @@ export default function AdminDashboard() {
         <div className="rounded-2xl border border-border bg-card p-6">
           <h3 className="mb-4 text-lg font-bold text-foreground">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm font-semibold transition hover:bg-primary hover:text-primary-foreground">
+            <Link to="/admin/ads?status=pending" className="flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm font-semibold transition hover:bg-primary hover:text-primary-foreground">
               Review Pending Ads
-            </button>
-            <button className="flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm font-semibold transition hover:bg-primary hover:text-primary-foreground">
-              Broadcast Message
-            </button>
-            <button className="flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm font-semibold transition hover:bg-primary hover:text-primary-foreground">
-              Manage Categories
-            </button>
-            <button className="flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm font-semibold transition hover:bg-primary hover:text-primary-foreground">
-              System Logs
-            </button>
+            </Link>
+            <Link to="/admin/reports" className="flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm font-semibold transition hover:bg-primary hover:text-primary-foreground">
+              View Reports
+            </Link>
+            <Link to="/admin/users" className="flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm font-semibold transition hover:bg-primary hover:text-primary-foreground">
+              Manage Users
+            </Link>
+            <Link to="/admin/settings" className="flex items-center justify-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-3 text-sm font-semibold transition hover:bg-primary hover:text-primary-foreground">
+              System Settings
+            </Link>
           </div>
         </div>
       </div>

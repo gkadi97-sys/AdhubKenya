@@ -1,35 +1,60 @@
-import { useState } from 'react';
-import { ShieldAlert } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { ShieldAlert, RefreshCw } from 'lucide-react';
 import { timeAgo } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 const STATUSES = {
-  open:         { label: 'Open',         class: 'bg-destructive/15 text-destructive border-destructive/20' },
-  investigating:{ label: 'Investigating',class: 'bg-amber-500/15 text-amber-600 border-amber-500/20' },
-  actioned:     { label: 'Actioned',     class: 'bg-blue-500/15 text-blue-600 border-blue-500/20' },
-  closed:       { label: 'Closed',       class: 'bg-green-500/15 text-green-600 border-green-500/20' },
+  pending:      { label: 'Pending',       class: 'bg-amber-500/15 text-amber-600 border-amber-500/20' },
+  reviewed:     { label: 'Reviewed',      class: 'bg-blue-500/15 text-blue-600 border-blue-500/20' },
+  action_taken: { label: 'Action Taken',  class: 'bg-green-500/15 text-green-600 border-green-500/20' },
+  dismissed:    { label: 'Dismissed',     class: 'bg-secondary text-muted-foreground border-border' },
 };
 
-const MOCK_REPORTS = [
-  { id: 'RPT-001', listing_title: 'Toyota Land Cruiser 2020',  reason: 'Fraud',           status: 'open',          reporter: 'anon', created_at: new Date(Date.now() - 3600000).toISOString() },
-  { id: 'RPT-002', listing_title: 'iPhone 15 Pro Max 512GB',    reason: 'Misleading Price', status: 'investigating', reporter: 'user_2212', created_at: new Date(Date.now() - 7200000).toISOString() },
-  { id: 'RPT-003', listing_title: '3-Bedroom Apartment Kileleshwa', reason: 'Duplicate',  status: 'actioned',      reporter: 'user_4411', created_at: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'RPT-004', listing_title: 'Samsung Galaxy S24 Ultra',   reason: 'Scam',            status: 'closed',        reporter: 'user_9872', created_at: new Date(Date.now() - 172800000).toISOString() },
-  { id: 'RPT-005', listing_title: 'Nissan X-Trail 2017',        reason: 'Abuse',           status: 'open',          reporter: 'anon', created_at: new Date(Date.now() - 1800000).toISOString() },
-];
-
 function StatusBadge({ status }) {
-  const s = STATUSES[status] || STATUSES.open;
+  const s = STATUSES[status] || STATUSES.pending;
   return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold ${s.class}`}>{s.label}</span>;
 }
 
 export default function AdminReports() {
-  const [reports, setReports] = useState(MOCK_REPORTS);
+  const [reports, setReports] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+
+  const fetchReports = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('reports')
+        .select(`
+          id, reason, details, status, created_at,
+          listing_id, listing:listings(title),
+          reporter_id, reporter:profiles!reporter_id(name)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setReports(data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const filtered = filter === 'all' ? reports : reports.filter(r => r.status === filter);
 
-  const updateStatus = (id, newStatus) => {
-    setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+  const updateStatus = async (id, newStatus) => {
+    try {
+      const { error } = await supabase.from('reports').update({ status: newStatus }).eq('id', id);
+      if (error) throw error;
+      setReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
   return (
@@ -41,20 +66,20 @@ export default function AdminReports() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {['open', 'investigating', 'actioned', 'closed'].map(s => (
+        {['pending', 'reviewed', 'action_taken', 'dismissed'].map(s => (
           <div key={s} className="rounded-2xl border border-border bg-card p-4 text-center">
             <p className="font-display text-2xl font-bold text-foreground">{reports.filter(r => r.status === s).length}</p>
-            <p className="mt-1 text-xs font-semibold capitalize text-muted-foreground">{s}</p>
+            <p className="mt-1 text-xs font-semibold capitalize text-muted-foreground">{STATUSES[s].label}</p>
           </div>
         ))}
       </div>
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap gap-2">
-        {['all', 'open', 'investigating', 'actioned', 'closed'].map(s => (
+        {['all', 'pending', 'reviewed', 'action_taken', 'dismissed'].map(s => (
           <button key={s} onClick={() => setFilter(s)}
             className={`rounded-full border px-4 py-1.5 text-xs font-bold capitalize transition ${filter === s ? 'bg-primary border-primary text-primary-foreground' : 'border-border bg-card text-muted-foreground hover:text-foreground'}`}>
-            {s}
+            {s === 'all' ? 'All' : STATUSES[s].label}
           </button>
         ))}
       </div>
@@ -74,18 +99,22 @@ export default function AdminReports() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {loading ? (
+                <tr><td colSpan={6} className="py-16 text-center text-muted-foreground animate-pulse">Loading reports...</td></tr>
+              ) : filtered.length === 0 ? (
                 <tr><td colSpan={6} className="py-16 text-center text-muted-foreground">No reports found.</td></tr>
               ) : filtered.map(r => (
                 <tr key={r.id} className="border-b border-border last:border-0 transition hover:bg-secondary/30">
-                  <td className="py-4 px-6 text-sm font-mono font-semibold text-primary">{r.id}</td>
+                  <td className="py-4 px-6 text-sm font-mono font-semibold text-primary" title={r.id}>
+                    {r.id.split('-')[0]}
+                  </td>
                   <td className="py-4 px-4">
-                    <span className="max-w-[180px] truncate text-sm font-semibold text-foreground block">{r.listing_title}</span>
-                    <span className="text-xs text-muted-foreground">by {r.reporter}</span>
+                    <span className="max-w-[180px] truncate text-sm font-semibold text-foreground block">{r.listing?.title || 'Unknown Listing'}</span>
+                    <span className="text-xs text-muted-foreground">by {r.reporter?.name || 'Anonymous'}</span>
                   </td>
                   <td className="py-4 px-4 hidden sm:table-cell">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-foreground">
-                      <ShieldAlert className="h-3 w-3 text-destructive" /> {r.reason}
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-foreground capitalize">
+                      <ShieldAlert className="h-3 w-3 text-destructive" /> {r.reason.replace('_', ' ')}
                     </span>
                   </td>
                   <td className="py-4 px-4"><StatusBadge status={r.status} /></td>
