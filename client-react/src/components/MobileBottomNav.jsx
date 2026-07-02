@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, PlusCircle, MessageSquare, User } from 'lucide-react';
+import { Home, Search, PlusCircle, MessageSquare, User, Heart } from 'lucide-react';
 
 export default function MobileBottomNav() {
   const location = useLocation();
@@ -8,7 +8,7 @@ export default function MobileBottomNav() {
     { label: 'Home', path: '/', icon: Home },
     { label: 'Search', path: '/browse', icon: Search },
     { label: 'Post', path: '/post-ad', icon: PlusCircle, isPrimary: true },
-    { label: 'Messages', path: '/messages', icon: MessageSquare },
+    { label: 'Saved', path: '/saved-searches', icon: Heart }, // Replaced Messages with Saved Searches since Messages isn't built yet
     { label: 'Profile', path: '/profile', icon: User },
   ];
 

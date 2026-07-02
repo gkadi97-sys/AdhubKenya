@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { createListing } from '@/lib/api';
+import { createListing, checkDuplicateListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
 import DynamicListingForm from '@/components/forms/DynamicListingForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
@@ -97,7 +97,7 @@ export default function PostAdPage() {
     if (rawNewFiles.length === 0) return;
 
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 15 * 1024 * 1024; // 15MB raw size limit (will be compressed to <500KB)
 
     const validFiles = rawNewFiles.filter(file => {
       if (!validTypes.includes(file.type)) {
@@ -105,7 +105,7 @@ export default function PostAdPage() {
         return false;
       }
       if (file.size > maxSize) {
-        toast.error(`${file.name} is larger than 5MB.`);
+        toast.error(`${file.name} is larger than 15MB.`);
         return false;
       }
       return true;
@@ -247,6 +247,20 @@ export default function PostAdPage() {
       if (isJob) listingData.price = 0;
       if (!showStandardCondition && !isVehicle && !isAutoSpares && !isPhone && !isLaptop && !isAudio) delete listingData.condition;
 
+      // Duplicate check
+      if (user) {
+        const isDup = await checkDuplicateListing(user.id, formValues.title, formValues.category);
+        if (isDup) {
+          setError('You already have an active listing with a similar title in this category. Please edit it or use a different title.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Check moderation setting
+      const requireApproval = localStorage.getItem('adhub_require_approval') === 'true';
+      listingData.status = requireApproval ? 'pending' : 'active';
+
       // Map dynamic attributes. Some need to be top level, rest go to specs.
       const { make, model, year, ...restSpecs } = attrs;
       if (make)  listingData.make  = make;
@@ -255,7 +269,13 @@ export default function PostAdPage() {
       listingData.specs = restSpecs || {};
       
       const listing = await createListing(listingData, images);
-      navigate(`/listing/${listing.id}`);
+      
+      if (requireApproval) {
+        toast.success('Your ad has been submitted and is pending approval.');
+        navigate('/my-ads');
+      } else {
+        navigate(`/listing/${listing.slug || listing.id}`);
+      }
     } catch (err) {
       setError(err.message);
     } finally { setLoading(false); }

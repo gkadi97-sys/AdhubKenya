@@ -32,9 +32,31 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [showEmail, setShowEmail] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState('');
   const isFromListing = redirectTo.startsWith('/listing/');
 
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotMessage('');
+    try {
+      const { supabase } = await import('@/lib/supabase');
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setForgotMessage('Password reset instructions have been sent to your email.');
+    } catch (err) {
+      setForgotMessage(err.message || 'An error occurred.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -134,6 +156,7 @@ export default function LoginPage() {
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-semibold text-foreground">Password</label>
+                  <button type="button" onClick={() => setShowForgotModal(true)} className="text-xs font-semibold text-primary hover:underline">Forgot password?</button>
                 </div>
                 <input 
                   className={inputClass} 
@@ -157,9 +180,8 @@ export default function LoginPage() {
           )}
         </div>
 
-        <p className="mt-8 text-center text-sm text-muted-foreground">
-          Don't have an account?{' '}
-          <Link to="/register" className="font-bold text-primary hover:underline">Create one free &rarr;</Link>
+        <p className="text-center text-sm font-medium text-muted-foreground mt-6">
+          Don't have an account? <Link to={`/register${isFromListing ? `?redirectTo=${redirectTo}` : ''}`} className="text-primary hover:underline">Create one</Link>
         </p>
         <p className="mt-4 text-center text-xs text-muted-foreground/60 max-w-xs mx-auto">
           By continuing, you agree to AdHub Kenya's{' '}
@@ -168,6 +190,40 @@ export default function LoginPage() {
           <Link to="/privacy" className="underline hover:text-muted-foreground">Privacy Policy</Link>.
         </p>
       </div>
+
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-foreground mb-2">Reset Password</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+            <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <div>
+                <input
+                  type="email"
+                  required
+                  placeholder="Your email address"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              {forgotMessage && (
+                <div className={`text-sm font-medium p-3 rounded-xl ${forgotMessage.includes('sent') ? 'bg-green-500/10 text-green-600' : 'bg-destructive/10 text-destructive'}`}>
+                  {forgotMessage}
+                </div>
+              )}
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setShowForgotModal(false)} className="px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground">Cancel</button>
+                <button type="submit" disabled={forgotLoading} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition hover:opacity-90 disabled:opacity-50">
+                  {forgotLoading ? 'Sending...' : 'Send Link'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

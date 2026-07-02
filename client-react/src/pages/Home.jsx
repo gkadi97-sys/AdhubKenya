@@ -20,6 +20,7 @@ import RecentlyViewed from '@/components/RecentlyViewed';
 import ContinueBrowsing from '@/components/ContinueBrowsing';
 import TrustSafety from '@/components/TrustSafety';
 import { useSEO } from '@/lib/useSEO';
+import { getTrendingSearches, getCountyCounts } from '@/lib/api';
 
 import heroNairobi from '@/assets/hero-nairobi.jpg';
 import catVehicles from '@/assets/cat-vehicles.jpg';
@@ -456,6 +457,8 @@ function CategorySidebar({ onNavigate, onCategoryFocus }) {
 export default function HomePage() {
   const navigate = useNavigate();
   const [liveAdCount, setLiveAdCount] = useState(null);
+  const [trendingSearches, setTrendingSearches] = useState([]);
+  const [countyCounts, setCountyCounts] = useState([]);
   const [focusedCat, setFocusedCat] = useState(null);
   const [showDevBanner, setShowDevBanner] = useState(() => localStorage.getItem('adhub_hide_dev') !== 'true');
 
@@ -473,6 +476,9 @@ export default function HomePage() {
         if (count !== null) setLiveAdCount(count);
       })
       .catch(() => {});
+
+    getTrendingSearches().then(setTrendingSearches);
+    getCountyCounts().then(setCountyCounts);
   }, []);
 
   useSEO({
@@ -501,7 +507,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-background text-foreground">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       {/* Announcement strip */}
       <div className="gradient-emerald text-primary-foreground">
@@ -613,24 +619,20 @@ export default function HomePage() {
                 </div>
 
                 {/* Trending Searches */}
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-semibold text-muted-foreground mr-1">Trending:</span>
-                  {[
-                    {term: 'Toyota Premio', count: 42}, 
-                    {term: 'Land for Sale', count: 18}, 
-                    {term: 'iPhone 15', count: 27}, 
-                    {term: 'Apartments in Nairobi', count: 56}, 
-                    {term: 'PS5', count: 14}
-                  ].map(({term, count}) => (
-                    <Link
-                      key={term}
-                      to={`/browse?keyword=${encodeURIComponent(term)}`}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-background/50 backdrop-blur border border-border/40 px-3 py-1.5 text-[10px] font-medium text-foreground/80 transition hover:bg-background/90 hover:border-primary/40 shadow-sm hover:shadow"
-                    >
-                      {term} <span className="text-muted-foreground text-[10px]">({count})</span>
-                    </Link>
-                  ))}
-                </div>
+                {trendingSearches.length > 0 && (
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-semibold text-muted-foreground mr-1">Trending:</span>
+                    {trendingSearches.map(({ search_term, search_count }) => (
+                      <Link
+                        key={search_term}
+                        to={`/browse?keyword=${encodeURIComponent(search_term)}`}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-background/50 backdrop-blur border border-border/40 px-3 py-1.5 text-[10px] font-medium text-foreground/80 transition hover:bg-background/90 hover:border-primary/40 shadow-sm hover:shadow"
+                      >
+                        {search_term} <span className="text-muted-foreground text-[10px]">({search_count})</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
 
@@ -784,31 +786,27 @@ export default function HomePage() {
             </section>
 
             {/* Location Discovery */}
-            <section className="mb-10">
-              <div className="mb-4">
-                <h2 className="font-display text-xl font-bold sm:text-2xl">Browse by Location</h2>
-                <p className="text-sm text-muted-foreground mt-1">Find deals in your county</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                {[
-                  { name: 'Nairobi', count: '5,400+' },
-                  { name: 'Mombasa', count: '1,200+' },
-                  { name: 'Kisumu', count: '850+' },
-                  { name: 'Nakuru', count: '920+' },
-                  { name: 'Eldoret', count: '600+' }
-                ].map(loc => (
-                  <Link
-                    key={loc.name}
-                    to={`/browse?county=${loc.name}`}
-                    className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center transition hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
-                  >
-                    <MapPin className="mb-2 h-6 w-6 text-primary" />
-                    <span className="text-sm font-bold text-foreground">{loc.name}</span>
-                    <span className="text-xs font-medium text-muted-foreground">{loc.count} ads</span>
-                  </Link>
-                ))}
-              </div>
-            </section>
+            {countyCounts.length > 0 && (
+              <section className="mb-10">
+                <div className="mb-4">
+                  <h2 className="font-display text-xl font-bold sm:text-2xl">Browse by Location</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Find deals in your county</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                  {countyCounts.map(loc => (
+                    <Link
+                      key={loc.county}
+                      to={`/browse?county=${encodeURIComponent(loc.county)}`}
+                      className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center transition hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+                    >
+                      <MapPin className="mb-2 h-6 w-6 text-primary" />
+                      <span className="text-sm font-bold text-foreground">{loc.county}</span>
+                      <span className="text-xs font-medium text-muted-foreground">{loc.listing_count} ads</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* SEO Content Block */}
             <section className="mb-10 rounded-2xl border border-border/50 bg-card/50 p-6 sm:p-8">

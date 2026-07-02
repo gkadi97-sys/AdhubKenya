@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
 import { Toaster } from 'react-hot-toast';
@@ -9,42 +10,48 @@ import Footer from '@/components/Footer.jsx';
 import MobileBottomNav from '@/components/MobileBottomNav.jsx';
 import GoogleSignInPrompt from '@/components/GoogleSignInPrompt.jsx';
 
-// --- Public Pages ---
+// --- Public Pages (Eager) ---
 import Home from '@/pages/Home.jsx';
 import Browse from '@/pages/Browse.jsx';
 import Category from '@/pages/Category.jsx';
 import Listing from '@/pages/Listing.jsx';
 import Login from '@/pages/Login.jsx';
 import Register from '@/pages/Register.jsx';
-import PostAd from '@/pages/PostAd.jsx';
-import EditAd from '@/pages/EditAd.jsx';
-import MyAds from '@/pages/MyAds.jsx';
-import ProfilePage from '@/pages/Profile.jsx';
-import MessagesPage from '@/pages/Messages.jsx';
-import MessageThreadPage from '@/pages/MessageThread.jsx';
-import SavedSearches from '@/pages/SavedSearches.jsx';
-import PostCvPage from '@/pages/PostCv.jsx';
 
-// --- Legal Pages ---
-import TermsPage from '@/pages/legal/Terms.jsx';
-import PrivacyPage from '@/pages/legal/Privacy.jsx';
-import SafetyPage from '@/pages/legal/Safety.jsx';
-import ContactPage from '@/pages/legal/Contact.jsx';
-import HelpPage from '@/pages/legal/Help.jsx';
-import AboutPage from '@/pages/legal/About.jsx';
+// --- Lazy Loaded Pages ---
+const ResetPassword = lazy(() => import('@/pages/ResetPassword.jsx'));
+const PostAd = lazy(() => import('@/pages/PostAd.jsx'));
+const EditAd = lazy(() => import('@/pages/EditAd.jsx'));
+const MyAds = lazy(() => import('@/pages/MyAds.jsx'));
+const ProfilePage = lazy(() => import('@/pages/Profile.jsx'));
+const MessagesPage = lazy(() => import('@/pages/Messages.jsx'));
+const MessageThreadPage = lazy(() => import('@/pages/MessageThread.jsx'));
+const SavedSearches = lazy(() => import('@/pages/SavedSearches.jsx'));
+const PostCvPage = lazy(() => import('@/pages/PostCv.jsx'));
 
-// --- Admin Layout & Pages ---
-import AdminLayout from '@/layouts/AdminLayout.jsx';
-import AdminLogin from '@/pages/admin/AdminLogin.jsx';
-import AdminDashboard from '@/pages/admin/AdminDashboard.jsx';
-import AdminUsers from '@/pages/admin/AdminUsers.jsx';
-import AdminAds from '@/pages/admin/AdminAds.jsx';
-import AdminCVs from '@/pages/admin/AdminCVs.jsx';
-import AdminPayments from '@/pages/admin/AdminPayments.jsx';
-import AdminReports from '@/pages/admin/AdminReports.jsx';
-import AdminCMS from '@/pages/admin/AdminCMS.jsx';
-import AdminAnalytics from '@/pages/admin/AdminAnalytics.jsx';
-import AdminSettings from '@/pages/admin/AdminSettings.jsx';
+// --- Legal Pages (Lazy) ---
+const TermsPage = lazy(() => import('@/pages/legal/Terms.jsx'));
+const PrivacyPage = lazy(() => import('@/pages/legal/Privacy.jsx'));
+const SafetyPage = lazy(() => import('@/pages/legal/Safety.jsx'));
+const ContactPage = lazy(() => import('@/pages/legal/Contact.jsx'));
+const HelpPage = lazy(() => import('@/pages/legal/Help.jsx'));
+const AboutPage = lazy(() => import('@/pages/legal/About.jsx'));
+const CareersPage = lazy(() => import('@/pages/legal/Careers.jsx'));
+const ReportPage = lazy(() => import('@/pages/legal/Report.jsx'));
+const CookiesPage = lazy(() => import('@/pages/legal/Cookies.jsx'));
+
+// --- Admin Layout & Pages (Lazy) ---
+const AdminLayout = lazy(() => import('@/layouts/AdminLayout.jsx'));
+const AdminLogin = lazy(() => import('@/pages/admin/AdminLogin.jsx'));
+const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard.jsx'));
+const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers.jsx'));
+const AdminAds = lazy(() => import('@/pages/admin/AdminAds.jsx'));
+const AdminCVs = lazy(() => import('@/pages/admin/AdminCVs.jsx'));
+const AdminPayments = lazy(() => import('@/pages/admin/AdminPayments.jsx'));
+const AdminReports = lazy(() => import('@/pages/admin/AdminReports.jsx'));
+const AdminCMS = lazy(() => import('@/pages/admin/AdminCMS.jsx'));
+const AdminAnalytics = lazy(() => import('@/pages/admin/AdminAnalytics.jsx'));
+const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings.jsx'));
 
 // --- Guards ---
 function ProtectedRoute({ children }) {
@@ -58,7 +65,6 @@ function AdminProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div style={{ textAlign: 'center', padding: 80, color: 'var(--text-muted)' }}>Loading...</div>;
   if (!user) return <Navigate to="/admin/login" replace />;
-  // Role check: must have a recognised admin role stored in the profile
   const adminRoles = ['super_admin', 'admin', 'moderator', 'support', 'finance', 'content_reviewer', 'analytics_viewer'];
   if (!adminRoles.includes(user.role)) return <Navigate to="/admin/login" replace />;
   return children;
@@ -68,47 +74,50 @@ function AdminProtectedRoute({ children }) {
 function AppLayout() {
   return (
     <>
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-background focus:text-foreground">
+        Skip to main content
+      </a>
       <Navbar />
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/browse" element={<Browse />} />
-          <Route path="/category/:slug" element={<Category />} />
-          {/* SEO-friendly category routes */}
-          {['vehicles','property','land-plots','phones-tablets','electronics',
-            'home-furniture','fashion','beauty','services','repair-construction',
-            'commercial-equipment','commercial-vehicles','leisure','babies-kids',
-            'food-agriculture','animals-pets','auto-spares','jobs','seeking-work'
-          ].map(cat => (
-            <Route
-              key={cat}
-              path={`/${cat}`}
-              element={<Browse key={cat} defaultCategory={cat} />}
-            />
-          ))}
-          {/* Listing page — supports both UUID and slug */}
-          <Route path="/listing/:id" element={<Listing />} />
-          <Route path="/post-cv" element={<ProtectedRoute><PostCvPage /></ProtectedRoute>} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/post-ad" element={<ProtectedRoute><PostAd /></ProtectedRoute>} />
-          <Route path="/edit-ad/:id" element={<ProtectedRoute><EditAd /></ProtectedRoute>} />
-          <Route path="/my-ads" element={<ProtectedRoute><MyAds /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/saved-searches" element={<ProtectedRoute><SavedSearches /></ProtectedRoute>} />
-          
-          <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
-          <Route path="/messages/:id" element={<ProtectedRoute><MessageThreadPage /></ProtectedRoute>} />
-          
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/safety" element={<SafetyPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+      <main id="main-content">
+        <Suspense fallback={<div className="flex h-[50vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div></div>}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/browse" element={<Browse />} />
+            <Route path="/category/:slug" element={<Category />} />
+            {['vehicles','property','land-plots','phones-tablets','electronics',
+              'home-furniture','fashion','beauty','services','repair-construction',
+              'commercial-equipment','commercial-vehicles','leisure','babies-kids',
+              'food-agriculture','animals-pets','auto-spares','jobs','seeking-work'
+            ].map(cat => (
+              <Route key={cat} path={`/${cat}`} element={<Browse key={cat} defaultCategory={cat} />} />
+            ))}
+            <Route path="/listing/:id" element={<Listing />} />
+            <Route path="/post-cv" element={<ProtectedRoute><PostCvPage /></ProtectedRoute>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/post-ad" element={<ProtectedRoute><PostAd /></ProtectedRoute>} />
+            <Route path="/edit-ad/:id" element={<ProtectedRoute><EditAd /></ProtectedRoute>} />
+            <Route path="/my-ads" element={<ProtectedRoute><MyAds /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/saved-searches" element={<ProtectedRoute><SavedSearches /></ProtectedRoute>} />
+            
+            <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+            <Route path="/messages/:id" element={<ProtectedRoute><MessageThreadPage /></ProtectedRoute>} />
+            
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/safety" element={<SafetyPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/careers" element={<CareersPage />} />
+            <Route path="/report" element={<ReportPage />} />
+            <Route path="/cookies" element={<CookiesPage />} />
+            
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
       </main>
       <Footer />
       <MobileBottomNav />
@@ -125,33 +134,36 @@ export default function App() {
         <AuthProvider>
           <Toaster position="top-center" />
           <Routes>
-            {/* ── Admin: completely isolated from public layout ── */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin/*"
-            element={
+            {/* ── Admin Routes ── */}
+            <Route path="/admin/login" element={
+              <Suspense fallback={<div className="flex h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div></div>}>
+                <AdminLogin />
+              </Suspense>
+            } />
+            <Route path="/admin/*" element={
               <AdminProtectedRoute>
-                <AdminLayout />
+                <Suspense fallback={<div className="flex h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div></div>}>
+                  <AdminLayout />
+                </Suspense>
               </AdminProtectedRoute>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="ads" element={<AdminAds />} />
-            <Route path="cvs" element={<AdminCVs />} />
-            <Route path="payments" element={<AdminPayments />} />
-            <Route path="reports" element={<AdminReports />} />
-            <Route path="cms" element={<AdminCMS />} />
-            <Route path="analytics" element={<AdminAnalytics />} />
-            <Route path="settings" element={<AdminSettings />} />
-            <Route path="*" element={<Navigate to="/admin" replace />} />
-          </Route>
+            }>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="ads" element={<AdminAds />} />
+              <Route path="cvs" element={<AdminCVs />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="reports" element={<AdminReports />} />
+              <Route path="cms" element={<AdminCMS />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="*" element={<Navigate to="/admin" replace />} />
+            </Route>
 
-          {/* ── Public: existing site, no changes ── */}
-          <Route path="/*" element={<AppLayout />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+            {/* ── Public App Shell ── */}
+            <Route path="/*" element={<AppLayout />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   );
 }

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getListing, getListings, imageUrl, formatPrice, timeAgo } from '@/lib/api';
+import { getListing, getListings, toggleSaved, getSaved, imageUrl, formatPrice, timeAgo, getSellerStats, getListingViews } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { SCHEMA_ATTRIBUTES } from '@/lib/schemaEngine';
 import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
@@ -16,6 +16,9 @@ export default function ListingDetailPage() {
   const { user } = useAuth();
   const { addListing } = useRecentlyViewed();
   const [listing, setListing] = useState(null);
+  const [zoomedImage, setZoomedImage] = useState(null);
+  const [sellerStats, setSellerStats] = useState(null);
+  const [listingViews, setListingViews] = useState(0);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
   const [relatedListings, setRelatedListings] = useState([]);
@@ -23,6 +26,19 @@ export default function ListingDetailPage() {
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [showNumber, setShowNumber] = useState(false);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
+
+  // Keyboard navigation for zoom modal
+  const handleZoomKeyDown = useCallback((e) => {
+    if (!isZoomModalOpen) return;
+    if (e.key === 'Escape') { setIsZoomModalOpen(false); }
+    if (e.key === 'ArrowLeft') { setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }
+    if (e.key === 'ArrowRight') { setActiveImg(prev => (prev + 1) % images.length); }
+  }, [isZoomModalOpen]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleZoomKeyDown);
+    return () => window.removeEventListener('keydown', handleZoomKeyDown);
+  }, [handleZoomKeyDown]);
 
   const firstImage = listing?.images?.[0] ? imageUrl(listing.images[0]) : null;
   useSEO({
@@ -42,13 +58,11 @@ export default function ListingDetailPage() {
     if (!el) { el = document.createElement('script'); el.id = scriptId; el.type = 'application/ld+json'; document.head.appendChild(el); }
     const imgUrl = listing.images?.[0] ? imageUrl(listing.images[0]) : '';
     const listingUrl = `https://adhubkenya.co.ke/listing/${listing.slug || listing.id}`;
-    // Sanitize text for safe JSON-LD injection (prevent </script> XSS)
-    const sanitize = (str = '') => str.replace(/<\/script>/gi, '<\/script>');
     const jsonld = {
       '@context': 'https://schema.org',
       '@type': 'Product',
-      'name': sanitize(listing.title),
-      'description': sanitize(listing.description || listing.title),
+      'name': listing.title,
+      'description': listing.description || listing.title,
       'image': imgUrl ? [imgUrl] : [],
       'offers': {
         '@type': 'Offer',
@@ -57,10 +71,10 @@ export default function ListingDetailPage() {
         'itemCondition': 'https://schema.org/UsedCondition',
         'availability': 'https://schema.org/InStock',
         'url': listingUrl,
-        'seller': { '@type': 'Person', 'name': sanitize(listing.seller?.name || 'Seller on AdHub Kenya') }
+        'seller': { '@type': 'Person', 'name': listing.seller?.name || 'Seller on AdHub Kenya' }
       }
     };
-    el.textContent = JSON.stringify(jsonld);
+    el.textContent = JSON.stringify(jsonld).replace(/</g, '\\u003c');
     return () => { const s = document.getElementById(scriptId); if (s) s.remove(); };
   }, [listing, id]);
 
@@ -70,7 +84,11 @@ export default function ListingDetailPage() {
       setLoading(true);
       getListing(id).then(data => {
         setListing(data);
-        if (data) addListing(data);
+        if (data) {
+          addListing(data);
+          getSellerStats(data.seller_id).then(setSellerStats);
+          getListingViews(data.id).then(setListingViews);
+        }
       }).catch(() => setListing(null)).finally(() => setLoading(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -240,7 +258,7 @@ export default function ListingDetailPage() {
                       <>
                         <img
                           src={imageUrl(images[activeImg])}
-                          alt={listing.title}
+                          alt={`${listing.title} – image ${activeImg + 1} of ${images.length}`}
                           className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105"
                           style={{ maxHeight: 'max(380px, min(65vh, 520px))' }}
                           onError={e => { e.target.src = 'https://placehold.co/800x600/1a2b1e/00d168?text=AdHub'; }}
@@ -387,19 +405,21 @@ export default function ListingDetailPage() {
                   <div className="px-5 py-4 grid grid-cols-2 gap-y-3 gap-x-2 text-xs">
                     <div className="flex flex-col">
                       <span className="text-muted-foreground font-semibold">Joined</span>
-                      <span className="font-bold text-foreground">{new Date(listing.seller?.created_at || listing.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</span>
+                      <span className="font-bold text-foreground">
+                        {new Date(sellerStats?.member_since || listing.seller?.created_at || listing.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+                      </span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-muted-foreground font-semibold">Listings</span>
-                      <span className="font-bold text-foreground">12</span>
+                      <span className="font-bold text-foreground">{sellerStats?.total_listings || 1}</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-muted-foreground font-semibold">Last Active</span>
-                      <span className="font-bold text-foreground">Today</span>
+                      <span className="font-bold text-foreground">Recently</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-muted-foreground font-semibold">Response</span>
-                      <span className="font-bold text-foreground">~15 min</span>
+                      <span className="font-bold text-foreground">Usually fast</span>
                     </div>
                   </div>
 
@@ -407,8 +427,7 @@ export default function ListingDetailPage() {
                   
                   {/* Contact Conversion Banner */}
                   <div className="px-5 pt-4 text-xs font-medium text-muted-foreground flex flex-col gap-1">
-                     <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5" /> Viewed 146 times</span>
-                     <span className="flex items-center gap-1.5 text-foreground"><MessageCircle className="w-3.5 h-3.5 text-primary" /> 23 people contacted seller</span>
+                     <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5" /> Viewed {listingViews} times</span>
                   </div>
 
                   {/* Contact Buttons (Redesigned) */}
@@ -537,9 +556,15 @@ export default function ListingDetailPage() {
 
       {/* ZOOM MODAL */}
       {isZoomModalOpen && images.length > 0 && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image viewer"
+        >
           <button 
             onClick={() => setIsZoomModalOpen(false)}
+            aria-label="Close image viewer"
             className="absolute top-4 right-4 sm:top-8 sm:right-8 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
           >
             ✕
@@ -549,6 +574,7 @@ export default function ListingDetailPage() {
             {images.length > 1 && (
               <button 
                 onClick={() => setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1)}
+                aria-label="Previous image"
                 className="absolute left-0 sm:-left-12 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
               >
                 <ChevronLeft className="w-6 h-6" />
@@ -557,13 +583,14 @@ export default function ListingDetailPage() {
             
             <img 
               src={imageUrl(images[activeImg])} 
-              alt={listing.title}
+              alt={`${listing.title} – image ${activeImg + 1} of ${images.length}`}
               className="max-w-full max-h-full object-contain"
             />
 
             {images.length > 1 && (
               <button 
                 onClick={() => setActiveImg(prev => (prev + 1) % images.length)}
+                aria-label="Next image"
                 className="absolute right-0 sm:-right-12 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
               >
                 <ChevronRight className="w-6 h-6" />
@@ -571,12 +598,18 @@ export default function ListingDetailPage() {
             )}
           </div>
           
+          {/* Keyboard hint */}
+          <div className="absolute bottom-[7rem] text-white/40 text-xs select-none hidden sm:block">
+            ← → to navigate · Esc to close
+          </div>
+
           {/* Zoom Modal Thumbnails */}
           <div className="absolute bottom-4 sm:bottom-8 flex gap-2 overflow-x-auto max-w-full px-4 snap-x py-2">
              {images.map((img, i) => (
                 <button 
                   key={i} 
                   onClick={() => setActiveImg(i)}
+                  aria-label={`View image ${i + 1}`}
                   className={`snap-start relative h-16 w-20 sm:h-20 sm:w-28 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${i === activeImg ? 'border-white scale-105 opacity-100' : 'border-transparent opacity-40 hover:opacity-100'}`}
                 >
                   <img src={imageUrl(img)} alt="" className="w-full h-full object-cover" />

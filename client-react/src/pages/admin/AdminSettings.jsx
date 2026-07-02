@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Save, Globe, Mail, Shield, Database, Paintbrush, CreditCard } from 'lucide-react';
 
 const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20";
@@ -25,7 +25,21 @@ export default function AdminSettings() {
     mpesaShortcode: '174379',
   });
 
-  const set = (k) => (e) => setSettings(prev => ({ ...prev, [k]: e.target?.value ?? e }));
+  // Load requireApproval from localStorage on mount
+  useEffect(() => {
+    const val = localStorage.getItem('adhub_require_approval');
+    if (val !== null) {
+      setSettings(prev => ({ ...prev, requireApproval: val === 'true' }));
+    }
+  }, []);
+
+  const set = (k) => (e) => {
+    const val = e.target?.value ?? e;
+    setSettings(prev => ({ ...prev, [k]: val }));
+    if (k === 'requireApproval') {
+      localStorage.setItem('adhub_require_approval', String(val));
+    }
+  };
 
   const TABS = [
     { id: 'branding',  label: 'Branding',     icon: Paintbrush },

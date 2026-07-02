@@ -75,6 +75,8 @@ function BrowseContent({ defaultCategory }) {
     queryKey: ['listings', finalParams],
     queryFn: () => getListings(finalParams),
     staleTime: 1000 * 60,
+    placeholderData: (prev) => prev, // Keep previous data while refetching, avoiding skeleton flash
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {

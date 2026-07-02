@@ -368,8 +368,10 @@ export const createListing = async (listingData, imageFiles) => {
   if (imageFiles && imageFiles.length > 0) {
     try {
       for (const file of imageFiles) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        // Use crypto.randomUUID() for secure uniqueness
+        const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).substring(2)}`;
+        const fileName = `${uniqueId}.${fileExt}`;
         const filePath = `${session.user.id}/${fileName}`;
         
         const { error: uploadError } = await supabase.storage
@@ -482,8 +484,26 @@ export const timeAgo = (date) => {
   return new Date(date).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-// ==========================================
-// PHASE 3 ADVANCED FEATURES
+export async function checkDuplicateListing(sellerId, title, category) {
+  if (!sellerId || !title || !category) return false;
+  const { data, error } = await supabase
+    .from('listings')
+    .select('id')
+    .eq('seller_id', sellerId)
+    .eq('category', category)
+    .eq('status', 'active')
+    .ilike('title', title.trim())
+    .limit(1);
+    
+  if (error) {
+    console.error('Duplicate check error:', error);
+    return false; // Fail open
+  }
+  return data && data.length > 0;
+}
+
+// ============================================================================
+// Phase 3: Analytics & Trust RPC CallsES
 // ==========================================
 
 export const getSavedSearches = async () => {
