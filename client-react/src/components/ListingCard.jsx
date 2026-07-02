@@ -43,15 +43,18 @@ export default function ListingCard({ listing, featured }) {
   const specTags = getSpecTags(listing);
 
   return (
-    <Link to={`/listing/${listing.id}`} className="block">
+    <Link to={`/listing/${listing.slug || listing.id}`} className="block">
       <article className="group overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-0.5 hover:shadow-elevated h-full flex flex-col">
-        <div className="relative aspect-[4/3] overflow-hidden shrink-0">
+        {/* Fixed aspect ratio container prevents CLS (Cumulative Layout Shift) */}
+        <div className="relative overflow-hidden shrink-0" style={{ aspectRatio: '4/3' }}>
           <img
             src={listing.images?.[0]
               ? imageUrl(listing.images[0])
               : `https://placehold.co/800x600/1a2b1e/00d168?text=${encodeURIComponent(listing.category || 'Ad')}`}
-            alt={listing.title}
+            alt={`${listing.title} – Image 1`}
             loading="lazy"
+            width="400"
+            height="300"
             onError={e => { e.target.src = `https://placehold.co/800x600/1a2b1e/00d168?text=AdHub`; }}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
@@ -102,7 +105,7 @@ export default function ListingCard({ listing, featured }) {
               <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px]">
                 {listing.seller?.name?.charAt(0) || 'U'}
               </div>
-              <span className="text-xs text-muted-foreground font-medium">⭐ 4.8</span>
+              <span className="text-xs text-muted-foreground font-medium">{listing.seller?.name || 'Seller'}</span>
             </div>
             {isVerified && (
               <div className="flex items-center gap-1 text-primary text-[10px] font-bold uppercase tracking-wider">

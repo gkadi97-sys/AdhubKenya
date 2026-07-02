@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, FileText, CheckCircle, AlertTriangle, TrendingUp, DollarSign } from 'lucide-react';
-import { getListings } from '@/lib/api';
+import { getAdminStats } from '@/lib/api';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -12,15 +12,8 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    // Mocking admin stats fetch since there's no actual admin API yet
-    getListings({ limit: 1 }).then(res => {
-      setStats({
-        totalAds: res.total || 0,
-        activeAds: Math.floor((res.total || 0) * 0.8),
-        pendingAds: Math.floor((res.total || 0) * 0.1),
-        revenue: 450000, // Mock KES
-        users: 12450
-      });
+    getAdminStats().then(res => {
+      setStats(res);
     }).catch(console.error);
   }, []);
 

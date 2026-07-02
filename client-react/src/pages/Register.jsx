@@ -50,7 +50,8 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (form.password.length < 8) { setError('Password must be at least 8 characters'); return; }
+    if (!/(?=.*[A-Za-z])(?=.*\d)/.test(form.password)) { setError('Password must contain at least one letter and one number'); return; }
     // Validate Kenyan phone number (07xx, 01xx, or +254...)
     const phoneRegex = /^(07\d{8}|01\d{8}|\+2547\d{8}|\+2541\d{8})$/;
     if (form.phone && !phoneRegex.test(form.phone.replace(/\s/g, ''))) {
@@ -148,7 +149,7 @@ export default function RegisterPage() {
                 type="password" 
                 value={form.password}
                 onChange={handleChange} 
-                placeholder="Min. 6 characters" 
+                placeholder="Min. 8 characters (letters & numbers)" 
                 required 
               />
             </div>

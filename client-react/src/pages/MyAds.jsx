@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getSellerListings, deleteListing, formatPrice, timeAgo, imageUrl } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { PlusCircle, MapPin, Eye, Clock, Trash2, ExternalLink, PackageOpen, Lock, Sparkles } from 'lucide-react';
+import { PlusCircle, MapPin, Eye, Clock, Trash2, ExternalLink, PackageOpen, Lock, Sparkles, Edit } from 'lucide-react';
 import PromoteAdModal from '@/components/PromoteAdModal';
 
 export default function MyAdsPage() {
@@ -189,6 +189,9 @@ export default function MyAdsPage() {
                       >
                         <Sparkles className="h-3.5 w-3.5" /> Promote
                       </button>
+                      <Link to={`/edit-ad/${l.id}`} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-foreground transition hover:bg-secondary sm:w-auto flex-1">
+                        <Edit className="h-3.5 w-3.5" /> Edit
+                      </Link>
                       <Link to={`/listing/${l.id}`} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-foreground transition hover:bg-secondary sm:w-auto flex-1">
                         <ExternalLink className="h-3.5 w-3.5" /> View
                       </Link>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Globe, Mail, Shield, Database, Paintbrush } from 'lucide-react';
+import { Save, Globe, Mail, Shield, Database, Paintbrush, CreditCard } from 'lucide-react';
 
 const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20";
 
@@ -19,6 +19,10 @@ export default function AdminSettings() {
     smtpPort: '587',
     smtpUser: '',
     smtpPass: '',
+    mpesaConsumerKey: '',
+    mpesaConsumerSecret: '',
+    mpesaPasskey: '',
+    mpesaShortcode: '174379',
   });
 
   const set = (k) => (e) => setSettings(prev => ({ ...prev, [k]: e.target?.value ?? e }));
@@ -27,6 +31,7 @@ export default function AdminSettings() {
     { id: 'branding',  label: 'Branding',     icon: Paintbrush },
     { id: 'contact',   label: 'Contact',      icon: Globe },
     { id: 'email',     label: 'Email Config', icon: Mail },
+    { id: 'payments',  label: 'Payments',     icon: CreditCard },
     { id: 'moderation',label: 'Moderation',   icon: Shield },
     { id: 'system',    label: 'System',       icon: Database },
   ];
@@ -82,6 +87,18 @@ export default function AdminSettings() {
                 <div><label className="mb-1.5 block text-sm font-semibold text-foreground">SMTP Port</label><input className={inputClass} value={settings.smtpPort} onChange={set('smtpPort')} /></div>
                 <div><label className="mb-1.5 block text-sm font-semibold text-foreground">SMTP Username</label><input className={inputClass} placeholder="user@gmail.com" value={settings.smtpUser} onChange={set('smtpUser')} /></div>
                 <div><label className="mb-1.5 block text-sm font-semibold text-foreground">SMTP Password</label><input type="password" className={inputClass} placeholder="••••••••" value={settings.smtpPass} onChange={set('smtpPass')} /></div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'payments' && (
+            <div className="space-y-4">
+              <h3 className="font-bold text-foreground">Payment Gateways (M-Pesa)</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div><label className="mb-1.5 block text-sm font-semibold text-foreground">Shortcode / Till Number</label><input className={inputClass} value={settings.mpesaShortcode} onChange={set('mpesaShortcode')} /></div>
+                <div><label className="mb-1.5 block text-sm font-semibold text-foreground">Passkey</label><input type="password" className={inputClass} value={settings.mpesaPasskey} onChange={set('mpesaPasskey')} /></div>
+                <div><label className="mb-1.5 block text-sm font-semibold text-foreground">Consumer Key</label><input type="password" className={inputClass} value={settings.mpesaConsumerKey} onChange={set('mpesaConsumerKey')} /></div>
+                <div><label className="mb-1.5 block text-sm font-semibold text-foreground">Consumer Secret</label><input type="password" className={inputClass} value={settings.mpesaConsumerSecret} onChange={set('mpesaConsumerSecret')} /></div>
               </div>
             </div>
           )}

@@ -1,6 +1,48 @@
 User-agent: *
-Allow: /
-Disallow: /my-ads
-Disallow: /post-ad
 
+# Allow all public-facing pages
+Allow: /
+Allow: /browse
+Allow: /listing/
+Allow: /category/
+Allow: /vehicles
+Allow: /property
+Allow: /electronics
+Allow: /phones-tablets
+Allow: /jobs
+Allow: /services
+Allow: /home-furniture
+Allow: /fashion
+Allow: /beauty
+Allow: /babies-kids
+Allow: /food-agriculture
+Allow: /animals-pets
+Allow: /auto-spares
+Allow: /commercial-vehicles
+Allow: /commercial-equipment
+Allow: /repair-construction
+Allow: /leisure
+Allow: /seeking-work
+Allow: /land-plots
+Allow: /terms
+Allow: /privacy
+Allow: /safety
+Allow: /contact
+Allow: /help
+Allow: /about
+
+# Disallow private/auth pages
+Disallow: /admin/
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /my-ads
+Disallow: /profile
+Disallow: /messages
+Disallow: /saved-searches
+Disallow: /post-ad
+Disallow: /edit-ad/
+Disallow: /post-cv
+
+# Sitemap location
 Sitemap: https://adhubkenya.co.ke/sitemap.xml

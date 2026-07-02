@@ -22,8 +22,17 @@ CREATE TABLE IF NOT EXISTS public.saved_searches (
 -- Enable RLS for saved_searches
 ALTER TABLE public.saved_searches ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can manage own saved searches" ON public.saved_searches
-    FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Users can select own saved searches" ON public.saved_searches
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own saved searches" ON public.saved_searches
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own saved searches" ON public.saved_searches
+    FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own saved searches" ON public.saved_searches
+    FOR DELETE USING (auth.uid() = user_id);
 
 -- 3. Analytics: Listing Events
 CREATE TABLE IF NOT EXISTS public.listing_events (

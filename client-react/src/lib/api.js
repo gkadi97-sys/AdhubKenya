@@ -18,6 +18,35 @@ export const getMe = async () => {
   return data;
 };
 
+// --- Admin API ---
+export const getAdminStats = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const [
+    { count: totalAds },
+    { count: activeAds },
+    { count: pendingAds },
+    { count: users }
+  ] = await Promise.all([
+    supabase.from('listings').select('id', { count: 'exact', head: true }),
+    supabase.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    supabase.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('profiles').select('id', { count: 'exact', head: true })
+  ]);
+
+  const { data: transactions } = await supabase.from('transactions').select('amount').eq('status', 'completed');
+  const revenue = (transactions || []).reduce((acc, tx) => acc + Number(tx.amount || 0), 0);
+
+  return {
+    totalAds: totalAds || 0,
+    activeAds: activeAds || 0,
+    pendingAds: pendingAds || 0,
+    users: users || 0,
+    revenue
+  };
+};
+
 // --- Listings API ---
 export const getListings = async (params = {}) => {
   const page  = parseInt(params.page)  || 1;

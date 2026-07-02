@@ -40,7 +40,7 @@ const CATEGORY_META = {
 const SIDEBAR_POPULAR = ['vehicles','property','phones-tablets','electronics','services','jobs'];
 
 // ── BrowseContent ──────────────────────────────────────────────────────────────
-function BrowseContent() {
+function BrowseContent({ defaultCategory }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -48,7 +48,7 @@ function BrowseContent() {
   const [drawerOpen, setDrawerOpen]     = useState(false);
   const [heroSearch, setHeroSearch]     = useState('');
 
-  const category = searchParams.get('category') || '';
+  const category = searchParams.get('category') || defaultCategory || '';
   const keyword  = searchParams.get('keyword')  || '';
   const sort     = searchParams.get('sort')      || 'createdAt';
   const page     = parseInt(searchParams.get('page')) || 1;
@@ -90,13 +90,34 @@ function BrowseContent() {
   const catMeta     = CATEGORY_META[category] || {};
   const suggestions = catMeta.suggestions || [];
 
+  const canonicalPath = defaultCategory
+    ? `/${defaultCategory}`
+    : `/browse${category ? `?category=${category}` : ''}`;
+
   useSEO({
     title: catLabel ? `${catLabel} for Sale in Kenya | AdHub Kenya` : 'Browse Ads in Kenya | AdHub Kenya',
     description: catLabel
       ? `Browse ${total} ${catLabel} listings across Kenya. Find the best deals from verified sellers.`
       : `Browse ${total} classified ads in Kenya. Cars, property, electronics, jobs and more.`,
-    canonicalPath: `/browse${category ? `?category=${category}` : ''}`
+    canonicalPath,
   });
+
+  // Inject BreadcrumbList JSON-LD for category pages
+  useEffect(() => {
+    if (!category) return;
+    const scriptId = 'browse-breadcrumb-jsonld';
+    let el = document.getElementById(scriptId);
+    if (!el) { el = document.createElement('script'); el.id = scriptId; el.type = 'application/ld+json'; document.head.appendChild(el); }
+    el.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      'itemListElement': [
+        { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'https://adhubkenya.co.ke/' },
+        { '@type': 'ListItem', 'position': 2, 'name': catLabel || category, 'item': `https://adhubkenya.co.ke${canonicalPath}` }
+      ]
+    });
+    return () => { const s = document.getElementById(scriptId); if (s) s.remove(); };
+  }, [category, catLabel, canonicalPath]);
 
   const ignoredKeys      = new Set(['category','keyword','sort','page']);
   const activeFilterCount = [...searchParams.keys()].filter(k => !ignoredKeys.has(k)).length;
@@ -577,6 +598,6 @@ function BrowseContent() {
   );
 }
 
-export default function BrowsePage() {
-  return <BrowseContent />;
+export default function BrowsePage({ defaultCategory } = {}) {
+  return <BrowseContent defaultCategory={defaultCategory} />;
 }

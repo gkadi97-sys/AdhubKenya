@@ -8,7 +8,8 @@ import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import CandidateProfile from '@/components/CandidateProfile';
 import ListingCard from '@/components/ListingCard';
-import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft, AlertCircle } from 'lucide-react';
+import MessageButton from '@/components/MessageButton';
+import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -23,12 +24,15 @@ export default function ListingDetailPage() {
   const [showNumber, setShowNumber] = useState(false);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
 
+  const firstImage = listing?.images?.[0] ? imageUrl(listing.images[0]) : null;
   useSEO({
     title: listing ? `${listing.title} – ${formatPrice(listing.price)} | AdHub Kenya` : 'View Listing | AdHub Kenya',
     description: listing
       ? `${listing.title} for ${formatPrice(listing.price)} in ${listing.location || 'Kenya'}. ${listing.description ? listing.description.slice(0, 120) + '...' : 'View this listing on AdHub Kenya.'}`
       : 'View this listing on AdHub Kenya.',
-    canonicalPath: `/listing/${id}`
+    canonicalPath: listing?.slug ? `/listing/${listing.slug}` : `/listing/${id}`,
+    ogImage: firstImage || undefined,
+    ogType: 'product',
   });
 
   useEffect(() => {
@@ -36,23 +40,27 @@ export default function ListingDetailPage() {
     const scriptId = 'listing-jsonld';
     let el = document.getElementById(scriptId);
     if (!el) { el = document.createElement('script'); el.id = scriptId; el.type = 'application/ld+json'; document.head.appendChild(el); }
-    const firstImage = listing.images?.[0] ? imageUrl(listing.images[0]) : '';
-    el.textContent = JSON.stringify({
+    const imgUrl = listing.images?.[0] ? imageUrl(listing.images[0]) : '';
+    const listingUrl = `https://adhubkenya.co.ke/listing/${listing.slug || listing.id}`;
+    // Sanitize text for safe JSON-LD injection (prevent </script> XSS)
+    const sanitize = (str = '') => str.replace(/<\/script>/gi, '<\/script>');
+    const jsonld = {
       '@context': 'https://schema.org',
       '@type': 'Product',
-      'name': listing.title,
-      'description': listing.description || listing.title,
-      'image': firstImage ? [firstImage] : [],
+      'name': sanitize(listing.title),
+      'description': sanitize(listing.description || listing.title),
+      'image': imgUrl ? [imgUrl] : [],
       'offers': {
         '@type': 'Offer',
         'priceCurrency': 'KES',
         'price': listing.price,
         'itemCondition': 'https://schema.org/UsedCondition',
         'availability': 'https://schema.org/InStock',
-        'url': `https://adhubkenya.co.ke/listing/${listing.id}`,
-        'seller': { '@type': 'Person', 'name': listing.seller?.name || 'Seller on AdHub Kenya' }
+        'url': listingUrl,
+        'seller': { '@type': 'Person', 'name': sanitize(listing.seller?.name || 'Seller on AdHub Kenya') }
       }
-    });
+    };
+    el.textContent = JSON.stringify(jsonld);
     return () => { const s = document.getElementById(scriptId); if (s) s.remove(); };
   }, [listing, id]);
 
@@ -415,6 +423,8 @@ export default function ListingDetailPage() {
                           </a>
                         )}
                         
+                        <MessageButton listing={listing} variant="primary" />
+                        
                         {!showNumber ? (
                           <button onClick={() => setShowNumber(true)}
                             className="flex items-center justify-center gap-2 w-full rounded-xl py-2.5 px-4 font-bold text-foreground text-sm border border-border bg-background hover:bg-secondary transition-colors">
@@ -514,6 +524,7 @@ export default function ListingDetailPage() {
                      <MessageCircle className="w-5 h-5 fill-current" /> Chat
                    </a>
                  )}
+                 <MessageButton listing={listing} variant="secondary" className="!rounded-full !w-auto !px-5 !h-11" />
                </>
             ) : (
                <Link to="/login" state={{ from: `/listing/${listing.id}` }} className="flex items-center justify-center h-11 px-6 rounded-full bg-primary text-primary-foreground font-bold text-sm">

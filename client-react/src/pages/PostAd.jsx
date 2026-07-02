@@ -9,6 +9,7 @@ import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { useSEO } from '@/lib/useSEO';
 import toast from 'react-hot-toast';
+import imageCompression from 'browser-image-compression';
 import { Lock, Image as ImageIcon, Camera, Trash2, Rocket } from 'lucide-react';
 
 const STANDARD_CONDITIONS   = ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
@@ -95,25 +96,67 @@ export default function PostAdPage() {
     
     if (rawNewFiles.length === 0) return;
 
-    let finalNewFiles = rawNewFiles;
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
 
-    if (isVehicle) {
-      setProcessingImages(true);
-      try {
+    const validFiles = rawNewFiles.filter(file => {
+      if (!validTypes.includes(file.type)) {
+        toast.error(`${file.name} is not a supported image format.`);
+        return false;
+      }
+      if (file.size > maxSize) {
+        toast.error(`${file.name} is larger than 5MB.`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    setProcessingImages(true);
+    let finalNewFiles = [];
+
+    try {
+      // Step 1: Compress all images client-side
+      const compressionOptions = {
+        maxSizeMB: 0.5,           // max 500KB per image
+        maxWidthOrHeight: 1200,   // max 1200px
+        useWebWorker: true,
+        fileType: 'image/webp',   // convert to webp for better compression
+      };
+
+      const compressedFiles = [];
+      for (let i = 0; i < validFiles.length; i++) {
+        setBlurStatus(`Compressing image ${i + 1} of ${validFiles.length}...`);
+        try {
+          const compressed = await imageCompression(validFiles[i], compressionOptions);
+          // imageCompression returns a File-like Blob; ensure it has a name
+          const named = new File([compressed], validFiles[i].name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' });
+          compressedFiles.push(named);
+        } catch {
+          // If compression fails for this file, use the original
+          compressedFiles.push(validFiles[i]);
+        }
+      }
+
+      // Step 2: If vehicle, blur license plates on the compressed files
+      if (isVehicle) {
         const { autoBlurLicensePlate } = await import('@/lib/imageProcessing');
-        finalNewFiles = [];
-        for (let i = 0; i < rawNewFiles.length; i++) {
-          setBlurStatus(`Processing image ${i + 1} of ${rawNewFiles.length}...`);
-          const processed = await autoBlurLicensePlate(rawNewFiles[i], setBlurStatus);
+        for (let i = 0; i < compressedFiles.length; i++) {
+          setBlurStatus(`Scanning image ${i + 1} of ${compressedFiles.length} for number plates...`);
+          const processed = await autoBlurLicensePlate(compressedFiles[i], setBlurStatus);
           finalNewFiles.push(processed);
         }
-      } catch (err) {
-        console.error(err);
-        toast.error('Failed to process one or more images. Please try again.');
-      } finally {
-        setProcessingImages(false);
-        setBlurStatus('');
+      } else {
+        finalNewFiles = compressedFiles;
       }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to process one or more images. Please try again.');
+      finalNewFiles = validFiles; // fallback to originals
+    } finally {
+      setProcessingImages(false);
+      setBlurStatus('');
     }
 
     setImages(prev => {
