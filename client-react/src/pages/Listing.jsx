@@ -41,6 +41,17 @@ export default function ListingDetailPage() {
   }, [handleZoomKeyDown]);
 
   const firstImage = listing?.images?.[0] ? imageUrl(listing.images[0]) : null;
+  const listingKeywords = listing ? [
+    listing.title,
+    listing.category?.replace(/-/g, ' '),
+    listing.make,
+    listing.model,
+    listing.location,
+    `${listing.category?.replace(/-/g, ' ')} Kenya`,
+    `buy ${listing.category?.replace(/-/g, ' ')} Kenya`,
+    'AdHub Kenya',
+  ].filter(Boolean) : [];
+
   useSEO({
     title: listing ? `${listing.title} – ${formatPrice(listing.price)} | AdHub Kenya` : 'View Listing | AdHub Kenya',
     description: listing
@@ -49,6 +60,7 @@ export default function ListingDetailPage() {
     canonicalPath: listing?.slug ? `/listing/${listing.slug}` : `/listing/${id}`,
     ogImage: firstImage || undefined,
     ogType: 'product',
+    keywords: listingKeywords,
   });
 
   useEffect(() => {

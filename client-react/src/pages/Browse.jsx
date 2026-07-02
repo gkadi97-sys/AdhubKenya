@@ -94,14 +94,35 @@ function BrowseContent({ defaultCategory }) {
 
   const canonicalPath = defaultCategory
     ? `/${defaultCategory}`
-    : `/browse${category ? `?category=${category}` : ''}`;
+    : (category && !keyword) ? `/browse?category=${category}` : '/browse';
+
+  // Noindex pages with active keyword search or complex filters — prevents index bloat
+  const hasActiveFilters = keyword || [...searchParams.entries()].filter(([k]) => !['category','sort','page'].includes(k)).length > 0;
+
+  // Build a keyword-aware title
+  const pageTitle = (() => {
+    if (keyword && catLabel) return `${keyword} ${catLabel} for Sale in Kenya | AdHub Kenya`;
+    if (keyword)             return `${keyword} – Search Results | AdHub Kenya`;
+    if (catLabel)            return `${catLabel} for Sale in Kenya | AdHub Kenya`;
+    return 'Browse Ads in Kenya | AdHub Kenya';
+  })();
+
+  // Build keywords array for meta tag
+  const seoKeywords = [
+    ...(catLabel ? [catLabel, `${catLabel} Kenya`, `${catLabel} for sale Kenya`] : ['Kenya classifieds', 'buy and sell Kenya']),
+    ...(keyword ? [keyword, `${keyword} Kenya`] : []),
+    ...(suggestions.slice(0, 5)),
+    'AdHub Kenya',
+  ];
 
   useSEO({
-    title: catLabel ? `${catLabel} for Sale in Kenya | AdHub Kenya` : 'Browse Ads in Kenya | AdHub Kenya',
+    title: pageTitle,
     description: catLabel
       ? `Browse ${total} ${catLabel} listings across Kenya. Find the best deals from verified sellers.`
       : `Browse ${total} classified ads in Kenya. Cars, property, electronics, jobs and more.`,
     canonicalPath,
+    keywords: seoKeywords,
+    noindex: !!hasActiveFilters,
   });
 
   // Inject BreadcrumbList JSON-LD for category pages

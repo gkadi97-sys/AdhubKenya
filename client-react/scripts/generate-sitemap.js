@@ -19,17 +19,22 @@ const TODAY = new Date().toISOString().split('T')[0];
 
 // Static pages
 const STATIC_PAGES = [
-  { url: '/', priority: '1.0', changefreq: 'daily' },
-  { url: '/browse', priority: '0.9', changefreq: 'hourly' },
-  { url: '/about', priority: '0.5', changefreq: 'monthly' },
-  { url: '/contact', priority: '0.5', changefreq: 'monthly' },
-  { url: '/help', priority: '0.6', changefreq: 'monthly' },
-  { url: '/safety', priority: '0.5', changefreq: 'monthly' },
-  { url: '/terms', priority: '0.4', changefreq: 'yearly' },
-  { url: '/privacy', priority: '0.4', changefreq: 'yearly' },
+  { url: '/',          priority: '1.0', changefreq: 'daily' },
+  { url: '/browse',    priority: '0.9', changefreq: 'hourly' },
+  { url: '/about',     priority: '0.5', changefreq: 'monthly' },
+  { url: '/contact',   priority: '0.5', changefreq: 'monthly' },
+  { url: '/help',      priority: '0.6', changefreq: 'monthly' },
+  { url: '/safety',    priority: '0.5', changefreq: 'monthly' },
+  { url: '/terms',     priority: '0.4', changefreq: 'yearly' },
+  { url: '/privacy',   priority: '0.4', changefreq: 'yearly' },
+  { url: '/careers',   priority: '0.4', changefreq: 'monthly' },
+  { url: '/report',    priority: '0.3', changefreq: 'monthly' },
+  { url: '/cookies',   priority: '0.3', changefreq: 'yearly' },
 ];
 
-// Category routes — each gets its own clean URL
+// Category routes — each gets its own clean canonical URL.
+// NOTE: We intentionally omit /browse?category=X query-string variants
+// to avoid duplicate content in Google's index. The clean slugs below are sufficient.
 const CATEGORY_ROUTES = [
   'vehicles',
   'property',
@@ -53,23 +58,18 @@ const CATEGORY_ROUTES = [
 ];
 
 function buildUrl({ url, priority = '0.7', changefreq = 'daily' }) {
-  return `
-  <url>
+  return `  <url>
     <loc>${BASE_URL}${url}</loc>
     <lastmod>${TODAY}</lastmod>
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
-  </url>`.trim();
+  </url>`;
 }
 
 const urls = [
   ...STATIC_PAGES.map(buildUrl),
   ...CATEGORY_ROUTES.map(slug =>
     buildUrl({ url: `/${slug}`, priority: '0.8', changefreq: 'hourly' })
-  ),
-  // Also include the browse?category= form for backward compatibility
-  ...CATEGORY_ROUTES.map(slug =>
-    buildUrl({ url: `/browse?category=${slug}`, priority: '0.6', changefreq: 'hourly' })
   ),
 ];
 
