@@ -6,8 +6,23 @@ import {
   ChevronRight, ChevronLeft, ArrowUpRight, PlusCircle, X, ChevronDown, Grid
 } from 'lucide-react';
 import { 
-  CATEGORY_ICONS, TOP_CATEGORIES, getRankedCategories 
+  CATEGORY_ICONS, getRankedCategories 
 } from '@/lib/categoryData';
+
+// Merge real DB counts into the static CATEGORY_ICONS array
+function mergeRealCounts(realCounts) {
+  return CATEGORY_ICONS.map(c => ({ ...c, count: realCounts[c.slug] ?? 0 }));
+}
+function getRankedCategoriesWithCounts(slugs, enrichedIcons) {
+  return slugs
+    .map(slug => enrichedIcons.find(c => c.slug === slug))
+    .filter(Boolean)
+    .sort((a, b) => {
+      const scoreA = (0.4 * a.count) + (0.3 * a.activity) + (0.2 * a.clicks) + (0.1 * a.searchDemand);
+      const scoreB = (0.4 * b.count) + (0.3 * b.activity) + (0.2 * b.clicks) + (0.1 * b.searchDemand);
+      return scoreB - scoreA;
+    });
+}
 import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { getLevel1Options, getLevel2Options, getLevel3Options, getCascadeConfig } from '@/lib/filterEngine';
 import { getValidOptions, cleanInvalidFilters } from '@/lib/filterValidation';
@@ -52,7 +67,7 @@ const MORE_SLUGS = CATEGORY_ICONS.filter(c => !SIDEBAR_SECTIONS.some(s => s.slug
 SIDEBAR_SECTIONS.push({ id: 'more', title: 'MORE CATEGORIES', slugs: MORE_SLUGS });
 
 // ─── Left Category Sidebar ───────────────────────────────────────────────────
-function CategorySidebar({ onNavigate, onCategoryFocus }) {
+function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY_ICONS }) {
   const [selectedSlug, setSelectedSlug] = useState(null);
   const [filters, setFilters]           = useState({});
   const [showAll, setShowAll]           = useState(false);
@@ -406,7 +421,7 @@ function CategorySidebar({ onNavigate, onCategoryFocus }) {
     <nav className={`flex flex-col gap-6 ${transitionClass}`}>
       {SIDEBAR_SECTIONS.map((section) => {
         if (!showAll && (section.id === 'specialized' || section.id === 'more')) return null;
-        const rankedCategories = getRankedCategories(section.slugs);
+        const rankedCategories = getRankedCategoriesWithCounts(section.slugs, enrichedIcons);
         if (!rankedCategories.length) return null;
         return (
           <div key={section.id}>
@@ -461,6 +476,10 @@ export default function HomePage() {
   const [countyCounts, setCountyCounts] = useState([]);
   const [focusedCat, setFocusedCat] = useState(null);
   const [showDevBanner, setShowDevBanner] = useState(() => localStorage.getItem('adhub_hide_dev') !== 'true');
+  const [realCategoryCounts, setRealCategoryCounts] = useState({});
+
+  // enrichedIcons = CATEGORY_ICONS with real DB counts merged in
+  const enrichedIcons = mergeRealCounts(realCategoryCounts);
 
   const dismissDevBanner = () => {
     setShowDevBanner(false);
@@ -468,12 +487,28 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    // Total active listing count
     supabase
       .from('listings')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'active')
       .then(({ count }) => {
         if (count !== null) setLiveAdCount(count);
+      })
+      .catch(() => {});
+
+    // Per-category counts from real data
+    supabase
+      .from('listings')
+      .select('category')
+      .eq('status', 'active')
+      .then(({ data }) => {
+        if (!data) return;
+        const counts = {};
+        data.forEach(({ category }) => {
+          if (category) counts[category] = (counts[category] || 0) + 1;
+        });
+        setRealCategoryCounts(counts);
       })
       .catch(() => {});
 
@@ -552,7 +587,7 @@ export default function HomePage() {
               </nav>
             )}
             <div className="sticky top-4 rounded-2xl border border-border bg-card shadow-sm p-4 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-thin transition-all duration-200">
-              <CategorySidebar onNavigate={navigate} onCategoryFocus={setFocusedCat} />
+              <CategorySidebar onNavigate={navigate} onCategoryFocus={setFocusedCat} enrichedIcons={enrichedIcons} />
             </div>
           </aside>
 
@@ -622,7 +657,7 @@ export default function HomePage() {
                 <HeroSearch stickyCategory={focusedCat} />
               </div>
               <div className="grid grid-cols-4 gap-3 sm:gap-4 px-4">
-                {getRankedCategories(SIDEBAR_SECTIONS[0].slugs.concat(['home-furniture', 'fashion'])).slice(0, 8).map(c => (
+                {getRankedCategoriesWithCounts(SIDEBAR_SECTIONS[0].slugs.concat(['home-furniture', 'fashion']), enrichedIcons).slice(0, 8).map(c => (
                   <Link
                     key={c.slug}
                     to={`/browse?category=${c.slug}`}
@@ -679,7 +714,7 @@ export default function HomePage() {
                   </Link>
                 </div>
                 <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0 lg:gap-6">
-                  {getRankedCategories(SIDEBAR_SECTIONS[0].slugs.concat(SIDEBAR_SECTIONS[1].slugs)).slice(0, 8).map(c => {
+                  {getRankedCategoriesWithCounts(SIDEBAR_SECTIONS[0].slugs.concat(SIDEBAR_SECTIONS[1].slugs), enrichedIcons).slice(0, 8).map(c => {
                     const slug = c.slug;
                     let countBadge = null;
                     if (c.count > 0) {
