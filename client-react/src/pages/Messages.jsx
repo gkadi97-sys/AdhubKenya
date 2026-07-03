@@ -196,8 +196,8 @@ export default function Messages() {
   }
 
   return (
-    <div className="container py-4 md:py-8 h-[calc(100vh-80px)] md:h-[calc(100vh-140px)]">
-      <div className="flex h-full rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+    <div className="max-w-5xl mx-auto px-4 py-4 md:py-8 h-[calc(100vh-120px)] md:h-[calc(100vh-200px)] min-h-[500px] max-h-[800px]">
+      <div className="flex h-full rounded-3xl border border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden shadow-xl ring-1 ring-black/5 dark:ring-white/5">
         
         {/* Sidebar / Conversation List */}
         {showList && (
