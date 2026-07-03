@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, MapPin, Clock, Flame, Grid, Navigation, X } from 'lucide-react';
+import { Search, MapPin, Clock, Flame, Grid, Navigation, X, Mic } from 'lucide-react';
 import { getListings, getCategoryCounts } from '@/lib/api';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 
@@ -179,8 +179,8 @@ export default function HeroSearch({ stickyCategory = null }) {
   const popular = getPopularSearches();
 
   return (
-    <div ref={searchRef} className="relative w-full max-w-3xl mt-6">
-      <div className="flex flex-wrap items-center gap-2 mb-3">
+    <div ref={searchRef} className="relative w-full max-w-3xl mt-4 sm:mt-6 sticky top-16 z-40">
+      <div className="flex flex-wrap items-center gap-2 mb-2 sm:mb-3">
         <span className="text-xs font-semibold text-muted-foreground mr-1">Popular searches:</span>
         {[{ id: '', label: 'All' }, { id: 'vehicles', label: 'Vehicles' }, { id: 'property', label: 'Property' }, { id: 'electronics', label: 'Electronics' }, { id: 'phones-tablets', label: 'Phones' }].map(tab => (
           <button
@@ -198,9 +198,9 @@ export default function HeroSearch({ stickyCategory = null }) {
         ))}
       </div>
 
-      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 rounded-2xl bg-white dark:bg-card shadow-[0_12px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] border border-black/10 dark:border-white/10 p-2 sm:p-2.5 relative z-20 transition-all focus-within:shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 rounded-2xl bg-white dark:bg-card shadow-[0_12px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] border border-black/10 dark:border-white/10 p-2 relative z-20 transition-all focus-within:shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
         
-        <div className="flex flex-1 items-center gap-3 px-3 py-2 sm:py-1">
+        <div className="flex flex-1 items-center gap-3 px-3 py-3 sm:py-2">
           <Search className="h-5 w-5 text-muted-foreground shrink-0" />
           <label htmlFor="heroSearch" className="sr-only">Search listings</label>
           <div className="relative flex-1">
@@ -211,26 +211,29 @@ export default function HeroSearch({ stickyCategory = null }) {
               value={keyword}
               onChange={e => setKeyword(e.target.value)}
               onFocus={() => setIsFocused(true)}
-              className="w-full bg-transparent text-base sm:text-sm outline-none placeholder:text-muted-foreground transition-all duration-500 placeholder:transition-opacity"
+              className="w-full bg-transparent text-base outline-none placeholder:text-muted-foreground transition-all duration-500 placeholder:transition-opacity"
               autoComplete="off"
             />
           </div>
+          <button type="button" className="shrink-0 p-2 -mr-2 rounded-full text-muted-foreground hover:bg-secondary/50 transition" title="Voice Search">
+            <Mic className="h-5 w-5" />
+          </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 rounded-xl bg-transparent hover:bg-secondary/50 px-3 py-3 sm:py-2.5 transition min-w-[120px]">
+        <div className="flex items-center gap-2 border-t border-border sm:border-0 pt-2 sm:pt-0">
+          <label className="flex items-center gap-2 rounded-xl bg-transparent hover:bg-secondary/50 px-3 py-3 sm:py-2.5 transition min-w-[120px] flex-1 sm:flex-none">
             <MapPin className="h-4 w-4 shrink-0 text-primary" />
             <select 
               value={location} 
               onChange={e => setLocation(e.target.value)} 
-              className="min-w-0 flex-1 bg-transparent text-sm font-medium outline-none cursor-pointer"
+              className="min-w-0 flex-1 bg-transparent text-base sm:text-sm font-medium outline-none cursor-pointer"
             >
               {COUNTIES.map(c => <option key={c}>{c}</option>)}
             </select>
           </label>
           <button 
             type="submit" 
-            className="inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-6 py-3 sm:py-2.5 text-sm font-semibold text-primary-foreground shadow transition hover:opacity-95 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 rounded-xl gradient-emerald px-8 py-3.5 sm:py-3 text-base sm:text-sm font-bold text-primary-foreground shadow transition hover:opacity-95 hover:scale-[0.98] active:scale-95 cursor-pointer flex-1 sm:flex-none"
           >
             Search
           </button>

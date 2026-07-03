@@ -146,6 +146,7 @@
 @layer base {
   * {
     border-color: var(--color-border);
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -165,6 +166,18 @@
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
     border-radius: 4px;
+  }
+
+  /* Minimum touch target size */
+  button, [role="button"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Micro-interaction: active scaling */
+  .active-scale:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
   }
 
   /* Screen-reader only utility */

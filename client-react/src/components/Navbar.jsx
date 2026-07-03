@@ -15,7 +15,7 @@ export default function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl shadow-sm">
-        <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-4 sm:px-6">
+        <div className="mx-auto grid max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-3 py-2 sm:px-6 sm:py-3">
           <Link to="/" className="flex shrink-0 items-center gap-2">
             <div className="grid h-11 w-11 place-items-center rounded-xl gradient-emerald text-primary-foreground shadow-elevated">
               <span className="font-display text-xl font-bold">A</span>
@@ -62,26 +62,52 @@ export default function Navbar() {
                   {profileOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)}></div>
-                      <div className="absolute right-0 top-full mt-2 w-56 z-50 rounded-2xl border border-border bg-card p-2 shadow-elevated">
-                        <div className="px-3 py-2 border-b border-border mb-2">
-                          <p className="text-sm font-semibold truncate">{user.email}</p>
+                      <div className="absolute right-0 top-full mt-2 w-64 z-50 rounded-2xl border border-border bg-card shadow-elevated overflow-hidden origin-top-right animate-in zoom-in-95 duration-200">
+                        
+                        <div className="flex flex-col bg-secondary/30 p-4 border-b border-border">
+                          <span className="text-sm font-bold truncate text-foreground">{user?.name || 'User'}</span>
+                          <span className="text-xs font-medium truncate text-muted-foreground">{user?.email}</span>
                         </div>
-                        <Link to="/my-ads" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition">
-                          <FileText className="h-4 w-4 text-muted-foreground" /> My Ads
-                        </Link>
-                        <Link to="/saved-searches" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition">
-                          <Heart className="h-4 w-4 text-muted-foreground" /> Saved Searches
-                        </Link>
-                        <button onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium hover:bg-secondary/50 transition">
-                          <Bell className="h-4 w-4 text-muted-foreground" /> Notifications
-                        </button>
-                        <div className="h-px bg-border my-2"></div>
-                        <button 
-                          onClick={() => { setProfileOpen(false); logout(); }} 
-                          className="w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition"
-                        >
-                          <LogOut className="h-4 w-4" /> Logout
-                        </button>
+                        
+                        <div className="p-2 space-y-0.5">
+                          <Link to="/profile" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary/50 transition active:scale-[0.98]">
+                            <User className="h-4 w-4 text-muted-foreground" /> My Profile
+                          </Link>
+                          <Link to="/my-ads" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary/50 transition active:scale-[0.98]">
+                            <FileText className="h-4 w-4 text-muted-foreground" /> My Ads
+                          </Link>
+                          <Link to="/saved-searches" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary/50 transition active:scale-[0.98]">
+                            <Heart className="h-4 w-4 text-muted-foreground" /> Saved Ads
+                          </Link>
+                          <Link to="/messages" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary/50 transition active:scale-[0.98] lg:hidden">
+                            <MessageSquare className="h-4 w-4 text-muted-foreground" /> Messages
+                          </Link>
+                          <button onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary/50 transition active:scale-[0.98]">
+                            <Bell className="h-4 w-4 text-muted-foreground" /> Notifications
+                          </button>
+                        </div>
+                        
+                        <div className="h-px bg-border"></div>
+                        
+                        <div className="p-2 space-y-0.5">
+                          <button onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition active:scale-[0.98]">
+                            <User className="h-4 w-4" /> Settings
+                          </button>
+                          <button onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition active:scale-[0.98]">
+                            <User className="h-4 w-4 opacity-0" /> Help
+                          </button>
+                        </div>
+
+                        <div className="h-px bg-border"></div>
+
+                        <div className="p-2">
+                          <button 
+                            onClick={() => { setProfileOpen(false); logout(); }} 
+                            className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-destructive hover:bg-destructive/10 transition active:scale-[0.98]"
+                          >
+                            <LogOut className="h-4 w-4" /> Logout
+                          </button>
+                        </div>
                       </div>
                     </>
                   )}

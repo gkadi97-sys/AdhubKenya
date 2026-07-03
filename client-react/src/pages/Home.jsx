@@ -511,26 +511,26 @@ export default function HomePage() {
       />
       {/* Announcement strip */}
       <div className="gradient-emerald text-primary-foreground">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-2 text-xs sm:text-sm">
-          <Sparkles className="h-3.5 w-3.5 text-gold" />
+        <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-1.5 text-xs">
+          <Sparkles className="h-3 w-3 text-gold" />
           <span className="opacity-90">Free posting all June — list your ad in under 60 seconds.</span>
         </div>
       </div>
 
-      {/* ── DEV NOTICE BANNER ─────────────────────────────────────────── */}
+      {/* DEV NOTICE BANNER */}
       {showDevBanner && (
-        <div className="w-full bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800 relative h-12 flex items-center">
-          <div className="mx-auto flex max-w-[1600px] w-full items-center justify-center gap-2 px-10 text-xs sm:text-sm text-amber-800 dark:text-amber-300">
-            <span className="animate-bounce inline-block text-base">🔧</span>
+        <div className="w-full bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800 relative flex items-center">
+          <div className="mx-auto flex max-w-[1600px] w-full items-center justify-center gap-2 px-10 py-2 text-xs text-amber-800 dark:text-amber-300">
+            <span className="text-sm">🔧</span>
             <span className="font-semibold">Heads up!</span>
-            <span className="opacity-80">We're improving AdHub — some features may still be evolving.</span>
+            <span className="opacity-80 hidden sm:inline">We're improving AdHub — some features may still be evolving.</span>
           </div>
           <button 
             onClick={dismissDevBanner} 
-            className="absolute right-4 text-amber-700 hover:text-amber-900 transition-colors"
+            className="absolute right-4 text-amber-700 hover:text-amber-900 transition-colors p-1"
             aria-label="Dismiss banner"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
@@ -572,7 +572,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,247,242,0.78)] via-[rgba(248,247,242,0.45)] via-45% to-[rgba(248,247,242,0.10)] dark:from-[rgba(10,10,10,0.85)] dark:via-[rgba(10,10,10,0.65)] dark:via-45% dark:to-[rgba(10,10,10,0.15)] pointer-events-none" />
               </div>
 
-              <div className="px-6 pb-6 pt-4 sm:px-8 sm:pt-6">
+              <div className="px-4 pb-5 pt-3 sm:px-8 sm:pb-8 sm:pt-6">
                 <div className="max-w-2xl">
                   <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium backdrop-blur shadow-sm">
                     <span className="relative flex h-2 w-2">
@@ -585,11 +585,11 @@ export default function HomePage() {
                        `Live across Kenya`
                     )}
                   </span>
-                  <h1 className="mt-4 font-display text-4xl font-bold leading-tight tracking-tight sm:text-[68px] drop-shadow-sm line-clamp-2">
+                  <h1 className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight sm:text-[68px] drop-shadow-sm">
                     Buy. Sell. Discover.<br />
                     <span className="text-gold-grad">Across Kenya.</span>
                   </h1>
-                  <p className="mt-2 max-w-lg text-sm text-muted-foreground sm:text-base">
+                  <p className="mt-1 max-w-lg text-sm text-muted-foreground hidden sm:block">
                     Find vehicles, property, electronics, jobs and more.
                   </p>
                 </div>
@@ -599,22 +599,22 @@ export default function HomePage() {
                 </div>
 
                 {/* Mobile Category Chips — visible only on mobile, desktop uses sidebar */}
-                <div className="mt-4 lg:hidden overflow-x-auto scrollbar-hide flex gap-2 pb-1 -mx-6 px-6">
+                <div className="mt-6 lg:hidden overflow-x-auto scrollbar-hide flex snap-x snap-mandatory gap-2 pb-2 -mx-6 px-6">
                   {getRankedCategories(SIDEBAR_SECTIONS[0].slugs).map(c => (
                     <Link
                       key={c.slug}
                       to={`/browse?category=${c.slug}`}
-                      className="flex items-center gap-1.5 shrink-0 rounded-full bg-card/80 backdrop-blur border border-border/60 px-3 py-2 text-xs font-semibold text-foreground hover:border-primary/40 hover:bg-primary/5 transition shadow-sm whitespace-nowrap"
+                      className="flex items-center gap-2 shrink-0 snap-start rounded-full bg-card/90 backdrop-blur border border-border px-4 py-2 text-sm font-semibold text-foreground hover:border-primary hover:bg-primary/5 transition shadow-sm whitespace-nowrap active:scale-95"
                     >
-                      <span className="text-base leading-none">{c.icon}</span>
+                      <span className="text-lg leading-none">{c.icon}</span>
                       <span>{c.name}</span>
                     </Link>
                   ))}
                   <Link
                     to="/browse"
-                    className="flex items-center gap-1 shrink-0 rounded-full bg-primary/10 border border-primary/20 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/15 transition whitespace-nowrap"
+                    className="flex items-center gap-1 shrink-0 snap-start rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/20 transition whitespace-nowrap active:scale-95"
                   >
-                    All →
+                    More →
                   </Link>
                 </div>
 
@@ -639,32 +639,31 @@ export default function HomePage() {
             {/* Featured Listings (Above the fold) */}
             <FeaturedListings />
 
-            {/* Live counters (Moved up for Trust) */}
-            <div className="mb-8 rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-elevated mt-0">
+            {/* Live counters (Compact on mobile) */}
+            <div className="mb-6 rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-sm mt-0 order-7">
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-[100%] group-hover:animate-[shimmer_2s_infinite]"></div>
               
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 px-6 py-4 relative z-10 divide-x divide-primary-foreground/10">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-4 py-3 sm:px-6 sm:py-4 relative z-10 divide-x divide-primary-foreground/10">
                 {[
                   { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Active Listings' },
                   { icon: Grid,       n: '15+',     l: 'Categories' },
-                  { icon: MapPin,     n: '47',      l: 'Counties Covered' },
+                  { icon: MapPin,     n: '47',      l: 'Counties' },
                   { icon: Sparkles,   n: '100%',    l: 'Free Posting' },
                 ].map(({ icon: Icon, n, l }) => (
-                  <div key={l} className="flex flex-col items-center text-center gap-2">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary-foreground/10 ring-1 ring-primary-foreground/20 text-gold shadow-inner">
-                      <Icon className="h-5 w-5" />
+                  <div key={l} className="flex flex-col items-center text-center gap-1.5">
+                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-foreground/10 ring-1 ring-primary-foreground/20 text-gold shadow-inner">
+                      <Icon className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="font-display text-xl font-bold leading-none">{n}</div>
-                      <div className="text-[11px] opacity-90 mt-1 font-medium">{l}</div>
+                      <div className="font-display text-lg font-bold leading-none">{n}</div>
+                      <div className="text-[10px] opacity-90 mt-0.5 font-medium">{l}</div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <hr className="my-8 border-border/50" />
+            <hr className="my-6 border-border/50" />
 
             {/* Trust & Safety */}
             <div className="mb-6">
