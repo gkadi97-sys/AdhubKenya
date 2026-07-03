@@ -42,7 +42,7 @@ export default function AdminModeration() {
     try {
       let query = supabase
         .from('listings')
-        .select('id, title, category, price, location, created_at, status, revision_count, updated_after_review, seller:profiles!seller_id(name)', { count: 'exact' })
+        .select('id, title, category, price, location, created_at, status, updated_after_review, seller:profiles!seller_id(name)', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range((page - 1) * LIMIT, page * LIMIT - 1);
 
