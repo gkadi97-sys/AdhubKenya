@@ -412,7 +412,7 @@ export const createListing = async (listingData, imageFiles) => {
         ...listingData,
         images: imageUrls.map(i => i.url),
         seller_id: session.user.id,
-        status: 'active'
+        status: listingData.status || 'pending'
       }
     ])
     .select()
@@ -442,6 +442,37 @@ export const deleteListing = async (id) => {
     
   if (error) throw error;
   return true;
+};
+
+// ── Moderation Workflow Actions ──
+export const logModerationAction = async (listingId, action, oldStatus, newStatus, reason) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+  await supabase.from('moderation_audit_logs').insert({
+    moderator_id: session.user.id,
+    listing_id: listingId,
+    action,
+    old_status: oldStatus,
+    new_status: newStatus,
+    reason
+  });
+};
+
+export const moderateListing = async (id, currentStatus, newStatus, updates = {}, reason = '') => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('listings')
+    .update({ ...updates, status: newStatus })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  
+  await logModerationAction(id, newStatus, currentStatus, newStatus, reason);
+  return data;
 };
 
 // Categories API (hardcoded in Supabase world since it's usually static data)

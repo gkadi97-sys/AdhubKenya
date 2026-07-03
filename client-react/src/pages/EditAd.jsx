@@ -136,9 +136,9 @@ export default function EditAdPage() {
       if (year)  listingData.year  = year;
       listingData.specs = restSpecs || {};
       
-      await updateListing(id, listingData);
-      toast.success('Ad updated successfully!');
-      navigate(`/listing/${id}`);
+      await updateListing(id, { ...listingData, status: 'pending', updated_after_review: true });
+      toast.success('Ad updated and submitted for review!');
+      navigate(`/my-ads`);
     } catch (err) {
       setError(err.message);
     } finally { setSaving(false); }

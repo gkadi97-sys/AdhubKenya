@@ -167,13 +167,14 @@ export default function MyAdsPage() {
                         <span className="flex items-center gap-1.5 rounded-full bg-secondary/50 px-2.5 py-1">
                           <Clock className="h-3 w-3" /> {timeAgo(l.createdAt)}
                         </span>
-                        <span className={`flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${
-                          l.status === 'active' 
-                            ? 'bg-primary/10 text-primary border border-primary/20' 
-                            : 'bg-secondary text-muted-foreground border border-border'
-                        }`}>
-                          {l.status}
-                        </span>
+                        {l.status === 'active' && <span className="flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-500 border border-emerald-500/20">🟢 Approved</span>}
+                        {l.status === 'pending' && <span className="flex items-center rounded-full bg-amber-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-500 border border-amber-500/20">🟡 Pending Review</span>}
+                        {l.status === 'needs_revision' && <span className="flex items-center rounded-full bg-orange-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-orange-500 border border-orange-500/20">🟠 Needs Revision</span>}
+                        {l.status === 'rejected' && <span className="flex items-center rounded-full bg-red-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-red-500 border border-red-500/20">🔴 Rejected</span>}
+                        {l.status === 'suspended' && <span className="flex items-center rounded-full bg-gray-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 border border-gray-500/20">⚫ Suspended</span>}
+                        {l.status === 'sold' && <span className="flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-primary border border-primary/20">SOLD</span>}
+                        {l.status === 'draft' && <span className="flex items-center rounded-full bg-blue-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-blue-500 border border-blue-500/20">🔵 Draft</span>}
+                        {l.status === 'expired' && <span className="flex items-center rounded-full bg-secondary px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground border border-border">Expired</span>}
                         {l.promoted_until && new Date(l.promoted_until) > new Date() && (
                           <span className="flex items-center gap-1 rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-gold shadow-sm">
                             <Sparkles className="h-3 w-3" /> Promoted
@@ -183,18 +184,42 @@ export default function MyAdsPage() {
                     </div>
                     
                     <div className="flex shrink-0 items-center gap-2 mt-4 sm:mt-0 pt-4 sm:pt-0 border-t border-border sm:border-0 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
-                      <button 
-                        onClick={() => setPromoteModalOpen(l)}
-                        className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-4 text-xs font-semibold text-gold transition hover:bg-gold hover:text-white sm:w-auto flex-1"
-                      >
-                        <Sparkles className="h-3.5 w-3.5" /> Promote
-                      </button>
-                      <Link to={`/edit-ad/${l.id}`} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-foreground transition hover:bg-secondary sm:w-auto flex-1">
-                        <Edit className="h-3.5 w-3.5" /> Edit
-                      </Link>
+                      {l.status === 'active' && (
+                        <button 
+                          onClick={() => setPromoteModalOpen(l)}
+                          className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-4 text-xs font-semibold text-gold transition hover:bg-gold hover:text-white sm:w-auto flex-1"
+                        >
+                          <Sparkles className="h-3.5 w-3.5" /> Promote
+                        </button>
+                      )}
+                      
+                      {(l.status === 'rejected' || l.status === 'needs_revision') && (
+                        <button 
+                          onClick={async () => {
+                            if(confirm('Submit this listing for review again?')) {
+                              try {
+                                await import('@/lib/api').then(m => m.moderateListing(l.id, l.status, 'pending', { updated_after_review: true }, 'Seller resubmitted'));
+                                setListings(prev => prev.map(x => x.id === l.id ? { ...x, status: 'pending' } : x));
+                                toast.success('Listing resubmitted for review.');
+                              } catch(e) { toast.error('Failed to resubmit.'); }
+                            }
+                          }}
+                          className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-4 text-xs font-semibold text-primary transition hover:bg-primary hover:text-primary-foreground sm:w-auto flex-1"
+                        >
+                          <Clock className="h-3.5 w-3.5" /> Resubmit
+                        </button>
+                      )}
+                      
+                      {l.status !== 'suspended' && (
+                        <Link to={`/edit-ad/${l.id}`} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-foreground transition hover:bg-secondary sm:w-auto flex-1">
+                          <Edit className="h-3.5 w-3.5" /> Edit
+                        </Link>
+                      )}
+                      
                       <Link to={`/listing/${l.id}`} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-foreground transition hover:bg-secondary sm:w-auto flex-1">
                         <ExternalLink className="h-3.5 w-3.5" /> View
                       </Link>
+                      
                       <button 
                         onClick={()=>handleDelete(l.id)} 
                         disabled={deleting===l.id}
@@ -203,6 +228,12 @@ export default function MyAdsPage() {
                         <Trash2 className="h-3.5 w-3.5" /> {deleting===l.id ? '...' : 'Delete'}
                       </button>
                     </div>
+                    
+                    {(l.status === 'rejected' || l.status === 'needs_revision') && l.rejection_reason && (
+                      <div className="mt-4 w-full bg-destructive/5 border border-destructive/20 rounded-xl p-3 text-sm text-destructive">
+                        <span className="font-bold">Moderator Note:</span> {l.rejection_reason}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

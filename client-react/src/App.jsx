@@ -24,6 +24,7 @@ import Messages from './pages/Messages';
 // --- Lazy Loaded Pages ---
 const ResetPassword = lazy(() => import('@/pages/ResetPassword.jsx'));
 const PostAd = lazy(() => import('@/pages/PostAd.jsx'));
+const PostAdConfirmation = lazy(() => import('@/pages/PostAdConfirmation.jsx'));
 const EditAd = lazy(() => import('@/pages/EditAd.jsx'));
 const MyAds = lazy(() => import('@/pages/MyAds.jsx'));
 const ProfilePage = lazy(() => import('@/pages/Profile.jsx'));
@@ -48,6 +49,7 @@ const AdminResetPassword = lazy(() => import('@/pages/admin/AdminResetPassword.j
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard.jsx'));
 const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers.jsx'));
 const AdminAds = lazy(() => import('@/pages/admin/AdminAds.jsx'));
+const AdminModeration = lazy(() => import('@/pages/admin/AdminModeration.jsx'));
 const AdminCVs = lazy(() => import('@/pages/admin/AdminCVs.jsx'));
 const AdminPayments = lazy(() => import('@/pages/admin/AdminPayments.jsx'));
 const AdminReports = lazy(() => import('@/pages/admin/AdminReports.jsx'));
@@ -99,6 +101,7 @@ function AppLayout() {
             <Route path="/register" element={<Register />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/post-ad" element={<ProtectedRoute><PostAd /></ProtectedRoute>} />
+            <Route path="/post-ad/success" element={<ProtectedRoute><PostAdConfirmation /></ProtectedRoute>} />
             <Route path="/edit-ad/:id" element={<ProtectedRoute><EditAd /></ProtectedRoute>} />
             <Route path="/my-ads" element={<ProtectedRoute><MyAds /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
@@ -158,6 +161,7 @@ export default function App() {
               <Route index element={<AdminDashboard />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="ads" element={<AdminAds />} />
+              <Route path="moderation" element={<AdminModeration />} />
               <Route path="cvs" element={<AdminCVs />} />
               <Route path="payments" element={<AdminPayments />} />
               <Route path="reports" element={<AdminReports />} />

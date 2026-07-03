@@ -257,9 +257,7 @@ export default function PostAdPage() {
         }
       }
 
-      // Check moderation setting
-      const requireApproval = localStorage.getItem('adhub_require_approval') === 'true';
-      listingData.status = requireApproval ? 'pending' : 'active';
+      listingData.status = 'pending';
 
       // Map dynamic attributes. Some need to be top level, rest go to specs.
       const { make, model, year, ...restSpecs } = attrs;
@@ -270,12 +268,7 @@ export default function PostAdPage() {
       
       const listing = await createListing(listingData, images);
       
-      if (requireApproval) {
-        toast.success('Your ad has been submitted and is pending approval.');
-        navigate('/my-ads');
-      } else {
-        navigate(`/listing/${listing.slug || listing.id}`);
-      }
+      navigate('/post-ad/success');
     } catch (err) {
       setError(err.message);
     } finally { setLoading(false); }
