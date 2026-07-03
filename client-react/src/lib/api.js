@@ -514,6 +514,49 @@ export async function checkDuplicateListing(sellerId, title, category) {
 // Phase 3: Analytics & Trust RPC CallsES
 // ==========================================
 
+export const getListingViews = async (listingId) => {
+  const { count } = await supabase.from('listing_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('listing_id', listingId)
+    .eq('event_type', 'view');
+  return count || 0;
+};
+
+export const getSellerStats = async (sellerId) => {
+  const [
+    { count: totalListings },
+    { data: profile }
+  ] = await Promise.all([
+    supabase.from('listings').select('id', { count: 'exact', head: true }).eq('seller_id', sellerId).eq('status', 'active'),
+    supabase.from('profiles').select('created_at').eq('id', sellerId).single()
+  ]);
+  return {
+    total_listings: totalListings || 0,
+    member_since: profile?.created_at
+  };
+};
+
+export const getSaved = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return [];
+  const { data } = await supabase.from('saved_listings').select('*, listings(*)').eq('user_id', session.user.id);
+  return data || [];
+};
+
+export const toggleSaved = async (listingId) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+  
+  const { data: existing } = await supabase.from('saved_listings').select('id').eq('user_id', session.user.id).eq('listing_id', listingId).single();
+  if (existing) {
+    await supabase.from('saved_listings').delete().eq('id', existing.id);
+    return false;
+  } else {
+    await supabase.from('saved_listings').insert({ user_id: session.user.id, listing_id: listingId });
+    return true;
+  }
+};
+
 export const getSavedSearches = async () => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
