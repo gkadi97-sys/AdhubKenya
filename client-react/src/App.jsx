@@ -143,6 +143,11 @@ export default function App() {
                 <AdminLogin />
               </Suspense>
             } />
+            <Route path="/admin/reset-password" element={
+              <Suspense fallback={<div className="flex h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div></div>}>
+                <AdminResetPassword />
+              </Suspense>
+            } />
             <Route path="/admin/*" element={
               <AdminProtectedRoute>
                 <Suspense fallback={<div className="flex h-screen items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div></div>}>
