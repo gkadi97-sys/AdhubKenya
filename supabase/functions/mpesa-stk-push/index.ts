@@ -6,17 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Replace these with actual config from DB in production
-const DUMMY_MPESA_CREDENTIALS = {
+const MPESA_CREDENTIALS = {
   consumerKey: Deno.env.get('MPESA_CONSUMER_KEY') || 'dummy_key',
   consumerSecret: Deno.env.get('MPESA_CONSUMER_SECRET') || 'dummy_secret',
   passKey: Deno.env.get('MPESA_PASSKEY') || 'dummy_passkey',
-  shortCode: Deno.env.get('MPESA_SHORTCODE') || '174379'
+  shortCode: Deno.env.get('MPESA_SHORTCODE') || '174379',
+  callbackUrl: Deno.env.get('MPESA_CALLBACK_URL') || `${Deno.env.get('SUPABASE_URL')}/functions/v1/mpesa-callback`
 };
 
 async function generateAccessToken() {
-  // Mock logic to generate auth token
-  const credentials = btoa(`${DUMMY_MPESA_CREDENTIALS.consumerKey}:${DUMMY_MPESA_CREDENTIALS.consumerSecret}`);
+  const credentials = btoa(`${MPESA_CREDENTIALS.consumerKey}:${MPESA_CREDENTIALS.consumerSecret}`);
   try {
     const res = await fetch("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
       headers: { Authorization: `Basic ${credentials}` }
@@ -25,7 +24,7 @@ async function generateAccessToken() {
     return data.access_token;
   } catch(e) {
     console.error('Failed token', e);
-    return 'mock_token_123'; // return dummy token for testing since we might not have real credentials
+    throw new Error('Failed to generate M-Pesa token');
   }
 }
 
@@ -37,8 +36,8 @@ serve(async (req) => {
   try {
     const { amount, phone, reference, description, userId, listingId } = await req.json();
 
-    if (!amount || !phone) {
-      return new Response(JSON.stringify({ error: "Amount and phone are required" }), {
+    if (!amount || !phone || !userId || !listingId) {
+      return new Response(JSON.stringify({ error: "Amount, phone, userId, and listingId are required" }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       });
@@ -59,10 +58,9 @@ serve(async (req) => {
 
     const token = await generateAccessToken();
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
-    const password = btoa(DUMMY_MPESA_CREDENTIALS.shortCode + DUMMY_MPESA_CREDENTIALS.passKey + timestamp);
+    const password = btoa(MPESA_CREDENTIALS.shortCode + MPESA_CREDENTIALS.passKey + timestamp);
     
-    // In actual prod, we would hit Safaricom API. Here we simulate success.
-    /*
+    // Call Daraja STK Push API
     const response = await fetch("https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest", {
       method: "POST",
       headers: {
@@ -70,32 +68,24 @@ serve(async (req) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        BusinessShortCode: DUMMY_MPESA_CREDENTIALS.shortCode,
+        BusinessShortCode: MPESA_CREDENTIALS.shortCode,
         Password: password,
         Timestamp: timestamp,
         TransactionType: "CustomerPayBillOnline",
         Amount: amount,
         PartyA: formattedPhone,
-        PartyB: DUMMY_MPESA_CREDENTIALS.shortCode,
+        PartyB: MPESA_CREDENTIALS.shortCode,
         PhoneNumber: formattedPhone,
-        CallBackURL: `${Deno.env.get('SUPABASE_URL')}/functions/v1/mpesa-callback`,
+        CallBackURL: MPESA_CREDENTIALS.callbackUrl,
         AccountReference: reference || "AdHubKenya",
         TransactionDesc: description || "Payment"
       })
     });
     const result = await response.json();
-    */
 
-    const result = {
-       ResponseCode: "0",
-       ResponseDescription: "Success. Request accepted for processing",
-       CheckoutRequestID: `ws_CO_${timestamp}_123456789`,
-       MerchantRequestID: `req_${timestamp}`
-    };
-
-    // Store pending transaction in DB
     if (result.ResponseCode === "0") {
-      await supabaseAdmin.from('transactions').insert({
+      // Store pending transaction in DB
+      const { error: insertError } = await supabaseAdmin.from('transactions').insert({
          user_id: userId,
          listing_id: listingId,
          amount: amount,
@@ -103,6 +93,9 @@ serve(async (req) => {
          payment_reference: result.CheckoutRequestID,
          status: 'pending'
       });
+      if (insertError) throw insertError;
+    } else {
+      throw new Error(result.errorMessage || result.ResponseDescription || 'Failed to initiate M-Pesa push');
     }
 
     return new Response(JSON.stringify(result), {
@@ -110,6 +103,7 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
+    console.error('STK Push Error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,

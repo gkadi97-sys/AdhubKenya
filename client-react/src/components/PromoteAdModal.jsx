@@ -37,13 +37,39 @@ export default function PromoteAdModal({ listing, onClose, onSuccess }) {
       
       if (data?.ResponseCode === "0") {
         toast.success('M-Pesa prompt sent! Please check your phone to enter PIN.');
-        // In a real app we'd poll for transaction status or rely on webhook + realtime
-        // For UX here, we mock the success after 5s assuming they pay
-        setTimeout(async () => {
-          const updated = await promoteListing(listing.id, selectedPlan, 'featured');
-          setStep(3); // Success step
-          setTimeout(() => onSuccess(updated), 2000);
-        }, 5000);
+        
+        const checkoutId = data.CheckoutRequestID;
+
+        // Listen for transaction updates via Realtime
+        const subscription = supabase
+          .channel(`transaction:${checkoutId}`)
+          .on('postgres_changes', {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'transactions',
+            filter: `payment_reference=eq.${checkoutId}`
+          }, async (payload) => {
+            const tx = payload.new;
+            if (tx.status === 'completed') {
+              supabase.removeChannel(subscription);
+              setStep(3); // Success step
+              
+              // Refetch the updated listing to pass to onSuccess
+              const { data: updatedListing } = await supabase
+                .from('listings')
+                .select('*')
+                .eq('id', listing.id)
+                .single();
+                
+              setTimeout(() => onSuccess(updatedListing), 2000);
+            } else if (tx.status === 'failed') {
+              supabase.removeChannel(subscription);
+              toast.error('Payment failed or was cancelled.');
+              setLoading(false);
+            }
+          })
+          .subscribe();
+
       } else {
         throw new Error(data?.error || 'Failed to initiate payment');
       }
@@ -121,9 +147,9 @@ export default function PromoteAdModal({ listing, onClose, onSuccess }) {
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-primary mb-4">
                 <CreditCard className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-bold">Mock Payment Checkout</h3>
+              <h3 className="text-xl font-bold">M-Pesa Checkout</h3>
               <p className="text-sm text-muted-foreground mb-6">
-                This is a simulated checkout flow for Phase 3. In a production environment, this would integrate with M-Pesa or Stripe.
+                Please enter your M-Pesa number. You will receive an STK prompt on your phone.
               </p>
               
               <div className="rounded-xl bg-secondary/50 p-4 mb-6">
@@ -155,9 +181,9 @@ export default function PromoteAdModal({ listing, onClose, onSuccess }) {
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3.5 font-bold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-70"
               >
                 {loading ? (
-                  <span className="animate-pulse">Processing Payment...</span>
+                  <span className="animate-pulse">Waiting for M-Pesa PIN...</span>
                 ) : (
-                  <>Pay Now (Mock)</>
+                  <>Pay Now</>
                 )}
               </button>
               

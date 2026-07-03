@@ -1,14 +1,27 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.14.0";
 
-serve(async (req) => {
-  try {
-    const data = await req.json();
-    console.log("M-Pesa Callback Data:", JSON.stringify(data));
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
-    const result = data.Body.stkCallback;
-    const checkoutRequestID = result.CheckoutRequestID;
-    const resultCode = result.ResultCode;
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  try {
+    const body = await req.json();
+    const stkCallback = body.Body?.stkCallback;
+
+    if (!stkCallback) {
+      return new Response(JSON.stringify({ error: "Invalid payload" }), { status: 400 });
+    }
+
+    const checkoutRequestID = stkCallback.CheckoutRequestID;
+    const resultCode = stkCallback.ResultCode;
+    // const resultDesc = stkCallback.ResultDesc;
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -16,69 +29,71 @@ serve(async (req) => {
     );
 
     if (resultCode === 0) {
-      // Payment successful
-      const meta = result.CallbackMetadata.Item;
-      const amountItem = meta.find((i: any) => i.Name === 'Amount');
-      const receiptItem = meta.find((i: any) => i.Name === 'MpesaReceiptNumber');
-      const phoneItem = meta.find((i: any) => i.Name === 'PhoneNumber');
+      // Success
+      const callbackMetadata = stkCallback.CallbackMetadata?.Item || [];
+      const receiptItem = callbackMetadata.find((i: any) => i.Name === 'MpesaReceiptNumber');
+      const amountItem = callbackMetadata.find((i: any) => i.Name === 'Amount');
+      
+      const receiptNumber = receiptItem ? receiptItem.Value : null;
+      const amount = amountItem ? amountItem.Value : 0;
 
-      const amount = amountItem?.Value;
-      const receipt = receiptItem?.Value;
-      const phone = phoneItem?.Value;
-
-      // Update transaction status
-      await supabaseAdmin
+      // Update transaction
+      const { data: tx, error: txError } = await supabaseAdmin
         .from('transactions')
-        .update({
-          status: 'completed',
-          payment_reference: receipt,
-          amount: amount,
+        .update({ 
+          status: 'completed', 
+          receipt_number: receiptNumber,
           updated_at: new Date().toISOString()
         })
-        .eq('payment_reference', checkoutRequestID);
-
-      // If there's a listing_id, we might want to activate it or promote it
-      const { data: tx } = await supabaseAdmin
-        .from('transactions')
-        .select('listing_id')
-        .eq('payment_reference', receipt)
+        .eq('payment_reference', checkoutRequestID)
+        .select()
         .single();
-        
-      if (tx?.listing_id) {
-         // E.g. make listing active, or set promoted_until
-         await supabaseAdmin
-           .from('listings')
-           .update({ status: 'active' }) // or update promoted_until if it was a promotion
-           .eq('id', tx.listing_id);
-      }
 
+      if (txError) throw txError;
+
+      // Promote listing
+      if (tx && tx.listing_id) {
+        // Calculate days based on amount (500=7, 800=14, 1500=30)
+        let days = 7;
+        if (amount >= 1500) days = 30;
+        else if (amount >= 800) days = 14;
+
+        const promotedUntil = new Date();
+        promotedUntil.setDate(promotedUntil.getDate() + days);
+
+        await supabaseAdmin
+          .from('listings')
+          .update({ 
+            promoted_until: promotedUntil.toISOString(),
+            status: 'active' // Ensure it's active
+          })
+          .eq('id', tx.listing_id);
+      }
+      
     } else {
-      // Payment failed or cancelled
+      // Failed or Cancelled
       await supabaseAdmin
         .from('transactions')
-        .update({
+        .update({ 
           status: 'failed',
           updated_at: new Date().toISOString()
         })
         .eq('payment_reference', checkoutRequestID);
     }
 
-    // Acknowledge receipt to Safaricom
+    // Safaricom expects a success response acknowledging receipt
     return new Response(JSON.stringify({
       ResultCode: 0,
-      ResultDesc: "Success"
+      ResultDesc: "Accepted"
     }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
   } catch (error) {
-    console.error("Error processing callback:", error);
-    // Even on error, we must return 200 to Safaricom to prevent retries
-    return new Response(JSON.stringify({
-       ResultCode: 1,
-       ResultDesc: "Internal Error"
-    }), {
-      headers: { 'Content-Type': 'application/json' },
+    console.error('Callback Error:', error);
+    // Still return 200 so Safaricom doesn't retry endlessly if it's our internal error
+    return new Response(JSON.stringify({ ResultCode: 0, ResultDesc: "Accepted but failed internally" }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
   }
