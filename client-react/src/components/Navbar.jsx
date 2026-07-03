@@ -39,7 +39,7 @@ export default function Navbar() {
           
           {isHomepage && <div className="hidden md:block flex-1" />}
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2 col-start-3 justify-self-end">
             <Link to="/post-ad" className="hidden items-center gap-2 rounded-full gradient-emerald px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-elevated transition hover:opacity-95 sm:inline-flex">
               <PlusCircle className="h-4 w-4" />
               Post Ad — Free
