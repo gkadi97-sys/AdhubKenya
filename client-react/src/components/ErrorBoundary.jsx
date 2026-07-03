@@ -4,15 +4,28 @@ import { AlertTriangle, RefreshCw } from 'lucide-react';
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, isChunkLoadError: false };
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+    const isChunkLoadError = error?.name === 'TypeError' && (
+      error?.message?.includes('Failed to fetch dynamically imported module') ||
+      error?.message?.includes('importing a module')
+    );
+    return { hasError: true, error, isChunkLoadError };
   }
 
   componentDidCatch(error, errorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    
+    // Automatically reload the page once if a dynamic import fails (e.g., after a new deployment changes chunk hashes)
+    if (this.state.isChunkLoadError) {
+      const hasReloaded = sessionStorage.getItem('vite_chunk_reload');
+      if (!hasReloaded) {
+        sessionStorage.setItem('vite_chunk_reload', 'true');
+        window.location.reload();
+      }
+    }
   }
 
   render() {
