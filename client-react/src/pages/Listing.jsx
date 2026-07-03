@@ -576,38 +576,6 @@ export default function ListingDetailPage() {
           aria-modal="true"
           aria-label="Image viewer"
         >
-          <button 
-            onClick={() => setIsZoomModalOpen(false)}
-            aria-label="Close image viewer"
-            className="absolute top-4 right-4 sm:top-8 sm:right-8 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
-          >
-            ✕
-          </button>
-          
-          <div className="relative w-full max-w-5xl h-[80vh] flex items-center justify-center">
-            {images.length > 1 && (
-              <button 
-                onClick={() => setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1)}
-                aria-label="Previous image"
-                className="absolute left-0 sm:-left-12 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            )}
-            
-            <img 
-              src={imageUrl(images[activeImg])} 
-              alt={`${listing.title} – image ${activeImg + 1} of ${images.length}`}
-              className="max-w-full max-h-full object-contain"
-            />
-
-            {images.length > 1 && (
-              <button 
-                onClick={() => setActiveImg(prev => (prev + 1) % images.length)}
-                aria-label="Next image"
-                className="absolute right-0 sm:-right-12 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
-              >
-                <ChevronRight className="w-6 h-6" />
           {/* Zoom Modal Header */}
           <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/50 to-transparent">
              <span className="text-white/80 font-medium">{activeImg + 1} / {images.length}</span>
@@ -617,19 +585,19 @@ export default function ListingDetailPage() {
           </div>
 
           {/* Zoom Modal Main Image Container */}
-          <div className="flex-1 flex items-center justify-center relative overflow-hidden" tabIndex={0} autoFocus onKeyDown={handleZoomKeyDown}>
+          <div className="flex-1 flex items-center justify-center relative overflow-hidden w-full" tabIndex={0} autoFocus onKeyDown={handleZoomKeyDown}>
              {/* Main Image */}
-             <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-12">
+             <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-12 mt-12 mb-24">
                <img src={imageUrl(images[activeImg])} alt="" className="max-w-full max-h-full object-contain drop-shadow-2xl" />
              </div>
 
              {/* Prev/Next Controls */}
              {images.length > 1 && (
                <>
-                 <button onClick={() => setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1)} aria-label="Previous image" className="absolute left-4 sm:left-8 p-3 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 transition backdrop-blur-md">
+                 <button onClick={() => setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1)} aria-label="Previous image" className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 transition backdrop-blur-md z-10">
                    <ChevronLeft className="w-6 h-6" />
                  </button>
-                 <button onClick={() => setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1)} aria-label="Next image" className="absolute right-4 sm:right-8 p-3 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 transition backdrop-blur-md">
+                 <button onClick={() => setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1)} aria-label="Next image" className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/60 transition backdrop-blur-md z-10">
                    <ChevronRight className="w-6 h-6" />
                  </button>
                </>
@@ -637,7 +605,7 @@ export default function ListingDetailPage() {
           </div>
 
           {/* Zoom Modal Thumbnails */}
-          <div className="absolute bottom-4 sm:bottom-8 flex gap-2 overflow-x-auto max-w-full px-4 snap-x py-2">
+          <div className="absolute bottom-4 sm:bottom-8 flex gap-2 overflow-x-auto max-w-full px-4 snap-x py-2 z-10">
              {images.map((img, i) => (
                 <button 
                   key={i} 
