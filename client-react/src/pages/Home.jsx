@@ -559,8 +559,8 @@ export default function HomePage() {
           {/* ── RIGHT MAIN CONTENT ────────────────────────────────── */}
           <main className="flex-1 min-w-0">
 
-            {/* Hero */}
-            <section className="relative mb-2 z-20 group">
+            {/* ── DESKTOP HERO ── */}
+            <section className="relative mb-8 z-20 group hidden lg:block">
               <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl bg-background">
                 <img 
                   src={heroNairobi} 
@@ -572,7 +572,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,247,242,0.78)] via-[rgba(248,247,242,0.45)] via-45% to-[rgba(248,247,242,0.10)] dark:from-[rgba(10,10,10,0.85)] dark:via-[rgba(10,10,10,0.65)] dark:via-45% dark:to-[rgba(10,10,10,0.15)] pointer-events-none" />
               </div>
 
-              <div className="px-4 pb-5 pt-3 sm:px-8 sm:pb-8 sm:pt-6">
+              <div className="px-8 pb-8 pt-6">
                 <div className="max-w-2xl">
                   <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium backdrop-blur shadow-sm">
                     <span className="relative flex h-2 w-2">
@@ -598,26 +598,6 @@ export default function HomePage() {
                   <HeroSearch stickyCategory={focusedCat} />
                 </div>
 
-                {/* Mobile Category Chips — visible only on mobile, desktop uses sidebar */}
-                <div className="mt-6 lg:hidden overflow-x-auto scrollbar-hide flex snap-x snap-mandatory gap-2 pb-2 -mx-6 px-6">
-                  {getRankedCategories(SIDEBAR_SECTIONS[0].slugs).map(c => (
-                    <Link
-                      key={c.slug}
-                      to={`/browse?category=${c.slug}`}
-                      className="flex items-center gap-2 shrink-0 snap-start rounded-full bg-card/90 backdrop-blur border border-border px-4 py-2 text-sm font-semibold text-foreground hover:border-primary hover:bg-primary/5 transition shadow-sm whitespace-nowrap active:scale-95"
-                    >
-                      <span className="text-lg leading-none">{c.icon}</span>
-                      <span>{c.name}</span>
-                    </Link>
-                  ))}
-                  <Link
-                    to="/browse"
-                    className="flex items-center gap-1 shrink-0 snap-start rounded-full bg-primary/10 border border-primary/20 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/20 transition whitespace-nowrap active:scale-95"
-                  >
-                    More →
-                  </Link>
-                </div>
-
                 {/* Trending Searches */}
                 {trendingSearches.length > 0 && (
                   <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -636,190 +616,207 @@ export default function HomePage() {
               </div>
             </section>
 
-            {/* Featured Listings (Above the fold) */}
-            <FeaturedListings />
-
-            {/* Live counters (Compact on mobile) */}
-            <div className="mb-6 rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-sm mt-0 order-7">
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-              
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-4 py-3 sm:px-6 sm:py-4 relative z-10 divide-x divide-primary-foreground/10">
-                {[
-                  { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Active Listings' },
-                  { icon: Grid,       n: '15+',     l: 'Categories' },
-                  { icon: MapPin,     n: '47',      l: 'Counties' },
-                  { icon: Sparkles,   n: '100%',    l: 'Free Posting' },
-                ].map(({ icon: Icon, n, l }) => (
-                  <div key={l} className="flex flex-col items-center text-center gap-1.5">
-                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-foreground/10 ring-1 ring-primary-foreground/20 text-gold shadow-inner">
-                      <Icon className="h-4 w-4" />
+            {/* ── MOBILE HERO (Search + Categories) ── */}
+            <section className="lg:hidden mb-6 pt-2">
+              <div className="px-4 pb-5">
+                <HeroSearch stickyCategory={focusedCat} />
+              </div>
+              <div className="grid grid-cols-4 gap-3 sm:gap-4 px-4">
+                {getRankedCategories(SIDEBAR_SECTIONS[0].slugs.concat(['home-furniture', 'fashion'])).slice(0, 8).map(c => (
+                  <Link
+                    key={c.slug}
+                    to={`/browse?category=${c.slug}`}
+                    className="flex flex-col items-center justify-start gap-1.5 rounded-2xl bg-card p-3 shadow-[0_2px_10px_rgba(0,0,0,0.04)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.2)] border border-border/50 hover:border-primary/30 active:scale-95 transition-all"
+                  >
+                    <div className="grid h-12 w-12 place-items-center rounded-full bg-secondary/80 text-2xl mb-1 shrink-0">
+                      {c.icon}
                     </div>
-                    <div>
-                      <div className="font-display text-lg font-bold leading-none">{n}</div>
-                      <div className="text-[10px] opacity-90 mt-0.5 font-medium">{l}</div>
+                    <div className="text-center w-full">
+                      <div className="text-[11px] font-bold text-foreground leading-tight truncate">{c.name}</div>
+                      {c.count > 0 && <div className="text-[9px] font-medium text-muted-foreground mt-0.5">{c.count >= 1000 ? (c.count/1000).toFixed(1)+'k' : c.count}</div>}
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
-            </div>
+            </section>
 
-            <hr className="my-6 border-border/50" />
-
-            {/* Trust & Safety */}
-            <div className="mb-6">
-              <TrustSafety />
-            </div>
-
-            {/* Quick Filters */}
-            <QuickFilters />
-
-            {/* Continue Browsing */}
-            <ContinueBrowsing />
-
-            {/* Mobile category row (lg hidden) */}
-            <div className="lg:hidden mb-6 flex overflow-x-auto snap-x snap-mandatory gap-3 pb-2 scrollbar-hide">
-              {CATEGORY_ICONS.map(c => (
-                <Link
-                  key={c.slug}
-                  to={`/browse?category=${c.slug}`}
-                  className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-border bg-card px-4 py-4 text-center hover:border-primary/40 hover:bg-primary/5 transition min-w-[120px] snap-center shrink-0 shadow-sm"
-                >
-                  <span className="text-3xl leading-none mb-1">{c.icon}</span>
-                  <span className="text-xs font-bold whitespace-nowrap text-foreground">{c.name}</span>
-                </Link>
-              ))}
-            </div>
-
-            {/* Featured Categories */}
-            <section className="mb-10">
-              <div className="mt-12 mb-5 flex items-end justify-between gap-4">
-                <div>
-                  <h2 className="font-display text-2xl font-bold sm:text-3xl tracking-tight">Popular categories</h2>
-                </div>
-                <Link to="/browse" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 transition-colors group">
-                  See all categories <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
+            {/* ── MARKETPLACE FEEDS ── */}
+            <div className="flex flex-col gap-8 lg:gap-10">
+              
+              {/* Featured Listings (Immediate visibility) */}
+              <div>
+                <FeaturedListings />
               </div>
-              <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0 lg:gap-6">
-                {getRankedCategories(SIDEBAR_SECTIONS[0].slugs.concat(SIDEBAR_SECTIONS[1].slugs)).slice(0, 8).map(c => {
-                  const slug = c.slug;
-                  
-                  let countBadge = null;
-                  if (c.count > 0) {
-                    countBadge = <span className="text-xs font-semibold opacity-95">{c.count.toLocaleString()} Listings</span>;
-                  } else if (c.slug === 'jobs') {
-                    countBadge = <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-200 bg-emerald-500/20 px-2 py-0.5 rounded opacity-95">New</span>;
-                  } else if (['property', 'vehicles', 'services'].includes(c.slug)) {
-                    countBadge = <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">Coming soon</span>;
-                  }
 
-                  return (
-                    <Link key={slug} to={`/browse?category=${slug}`} className="group relative aspect-[4/3] sm:aspect-[3/2] lg:h-[180px] xl:h-[220px] shrink-0 w-[240px] sm:w-[280px] lg:w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated block snap-center">
-                      <img src={CAT_IMAGES[slug] || catServices} alt={c.name} loading="lazy" width={600} height={480} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                      <div className={`absolute inset-0 bg-gradient-to-t ${CAT_TINTS[slug] || 'from-gray-900/70'} via-transparent to-transparent opacity-90 group-hover:opacity-100 transition-opacity`} />
-                      <div className="absolute inset-0 flex flex-col justify-between p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="grid h-10 w-10 place-items-center rounded-xl bg-background/95 backdrop-blur text-xl shadow-sm border border-border/50">{c.icon}</div>
-                          <ArrowUpRight className="h-4 w-4 text-background opacity-0 transition group-hover:opacity-100" />
-                        </div>
-                        <div className="text-background">
-                          <div className="font-display text-lg font-bold leading-tight tracking-wide">{c.name}</div>
-                          <div className="flex items-center gap-2 mt-1">
-                            {countBadge}
+              {/* Latest Listings */}
+              <div>
+                <DiscoveryRow title="Latest Listings" sort="createdAt" limit={8} />
+              </div>
+
+              {/* Trending Listings */}
+              <div>
+                <DiscoveryRow title="Trending Listings" sort="clicks" limit={8} />
+              </div>
+
+              {/* Recently Viewed (For authenticated users) */}
+              <div>
+                <RecentlyViewed />
+              </div>
+
+              {/* Recommended For You (Future Ready) */}
+              <div>
+                <DiscoveryRow title="Recommended For You" sort="price_asc" limit={8} />
+              </div>
+
+              {/* Featured / Popular Categories */}
+              <section className="mb-2">
+                <div className="mb-5 flex items-end justify-between gap-4">
+                  <div>
+                    <h2 className="font-display text-2xl font-bold sm:text-3xl tracking-tight">Popular categories</h2>
+                  </div>
+                  <Link to="/browse" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 transition-colors group">
+                    See all <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </div>
+                <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0 lg:gap-6">
+                  {getRankedCategories(SIDEBAR_SECTIONS[0].slugs.concat(SIDEBAR_SECTIONS[1].slugs)).slice(0, 8).map(c => {
+                    const slug = c.slug;
+                    let countBadge = null;
+                    if (c.count > 0) {
+                      countBadge = <span className="text-xs font-semibold opacity-95">{c.count.toLocaleString()} Listings</span>;
+                    } else if (c.slug === 'jobs') {
+                      countBadge = <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-200 bg-emerald-500/20 px-2 py-0.5 rounded opacity-95">New</span>;
+                    } else if (['property', 'vehicles', 'services'].includes(c.slug)) {
+                      countBadge = <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">Coming soon</span>;
+                    }
+
+                    return (
+                      <Link key={slug} to={`/browse?category=${slug}`} className="group relative aspect-[4/3] sm:aspect-[3/2] lg:h-[180px] xl:h-[220px] shrink-0 w-[240px] sm:w-[280px] lg:w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated block snap-center">
+                        <img src={CAT_IMAGES[slug] || catServices} alt={c.name} loading="lazy" width={600} height={480} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                        <div className={`absolute inset-0 bg-gradient-to-t ${CAT_TINTS[slug] || 'from-gray-900/70'} via-transparent to-transparent opacity-90 group-hover:opacity-100 transition-opacity`} />
+                        <div className="absolute inset-0 flex flex-col justify-between p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="grid h-10 w-10 place-items-center rounded-xl bg-background/95 backdrop-blur text-xl shadow-sm border border-border/50">{c.icon}</div>
+                            <ArrowUpRight className="h-4 w-4 text-background opacity-0 transition group-hover:opacity-100" />
+                          </div>
+                          <div className="text-background">
+                            <div className="font-display text-lg font-bold leading-tight tracking-wide">{c.name}</div>
+                            <div className="flex items-center gap-2 mt-1">
+                              {countBadge}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* Grid for Discovery Rows */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 xl:gap-8 mb-6">
-              {/* Trending Listings */}
-              <DiscoveryRow title="Trending Deals" sort="price_asc" limit={8} />
-
-              {/* Fresh Listings */}
-              <DiscoveryRow title="New Listings Today" sort="createdAt" limit={8} />
-            </div>
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 xl:gap-8 mb-10">
-              {/* Recently Viewed */}
-              <RecentlyViewed />
-
-              {/* Recommended */}
-              <DiscoveryRow title="Recommended for you" sort="clicks" limit={8} />
-            </div>
-
-            {/* Sell CTA */}
-            <section className="mb-10">
-              <div className="relative overflow-hidden rounded-3xl gradient-emerald p-8 text-primary-foreground sm:p-12">
-                <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gold/30 blur-3xl" />
-                <div className="relative grid items-center gap-8 lg:grid-cols-[1.5fr_1fr]">
-                  <div>
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Sell smarter</span>
-                    <h2 className="mt-3 font-display text-2xl font-bold leading-tight sm:text-4xl">
-                      Got something to sell?<br />
-                      <span className="text-gold-grad">Reach buyers today.</span>
-                    </h2>
-                    <p className="mt-3 max-w-lg text-sm opacity-90">
-                      Snap a photo, set your price, get offers in minutes. No fees, no middlemen.
-                    </p>
-                    <div className="mt-5 flex flex-wrap gap-3">
-                      <Link to="/post-ad" className="inline-flex items-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-primary shadow-elevated hover:bg-cream">
-                        <PlusCircle className="h-4 w-4" /> Post your free ad
                       </Link>
-                    </div>
-                  </div>
-                  <ul className="grid gap-2.5 text-sm">
-                    {['List in under 60 seconds','Reach buyers across 47 counties','Verified seller badges build trust','Chat directly — no commissions'].map(p => (
-                      <li key={p} className="flex items-center gap-3 rounded-xl bg-primary-foreground/10 px-4 py-2.5 ring-1 ring-primary-foreground/15">
-                        <BadgeCheck className="h-4 w-4 shrink-0 text-gold" />
-                        <span>{p}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </section>
-
-            {/* Location Discovery */}
-            {countyCounts.length > 0 && (
-              <section className="mb-10">
-                <div className="mb-4">
-                  <h2 className="font-display text-xl font-bold sm:text-2xl">Browse by Location</h2>
-                  <p className="text-sm text-muted-foreground mt-1">Find deals in your county</p>
-                </div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                  {countyCounts.map(loc => (
-                    <Link
-                      key={loc.county}
-                      to={`/browse?county=${encodeURIComponent(loc.county)}`}
-                      className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center transition hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
-                    >
-                      <MapPin className="mb-2 h-6 w-6 text-primary" />
-                      <span className="text-sm font-bold text-foreground">{loc.county}</span>
-                      <span className="text-xs font-medium text-muted-foreground">{loc.listing_count} ads</span>
-                    </Link>
-                  ))}
+                    );
+                  })}
                 </div>
               </section>
-            )}
 
-            {/* SEO Content Block */}
-            <section className="mb-10 rounded-2xl border border-border/50 bg-card/50 p-6 sm:p-8">
-              <h2 className="text-lg font-bold text-foreground mb-3">Buy and Sell Anything in Kenya with AdHub</h2>
-              <div className="text-sm text-muted-foreground space-y-4">
-                <p>
-                  Welcome to AdHub Kenya, the nation's fastest-growing free classifieds marketplace. Whether you're looking for <strong>cars for sale in Kenya</strong>, searching for affordable <strong>property for sale in Kenya</strong>, or upgrading to the latest <strong>phones and electronics</strong>, you'll find exactly what you need. Our platform connects thousands of verified buyers and sellers every day, ensuring a safe and seamless trading experience.
-                </p>
-                <p>
-                  Explore localized marketplaces to find items near you. Discover the best deals in the <strong>Nairobi marketplace</strong>, find hidden gems in the <strong>Mombasa marketplace</strong>, or browse listings in the <strong>Kisumu marketplace</strong>. With coverage across all 47 counties, AdHub makes local commerce easier than ever.
-                </p>
+              {/* ── MARKETING & UTILITIES (Moved down for mobile) ── */}
+              
+              <hr className="border-border/50" />
+
+              {/* Live counters */}
+              <div className="rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-sm">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-4 py-3 sm:px-6 sm:py-4 relative z-10 divide-x divide-primary-foreground/10">
+                  {[
+                    { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Active Listings' },
+                    { icon: Grid,       n: '15+',     l: 'Categories' },
+                    { icon: MapPin,     n: '47',      l: 'Counties' },
+                    { icon: Sparkles,   n: '100%',    l: 'Free Posting' },
+                  ].map(({ icon: Icon, n, l }) => (
+                    <div key={l} className="flex flex-col items-center text-center gap-1.5">
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-foreground/10 ring-1 ring-primary-foreground/20 text-gold shadow-inner">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="font-display text-lg font-bold leading-none">{n}</div>
+                        <div className="text-[10px] opacity-90 mt-0.5 font-medium">{l}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </section>
 
+              {/* Trust & Safety */}
+              <TrustSafety />
+
+              {/* Quick Filters */}
+              <QuickFilters />
+
+              {/* Continue Browsing */}
+              <ContinueBrowsing />
+
+              {/* Sell CTA */}
+              <section>
+                <div className="relative overflow-hidden rounded-3xl gradient-emerald p-8 text-primary-foreground sm:p-12">
+                  <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-gold/30 blur-3xl" />
+                  <div className="relative grid items-center gap-8 lg:grid-cols-[1.5fr_1fr]">
+                    <div>
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Sell smarter</span>
+                      <h2 className="mt-3 font-display text-2xl font-bold leading-tight sm:text-4xl">
+                        Got something to sell?<br />
+                        <span className="text-gold-grad">Reach buyers today.</span>
+                      </h2>
+                      <p className="mt-3 max-w-lg text-sm opacity-90">
+                        Snap a photo, set your price, get offers in minutes. No fees, no middlemen.
+                      </p>
+                      <div className="mt-5 flex flex-wrap gap-3">
+                        <Link to="/post-ad" className="inline-flex items-center gap-2 rounded-full bg-background px-5 py-2.5 text-sm font-semibold text-primary shadow-elevated hover:bg-cream">
+                          <PlusCircle className="h-4 w-4" /> Post your free ad
+                        </Link>
+                      </div>
+                    </div>
+                    <ul className="grid gap-2.5 text-sm">
+                      {['List in under 60 seconds','Reach buyers across 47 counties','Verified seller badges build trust','Chat directly — no commissions'].map(p => (
+                        <li key={p} className="flex items-center gap-3 rounded-xl bg-primary-foreground/10 px-4 py-2.5 ring-1 ring-primary-foreground/15">
+                          <BadgeCheck className="h-4 w-4 shrink-0 text-gold" />
+                          <span>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </section>
+
+              {/* Location Discovery */}
+              {countyCounts.length > 0 && (
+                <section>
+                  <div className="mb-4">
+                    <h2 className="font-display text-xl font-bold sm:text-2xl">Browse by Location</h2>
+                    <p className="text-sm text-muted-foreground mt-1">Find deals in your county</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                    {countyCounts.map(loc => (
+                      <Link
+                        key={loc.county}
+                        to={`/browse?county=${encodeURIComponent(loc.county)}`}
+                        className="flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center transition hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+                      >
+                        <MapPin className="mb-2 h-6 w-6 text-primary" />
+                        <span className="text-sm font-bold text-foreground">{loc.county}</span>
+                        <span className="text-xs font-medium text-muted-foreground">{loc.listing_count} ads</span>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* SEO Content Block */}
+              <section className="mb-8 rounded-2xl border border-border/50 bg-card/50 p-6 sm:p-8">
+                <h2 className="text-lg font-bold text-foreground mb-3">Buy and Sell Anything in Kenya with AdHub</h2>
+                <div className="text-sm text-muted-foreground space-y-4">
+                  <p>
+                    Welcome to AdHub Kenya, the nation's fastest-growing free classifieds marketplace. Whether you're looking for <strong>cars for sale in Kenya</strong>, searching for affordable <strong>property for sale in Kenya</strong>, or upgrading to the latest <strong>phones and electronics</strong>, you'll find exactly what you need. Our platform connects thousands of verified buyers and sellers every day, ensuring a safe and seamless trading experience.
+                  </p>
+                  <p>
+                    Explore localized marketplaces to find items near you. Discover the best deals in the <strong>Nairobi marketplace</strong>, find hidden gems in the <strong>Mombasa marketplace</strong>, or browse listings in the <strong>Kisumu marketplace</strong>. With coverage across all 47 counties, AdHub makes local commerce easier than ever.
+                  </p>
+                </div>
+              </section>
+
+            </div>
           </main>
         </div>
       </div>
