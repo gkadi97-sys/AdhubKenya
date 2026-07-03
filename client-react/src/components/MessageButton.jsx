@@ -55,8 +55,16 @@ export default function MessageButton({ listing, className, variant = 'primary' 
       // Navigate to new conversation
       navigate(`/messages/${newConv.id}`);
     } catch (error) {
-      console.error(error);
-      toast.error('Could not start conversation. Please try again.');
+      console.error('[MessageButton] Error:', error);
+      // Surface a meaningful error
+      const msg = error?.message || '';
+      if (msg.includes('relation "public.conversations" does not exist') || msg.includes('conversations')) {
+        toast.error('Messaging is not yet configured. Please contact support.');
+      } else if (msg.includes('JWT')) {
+        toast.error('Session expired. Please log in again.');
+      } else {
+        toast.error(`Could not start conversation: ${msg || 'Please try again.'}`);
+      }
     } finally {
       setLoading(false);
     }
