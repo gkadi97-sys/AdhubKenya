@@ -301,17 +301,25 @@ export const getFilterAggregates = async (category, aggregateField, currentFilte
 };
 
 
-export const getListing = async (id) => {
-  const { data, error } = await supabase
+export const getListing = async (idOrSlug) => {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idOrSlug);
+  
+  const query = supabase
     .from('listings')
-    .select('*, seller:profiles!seller_id(name, location, created_at)')
-    .eq('id', id)
-    .single();
+    .select('*, seller:profiles!seller_id(name, location, created_at)');
+    
+  if (isUuid) {
+    query.eq('id', idOrSlug);
+  } else {
+    query.eq('slug', idOrSlug);
+  }
+  
+  const { data, error } = await query.single();
     
   if (error) throw error;
   
   // Increment views
-  supabase.rpc('increment_listing_views', { listing_id: id }).then();
+  supabase.from('listing_events').insert({ listing_id: data.id, event_type: 'view' }).then();
   
   return data;
 };
