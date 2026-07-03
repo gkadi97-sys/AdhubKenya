@@ -53,62 +53,16 @@ export const getListings = async (params = {}) => {
   const limit = parseInt(params.limit) || 12;
   const offset = (page - 1) * limit;
 
-  // 1. If searching by keyword, use the advanced search ranking RPC
-  if (params.keyword) {
-    // Extract filter-only params (exclude pagination, keyword, sort)
-    const filters = { ...params };
-    delete filters.keyword;
-    delete filters.category;
-    delete filters.page;
-    delete filters.limit;
-    delete filters.sort;
-
-    const { data, error } = await supabase.rpc('search_listings_ranked', {
-      p_keyword: params.keyword,
-      p_category: params.category || null,
-      p_filters: Object.keys(filters).length > 0 ? filters : null,
-      p_limit: limit,
-      p_offset: offset
-    });
-
-    if (error) throw error;
-
-    const total = data.length > 0 ? Number(data[0].total_count) : 0;
-    
-    // The RPC returns ranked results natively. We only re-sort if explicitly requested.
-    let sortedData = data;
-    if (params.sort === 'price_asc') {
-      sortedData = [...data].sort((a, b) => a.price - b.price);
-    } else if (params.sort === 'price_desc') {
-      sortedData = [...data].sort((a, b) => b.price - a.price);
-    } else if (params.sort === 'createdAt') {
-       // already secondarily sorted by created_at in RPC
-    }
-
-    // fetch seller profiles separately since RPC returns raw rows
-    if (sortedData.length > 0) {
-       const sellerIds = [...new Set(sortedData.map(d => d.seller_id))];
-       const { data: profiles } = await supabase.from('profiles').select('id, name, location, created_at').in('id', sellerIds);
-       if (profiles) {
-         sortedData = sortedData.map(d => ({
-           ...d,
-           seller: profiles.find(p => p.id === d.seller_id)
-         }));
-       }
-    }
-
-    return {
-      listings: sortedData,
-      total,
-      pages: Math.ceil(total / limit),
-    };
-  }
-
-  // 2. Standard Query (No Keyword)
   let query = supabase.from('listings').select('*, seller:profiles!seller_id(name, location, created_at)', { count: 'exact' });
 
   // Filter to active listings only
   query = query.or('status.eq.active,status.is.null');
+
+  if (params.keyword) {
+    const k = params.keyword.trim();
+    // Search in title, description, make, and specs->model
+    query = query.or(`title.ilike.%${k}%,description.ilike.%${k}%,make.ilike.%${k}%,specs->>model.ilike.%${k}%`);
+  }
 
   // ── Top-level column filters (exact match) ──────────────────────────────
   if (params.category)  query = query.eq('category', params.category);
@@ -666,8 +620,8 @@ export const getFeaturedListings = async (limit = 6) => {
 };
 
 export const getTrendingSearches = async (limitCount = 10) => {
-  const { data } = await supabase.rpc('get_trending_searches', { limit_count: limitCount });
-  return data || [];
+  // Bypassing missing RPC to prevent 404 error
+  return [];
 };
 
 export const getCountyCounts = async () => {
