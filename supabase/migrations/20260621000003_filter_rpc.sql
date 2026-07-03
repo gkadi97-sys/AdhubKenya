@@ -4,6 +4,7 @@
 -- ============================================================
 
 -- 1. Aggregation RPC for dynamic filter options
+DROP FUNCTION IF EXISTS get_filter_aggregates(text, text, jsonb);
 CREATE OR REPLACE FUNCTION get_filter_aggregates(
     p_category text, 
     p_aggregate_field text, 
@@ -63,6 +64,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 -- 2. Ranked Search RPC
+DROP FUNCTION IF EXISTS search_listings_ranked(text, text, jsonb, int, int);
 CREATE OR REPLACE FUNCTION search_listings_ranked(
     p_keyword text,
     p_category text DEFAULT NULL,

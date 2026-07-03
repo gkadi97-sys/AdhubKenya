@@ -19,6 +19,7 @@ ALTER TABLE public.listings
 
 -- 2. Create RPC for Seller Stats
 -- This calculates total active listings and registration date for a given seller
+DROP FUNCTION IF EXISTS get_seller_stats(uuid);
 CREATE OR REPLACE FUNCTION get_seller_stats(p_seller_id UUID)
 RETURNS TABLE (
   total_listings BIGINT,
@@ -42,6 +43,7 @@ CREATE POLICY "Anyone can insert listing events" ON public.listing_events
   FOR INSERT WITH CHECK (true);
 
 -- 4. Create RPC for Listing View Counts
+DROP FUNCTION IF EXISTS get_listing_views(uuid);
 CREATE OR REPLACE FUNCTION get_listing_views(p_listing_id UUID)
 RETURNS BIGINT AS $$
 DECLARE

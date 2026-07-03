@@ -7,6 +7,7 @@ ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS slug TEXT;
 
 -- 2. Create a function to generate slugs
+DROP FUNCTION IF EXISTS generate_listing_slug(text, uuid);
 CREATE OR REPLACE FUNCTION generate_listing_slug(title TEXT, id UUID)
 RETURNS TEXT AS $$
 DECLARE
@@ -37,6 +38,7 @@ SET slug = generate_listing_slug(title, id)
 WHERE slug IS NULL OR slug = '';
 
 -- 4. Create a trigger to auto-generate slug on INSERT if not provided
+DROP FUNCTION IF EXISTS set_listing_slug();
 CREATE OR REPLACE FUNCTION set_listing_slug()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -76,6 +78,7 @@ CREATE POLICY "Anyone can insert search events" ON public.search_events
   FOR INSERT WITH CHECK (true);
 
 -- 8. RPC function to get trending searches
+DROP FUNCTION IF EXISTS get_trending_searches(int);
 CREATE OR REPLACE FUNCTION get_trending_searches(limit_n INT DEFAULT 8)
 RETURNS TABLE(keyword TEXT, count BIGINT) AS $$
 BEGIN
@@ -91,6 +94,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- 9. RPC to get listing counts by county (for Browse by Location section)
+DROP FUNCTION IF EXISTS get_county_counts();
 CREATE OR REPLACE FUNCTION get_county_counts()
 RETURNS TABLE(county TEXT, listing_count BIGINT) AS $$
 BEGIN

@@ -36,6 +36,7 @@ ADD COLUMN IF NOT EXISTS promoted_until TIMESTAMP WITH TIME ZONE,
 ADD COLUMN IF NOT EXISTS badge_type TEXT;
 
 -- 3. Create a helper function for the frontend to easily fetch featured listings
+DROP FUNCTION IF EXISTS get_featured_listings(int);
 CREATE OR REPLACE FUNCTION get_featured_listings(lim INT DEFAULT 6)
 RETURNS SETOF public.listings
 LANGUAGE sql
