@@ -433,8 +433,6 @@ function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY
                   countBadge = <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">{c.count.toLocaleString()}</span>;
                 } else if (c.slug === 'jobs') {
                   countBadge = <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400 px-1.5 py-0.5 rounded shrink-0">New</span>;
-                } else if (['property', 'vehicles', 'services'].includes(c.slug)) {
-                  countBadge = <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/70 shrink-0">Coming soon</span>;
                 }
                 return (
                   <li key={c.slug}>
@@ -721,8 +719,6 @@ export default function HomePage() {
                       countBadge = <span className="text-xs font-semibold opacity-95">{c.count.toLocaleString()} Listings</span>;
                     } else if (c.slug === 'jobs') {
                       countBadge = <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-200 bg-emerald-500/20 px-2 py-0.5 rounded opacity-95">New</span>;
-                    } else if (['property', 'vehicles', 'services'].includes(c.slug)) {
-                      countBadge = <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">Coming soon</span>;
                     }
 
                     return (
