@@ -17,6 +17,9 @@ import Category from '@/pages/Category.jsx';
 import Listing from '@/pages/Listing.jsx';
 import Login from '@/pages/Login.jsx';
 import Register from '@/pages/Register.jsx';
+import Profile from './pages/Profile';
+import SavedAds from './pages/SavedAds';
+import Messages from './pages/Messages';
 
 // --- Lazy Loaded Pages ---
 const ResetPassword = lazy(() => import('@/pages/ResetPassword.jsx'));
@@ -24,8 +27,6 @@ const PostAd = lazy(() => import('@/pages/PostAd.jsx'));
 const EditAd = lazy(() => import('@/pages/EditAd.jsx'));
 const MyAds = lazy(() => import('@/pages/MyAds.jsx'));
 const ProfilePage = lazy(() => import('@/pages/Profile.jsx'));
-const MessagesPage = lazy(() => import('@/pages/Messages.jsx'));
-const MessageThreadPage = lazy(() => import('@/pages/MessageThread.jsx'));
 const SavedSearches = lazy(() => import('@/pages/SavedSearches.jsx'));
 const PostCvPage = lazy(() => import('@/pages/PostCv.jsx'));
 
@@ -102,12 +103,13 @@ function AppLayout() {
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/saved-searches" element={<ProtectedRoute><SavedSearches /></ProtectedRoute>} />
             
-            <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
-            <Route path="/messages/:id" element={<ProtectedRoute><MessageThreadPage /></ProtectedRoute>} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/messages/:conversationId" element={<Messages />} />
             
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/safety" element={<SafetyPage />} />
+            <Route path="/saved" element={<SavedAds />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/about" element={<AboutPage />} />

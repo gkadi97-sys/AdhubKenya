@@ -8,7 +8,7 @@ export default function MobileBottomNav() {
     { label: 'Home', path: '/', icon: Home },
     { label: 'Search', path: '/browse', icon: Search },
     { label: 'Post', path: '/post-ad', icon: PlusCircle, isPrimary: true },
-    { label: 'Saved', path: '/saved-searches', icon: Heart }, // Replaced Messages with Saved Searches since Messages isn't built yet
+    { label: 'Messages', path: '/messages', icon: MessageSquare },
     { label: 'Profile', path: '/profile', icon: User },
   ];
 
