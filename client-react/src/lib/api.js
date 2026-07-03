@@ -590,3 +590,14 @@ export const getFeaturedListings = async (limit = 6) => {
   }
   return { listings: data || [] };
 };
+
+export const getTrendingSearches = async (limitCount = 10) => {
+  const { data } = await supabase.rpc('get_trending_searches', { limit_count: limitCount });
+  return data || [];
+};
+
+export const getCountyCounts = async () => {
+  const { data } = await supabase.rpc('get_county_counts');
+  return data || [];
+};
+
