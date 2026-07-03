@@ -44,6 +44,7 @@ const CookiesPage = lazy(() => import('@/pages/legal/Cookies.jsx'));
 // --- Admin Layout & Pages (Lazy) ---
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout.jsx'));
 const AdminLogin = lazy(() => import('@/pages/admin/AdminLogin.jsx'));
+const AdminResetPassword = lazy(() => import('@/pages/admin/AdminResetPassword.jsx'));
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard.jsx'));
 const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers.jsx'));
 const AdminAds = lazy(() => import('@/pages/admin/AdminAds.jsx'));
