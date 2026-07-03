@@ -10,7 +10,31 @@ export function useRecentlyViewed() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        setRecentListings(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        setRecentListings(parsed);
+        
+        // Background validation: remove any listings that are no longer active (e.g. banned, sold, deleted)
+        if (parsed.length > 0) {
+          const ids = parsed.map(p => p.id);
+          import('@/lib/supabase').then(({ supabase }) => {
+            supabase
+              .from('listings')
+              .select('id, status')
+              .in('id', ids)
+              .then(({ data, error }) => {
+                if (data && !error) {
+                  // Only keep listings that still exist and are 'active'
+                  const activeIds = new Set(data.filter(d => d.status === 'active').map(d => d.id));
+                  const validListings = parsed.filter(p => activeIds.has(p.id));
+                  
+                  if (validListings.length !== parsed.length) {
+                    setRecentListings(validListings);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(validListings));
+                  }
+                }
+              });
+          });
+        }
       }
     } catch (e) {
       console.error('Failed to load recently viewed:', e);
