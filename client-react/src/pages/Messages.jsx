@@ -70,10 +70,11 @@ export default function Messages() {
       
       // Post-process to sort correctly and find last message
       const formatted = (data || []).map(c => {
-        const sortedMsgs = c.messages.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const msgs = Array.isArray(c.messages) ? c.messages : [];
+        const sortedMsgs = msgs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         const lastMsg = sortedMsgs[0];
         const unreadCount = sortedMsgs.filter(m => !m.is_read && m.sender_id !== session.user.id).length;
-        const otherUser = c.buyer.id === session.user.id ? c.seller : c.buyer;
+        const otherUser = c.buyer?.id === session.user.id ? c.seller : c.buyer;
         
         return {
           ...c,
