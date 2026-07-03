@@ -34,15 +34,18 @@ ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for conversations
+DROP POLICY IF EXISTS "Users can view their own conversations" ON public.conversations;
 CREATE POLICY "Users can view their own conversations" 
 ON public.conversations FOR SELECT 
 USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
 
+DROP POLICY IF EXISTS "Buyers can create conversations" ON public.conversations;
 CREATE POLICY "Buyers can create conversations" 
 ON public.conversations FOR INSERT 
 WITH CHECK (auth.uid() = buyer_id);
 
 -- RLS Policies for messages
+DROP POLICY IF EXISTS "Users can view messages in their conversations" ON public.messages;
 CREATE POLICY "Users can view messages in their conversations" 
 ON public.messages FOR SELECT 
 USING (
@@ -53,6 +56,7 @@ USING (
     )
 );
 
+DROP POLICY IF EXISTS "Users can insert messages in their conversations" ON public.messages;
 CREATE POLICY "Users can insert messages in their conversations" 
 ON public.messages FOR INSERT 
 WITH CHECK (
@@ -64,6 +68,7 @@ WITH CHECK (
     )
 );
 
+DROP POLICY IF EXISTS "Users can update message read status in their conversations" ON public.messages;
 CREATE POLICY "Users can update message read status in their conversations"
 ON public.messages FOR UPDATE
 USING (

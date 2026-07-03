@@ -26,12 +26,15 @@ CREATE TABLE IF NOT EXISTS public.messages (
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own conversations" ON public.conversations;
 CREATE POLICY "Users can view own conversations" ON public.conversations
     FOR SELECT USING (auth.uid() = buyer_id OR auth.uid() = seller_id);
 
+DROP POLICY IF EXISTS "Users can create conversations" ON public.conversations;
 CREATE POLICY "Users can create conversations" ON public.conversations
     FOR INSERT WITH CHECK (auth.uid() = buyer_id);
 
+DROP POLICY IF EXISTS "Users can view messages in own conversations" ON public.messages;
 CREATE POLICY "Users can view messages in own conversations" ON public.messages
     FOR SELECT USING (
         EXISTS (
@@ -41,6 +44,7 @@ CREATE POLICY "Users can view messages in own conversations" ON public.messages
         )
     );
 
+DROP POLICY IF EXISTS "Users can send messages to own conversations" ON public.messages;
 CREATE POLICY "Users can send messages to own conversations" ON public.messages
     FOR INSERT WITH CHECK (
         EXISTS (
@@ -51,6 +55,7 @@ CREATE POLICY "Users can send messages to own conversations" ON public.messages
         AND auth.uid() = sender_id
     );
 
+DROP POLICY IF EXISTS "Users can mark messages as read" ON public.messages;
 CREATE POLICY "Users can mark messages as read" ON public.messages
     FOR UPDATE USING (
         EXISTS (
@@ -73,6 +78,7 @@ CREATE TABLE IF NOT EXISTS public.saved_listings (
 
 ALTER TABLE public.saved_listings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage own saved listings" ON public.saved_listings;
 CREATE POLICY "Users can manage own saved listings" ON public.saved_listings
     FOR ALL USING (auth.uid() = user_id);
 
@@ -91,6 +97,7 @@ CREATE TABLE IF NOT EXISTS public.reports (
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 
 -- Anyone authenticated can report, but only admins can view
+DROP POLICY IF EXISTS "Authenticated users can create reports" ON public.reports;
 CREATE POLICY "Authenticated users can create reports" ON public.reports
     FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
@@ -112,8 +119,14 @@ CREATE TABLE IF NOT EXISTS public.transactions (
 
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view own transactions" ON public.transactions;
 CREATE POLICY "Users can view own transactions" ON public.transactions
     FOR SELECT USING (auth.uid() = user_id);
+
+-- Add payment_reference and receipt_number columns if not yet present (Phase 11 compatibility)
+ALTER TABLE public.transactions
+  ADD COLUMN IF NOT EXISTS payment_reference TEXT,
+  ADD COLUMN IF NOT EXISTS receipt_number TEXT;
 
 
 -- 5. LISTING EXPIRY & STATUS MODIFICATIONS

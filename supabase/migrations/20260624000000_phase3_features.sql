@@ -15,14 +15,17 @@ CREATE TABLE IF NOT EXISTS public.saved_searches (
 -- Add Row Level Security (RLS) to `saved_searches`
 ALTER TABLE public.saved_searches ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their own saved searches" ON public.saved_searches;
 CREATE POLICY "Users can view their own saved searches"
     ON public.saved_searches FOR SELECT
     USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert their own saved searches" ON public.saved_searches;
 CREATE POLICY "Users can insert their own saved searches"
     ON public.saved_searches FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own saved searches" ON public.saved_searches;
 CREATE POLICY "Users can delete their own saved searches"
     ON public.saved_searches FOR DELETE
     USING (auth.uid() = user_id);

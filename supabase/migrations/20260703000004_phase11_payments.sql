@@ -14,20 +14,18 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_transactions_user ON public.transactions(user_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_listing ON public.transactions(listing_id);
+-- Add missing columns to transactions table if not yet present
+ALTER TABLE public.transactions
+  ADD COLUMN IF NOT EXISTS payment_reference TEXT,
+  ADD COLUMN IF NOT EXISTS receipt_number TEXT;
+
 CREATE INDEX IF NOT EXISTS idx_transactions_reference ON public.transactions(payment_reference);
 
--- Enable RLS
-ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
-
 -- RLS Policies for transactions
+DROP POLICY IF EXISTS "Users can view their own transactions" ON public.transactions;
 CREATE POLICY "Users can view their own transactions" 
 ON public.transactions FOR SELECT 
 USING (auth.uid() = user_id);
-
--- Only edge functions (service role) can insert/update transactions
--- Users CANNOT insert directly via client.
 
 -- Realtime Setup
 -- Add transactions to the realtime publication

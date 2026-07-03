@@ -74,6 +74,7 @@ CREATE INDEX IF NOT EXISTS idx_search_events_created ON public.search_events(cre
 
 -- Allow anonymous inserts for tracking
 ALTER TABLE public.search_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can insert search events" ON public.search_events;
 CREATE POLICY "Anyone can insert search events" ON public.search_events
   FOR INSERT WITH CHECK (true);
 

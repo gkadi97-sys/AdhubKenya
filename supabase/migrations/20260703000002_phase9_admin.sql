@@ -5,6 +5,7 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'banned'));
 
 -- Allow admins to update the status column
+DROP POLICY IF EXISTS "Admins can update profiles" ON public.profiles;
 CREATE POLICY "Admins can update profiles" ON public.profiles
   FOR UPDATE USING (
     EXISTS (
