@@ -523,7 +523,7 @@ export default function HomePage() {
           <div className="mx-auto flex max-w-[1600px] w-full items-center justify-center gap-2 px-10 py-2 text-xs text-amber-800 dark:text-amber-300">
             <span className="text-sm">🔧</span>
             <span className="font-semibold">Heads up!</span>
-            <span className="opacity-80 hidden sm:inline">We're improving AdHub — some features may still be evolving.</span>
+            <span className="opacity-80 text-center">We're improving AdHub — some features may still be evolving.</span>
           </div>
           <button 
             onClick={dismissDevBanner} 
