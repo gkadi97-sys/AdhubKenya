@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, PlusCircle, MessageSquare, User } from 'lucide-react';
+import { Home, Search, PlusCircle, MessageSquare, User, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useEffect } from 'react';
 
@@ -38,7 +38,10 @@ export default function MobileBottomNav() {
     { label: 'Search', path: '/browse', icon: Search },
     null, // placeholder for center sell button
     { label: 'Messages', path: '/messages', icon: MessageSquare, badge: true },
-    { label: 'Account', path: '/profile', icon: User },
+    // Unauthenticated users land on /login; authenticated on /profile
+    user
+      ? { label: 'Account', path: '/profile', icon: User }
+      : { label: 'Login', path: '/login', icon: LogIn },
   ];
 
   return (

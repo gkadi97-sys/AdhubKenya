@@ -8,6 +8,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { timeAgo, formatPrice } from '@/lib/api';
 import toast from 'react-hot-toast';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -439,7 +440,9 @@ export default function Messages() {
     }
   };
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  // Reactive mobile detection — responds to orientation changes & resizing.
+  // Replaces the stale window.innerWidth check that only ran once at render time.
+  const isMobile = useIsMobile();
   const showSidebar = !isMobile || !conversationId;
   const showThread = !isMobile || !!conversationId;
 
@@ -457,7 +460,7 @@ export default function Messages() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="max-w-6xl mx-auto px-2 sm:px-4 py-4" style={{ height: 'calc(100vh - 70px)', minHeight: 500 }}>
+    <div className="max-w-6xl mx-auto px-2 sm:px-4 py-4" style={{ height: 'calc(100dvh - 70px)', minHeight: 500 }}>
       <div className="flex h-full rounded-2xl border border-border bg-card overflow-hidden shadow-lg">
 
         {/* ════════════════════ SIDEBAR ════════════════════ */}
@@ -855,7 +858,7 @@ export default function Messages() {
                       </button>
                       {showEmojiPicker && (
                         <div
-                          className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-2xl shadow-2xl p-2.5 z-40 w-[200px]"
+                          className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-2xl shadow-2xl p-2.5 z-[70] w-[200px]"
                           role="dialog"
                           aria-label="Emoji picker"
                         >

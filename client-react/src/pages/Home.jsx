@@ -585,7 +585,7 @@ export default function HomePage() {
                        `Live across Kenya`
                     )}
                   </span>
-                  <h1 className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight sm:text-[68px] drop-shadow-sm">
+                  <h1 className="mt-3 font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-[68px] drop-shadow-sm">
                     Buy. Sell. Discover.<br />
                     <span className="text-gold-grad">Across Kenya.</span>
                   </h1>

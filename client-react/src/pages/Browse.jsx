@@ -388,8 +388,11 @@ function BrowseContent({ defaultCategory }) {
             </div>
           </div>
 
-          {/* Mobile sticky CTA */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 z-40 flex items-center justify-between gap-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
+          {/* Mobile sticky CTA — positioned above MobileBottomNav */}
+          <div
+            className="lg:hidden fixed left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border px-4 py-3 z-[45] flex items-center justify-between gap-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)]"
+            style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 60px)' }}
+          >
             <span className="text-sm font-semibold text-foreground truncate">Be first in {catLabel}</span>
             <Link
               to="/post-ad"
@@ -488,16 +491,23 @@ function BrowseContent({ defaultCategory }) {
                 {/* Sort + actions bar */}
                 {(loading || total > 0) && (
                   <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
-                    <span className="text-sm font-medium text-muted-foreground hidden sm:block">
+                    {/* Mobile: compact result count always visible */}
+                    <span className="sm:hidden text-sm font-semibold text-foreground tabular-nums">
+                      {loading ? '…' : `${total.toLocaleString()} result${total !== 1 ? 's' : ''}`}
+                    </span>
+                    {/* Desktop: full context string */}
+                    <span className="hidden sm:block text-sm font-medium text-muted-foreground">
                       {loading ? 'Searching…' : `Showing ${listings.length} of ${total.toLocaleString()} result${total !== 1 ? 's' : ''}`}
                     </span>
-                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="flex items-center gap-3">
                       <button
                         onClick={handleNotifyMe}
                         disabled={savingSearch}
-                        className="hidden sm:flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary/80 hover:text-primary transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary/80 hover:text-primary transition-colors disabled:opacity-50"
+                        title={savingSearch ? 'Saving…' : 'Notify Me'}
                       >
-                        <Bell className="h-4 w-4" /> {savingSearch ? 'Saving…' : 'Notify Me'}
+                        <Bell className="h-4 w-4" />
+                        <span className="hidden sm:inline">{savingSearch ? 'Saving…' : 'Notify Me'}</span>
                       </button>
                       <div className="h-6 w-px bg-border hidden sm:block" />
                       <span className="text-sm font-semibold text-foreground whitespace-nowrap">Sort by:</span>

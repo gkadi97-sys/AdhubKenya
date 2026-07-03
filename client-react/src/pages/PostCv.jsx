@@ -180,7 +180,7 @@ export default function PostCvPage() {
   const getOptions = (id) => cvSchema.find(a => a.id === id)?.options || [];
 
   return (
-    <div className="min-h-screen bg-background py-8">
+    <div className="min-h-screen bg-background py-8 pb-24 md:pb-8">
       <div className="w-full max-w-3xl mx-auto px-4 sm:px-6">
         
         <div className="mb-8">

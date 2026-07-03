@@ -28,7 +28,7 @@ export default function HelpPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background py-16">
+    <div className="min-h-screen bg-background py-16 pb-24 md:pb-16">
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
         <div className="text-center mb-12">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">

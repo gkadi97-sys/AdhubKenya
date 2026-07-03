@@ -377,25 +377,32 @@ export default function PostAdPage() {
             <h3 className={cardHeaderClass}>🖼️ Photos {isVehicle ? '(up to 10)' : '(up to 5)'}</h3>
             {isVehicle && <p className="mb-3 text-sm text-muted-foreground">Include exterior, interior, engine bay, dashboard, and tyre photos for faster sales.</p>}
             
-            <div 
-              onClick={() => !processingImages && document.getElementById('img-input').click()}
-              className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-secondary/50 p-10 text-center transition ${processingImages ? 'opacity-60 cursor-not-allowed' : 'hover:border-primary/50 hover:bg-secondary cursor-pointer'}`}
+            {/* Label wrapper = reliable file picker on iOS Safari */}
+            <label
+              htmlFor="img-input"
+              className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-secondary/50 p-10 text-center transition ${processingImages ? 'opacity-60 cursor-not-allowed pointer-events-none' : 'hover:border-primary/50 hover:bg-secondary cursor-pointer'}`}
             >
               <div className="grid h-14 w-14 place-items-center rounded-full bg-background mb-4 shadow-sm text-primary">
                 {processingImages ? <Camera className="h-6 w-6 animate-pulse" /> : <ImageIcon className="h-6 w-6" />}
               </div>
-              <p className="font-semibold text-foreground">{processingImages ? blurStatus || 'Scanning for number plates...' : 'Click to upload photos'}</p>
-              <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WEBP — Max 5MB each</p>
+              <p className="font-semibold text-foreground">{processingImages ? blurStatus || 'Scanning for number plates...' : 'Tap to upload photos'}</p>
+              <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WEBP — Max 15MB each</p>
               <input id="img-input" type="file" accept="image/*" multiple onChange={handleImages} className="hidden" disabled={processingImages} />
-            </div>
+            </label>
 
             {previews.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-3">
                 {previews.map((src, i) => (
                   <div key={i} className="group relative aspect-square w-24 overflow-hidden rounded-xl border border-border">
                     <img src={src} alt="" className="h-full w-full object-cover" />
-                    <button type="button" onClick={() => removeImage(i)} className="absolute inset-0 grid place-items-center bg-background/80 text-foreground opacity-0 backdrop-blur transition group-hover:opacity-100">
-                      <Trash2 className="h-5 w-5 text-destructive" />
+                    {/* Always visible on mobile, hover-reveal on desktop */}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(i)}
+                      className="absolute top-1 right-1 grid h-6 w-6 place-items-center rounded-full bg-background/90 shadow-sm text-destructive md:opacity-0 md:top-0 md:right-0 md:h-full md:w-full md:rounded-none md:bg-background/80 md:backdrop-blur md:group-hover:opacity-100 transition"
+                      aria-label={`Remove image ${i + 1}`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 md:h-5 md:w-5" />
                     </button>
                   </div>
                 ))}

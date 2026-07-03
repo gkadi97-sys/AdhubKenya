@@ -8,7 +8,7 @@ export default function CookiesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background py-16">
+    <div className="min-h-screen bg-background py-16 pb-24 md:pb-16">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <h1 className="mb-8 text-4xl font-bold text-foreground">Cookie Policy</h1>
         <div className="prose prose-sm dark:prose-invert">

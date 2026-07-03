@@ -203,7 +203,7 @@ export default function ListingDetailPage() {
   const isDescriptionLong = listing.description?.length > 250;
 
   return (
-    <div className="py-4 sm:py-8 pb-32 sm:pb-16 px-4 sm:px-6 bg-background">
+    <div className="py-4 sm:py-8 pb-36 sm:pb-20 lg:pb-8 px-4 sm:px-6 bg-background">
       <div className="mx-auto max-w-6xl">
 
         {listing.category === 'seeking-work' ? (
@@ -539,7 +539,10 @@ export default function ListingDetailPage() {
 
       {/* MOBILE STICKY BOTTOM ACTION BAR */}
       {listing.category !== 'seeking-work' && (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border p-3 px-4 z-40 flex items-center justify-between gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+        <div
+          className="lg:hidden fixed left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border p-3 px-4 z-[45] flex items-center justify-between gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]"
+          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 60px)' }}
+        >
           <div className="flex flex-col min-w-0">
              {listing.price > 0 && <span className="font-display font-black text-xl text-primary">{formatPrice(listing.price)}</span>}
              <span className="text-xs text-muted-foreground truncate">{listing.seller?.name || 'Seller'}</span>

@@ -96,7 +96,7 @@ export default function ProfilePage() {
   const isPhoneVerified = profile?.is_phone_verified;
 
   return (
-    <div className="min-h-screen bg-background py-10">
+    <div className="min-h-screen bg-background py-10 pb-24 md:pb-10">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-foreground">My Profile</h1>
