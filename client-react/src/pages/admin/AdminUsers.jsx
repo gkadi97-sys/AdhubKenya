@@ -64,6 +64,14 @@ export default function AdminUsers() {
     try {
       const { error } = await supabase.from('profiles').update({ status }).eq('id', id);
       if (error) throw error;
+      
+      // Fallback: Also update their active listings immediately
+      if (status === 'banned' || status === 'suspended') {
+        await supabase.from('listings').update({ status: 'suspended' }).eq('seller_id', id).eq('status', 'active');
+      } else if (status === 'active') {
+        await supabase.from('listings').update({ status: 'active' }).eq('seller_id', id).eq('status', 'suspended');
+      }
+      
       fetchUsers();
     } catch (err) {
       alert(err.message);
@@ -76,6 +84,14 @@ export default function AdminUsers() {
     try {
       const { error } = await supabase.from('profiles').update({ status }).in('id', selectedIds);
       if (error) throw error;
+      
+      // Fallback: Also update their active listings immediately
+      if (status === 'banned' || status === 'suspended') {
+        await supabase.from('listings').update({ status: 'suspended' }).in('seller_id', selectedIds).eq('status', 'active');
+      } else if (status === 'active') {
+        await supabase.from('listings').update({ status: 'active' }).in('seller_id', selectedIds).eq('status', 'suspended');
+      }
+      
       setSelectedIds([]);
       fetchUsers();
     } catch (err) {
