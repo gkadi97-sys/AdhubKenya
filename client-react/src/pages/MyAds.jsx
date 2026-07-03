@@ -198,7 +198,7 @@ export default function MyAdsPage() {
                           onClick={async () => {
                             if(confirm('Submit this listing for review again?')) {
                               try {
-                                await import('@/lib/api').then(m => m.moderateListing(l.id, l.status, 'pending', { updated_after_review: true }, 'Seller resubmitted'));
+                                await import('@/lib/api').then(m => m.moderateListing(l.id, l.status, 'pending', {}, 'Seller resubmitted'));
                                 setListings(prev => prev.map(x => x.id === l.id ? { ...x, status: 'pending' } : x));
                                 toast.success('Listing resubmitted for review.');
                               } catch(e) { toast.error('Failed to resubmit.'); }

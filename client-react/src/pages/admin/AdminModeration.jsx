@@ -42,7 +42,7 @@ export default function AdminModeration() {
     try {
       let query = supabase
         .from('listings')
-        .select('id, title, category, price, location, created_at, status, updated_after_review, seller:profiles!seller_id(name)', { count: 'exact' })
+        .select('id, title, category, price, location, created_at, status, seller:profiles!seller_id(name)', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range((page - 1) * LIMIT, page * LIMIT - 1);
 
@@ -113,8 +113,7 @@ export default function AdminModeration() {
     try {
       const updates = { 
         reviewed_at: new Date().toISOString(),
-        rejection_reason: reason,
-        updated_after_review: false
+        rejection_reason: reason
       };
       
       const newStatus = action === 'reject' ? 'rejected' : action === 'needs_revision' ? 'needs_revision' : 'suspended';
@@ -209,7 +208,6 @@ export default function AdminModeration() {
                     <div className="flex flex-col">
                       <span className="font-bold text-foreground text-sm truncate max-w-[250px]">{ad.title}</span>
                       <span className="text-xs text-muted-foreground capitalize">{ad.category} • {formatPrice(ad.price)}</span>
-                      {ad.updated_after_review && <span className="text-[10px] text-blue-500 font-bold uppercase mt-1">Edited by seller</span>}
                     </div>
                   </td>
                   <td className="py-4 px-4">
