@@ -569,8 +569,8 @@ export default function HomePage() {
       )}
 
       {/* ── TWO-COLUMN LAYOUT ─────────────────────────────────────── */}
-      <div className="mx-auto max-w-[1600px] px-4 sm:px-8 lg:px-12">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(820px,1fr)] gap-6 pt-6">
+      <div className="mx-auto max-w-[1800px] px-4 sm:px-8 lg:px-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-6 pt-6">
 
           {/* ── LEFT SIDEBAR: Categories ──────────────────────────── */}
           <aside className="hidden lg:block w-full">
@@ -674,40 +674,55 @@ export default function HomePage() {
             </section>
 
             {/* ── MARKETPLACE FEEDS ── */}
-            <div className="flex flex-col gap-8 lg:gap-10">
-              
-              {/* Featured Listings (Immediate visibility) */}
-              <div>
-                <FeaturedListings />
-              </div>
+            <div className="flex flex-col gap-10 lg:gap-12">
+
+              {/* Featured Listings */}
+              <FeaturedListings />
+
+              <hr className="border-border/40" />
 
               {/* Latest Listings */}
-              <div>
-                <DiscoveryRow title="Latest Listings" sort="createdAt" limit={8} />
-              </div>
+              <DiscoveryRow
+                title="Latest Listings"
+                subtitle="Just posted"
+                sort="createdAt"
+                limit={10}
+                linkTo="/browse?sort=createdAt"
+              />
+
+              <hr className="border-border/40" />
 
               {/* Trending Listings */}
-              <div>
-                <DiscoveryRow title="Trending Listings" sort="clicks" limit={8} />
-              </div>
+              <DiscoveryRow
+                title="Trending Now"
+                subtitle="Popular this week"
+                sort="clicks"
+                limit={10}
+                linkTo="/browse?sort=clicks"
+              />
 
-              {/* Recently Viewed (For authenticated users) */}
-              <div>
-                <RecentlyViewed />
-              </div>
+              <hr className="border-border/40" />
 
-              {/* Recommended For You (Future Ready) */}
-              <div>
-                <DiscoveryRow title="Recommended For You" sort="price_asc" limit={8} />
-              </div>
+              {/* Recently Viewed */}
+              <RecentlyViewed />
+
+              {/* Recommended For You */}
+              <DiscoveryRow
+                title="Recommended For You"
+                subtitle="Based on your activity"
+                sort="price_asc"
+                limit={10}
+                linkTo="/browse"
+              />
 
               {/* Featured / Popular Categories */}
               <section className="mb-2">
                 <div className="mb-5 flex items-end justify-between gap-4">
                   <div>
-                    <h2 className="font-display text-2xl font-bold sm:text-3xl tracking-tight">Popular categories</h2>
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1">Browse</span>
+                    <h2 className="font-display text-xl font-bold sm:text-2xl lg:text-[1.6rem] tracking-tight leading-tight">Popular Categories</h2>
                   </div>
-                  <Link to="/browse" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 transition-colors group">
+                  <Link to="/browse" className="group flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-primary transition hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm">
                     See all <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </div>

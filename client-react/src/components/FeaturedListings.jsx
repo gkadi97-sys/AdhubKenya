@@ -7,20 +7,31 @@ import ListingCard from '@/components/ListingCard';
 export default function FeaturedListings() {
   const { data, isLoading } = useQuery({
     queryKey: ['featured-listings'],
-    queryFn: () => getFeaturedListings(6),
-    staleTime: 1000 * 60 * 5, // 5 mins
+    queryFn: () => getFeaturedListings(10),
+    staleTime: 1000 * 60 * 5,
   });
 
   if (isLoading) {
     return (
-      <section className="mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-5 h-5 text-gold" />
-          <h2 className="font-display text-xl font-bold">Featured Listings</h2>
+      <section>
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/10">
+              <Sparkles className="w-4 h-4 text-gold" />
+            </div>
+            <div>
+              <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-gold mb-0.5">
+                Handpicked
+              </span>
+              <h2 className="font-display text-xl font-bold sm:text-2xl lg:text-[1.6rem] tracking-tight leading-tight">
+                Premium Picks
+              </h2>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible sm:pb-0">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="w-[280px] sm:w-auto h-[320px] rounded-2xl bg-secondary/50 animate-pulse shrink-0" />
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide md:grid md:grid-cols-3 md:overflow-visible md:pb-0 lg:grid-cols-4 xl:grid-cols-5 md:gap-5">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="w-[260px] md:w-auto h-[320px] rounded-2xl bg-secondary/50 animate-pulse shrink-0" />
           ))}
         </div>
       </section>
@@ -30,23 +41,35 @@ export default function FeaturedListings() {
   if (!data?.listings?.length) return null;
 
   return (
-    <section className="mb-8">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold/10">
+    <section>
+      {/* ── Section header ── */}
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/10">
             <Sparkles className="w-4 h-4 text-gold" />
           </div>
-          <h2 className="font-display text-xl font-bold sm:text-2xl">Premium Picks</h2>
+          <div>
+            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-gold mb-0.5">
+              Handpicked
+            </span>
+            <h2 className="font-display text-xl font-bold sm:text-2xl lg:text-[1.6rem] tracking-tight leading-tight">
+              Premium Picks
+            </h2>
+          </div>
         </div>
-        <Link to="/browse" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
-          Explore all <ChevronRight className="h-3.5 w-3.5" />
+        <Link
+          to="/browse"
+          className="group flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-primary transition hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+        >
+          Explore all
+          <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </Link>
       </div>
 
-      {/* Mobile: horizontal scroll. Desktop: grid */}
-      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible sm:pb-0">
+      {/* Mobile: horizontal scroll. md+: responsive grid */}
+      <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory md:grid md:grid-cols-3 md:overflow-visible md:pb-0 lg:grid-cols-4 xl:grid-cols-5 md:gap-5 md:snap-none">
         {data.listings.map((listing) => (
-          <div key={listing.id} className="w-[280px] sm:w-auto shrink-0">
+          <div key={listing.id} className="w-[260px] md:w-auto shrink-0 snap-center">
             <ListingCard listing={listing} featured={true} />
           </div>
         ))}
