@@ -722,32 +722,97 @@ export const CATEGORY_ATTRIBUTES = {
   'property': {
     level1Label: 'Category',
     level2Label: 'Type',
+    level3Label: 'Variant',
     hasYear: false,
     data: {
-      'Residential Properties': [
-        'Apartments', 'Flats', 'Studio apartments', 'Bedsitters', 'Maisonettes',
-        'Townhouses', 'Villas', 'Bungalows', 'Detached houses', 'Semi-detached houses',
-        'Duplexes', 'Penthouses', 'Gated community homes', 'Serviced apartments',
-        'Holiday homes', 'Vacation rentals', 'Student housing', 'Shared accommodation / roommates'
-      ],
-      'Commercial Properties': [
-        'Office spaces', 'Co-working spaces', 'Corporate headquarters', 'Business centers',
-        'Retail shops', 'Shopping malls', 'Supermarkets', 'Restaurants and cafés',
-        'Hotels', 'Guest houses', 'Lodges', 'Conference centers', 'Warehouses',
-        'Distribution centers', 'Industrial parks', 'Factories', 'Workshops', 'Showrooms'
-      ],
-      'Land and Plots': [
-        'Residential plots', 'Commercial plots', 'Industrial land', 'Agricultural land',
-        'Ranches', 'Farms', 'Mixed-use land', 'Beachfront land', 'Lakeside land',
-        'Hilltop plots', 'Estate development land', 'Investment plots'
-      ],
-      'Industrial Properties': [
-        'Manufacturing plants', 'Processing facilities', 'Storage facilities', 'Logistics centers',
-        'Cold rooms', 'Assembly plants', 'Industrial sheds', 'Industrial yards'
-      ],
-      'Special-Purpose Properties': [
-        'Schools', 'Universities', 'Hospitals'
-      ]
+      'Residential Property': {
+        'Houses for Sale': [
+          'Bungalows', 'Maisonettes', 'Villas', 'Townhouses', 'Mansions',
+          'Detached Houses', 'Semi-detached Houses', 'Duplexes', 'Farmhouses',
+          'Beach Houses', 'Holiday Homes', 'Cabins', 'Tiny Houses',
+          'Prefabricated Houses', 'Custom Built Homes'
+        ],
+        'Houses for Rent': [
+          'Bungalows', 'Maisonettes', 'Villas', 'Townhouses', 'Mansions',
+          'Detached Houses', 'Semi-detached Houses', 'Duplexes', 'Farmhouses',
+          'Beach Houses', 'Holiday Homes', 'Cabins', 'Tiny Houses',
+          'Prefabricated Houses', 'Custom Built Homes'
+        ],
+        'Apartments for Sale': [
+          'Studio Apartments', 'One Bedroom', 'Two Bedroom', 'Three Bedroom',
+          'Four Bedroom', 'Penthouse', 'Duplex Apartments', 'Loft Apartments',
+          'Serviced Apartments'
+        ],
+        'Apartments for Rent': [
+          'Studio Apartments', 'One Bedroom', 'Two Bedroom', 'Three Bedroom',
+          'Four Bedroom', 'Penthouse', 'Duplex Apartments', 'Loft Apartments',
+          'Serviced Apartments', 'Furnished Apartments', 'Airbnb Units', 'Short Stay'
+        ],
+        'Bedsitters': ['Bedsitter'],
+        'Studio Apartments': ['Studio Apartment'],
+        'Student Accommodation': ['Student Accommodation'],
+        'Hostels': ['Hostel'],
+        'Shared Accommodation': ['Shared Houses', 'Shared Apartments', 'Roommate Listings'],
+        'Rooms for Rent': ['Single Room', 'Double Room', 'En-suite Room']
+      },
+      'Commercial Property': {
+        'Offices': [
+          'Office Space', 'Executive Offices', 'Shared Offices',
+          'Co-working Spaces', 'Serviced Offices'
+        ],
+        'Shops': ['Shop', 'Kiosk', 'Container Shop'],
+        'Retail Space': ['Retail Space', 'Showroom', 'Shopping Mall Unit'],
+        'Restaurants': ['Restaurant', 'Café', 'Fast Food Outlet', 'Food Court'],
+        'Hotels': ['Hotel', 'Guest House', 'Boutique Hotel'],
+        'Bars & Clubs': ['Bar', 'Nightclub', 'Lounge'],
+        'Warehouses': ['Warehouse', 'Distribution Center', 'Cold Room'],
+        'Factories': ['Factory', 'Manufacturing Plant', 'Processing Facility'],
+        'Industrial Buildings': ['Industrial Shed', 'Industrial Yard', 'Assembly Plant'],
+        'Commercial Buildings': ['Commercial Building', 'Business Center', 'Mixed-use Building'],
+        'Business Premises': ['Business Premises'],
+        'Medical Facilities': ['Clinic', 'Hospital', 'Laboratory', 'Pharmacy'],
+        'Educational Facilities': ['School', 'College', 'Training Centre']
+      },
+      'Land': {
+        'Residential Plots': ['Residential Plot'],
+        'Commercial Plots': ['Commercial Plot'],
+        'Industrial Land': ['Industrial Land'],
+        'Agricultural Land': ['Agricultural Land', 'Mixed Farming Land'],
+        'Ranches': ['Ranch'],
+        'Tea Farms': ['Tea Farm'],
+        'Coffee Farms': ['Coffee Farm'],
+        'Dairy Farms': ['Dairy Farm'],
+        'Poultry Farms': ['Poultry Farm'],
+        'Beach Plots': ['Beach Plot'],
+        'Lakefront Land': ['Lakefront Plot'],
+        'Riverfront Land': ['Riverfront Plot'],
+        'Forest Land': ['Forest Land'],
+        'Investment Land': ['Investment Plot']
+      },
+      'Holiday Property': {
+        'Holiday Homes': ['Holiday Home', 'Vacation House', 'Cabin'],
+        'Beach Villas': ['Beach Villa'],
+        'Holiday Apartments': ['Holiday Apartment'],
+        'Resorts': ['Resort'],
+        'Lodges': ['Lodge', 'Game Lodge', 'Eco Lodge']
+      },
+      'Parking & Garages': {
+        'Garages': ['Garage'],
+        'Parking Spaces': ['Parking Space', 'Covered Parking', 'Open Parking'],
+        'Carports': ['Carport'],
+        'Storage Garages': ['Storage Garage']
+      },
+      'Property Services': {
+        'Agency Services': [
+          'Property Management', 'Estate Agency', 'Property Valuation', 'Surveying'
+        ],
+        'Design & Build': [
+          'Interior Design', 'Architecture', 'Construction', 'Renovation', 'Landscaping'
+        ],
+        'Support Services': [
+          'Moving Services', 'Cleaning Services', 'Pest Control', 'Security Services'
+        ]
+      }
     }
   },
 

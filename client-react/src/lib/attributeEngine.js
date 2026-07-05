@@ -363,86 +363,497 @@ export const ATTRIBUTE_ENGINE = {
   property: {
     groups: [
       { id: 'classification', title: 'Property Classification' },
-      { id: 'features', title: 'Features & Amenities' }
+      { id: 'location', title: 'Location' },
+      { id: 'residential', title: 'Residential Details' },
+      { id: 'land', title: 'Land Details' },
+      { id: 'commercial', title: 'Commercial Details' },
+      { id: 'amenities', title: 'Amenities' },
+      { id: 'nearby', title: 'Nearby Facilities' },
+      { id: 'seller', title: 'Seller Information' }
     ],
     attributes: [
-      { 
-        id: 'listingCategory', 
-        label: 'Listing Category', 
-        type: 'enum', 
-        options: ['For Sale', 'For Rent', 'For Lease'],
+      // ─── Classification ───────────────────────────────────────────────
+      {
+        id: 'listingType',
+        label: 'Listing Type',
+        type: 'enum',
+        options: ['For Sale', 'For Rent', 'For Lease', 'Auction'],
         postAd: { required: true, group: 'classification', uiType: 'radio' },
         search: { filterable: true, uiType: 'radio' }
       },
-      { 
+      {
         id: 'propertyCategory',
         label: 'Property Category',
         type: 'dynamic-cascade',
-        cascadeLevel: 1, 
-        dependsOn: { field: 'listingCategory' },
+        cascadeLevel: 1,
         postAd: { required: true, group: 'classification', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
-      { 
+      {
         id: 'propertyType',
         label: 'Property Type',
         type: 'dynamic-cascade',
         cascadeLevel: 2,
-        cascadeParent: 'propertyCategory', 
+        cascadeParent: 'propertyCategory',
         dependsOn: { field: 'propertyCategory' },
         postAd: { required: true, group: 'classification', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
-      { 
-        id: 'bedrooms', 
-        label: 'Bedrooms', 
-        type: 'enum', 
-        options: ['1', '2', '3', '4', '5+'],
-        postAd: { required: false, group: 'features', uiType: 'select' },
+      {
+        id: 'propertyVariant',
+        label: 'Property Variant',
+        type: 'dynamic-cascade',
+        cascadeLevel: 3,
+        cascadeParent: 'propertyType',
+        cascadeGrandparent: 'propertyCategory',
+        dependsOn: { field: 'propertyType' },
+        postAd: { required: false, group: 'classification', uiType: 'select' },
+        search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'propertyCondition',
+        label: 'Property Condition',
+        type: 'enum',
+        options: ['New', 'Recently Renovated', 'Good', 'Fair', 'Needs Renovation', 'Off-plan'],
+        postAd: { required: false, group: 'classification', uiType: 'select' },
         search: { filterable: true, uiType: 'radio' }
       },
-      { 
-        id: 'bathrooms', 
-        label: 'Bathrooms', 
-        type: 'enum', 
-        options: ['1', '2', '3+'],
-        postAd: { required: false, group: 'features', uiType: 'select' },
-        search: { filterable: true, uiType: 'radio' }
+      {
+        id: 'availabilityDate',
+        label: 'Available From',
+        type: 'text',
+        postAd: { required: false, group: 'classification', uiType: 'text' },
+        search: { filterable: false, uiType: 'text' }
       },
-      { 
-        id: 'furnished', 
-        label: 'Furnished', 
-        type: 'enum', 
-        options: ['Furnished', 'Semi-Furnished', 'Unfurnished'],
-        postAd: { required: false, group: 'features', uiType: 'radio' },
-        search: { filterable: true, uiType: 'radio' }
-      },
-      { 
-        id: 'floors', 
-        label: 'Floor', 
-        type: 'enum', 
-        options: ['Ground', '1', '2', '3', '4', '5+'],
-        postAd: { required: false, group: 'features', uiType: 'select' },
-        search: { filterable: true, uiType: 'radio' }
-      },
-      { 
-        id: 'parking', 
-        label: 'Parking Available', 
-        type: 'enum', 
+      {
+        id: 'negotiable',
+        label: 'Price Negotiable',
+        type: 'enum',
         options: ['Yes', 'No'],
-        postAd: { required: false, group: 'features', uiType: 'radio' },
+        postAd: { required: false, group: 'classification', uiType: 'radio' },
         search: { filterable: true, uiType: 'radio' }
       },
-      { 
-        id: 'amenities', 
-        label: 'Amenities', 
-        type: 'enum', 
-        options: ['Swimming Pool', 'Gym', 'Backup Generator', 'Borehole', 'Elevator', 'Balcony', 'Garden', 'Security Guard', 'CCTV', 'Internet / Wi-Fi', 'Pet Friendly'],
-        postAd: { required: false, group: 'features', uiType: 'multicheck' },
+
+      // ─── Location ─────────────────────────────────────────────────────
+      {
+        id: 'estate',
+        label: 'Estate / Neighbourhood',
+        type: 'text',
+        postAd: { required: false, group: 'location', uiType: 'text' },
+        search: { filterable: true, uiType: 'text' }
+      },
+      {
+        id: 'gpsLocation',
+        label: 'GPS Coordinates / Map Pin',
+        type: 'text',
+        postAd: { required: false, group: 'location', uiType: 'text' },
+        search: { filterable: false, uiType: 'text' }
+      },
+      {
+        id: 'virtualTourLink',
+        label: 'Virtual Tour / Video Link',
+        type: 'text',
+        postAd: { required: false, group: 'location', uiType: 'text' },
+        search: { filterable: false, uiType: 'text' }
+      },
+
+      // ─── Residential ──────────────────────────────────────────────────
+      {
+        id: 'bedrooms',
+        label: 'Bedrooms',
+        type: 'enum',
+        options: ['Bedsitter', 'Studio', '1', '2', '3', '4', '5', '6', '7+'],
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Holiday Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'bathrooms',
+        label: 'Bathrooms',
+        type: 'enum',
+        options: ['1', '2', '3', '4', '5+'],
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Holiday Property', 'Commercial Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'toilets',
+        label: 'Toilets',
+        type: 'enum',
+        options: ['1', '2', '3', '4', '5+'],
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Holiday Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'select' },
+        search: { filterable: false, uiType: 'select' }
+      },
+      {
+        id: 'floors',
+        label: 'Number of Floors',
+        type: 'enum',
+        options: ['1', '2', '3', '4', '5+'],
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Holiday Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'select' },
+        search: { filterable: false, uiType: 'select' }
+      },
+      {
+        id: 'floorNumber',
+        label: 'Floor Number',
+        type: 'enum',
+        options: ['Ground', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'],
+        dependsOn: { field: 'propertyType', value: ['Apartments for Sale', 'Apartments for Rent', 'Studio Apartments', 'Bedsitters', 'Offices'] },
+        postAd: { required: false, group: 'residential', uiType: 'select' },
+        search: { filterable: false, uiType: 'select' }
+      },
+      {
+        id: 'builtUpArea',
+        label: 'Built-up Area (sq ft)',
+        type: 'number',
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Holiday Property', 'Commercial Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'yearBuilt',
+        label: 'Year Built',
+        type: 'number',
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Holiday Property', 'Commercial Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'furnished',
+        label: 'Furnished',
+        type: 'enum',
+        options: ['Furnished', 'Semi-Furnished', 'Unfurnished'],
+        dependsOn: [
+          { field: 'propertyCategory', value: ['Residential Property', 'Holiday Property'] },
+          { field: 'propertyCategory', value: ['Commercial Property'] }
+        ],
+        postAd: { required: false, group: 'residential', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'serviceCharge',
+        label: 'Service Charge',
+        type: 'enum',
+        options: ['Included', 'Not Included', 'Negotiable'],
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Commercial Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'radio' },
+        search: { filterable: false, uiType: 'radio' }
+      },
+      {
+        id: 'petsAllowed',
+        label: 'Pets Allowed',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Holiday Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'occupancyStatus',
+        label: 'Occupancy Status',
+        type: 'enum',
+        options: ['Vacant', 'Occupied', 'Under Construction'],
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Commercial Property', 'Holiday Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'newBuild',
+        label: 'New Build',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Commercial Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'offPlan',
+        label: 'Off-plan',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Commercial Property'] },
+        postAd: { required: false, group: 'residential', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'rentalPeriod',
+        label: 'Rental Period',
+        type: 'enum',
+        options: ['Daily', 'Weekly', 'Monthly', 'Yearly'],
+        dependsOn: { field: 'listingType', value: ['For Rent', 'For Lease'] },
+        postAd: { required: false, group: 'residential', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+
+      // ─── Land ─────────────────────────────────────────────────────────
+      {
+        id: 'landSize',
+        label: 'Land Size',
+        type: 'number',
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'landSizeUnit',
+        label: 'Size Unit',
+        type: 'enum',
+        options: ['Acres', 'Hectares', 'Square Metres', 'Square Feet'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'select' },
+        search: { filterable: false, uiType: 'select' }
+      },
+      {
+        id: 'plotSize',
+        label: 'Plot Size (sq ft)',
+        type: 'number',
+        dependsOn: { field: 'propertyCategory', value: ['Residential Property', 'Commercial Property', 'Holiday Property'] },
+        postAd: { required: false, group: 'land', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'titleDeed',
+        label: 'Title Deed Available',
+        type: 'enum',
+        options: ['Yes', 'No', 'In Process'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'tenure',
+        label: 'Tenure',
+        type: 'enum',
+        options: ['Freehold', 'Leasehold'],
+        dependsOn: { field: 'propertyCategory', value: ['Land', 'Residential Property', 'Commercial Property'] },
+        postAd: { required: false, group: 'land', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'fenced',
+        label: 'Fenced',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'cornerPlot',
+        label: 'Corner Plot',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'radio' },
+        search: { filterable: false, uiType: 'radio' }
+      },
+      {
+        id: 'roadAccess',
+        label: 'Road Access',
+        type: 'enum',
+        options: ['Tarmac Road', 'Murram Road', 'No Road'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'landUtilities',
+        label: 'Available Utilities',
+        type: 'enum',
+        options: ['Electricity', 'Water', 'Sewer', 'Borehole'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'multicheck' },
+        search: { filterable: false, uiType: 'multicheck' }
+      },
+      {
+        id: 'soilType',
+        label: 'Soil Type',
+        type: 'enum',
+        options: ['Black Cotton', 'Red Soil', 'Loam', 'Sandy', 'Rocky', 'Other'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'select' },
+        search: { filterable: false, uiType: 'select' }
+      },
+      {
+        id: 'topography',
+        label: 'Topography',
+        type: 'enum',
+        options: ['Flat', 'Gentle Slope', 'Steep', 'Undulating'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'select' },
+        search: { filterable: false, uiType: 'select' }
+      },
+      {
+        id: 'surveyed',
+        label: 'Surveyed',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'radio' },
+        search: { filterable: false, uiType: 'radio' }
+      },
+      {
+        id: 'beaconed',
+        label: 'Beaconed',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'radio' },
+        search: { filterable: false, uiType: 'radio' }
+      },
+      {
+        id: 'readyForDevelopment',
+        label: 'Ready for Development',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyCategory', value: ['Land'] },
+        postAd: { required: false, group: 'land', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+
+      // ─── Commercial ───────────────────────────────────────────────────
+      {
+        id: 'officeSize',
+        label: 'Office Size (sq ft)',
+        type: 'number',
+        dependsOn: { field: 'propertyType', value: ['Offices', 'Co-working Spaces', 'Business Premises'] },
+        postAd: { required: false, group: 'commercial', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'parkingCapacity',
+        label: 'Parking Capacity (vehicles)',
+        type: 'number',
+        dependsOn: { field: 'propertyCategory', value: ['Commercial Property'] },
+        postAd: { required: false, group: 'commercial', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'meetingRooms',
+        label: 'Meeting Rooms',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyType', value: ['Offices', 'Co-working Spaces', 'Serviced Offices'] },
+        postAd: { required: false, group: 'commercial', uiType: 'radio' },
+        search: { filterable: false, uiType: 'radio' }
+      },
+      {
+        id: 'reception',
+        label: 'Reception Area',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyType', value: ['Offices', 'Serviced Offices'] },
+        postAd: { required: false, group: 'commercial', uiType: 'radio' },
+        search: { filterable: false, uiType: 'radio' }
+      },
+      {
+        id: 'lift',
+        label: 'Lift / Elevator',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyCategory', value: ['Commercial Property'] },
+        postAd: { required: false, group: 'commercial', uiType: 'radio' },
+        search: { filterable: false, uiType: 'radio' }
+      },
+      {
+        id: 'loadingBay',
+        label: 'Loading Bay',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyType', value: ['Warehouses', 'Factories', 'Industrial Buildings'] },
+        postAd: { required: false, group: 'commercial', uiType: 'radio' },
+        search: { filterable: false, uiType: 'radio' }
+      },
+      {
+        id: 'warehouseHeight',
+        label: 'Warehouse Height (m)',
+        type: 'number',
+        dependsOn: { field: 'propertyType', value: ['Warehouses'] },
+        postAd: { required: false, group: 'commercial', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'dockAccess',
+        label: 'Dock Access',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyType', value: ['Warehouses', 'Factories', 'Industrial Buildings'] },
+        postAd: { required: false, group: 'commercial', uiType: 'radio' },
+        search: { filterable: false, uiType: 'radio' }
+      },
+      {
+        id: 'powerSupply',
+        label: 'Power Supply',
+        type: 'enum',
+        options: ['Single Phase', 'Three Phase', 'Generator', 'Solar'],
+        dependsOn: { field: 'propertyCategory', value: ['Commercial Property'] },
+        postAd: { required: false, group: 'commercial', uiType: 'select' },
+        search: { filterable: false, uiType: 'select' }
+      },
+      {
+        id: 'fibreInternet',
+        label: 'Fibre Internet',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'propertyCategory', value: ['Commercial Property'] },
+        postAd: { required: false, group: 'commercial', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+
+      // ─── Amenities ────────────────────────────────────────────────────
+      {
+        id: 'amenities',
+        label: 'Amenities',
+        type: 'enum',
+        options: [
+          'Swimming Pool', 'Gym', 'Lift / Elevator', 'Balcony', 'Garden', 'Rooftop',
+          "Children's Playground", 'CCTV', 'Security Guards', 'Electric Fence',
+          'Backup Generator', 'Borehole', 'Water Tank', 'Solar Power', 'Solar Water Heating',
+          'Fibre Internet', 'Parking', 'Visitor Parking', 'Garage', 'Laundry Area',
+          'DSQ (Servants Quarters)', 'Walk-in Closet', 'Air Conditioning', 'Fireplace',
+          'Smart Home', 'Wheelchair Access', 'Gated Community', 'Clubhouse',
+          'Tennis Court', 'Basketball Court', 'Golf Course',
+          'Lake View', 'Ocean View', 'Mountain View', 'City View'
+        ],
+        postAd: { required: false, group: 'amenities', uiType: 'multicheck' },
         search: { filterable: true, uiType: 'multicheck' }
+      },
+
+      // ─── Nearby Facilities ────────────────────────────────────────────
+      {
+        id: 'nearbyFacilities',
+        label: 'Nearby Facilities',
+        type: 'enum',
+        options: [
+          'School', 'Hospital', 'Mall', 'Market', 'Police Station',
+          'Church', 'Mosque', 'Bus Stop', 'Airport', 'Railway Station',
+          'University', 'Petrol Station'
+        ],
+        postAd: { required: false, group: 'nearby', uiType: 'multicheck' },
+        search: { filterable: false, uiType: 'multicheck' }
+      },
+
+      // ─── Seller Information ───────────────────────────────────────────
+      {
+        id: 'sellerType',
+        label: 'Seller / Agent Type',
+        type: 'enum',
+        options: ['Owner', 'Agent', 'Developer', 'Property Management Company', 'Bank', 'Auctioneer', 'Government'],
+        postAd: { required: false, group: 'seller', uiType: 'select' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'openHouse',
+        label: 'Open House Available',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        postAd: { required: false, group: 'seller', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
       }
     ]
   },
+
   'phones-tablets': {
     groups: [
       { id: 'basics', title: 'Device Info' },

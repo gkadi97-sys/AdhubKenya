@@ -186,7 +186,7 @@ export const CASCADE_URL_PARAMS = {
   'phones-tablets': { level1: 'subcategory',  level2: 'brand',       level3: 'model' },
   electronics:      { level1: 'subcategory',  level2: 'brand',       level3: 'model' },
   'home-living': { level1: 'subcategory',  level2: 'model',       level3: null },
-  property:         { level1: 'propertyCategory', level2: 'propertyType', level3: null },
+  property:         { level1: 'propertyCategory', level2: 'propertyType', level3: 'propertyVariant' },
   fashion:          { level1: 'subcategory',  level2: 'model',       level3: null },
   jobs:             { level1: 'subcategory',  level2: 'model',       level3: null },
   'animals-pets':   { level1: 'animal_type', level2: 'model',       level3: null },
