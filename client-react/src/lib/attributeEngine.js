@@ -1053,14 +1053,17 @@ export const ATTRIBUTE_ENGINE = {
     ]
   },
 
-  'home-furniture': {
+  'home-living': {
     groups: [
-      { id: 'item', title: 'Item Details' },
-      { id: 'specs', title: 'Specifications' },
+      { id: 'item', title: 'Item Classification' },
+      { id: 'specs', title: 'Key Specifications' },
+      { id: 'dimensions', title: 'Dimensions & Sizing' },
+      { id: 'technical', title: 'Technical Details' },
+      { id: 'features', title: 'Features & Extras' }
     ],
     attributes: [
       {
-        id: 'category',
+        id: 'subcategory',
         label: 'Category',
         type: 'dynamic-cascade',
         cascadeLevel: 1,
@@ -1068,13 +1071,22 @@ export const ATTRIBUTE_ENGINE = {
         search: { filterable: true, uiType: 'dynamic-cascade' }
       },
       {
-        id: 'subcategory',
-        label: 'Item',
+        id: 'model',
+        label: 'Item Type',
         type: 'dynamic-cascade',
         cascadeLevel: 2,
-        dependsOn: { field: 'category' },
+        cascadeParent: 'subcategory',
+        dependsOn: { field: 'subcategory' },
         postAd: { required: true, group: 'item', uiType: 'select' },
         search: { filterable: true, uiType: 'dynamic-cascade' }
+      },
+      {
+        id: 'condition',
+        label: 'Condition',
+        type: 'enum',
+        options: ['Brand New', 'Refurbished', 'Used'],
+        postAd: { required: true, group: 'specs', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
       },
       {
         id: 'brand',
@@ -1084,19 +1096,175 @@ export const ATTRIBUTE_ENGINE = {
         search: { filterable: true, uiType: 'text' }
       },
       {
+        id: 'material',
+        label: 'Material',
+        type: 'enum',
+        options: ['Wood', 'Metal', 'Plastic', 'Glass', 'Fabric / Upholstered', 'Leather', 'Rattan / Wicker', 'Ceramic', 'Stone', 'Other'],
+        dependsOn: { field: 'subcategory', value: ['Furniture', 'Beds & Mattresses', 'Home Décor', 'Garden & Outdoor'] },
+        postAd: { required: false, group: 'specs', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      {
         id: 'color',
-        label: 'Color',
+        label: 'Colour',
         type: 'enum',
         options: ['Black', 'White', 'Grey', 'Brown', 'Beige', 'Cream', 'Blue', 'Green', 'Red', 'Multi-color', 'Other'],
         postAd: { required: false, group: 'specs', uiType: 'select' },
         search: { filterable: true, uiType: 'select' }
       },
       {
-        id: 'material',
-        label: 'Material',
+        id: 'width',
+        label: 'Width (cm)',
+        type: 'number',
+        dependsOn: { field: 'subcategory', value: ['Furniture', 'Home Appliances', 'Storage & Organization'] },
+        postAd: { required: false, group: 'dimensions', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'height',
+        label: 'Height (cm)',
+        type: 'number',
+        dependsOn: { field: 'subcategory', value: ['Furniture', 'Home Appliances', 'Storage & Organization'] },
+        postAd: { required: false, group: 'dimensions', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'length',
+        label: 'Length / Depth (cm)',
+        type: 'number',
+        dependsOn: { field: 'subcategory', value: ['Furniture', 'Home Appliances', 'Storage & Organization'] },
+        postAd: { required: false, group: 'dimensions', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'assemblyRequired',
+        label: 'Assembly Required',
         type: 'enum',
-        options: ['Wood', 'Metal', 'Plastic', 'Glass', 'Fabric / Upholstered', 'Leather', 'Rattan / Wicker', 'Other'],
-        postAd: { required: false, group: 'specs', uiType: 'select' },
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'subcategory', value: ['Furniture', 'Beds & Mattresses', 'Storage & Organization'] },
+        postAd: { required: false, group: 'specs', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'mattressSize',
+        label: 'Mattress Size',
+        type: 'enum',
+        options: ['Single', 'Double', 'Queen', 'King', 'Super King', 'Cot Size', 'Custom'],
+        dependsOn: { field: 'subcategory', value: ['Beds & Mattresses'] },
+        postAd: { required: false, group: 'dimensions', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      {
+        id: 'bedSize',
+        label: 'Bed Size',
+        type: 'enum',
+        options: ['Single', 'Double', 'Queen', 'King', 'Super King', 'Bunk', 'Custom'],
+        dependsOn: { field: 'subcategory', value: ['Beds & Mattresses'] },
+        postAd: { required: false, group: 'dimensions', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      {
+        id: 'storageIncluded',
+        label: 'Storage Included',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'subcategory', value: ['Beds & Mattresses'] },
+        postAd: { required: false, group: 'features', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'mattressIncluded',
+        label: 'Mattress Included',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'subcategory', value: ['Beds & Mattresses'] },
+        postAd: { required: false, group: 'features', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'capacity',
+        label: 'Capacity (Liters / kg)',
+        type: 'text',
+        dependsOn: { field: 'subcategory', value: ['Home Appliances', 'Kitchen & Dining'] },
+        postAd: { required: false, group: 'technical', uiType: 'text' },
+        search: { filterable: false, uiType: 'text' }
+      },
+      {
+        id: 'powerRating',
+        label: 'Power Rating (Watts)',
+        type: 'number',
+        dependsOn: { field: 'subcategory', value: ['Home Appliances', 'Lighting'] },
+        postAd: { required: false, group: 'technical', uiType: 'number' },
+        search: { filterable: false, uiType: 'range' }
+      },
+      {
+        id: 'energyRating',
+        label: 'Energy Rating',
+        type: 'enum',
+        options: ['A+++', 'A++', 'A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G'],
+        dependsOn: { field: 'subcategory', value: ['Home Appliances'] },
+        postAd: { required: false, group: 'technical', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      {
+        id: 'voltage',
+        label: 'Voltage',
+        type: 'enum',
+        options: ['220-240V', '110V', 'Dual Voltage', '12V', '24V', 'Other'],
+        dependsOn: { field: 'subcategory', value: ['Home Appliances', 'Lighting', 'Security & Safety', 'Smart Home'] },
+        postAd: { required: false, group: 'technical', uiType: 'select' },
+        search: { filterable: false, uiType: 'select' }
+      },
+      {
+        id: 'warranty',
+        label: 'Warranty',
+        type: 'enum',
+        options: ['No Warranty', '1 Month', '3 Months', '6 Months', '1 Year', '2 Years', '3+ Years'],
+        postAd: { required: false, group: 'features', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      {
+        id: 'wattage',
+        label: 'Wattage (W)',
+        type: 'number',
+        dependsOn: { field: 'subcategory', value: ['Lighting'] },
+        postAd: { required: false, group: 'technical', uiType: 'number' },
+        search: { filterable: false, uiType: 'number' }
+      },
+      {
+        id: 'bulbType',
+        label: 'Bulb Type',
+        type: 'enum',
+        options: ['LED', 'Incandescent', 'Halogen', 'Fluorescent', 'CFL', 'Smart Bulb', 'Other'],
+        dependsOn: { field: 'subcategory', value: ['Lighting'] },
+        postAd: { required: false, group: 'technical', uiType: 'select' },
+        search: { filterable: true, uiType: 'select' }
+      },
+      {
+        id: 'indoorOutdoor',
+        label: 'Indoor / Outdoor',
+        type: 'enum',
+        options: ['Indoor', 'Outdoor', 'Both'],
+        dependsOn: { field: 'subcategory', value: ['Lighting', 'Home Décor'] },
+        postAd: { required: false, group: 'specs', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'smartCompatible',
+        label: 'Smart Compatible',
+        type: 'enum',
+        options: ['Yes', 'No'],
+        dependsOn: { field: 'subcategory', value: ['Lighting', 'Home Appliances', 'Security & Safety', 'Smart Home'] },
+        postAd: { required: false, group: 'features', uiType: 'radio' },
+        search: { filterable: true, uiType: 'radio' }
+      },
+      {
+        id: 'manualElectric',
+        label: 'Operation Mode',
+        type: 'enum',
+        options: ['Manual', 'Electric', 'Battery Powered', 'Solar Powered', 'Petrol/Diesel'],
+        dependsOn: { field: 'subcategory', value: ['Garden & Outdoor', 'Cleaning Supplies', 'Home Improvement'] },
+        postAd: { required: false, group: 'technical', uiType: 'select' },
         search: { filterable: true, uiType: 'select' }
       },
     ]

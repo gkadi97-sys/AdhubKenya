@@ -746,9 +746,106 @@ export const CATEGORY_ATTRIBUTES = {
         'Cold rooms', 'Assembly plants', 'Industrial sheds', 'Industrial yards'
       ],
       'Special-Purpose Properties': [
-        'Schools', 'Universities', 'Hospitals', 'Clinics', 'Religious buildings',
-        'Community centers', 'Sports complexes', 'Event venues', 'Cinemas',
-        'Entertainment centers', 'Petrol stations', 'Car wash facilities'
+        'Schools', 'Universities', 'Hospitals'
+      ]
+    }
+  },
+
+  'home-living': {
+    level1Label: 'Category',
+    level2Label: 'Item',
+    hasYear: false,
+    data: {
+      'Furniture': [
+        'Sofas', 'Sofa Sets', 'Armchairs', 'Recliners', 'Coffee Tables', 'TV Stands',
+        'Entertainment Units', 'Dining Tables', 'Dining Chairs', 'Dining Sets',
+        'Office Chairs', 'Office Desks', 'Computer Desks', 'Study Tables', 'Bookshelves',
+        'Cabinets', 'Wardrobes', 'Dressers', 'Bedside Tables', 'Shoe Racks',
+        'Storage Cabinets', 'Shelving Units', 'Chest of Drawers', 'Folding Tables',
+        'Folding Chairs', 'Benches', 'Outdoor Furniture', 'Patio Furniture',
+        'Garden Furniture', 'Bean Bags', 'Stools', 'Bar Stools', 'Nursery Furniture',
+        'Kids Furniture', 'Antique Furniture', 'Custom Furniture', 'Other Furniture'
+      ],
+      'Beds & Mattresses': [
+        'Single Beds', 'Double Beds', 'Queen Beds', 'King Beds', 'Decker Beds', 'Bunk Beds',
+        'Baby Cots', 'Metal Beds', 'Wooden Beds', 'Upholstered Beds', 'Adjustable Beds',
+        'Hospital Beds', 'Mattresses', 'Orthopedic Mattresses', 'Foam Mattresses',
+        'Spring Mattresses', 'Pillows', 'Mattress Protectors', 'Bed Bases', 'Bed Frames',
+        'Headboards', 'Bedding Sets', 'Bed Linen', 'Blankets', 'Duvets', 'Duvet Covers',
+        'Comforters', 'Mosquito Nets'
+      ],
+      'Kitchen & Dining': [
+        'Cookware', 'Pots', 'Pans', 'Pressure Cookers', 'Non-stick Cookware', 'Baking Trays',
+        'Baking Equipment', 'Cutlery', 'Kitchen Knives', 'Kitchen Utensils', 'Plates',
+        'Bowls', 'Cups', 'Mugs', 'Glasses', 'Dining Sets', 'Serving Trays', 'Food Storage',
+        'Lunch Boxes', 'Water Dispensers', 'Kitchen Organizers', 'Spice Racks',
+        'Dish Racks', 'Chopping Boards', 'Mixing Bowls', 'Kitchen Scales'
+      ],
+      'Home Appliances': [
+        'Refrigerators', 'Freezers', 'Washing Machines', 'Tumble Dryers', 'Dishwashers',
+        'Microwaves', 'Ovens', 'Cookers', 'Gas Cookers', 'Electric Cookers', 'Air Fryers',
+        'Blenders', 'Mixers', 'Juicers', 'Coffee Machines', 'Kettles', 'Toasters',
+        'Rice Cookers', 'Vacuum Cleaners', 'Water Dispensers', 'Water Purifiers',
+        'Air Purifiers', 'Humidifiers', 'Fans', 'Air Conditioners', 'Heaters', 'Irons',
+        'Steamers', 'Sewing Machines'
+      ],
+      'Home Décor': [
+        'Wall Art', 'Paintings', 'Mirrors', 'Wall Clocks', 'Rugs', 'Carpets', 'Curtains',
+        'Curtain Rods', 'Cushions', 'Throw Pillows', 'Artificial Plants', 'Indoor Plants',
+        'Flower Vases', 'Candles', 'Decorative Lighting', 'Frames', 'Sculptures',
+        'Decorative Bowls', 'Wallpaper', 'Home Fragrance', 'Photo Frames'
+      ],
+      'Lighting': [
+        'Ceiling Lights', 'Chandeliers', 'Pendant Lights', 'Wall Lights', 'Table Lamps',
+        'Floor Lamps', 'Bedside Lamps', 'Solar Lights', 'Outdoor Lights', 'Flood Lights',
+        'LED Bulbs', 'Decorative Lights', 'Emergency Lights', 'Smart Lighting'
+      ],
+      'Bathroom': [
+        'Bathroom Cabinets', 'Bathroom Mirrors', 'Shower Heads', 'Toilets', 'Wash Basins',
+        'Bathroom Accessories', 'Towel Rails', 'Soap Dispensers', 'Shower Curtains',
+        'Bathroom Storage', 'Bathroom Mats'
+      ],
+      'Home Improvement': [
+        'Paint', 'Paint Brushes', 'Wallpapers', 'Tiles', 'Flooring', 'Doors', 'Windows',
+        'Roofing Materials', 'Plumbing Supplies', 'Electrical Supplies', 'Hardware',
+        'Cement', 'Nails', 'Screws', 'Building Boards', 'Adhesives', 'Sealants'
+      ],
+      'Garden & Outdoor': [
+        'Garden Tools', 'Lawn Mowers', 'Wheelbarrows', 'Hoses', 'Watering Cans',
+        'Outdoor Storage', 'Gazebos', 'Barbecue Grills', 'Garden Furniture', 'Plant Pots',
+        'Outdoor Decorations', 'Greenhouses', 'Compost Bins'
+      ],
+      'Storage & Organization': [
+        'Storage Boxes', 'Plastic Containers', 'Cabinets', 'Shelving', 'Wardrobe Organizers',
+        'Laundry Baskets', 'Closet Organizers', 'Shoe Organizers', 'Under-bed Storage',
+        'Hooks', 'Hangers'
+      ],
+      'Cleaning Supplies': [
+        'Vacuum Cleaners', 'Brooms', 'Mops', 'Buckets', 'Cleaning Chemicals', 'Dustbins',
+        'Trash Bags', 'Cleaning Brushes', 'Pressure Washers'
+      ],
+      'Security & Safety': [
+        'CCTV', 'Smart Locks', 'Door Locks', 'Burglar Alarms', 'Fire Extinguishers',
+        'Smoke Detectors', 'Safes', 'Video Doorbells', 'Motion Sensors'
+      ],
+      'Smart Home': [
+        'Smart Speakers', 'Smart Lights', 'Smart Switches', 'Smart Cameras',
+        'Smart Doorbells', 'Smart Thermostats', 'Smart Locks', 'Home Automation Kits'
+      ],
+      'Baby & Nursery': [
+        'Baby Cots', 'High Chairs', 'Baby Monitors', 'Playpens', 'Changing Tables',
+        'Nursery Storage'
+      ],
+      'Home Office': [
+        'Office Chairs', 'Standing Desks', 'Filing Cabinets', 'Office Storage',
+        'Whiteboards', 'Desk Lamps', 'Monitor Stands', 'Cable Management'
+      ],
+      'Pet Supplies': [
+        'Pet Beds', 'Cages', 'Aquariums', 'Dog Houses', 'Feeding Bowls', 'Cat Trees',
+        'Pet Carriers'
+      ],
+      'Other Home & Living': [
+        'Other Home & Living'
       ]
     }
   },
@@ -1113,7 +1210,7 @@ export const CATEGORY_ICONS = [
   { slug: 'property',             name: 'Property',                     icon: '🏠', count: 0, activity: 85, clicks: 80, searchDemand: 90 },
   { slug: 'phones-tablets',       name: 'Phones & Tablets',             icon: '📱', count: 0, activity: 80, clicks: 85, searchDemand: 90 },
   { slug: 'electronics',          name: 'Electronics',                  icon: '💻', count: 0, activity: 70, clicks: 75, searchDemand: 80 },
-  { slug: 'home-furniture',       name: 'Home & Living',                icon: '🛋️', count: 0, activity: 60, clicks: 65, searchDemand: 70 },
+  { slug: 'home-living',          name: 'Home & Living',                icon: '🛋️', count: 0, activity: 60, clicks: 65, searchDemand: 70 },
   { slug: 'fashion',              name: 'Fashion & Beauty',             icon: '👗', count: 0, activity: 75, clicks: 70, searchDemand: 80 },
   { slug: 'services',             name: 'Services',                     icon: '🔧', count: 0, activity: 65, clicks: 60, searchDemand: 75 },
   { slug: 'repair-construction',  name: 'Repair & Construction',        icon: '🛠️', count: 0, activity: 30, clicks: 40, searchDemand: 50 },
@@ -1214,8 +1311,8 @@ export function getSpecTags(listing) {
     ].filter(Boolean);
   }
 
-  if (cat === 'home-furniture') {
-    return [s.brand, s.condition].filter(Boolean);
+  if (cat === 'home-living') {
+    return [listing.make, s.condition].filter(Boolean);
   }
 
   return [];

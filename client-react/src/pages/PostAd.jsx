@@ -191,7 +191,7 @@ export default function PostAdPage() {
       case 'auto-spares': return 'e.g. Toyota Fielder NZE141 Front Bumper';
       case 'phones-tablets': return 'e.g. Samsung Galaxy S24 Ultra 512GB - Titanium Black';
       case 'electronics': return attrs.specs?.brand && ['HP','Dell','Lenovo','Apple','Asus','Acer','Microsoft'].includes(attrs.specs.brand) ? `e.g. ${attrs.specs.brand} ${attrs.model || 'Laptop'} - ${attrs.specs.ram || ''} ${attrs.specs.storageSize || ''}`.trim() : 'e.g. Samsung 65" QLED 4K Smart TV';
-      case 'home-furniture': return 'e.g. 6-Seater Mahogany Dining Table Set';
+      case 'home-living': return 'e.g. 6-Seater Mahogany Dining Table Set';
       case 'jobs': return 'e.g. Senior Software Engineer - Remote';
       case 'fashion': return 'e.g. Men\'s Official Leather Shoes - Size 42';
       case 'beauty': return 'e.g. Bath & Body Works Vanilla Bean Lotion';
@@ -216,7 +216,7 @@ export default function PostAdPage() {
       case 'auto-spares': return 'Describe the spare part — compatibility, condition, brand, reason for selling...';
       case 'phones-tablets': return 'Describe the device — battery health, storage, included accessories, condition...';
       case 'electronics': return 'Describe the item — brand, model, condition, accessories included, reason for selling...';
-      case 'home-furniture': return 'Describe the item — material, dimensions, condition, reason for selling...';
+      case 'home-living': return 'Describe the item — material, dimensions, condition, reason for selling...';
       case 'fashion': return 'Describe the item — size, material, brand, condition...';
       case 'beauty': return 'Describe the product — brand, quantity/volume, skin/hair type, condition...';
       case 'services': return 'Describe the service — your expertise, what\'s included, coverage area, pricing structure...';

@@ -89,7 +89,7 @@ function AppLayout() {
             <Route path="/browse" element={<Browse />} />
             <Route path="/category/:slug" element={<Category />} />
             {['vehicles','property','land-plots','phones-tablets','electronics',
-              'home-furniture','fashion','beauty','services','repair-construction',
+              'home-living','fashion','beauty','services','repair-construction',
               'commercial-equipment','commercial-vehicles','leisure','babies-kids',
               'food-agriculture','animals-pets','auto-spares','jobs','seeking-work'
             ].map(cat => (

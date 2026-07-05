@@ -49,18 +49,18 @@ import catJobs from '@/assets/cat-jobs.png';
 
 const CAT_IMAGES = {
   vehicles: catVehicles, 'phones-tablets': catPhones, property: catProperty,
-  fashion: catFashion, electronics: catElectronics, 'home-furniture': catFurniture,
+  fashion: catFashion, electronics: catElectronics, 'home-living': catFurniture,
   jobs: catJobs, services: catServices,
 };
 const CAT_TINTS = {
   vehicles: 'from-emerald-900/70', 'phones-tablets': 'from-amber-900/60',
   property: 'from-stone-900/60', fashion: 'from-orange-900/60',
-  electronics: 'from-emerald-900/60', 'home-furniture': 'from-amber-900/60',
+  electronics: 'from-emerald-900/60', 'home-living': 'from-amber-900/60',
   jobs: 'from-stone-900/60', services: 'from-emerald-900/60',
 };
 const SIDEBAR_SECTIONS = [
   { id: 'primary', title: 'PRIMARY', slugs: ['vehicles', 'property', 'jobs', 'phones-tablets', 'electronics', 'services'] },
-  { id: 'lifestyle', title: 'SHOP & LIFESTYLE', slugs: ['home-furniture', 'fashion', 'animals-pets'] },
+  { id: 'lifestyle', title: 'SHOP & LIFESTYLE', slugs: ['home-living', 'fashion', 'animals-pets'] },
   { id: 'specialized', title: 'SPECIALIZED', slugs: ['auto-spares', 'commercial-equipment', 'leisure'] }
 ];
 const MORE_SLUGS = CATEGORY_ICONS.filter(c => !SIDEBAR_SECTIONS.some(s => s.slugs.includes(c.slug))).map(c => c.slug);
@@ -655,7 +655,7 @@ export default function HomePage() {
                 <HeroSearch stickyCategory={focusedCat} />
               </div>
               <div className="grid grid-cols-4 gap-3 sm:gap-4 px-4">
-                {getRankedCategoriesWithCounts(SIDEBAR_SECTIONS[0].slugs.concat(['home-furniture', 'fashion']), enrichedIcons).slice(0, 8).map(c => (
+                {getRankedCategoriesWithCounts(SIDEBAR_SECTIONS[0].slugs.concat(['home-living', 'fashion']), enrichedIcons).slice(0, 8).map(c => (
                   <Link
                     key={c.slug}
                     to={`/browse?category=${c.slug}`}
