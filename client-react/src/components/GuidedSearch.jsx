@@ -28,6 +28,10 @@ function saveRecentSearch(term) {
   localStorage.setItem('adhub_recent_searches', JSON.stringify([term, ...prev].slice(0, 6)));
 }
 
+import { useMetadataCache } from '@/lib/useMetadataCache';
+import { getLookupValues } from '@/lib/api';
+
+// ... (skipping to component)
 export default function GuidedSearch({ compact = false }) {
   const [keyword, setKeyword]     = useState('');
   const [category, setCategory]   = useState('');
@@ -41,7 +45,47 @@ export default function GuidedSearch({ compact = false }) {
   const debounceRef = useRef(null);
   const navigate    = useNavigate();
 
-  const quickFilters = category ? (QUICK_FILTERS[category] || []) : [];
+  const metadata = useMetadataCache(category);
+  const [dynamicOptions, setDynamicOptions] = useState({});
+
+  let quickFilters = category ? (QUICK_FILTERS[category] || []) : [];
+  
+  if (metadata && metadata.attributes) {
+    const searchableAttrs = metadata.attributes
+      .filter(a => a.is_searchable)
+      .sort((a, b) => a.display_order - b.display_order)
+      .slice(0, 5); // Max 5 for Guided Search
+
+    if (searchableAttrs.length > 0) {
+      quickFilters = searchableAttrs.map(attr => {
+        let type = 'select';
+        let options = [];
+        
+        if (attr.field_type === 'number') type = 'number';
+        
+        if (attr.is_lookup && attr.lookup_type) {
+           // Fetch lookup values asynchronously if not already fetched
+           if (!dynamicOptions[attr.name]) {
+             getLookupValues(attr.lookup_type).then(data => {
+               setDynamicOptions(prev => ({ ...prev, [attr.name]: data.map(d => d.value) }));
+             });
+           }
+           options = dynamicOptions[attr.name] || [];
+        } else if (attr.options) {
+           options = attr.options;
+        }
+
+        return {
+          id: attr.name,
+          label: attr.label,
+          type,
+          options,
+          placeholder: attr.placeholder || 'Any'
+        };
+      });
+    }
+  }
+
   const towns        = county ? getTowns(county) : [];
   const recentSearch = getRecentSearches();
 

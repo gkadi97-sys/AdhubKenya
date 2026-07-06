@@ -6,6 +6,7 @@ import { SCHEMA_ATTRIBUTES } from '@/lib/schemaEngine';
 import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
+import MetadataListingSpecs from '@/components/MetadataListingSpecs';
 import CandidateProfile from '@/components/CandidateProfile';
 import ListingCard from '@/components/ListingCard';
 import MessageButton from '@/components/MessageButton';
@@ -143,49 +144,6 @@ export default function ListingDetailPage() {
   const waNumber = listing.whatsapp?.replace(/\D/g, '') || listing.phone?.replace(/\D/g, '');
   const waLink = waNumber ? `https://wa.me/${waNumber.startsWith('0') ? '254' + waNumber.slice(1) : waNumber}?text=${whatsappMsg}` : null;
 
-  const FEATURE_KEYS = ['comfortFeatures', 'infotainmentFeatures', 'safetyFeatures', 'exteriorFeatures', 'conditionDetails', 'residentialFeatures', 'commercialFeatures', 'amenities', 'legalInfo'];
-  const FEATURE_LABELS = {
-    comfortFeatures: '❄️ Comfort & Convenience', infotainmentFeatures: '📱 Infotainment & Connectivity',
-    safetyFeatures: '🛡️ Safety Features', exteriorFeatures: '✨ Exterior Features',
-    conditionDetails: '📋 Condition Details', residentialFeatures: '✨ Residential Features',
-    commercialFeatures: '💼 Commercial Features', amenities: '🏊‍♂️ Amenities & Facilities', legalInfo: '⚖️ Legal & Compliance',
-  };
-  const FRIENDLY_LABELS = {
-    vehicleType: 'Vehicle Type', bodyStyle: 'Body Style', variant: 'Variant / Trim',
-    regYear: 'Year of Registration', regNumber: 'Registration No.',
-    mileage: 'Mileage', mileageUnit: 'Mileage Unit', prevOwners: 'Previous Owners',
-    usageType: 'Usage Type', serviceHistory: 'Service History',
-    fuelType: 'Fuel Type', engineCC: 'Engine (CC)', engineSize: 'Engine Size',
-    horsepower: 'Horsepower', cylinders: 'Cylinders', engineConfig: 'Engine Config',
-    turbocharged: 'Turbocharged', transmission: 'Transmission', numGears: 'No. Gears',
-    driveType: 'Drive Type', color: 'Exterior Colour', colorType: 'Colour Type',
-    numDoors: 'Doors', numSeats: 'Seats', wheelSize: 'Wheel Size',
-    engineCapacityCc: 'Engine Size (cc)', bodyType: 'Body Type', interiorColor: 'Interior Color',
-    exteriorColor: 'Exterior Color', seatingCapacity: 'Seating Capacity', mileageKm: 'Mileage (km)',
-    landSize: 'Land Size', builtArea: 'Built-up Area', floors: 'Floors',
-    bedrooms: 'Bedrooms', bathrooms: 'Bathrooms', livingRooms: 'Living Rooms',
-    meetingRooms: 'Meeting Rooms', agencyName: 'Agency / Company', website: 'Website',
-    partNumber: 'OEM Part No.', generationChassis: 'Chassis', compatibleYear: 'Compatible Year'
-  };
-
-  const flatSchema = {};
-  Object.values(ATTRIBUTE_ENGINE).forEach(cat => { if (cat.attributes) cat.attributes.forEach(attr => { flatSchema[attr.id] = attr; }); });
-
-  const booleanFeatures = [];
-  const keyValueSpecs = [];
-  if (listing.specs) {
-    Object.entries(listing.specs).forEach(([k, v]) => {
-      if (FEATURE_KEYS.includes(k)) return;
-      if (v === '' || v === null || v === undefined || v === 'N/A' || String(v).trim().toLowerCase() === 'n/a') return;
-      const schemaAttr = SCHEMA_ATTRIBUTES[k] || flatSchema[k];
-      const isBoolean = v === true || v === false || schemaAttr?.type === 'checkbox' || (schemaAttr?.type === 'radio' && v === 'Yes');
-      const label = schemaAttr?.label || FRIENDLY_LABELS[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
-      if (isBoolean) { if (v === true) booleanFeatures.push(label); }
-      else { keyValueSpecs.push({ key: k, label, val: String(v) }); }
-    });
-  }
-  const featureSpecs = listing.specs ? Object.entries(listing.specs).filter(([k, v]) => FEATURE_KEYS.includes(k) && Array.isArray(v) && v.length > 0) : [];
-
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -315,58 +273,7 @@ export default function ListingDetailPage() {
                 </div>
 
                 {/* 3. SPECS (Moved up) */}
-                {keyValueSpecs.length > 0 && (
-                  <div className="rounded-2xl border border-border bg-card p-5 sm:p-7">
-                    <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                      <span className="text-primary">📋</span> Specifications
-                    </h3>
-                    <div className="grid grid-cols-2 gap-px bg-border rounded-xl overflow-hidden border border-border">
-                      {(showAllSpecs ? keyValueSpecs : keyValueSpecs.slice(0, 12)).map(item => (
-                        <div key={item.key} className="bg-background px-4 py-2 flex flex-col justify-center min-h-[44px]">
-                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{item.label}</span>
-                          <span className="font-semibold text-sm text-foreground">{item.val}</span>
-                        </div>
-                      ))}
-                    </div>
-                    {keyValueSpecs.length > 12 && (
-                      <button 
-                        onClick={() => setShowAllSpecs(!showAllSpecs)}
-                        className="mt-3 text-sm font-semibold text-primary hover:underline flex items-center gap-1"
-                      >
-                        {showAllSpecs ? 'Hide full specifications' : `View all ${keyValueSpecs.length} specifications`}
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Features (Boolean) */}
-                {(booleanFeatures.length > 0 || featureSpecs.length > 0) && (
-                   <div className="rounded-2xl border border-border bg-card p-5 sm:p-7">
-                     <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                      <span className="text-primary">✨</span> Features & Amenities
-                    </h3>
-                    <div className="flex flex-col gap-5">
-                      {booleanFeatures.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {booleanFeatures.map(f => (
-                            <span key={f} className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary text-foreground">✓ {f}</span>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {featureSpecs.map(([key, features]) => (
-                        <div key={key}>
-                          <h4 className="text-xs font-bold mb-2 text-muted-foreground uppercase tracking-wider">{FEATURE_LABELS[key]}</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {features.map(f => (
-                              <span key={f} className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary text-foreground">✓ {f}</span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                   </div>
-                )}
+                <MetadataListingSpecs listing={listing} />
 
                 {/* 4. DESCRIPTION (Expandable) */}
                 <div className={`rounded-2xl border border-border bg-card ${isDescriptionShort ? 'p-5' : 'p-5 sm:p-7'} relative overflow-hidden`}>

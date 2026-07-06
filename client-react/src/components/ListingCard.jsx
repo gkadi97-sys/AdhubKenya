@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { imageUrl, formatPrice, timeAgo } from '@/lib/api';
 import { getSpecTags } from '@/lib/categoryData';
+import { useMetadataCache } from '@/lib/useMetadataCache';
 import { Heart, MapPin, BadgeCheck } from 'lucide-react';
 
 function getSaved() {
@@ -38,7 +39,21 @@ export default function ListingCard({ listing, featured }) {
   else if (listing.id.endsWith('1') || listing.id.endsWith('5')) badgeLabel = 'Hot';
   else if (isVerified) badgeLabel = 'Verified';
 
-  const specTags = getSpecTags(listing);
+  // Fetch metadata dynamically to determine which fields are marked for the listing card
+  const metadata = useMetadataCache(listing.category);
+  let specTags = [];
+
+  if (metadata && metadata.attributes) {
+    const cardAttrs = metadata.attributes.filter(a => a.is_listing_card).sort((a, b) => a.display_order - b.display_order);
+    cardAttrs.forEach(attr => {
+      // It might be a top-level property (like 'year', 'make', 'model') or inside 'specs' JSON
+      const val = listing[attr.name] || (listing.specs && listing.specs[attr.name]);
+      if (val) specTags.push(val);
+    });
+  } else {
+    // Fallback for legacy categories or while loading
+    specTags = getSpecTags(listing);
+  }
 
   return (
     <Link to={`/listing/${listing.slug || listing.id}`} className="block h-full">
