@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { createListing, checkDuplicateListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
 import DynamicListingForm from '@/components/forms/DynamicListingForm';
+import MetadataDrivenForm from '@/components/forms/MetadataDrivenForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { useSEO } from '@/lib/useSEO';
@@ -334,9 +335,17 @@ export default function PostAdPage() {
               <div className="mt-1.5 text-xs font-medium text-muted-foreground text-right">{(watch("title") || "").length}/100 characters</div>
             </div>
 
-            {/* Smart Forms */}
+            {/* Smart Forms — MetadataDrivenForm reads from the database first;
+                falls back to the static DynamicListingForm for legacy categories */}
             {category && (
               <div className="mt-5 pt-5 border-t border-border">
+                <MetadataDrivenForm
+                  categorySlug={category}
+                  register={register}
+                  control={control}
+                  watch={watch}
+                  setValue={setValue}
+                />
                 <DynamicListingForm category={category} register={register} control={control} watch={watch} setValue={setValue} />
               </div>
             )}

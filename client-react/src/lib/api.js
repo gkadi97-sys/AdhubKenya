@@ -429,9 +429,82 @@ export const moderateListing = async (id, currentStatus, newStatus, updates = {}
   return data;
 };
 
-// Categories API (hardcoded in Supabase world since it's usually static data)
+// ── Platform-Wide Metadata API ──
 export const getCategories = async () => {
-  return [];
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('is_active', true)
+    .order('order_index');
+  if (error) {
+    console.error('Failed to fetch categories:', error);
+    return [];
+  }
+  return data;
+};
+
+export const getCategoryMetadata = async (categorySlug) => {
+  if (!categorySlug) return null;
+  
+  // 1. Get Category
+  const { data: category, error: catErr } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('slug', categorySlug)
+    .single();
+    
+  if (catErr || !category) return null;
+
+  // 2. Get Attribute Groups
+  const { data: groups } = await supabase
+    .from('attribute_groups')
+    .select('*')
+    .eq('category_id', category.id)
+    .order('order_index');
+
+  // 3. Get Attributes
+  const { data: attributes } = await supabase
+    .from('attributes')
+    .select('*')
+    .eq('category_id', category.id)
+    .order('display_order');
+
+  // 4. Get Dependencies
+  const attributeIds = (attributes || []).map(a => a.id);
+  let dependencies = [];
+  if (attributeIds.length > 0) {
+    const { data: deps } = await supabase
+      .from('attribute_dependencies')
+      .select('*')
+      .in('attribute_id', attributeIds);
+    dependencies = deps || [];
+  }
+
+  return {
+    category,
+    groups: groups || [],
+    attributes: attributes || [],
+    dependencies
+  };
+};
+
+export const getLookupValues = async (lookupType, parentId = null) => {
+  let query = supabase
+    .from('lookup_values')
+    .select('*')
+    .eq('lookup_type', lookupType)
+    .eq('is_active', true)
+    .order('order_index');
+    
+  if (parentId) {
+    query = query.eq('parent_id', parentId);
+  } else {
+    query = query.is('parent_id', null);
+  }
+  
+  const { data, error } = await query;
+  if (error) return [];
+  return data;
 };
 
 // Count active listings per category (for sidebar display)

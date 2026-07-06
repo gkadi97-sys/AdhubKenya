@@ -353,7 +353,7 @@ function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY
                       {opts.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                     {val && (
-                      <button onClick={() => clearFilter(attr.id)} className="absolute right-[28px] top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer bg-primary/10 pl-1">
+                      <button onClick={() => clearFilter(attr.id)} className="absolute right-[28px] top-1/2 -translate-y-1/2 text-primary hover:text-destructive cursor-pointer px-1">
                         <X className="w-3 h-3" />
                       </button>
                     )}
