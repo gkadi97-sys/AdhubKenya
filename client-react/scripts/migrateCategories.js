@@ -62,7 +62,7 @@ const runMigration = () => {
       for (const group of engineConfig.groups) {
         const groupId = uuidv4();
         groupMap[group.id] = groupId;
-        groupValues.push(`('${groupId}', '${catId}', '${escapeSql(group.title)}', ${gIndex})`);
+        groupValues.push(`('${groupId}', (SELECT id FROM public.categories WHERE slug = '${slug}'), '${escapeSql(group.title)}', ${gIndex})`);
         gIndex += 10;
       }
     }
@@ -89,7 +89,7 @@ const runMigration = () => {
         const isCard = 'false'; // Default to false
 
         const attrId = uuidv4();
-        attrValues.push(`('${attrId}', '${catId}', ${groupId ? `'${groupId}'` : 'NULL'}, '${escapeSql(attr.id)}', '${escapeSql(attr.label)}', '${fieldType}', ${isReq}, ${isSearch}, ${isCard}, ${aIndex}, ${optionsStr})`);
+        attrValues.push(`('${attrId}', (SELECT id FROM public.categories WHERE slug = '${slug}'), ${groupId ? `'${groupId}'` : 'NULL'}, '${escapeSql(attr.id)}', '${escapeSql(attr.label)}', '${fieldType}', ${isReq}, ${isSearch}, ${isCard}, ${aIndex}, ${optionsStr})`);
         
         aIndex += 10;
       }
