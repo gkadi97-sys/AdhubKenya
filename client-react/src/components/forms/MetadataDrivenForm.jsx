@@ -10,7 +10,7 @@
  * Powers: Post Ad, Edit Listing, and is the foundation for search filter generation.
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWatch, Controller } from 'react-hook-form';
 import { getCategoryMetadata, getLookupValues } from '@/lib/api';
 import { ChevronDown, Loader2 } from 'lucide-react';
@@ -23,85 +23,134 @@ function evaluateDependencies(attribute, dependencies, allValues) {
   let visible = false;
   let required = false;
 
-  // Group by effect
-  const showDeps = attrDeps.filter(d => d.effect === 'show');
-  const hideDeps = attrDeps.filter(d => d.effect === 'hide');
+  const showDeps    = attrDeps.filter(d => d.effect === 'show');
+  const hideDeps    = attrDeps.filter(d => d.effect === 'hide');
   const requireDeps = attrDeps.filter(d => d.effect === 'require');
 
-  // Evaluate a single dependency condition
   const evalCondition = (dep) => {
     const { depends_on_attribute_id, operator, dependency_value } = dep;
-    const fieldValue = allValues?.attrs?.[depends_on_attribute_id] ?? allValues?.[depends_on_attribute_id];
+    // Support both attrs.{id} and attrs.{name} lookups
+    const fieldValue =
+      allValues?.attrs?.[depends_on_attribute_id] ??
+      allValues?.[depends_on_attribute_id];
     const depVal = dependency_value;
 
     switch (operator) {
-      case 'equals':     return fieldValue === depVal;
-      case 'not_equals': return fieldValue !== depVal;
-      case 'exists':     return !!fieldValue;
-      case 'not_exists': return !fieldValue;
-      case 'contains':   return String(fieldValue || '').toLowerCase().includes(String(depVal || '').toLowerCase());
-      case 'in':         return Array.isArray(depVal) ? depVal.includes(fieldValue) : false;
-      case 'not_in':     return Array.isArray(depVal) ? !depVal.includes(fieldValue) : true;
+      case 'equals':       return String(fieldValue ?? '') === String(depVal ?? '');
+      case 'not_equals':   return String(fieldValue ?? '') !== String(depVal ?? '');
+      case 'exists':       return !!fieldValue && fieldValue !== '';
+      case 'not_exists':   return !fieldValue || fieldValue === '';
+      case 'contains':     return String(fieldValue || '').toLowerCase().includes(String(depVal || '').toLowerCase());
+      case 'in':           return Array.isArray(depVal) ? depVal.includes(fieldValue) : false;
+      case 'not_in':       return Array.isArray(depVal) ? !depVal.includes(fieldValue) : true;
       case 'greater_than': return Number(fieldValue) > Number(depVal);
-      case 'less_than':  return Number(fieldValue) < Number(depVal);
-      default:           return false;
+      case 'less_than':    return Number(fieldValue) < Number(depVal);
+      default:             return false;
     }
   };
 
-  // If there are show deps, ALL must pass for visibility
   if (showDeps.length > 0) {
     visible = showDeps.every(evalCondition);
   } else {
     visible = hideDeps.length > 0 ? !hideDeps.every(evalCondition) : true;
   }
 
-  // Check require deps — field becomes required if at least one 'require' dep matches
   if (requireDeps.length > 0) {
     required = requireDeps.some(evalCondition);
   } else {
-    required = attribute.is_required;
+    required = visible ? attribute.is_required : false;
   }
 
   return { visible, required };
 }
 
+// ─── Global lookup cache (module-level, survives re-renders) ────────────────
+const LOOKUP_CACHE = {};
+
+async function cachedGetLookupValues(lookupType, parentId = null) {
+  const key = `${lookupType}::${parentId ?? 'root'}`;
+  if (LOOKUP_CACHE[key]) return LOOKUP_CACHE[key];
+  const data = await getLookupValues(lookupType, parentId);
+  LOOKUP_CACHE[key] = data;
+  return data;
+}
+
 // ─── Individual Field Renderer ───────────────────────────────────────────────
-function FieldRenderer({ attribute, required, register, control, allValues, lookupCache, fetchLookup }) {
+function FieldRenderer({ attribute, required, register, control, allValues, attributes, dependencies }) {
   const fieldName = `attrs.${attribute.id}`;
   const inputClass = 'w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground';
   const labelClass = 'text-sm font-semibold text-foreground mb-1.5 inline-flex items-center gap-1';
 
-  // Determine options for this field
+  // ── Determine the parent attribute ID for cascading lookups ──────────────
+  // We look at attribute_dependencies to find which attribute this one depends on
+  const parentAttrId = useMemo(() => {
+    const dep = dependencies.find(
+      d => d.attribute_id === attribute.id && d.effect === 'show' && d.operator === 'exists'
+    );
+    return dep ? dep.depends_on_attribute_id : null;
+  }, [dependencies, attribute.id]);
+
+  // Get parent attribute's current form value (for cascading selects)
+  const parentValue = useMemo(() => {
+    if (!parentAttrId) return null;
+    return allValues?.attrs?.[parentAttrId] ?? null;
+  }, [parentAttrId, allValues]);
+
+  // Get parent lookup_values row ID by value string (to pass as parentId to getLookupValues)
+  const [parentLookupId, setParentLookupId] = useState(null);
+  const parentAttr = useMemo(() => attributes.find(a => a.id === parentAttrId), [attributes, parentAttrId]);
+
+  useEffect(() => {
+    if (!parentAttr?.lookup_type || !parentValue) {
+      setParentLookupId(null);
+      return;
+    }
+    // Find the UUID of the selected parent option in lookup_values
+    cachedGetLookupValues(parentAttr.lookup_type, null).then(rows => {
+      const match = rows.find(r => r.value === parentValue);
+      setParentLookupId(match?.id ?? null);
+    });
+  }, [parentAttr, parentValue]);
+
+  // ── Options state for select/multiselect/radio fields ───────────────────
   const [options, setOptions] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
 
-  useEffect(() => {
-    if (!attribute.lookup_type) return;
+  const needsLookup = !!attribute.lookup_type;
+  // For cascading selects, only load options once we have the parent's ID resolved
+  // (or immediately if there's no parent dependency)
+  const shouldLoad = needsLookup && (!parentAttrId || parentLookupId !== null || !parentValue);
 
-    // For dependent lookups (e.g. Models depend on Make), find the parent attribute id
-    // The parent value is stored in allValues.attrs[parentAttributeId]
-    // We detect this by looking at attribute name patterns
-    const parentVal = attribute.name === 'model' ? (allValues?.attrs?.make_attr_id || null) : null;
+  useEffect(() => {
+    if (!needsLookup) return;
+
+    // For cascading fields, wait until parent is selected OR field has no parent
+    const resolvedParentId = parentAttrId && parentValue ? parentLookupId : null;
+
+    // If parent is required but not yet selected, clear options
+    if (parentAttrId && parentValue && parentLookupId === null) {
+      setOptions([]);
+      return;
+    }
+    if (parentAttrId && !parentValue) {
+      setOptions([]);
+      return;
+    }
 
     setLoadingOptions(true);
-    fetchLookup(attribute.lookup_type, null).then(data => {
+    cachedGetLookupValues(attribute.lookup_type, resolvedParentId).then(data => {
       setOptions(data.map(d => d.value));
       setLoadingOptions(false);
     });
-  }, [attribute.lookup_type, attribute.id]);
+  }, [attribute.lookup_type, attribute.id, parentLookupId, parentValue, parentAttrId, needsLookup]);
 
-  // If attribute has static options stored as JSON
-  const staticOptions = useMemo(() => {
-    if (attribute.lookup_type) return options;
-    if (attribute.options) {
-      try {
-        return typeof attribute.options === 'string'
-          ? JSON.parse(attribute.options)
-          : attribute.options;
-      } catch { return []; }
+  // Reset this field when parent changes
+  const prevParentVal = useRef(parentValue);
+  useEffect(() => {
+    if (prevParentVal.current !== parentValue && parentAttrId) {
+      prevParentVal.current = parentValue;
     }
-    return [];
-  }, [attribute.options, options, attribute.lookup_type]);
+  }, [parentValue, parentAttrId]);
 
   const validationRules = {
     required: required ? `${attribute.label} is required` : false,
@@ -119,6 +168,8 @@ function FieldRenderer({ attribute, required, register, control, allValues, look
     <p className="mt-1 text-xs text-muted-foreground">{attribute.help_text}</p>
   ) : null;
 
+  const displayOptions = options;
+
   // SELECT
   if (attribute.field_type === 'select') {
     return (
@@ -134,11 +185,10 @@ function FieldRenderer({ attribute, required, register, control, allValues, look
           ) : (
             <select
               className={`${inputClass} appearance-none pr-8`}
-              placeholder={attribute.placeholder || `Select ${attribute.label}`}
               {...register(fieldName, validationRules)}
             >
               <option value="">{attribute.placeholder || `Select ${attribute.label}`}</option>
-              {staticOptions.map(opt => (
+              {displayOptions.map(opt => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
@@ -163,26 +213,32 @@ function FieldRenderer({ attribute, required, register, control, allValues, look
           rules={{ required: required ? `Select at least one ${attribute.label}` : false }}
           render={({ field }) => (
             <div className="flex flex-wrap gap-2 mt-1">
-              {staticOptions.map(opt => {
-                const isSelected = Array.isArray(field.value) && field.value.includes(opt);
-                return (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => {
-                      const current = Array.isArray(field.value) ? field.value : [];
-                      field.onChange(isSelected ? current.filter(i => i !== opt) : [...current, opt]);
-                    }}
-                    className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
-                      isSelected
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                );
-              })}
+              {loadingOptions ? (
+                <div className="flex h-10 items-center gap-2 text-muted-foreground text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading options...
+                </div>
+              ) : (
+                displayOptions.map(opt => {
+                  const isSelected = Array.isArray(field.value) && field.value.includes(opt);
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => {
+                        const current = Array.isArray(field.value) ? field.value : [];
+                        field.onChange(isSelected ? current.filter(i => i !== opt) : [...current, opt]);
+                      }}
+                      className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
+                        isSelected
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })
+              )}
             </div>
           )}
         />
@@ -204,7 +260,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, look
           rules={{ required: required ? `${attribute.label} is required` : false }}
           render={({ field }) => (
             <div className="flex flex-wrap gap-2 mt-1">
-              {staticOptions.map(opt => {
+              {displayOptions.map(opt => {
                 const isSelected = field.value === opt;
                 return (
                   <button
@@ -281,9 +337,27 @@ function FieldRenderer({ attribute, required, register, control, allValues, look
         <input
           type="number"
           className={inputClass}
-          placeholder={attribute.placeholder || attribute.min_value != null ? `Min: ${attribute.min_value}` : `Enter ${attribute.label.toLowerCase()}`}
+          placeholder={attribute.placeholder || (attribute.min_value != null ? `Min: ${attribute.min_value}` : `Enter ${attribute.label.toLowerCase()}`)}
           min={attribute.min_value ?? undefined}
           max={attribute.max_value ?? undefined}
+          {...register(fieldName, validationRules)}
+        />
+        {helpText}
+      </div>
+    );
+  }
+
+  // TEXTAREA
+  if (attribute.field_type === 'textarea') {
+    return (
+      <div className="md:col-span-2">
+        <label className={labelClass}>
+          {attribute.label} {required && <span className="text-destructive">*</span>}
+        </label>
+        <textarea
+          rows={4}
+          className={`${inputClass} resize-none`}
+          placeholder={attribute.placeholder || `Enter ${attribute.label.toLowerCase()}`}
           {...register(fieldName, validationRules)}
         />
         {helpText}
@@ -312,20 +386,9 @@ function FieldRenderer({ attribute, required, register, control, allValues, look
 export default function MetadataDrivenForm({ categorySlug, register, control, watch, setValue }) {
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [lookupCache, setLookupCache] = useState({});
 
   // Reactive watch on all form values for dependency evaluation
   const allValues = useWatch({ control });
-
-  // Fetch lookup values with caching
-  const fetchLookup = useCallback(async (lookupType, parentId = null) => {
-    const cacheKey = `${lookupType}::${parentId || 'root'}`;
-    if (lookupCache[cacheKey]) return lookupCache[cacheKey];
-
-    const data = await getLookupValues(lookupType, parentId);
-    setLookupCache(prev => ({ ...prev, [cacheKey]: data }));
-    return data;
-  }, [lookupCache]);
 
   // Fetch metadata from Supabase when category changes
   useEffect(() => {
@@ -401,8 +464,8 @@ export default function MetadataDrivenForm({ categorySlug, register, control, wa
             register={register}
             control={control}
             allValues={allValues}
-            lookupCache={lookupCache}
-            fetchLookup={fetchLookup}
+            attributes={metadata.attributes}
+            dependencies={metadata.dependencies}
           />
         ))}
       </div>

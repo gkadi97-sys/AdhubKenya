@@ -37,8 +37,10 @@ const runMigration = () => {
   const catValues = [];
   const groupValues = [];
   const attrValues = [];
+  const depValues = [];
   const lookupTypeSet = new Set(); // track unique lookup_type names already seeded
   const lookupValues = []; // { lookup_type, value, order_index }
+  const attrIdMap = {}; // mapping to lookup dependsOn attribute IDs
 
   for (const slug of Object.keys(CATEGORY_MAP)) {
     const meta = CATEGORY_MAP[slug];
@@ -96,8 +98,32 @@ const runMigration = () => {
         }
 
         const attrId = uuidv4();
+        attrIdMap[`${slug}_${attr.id}`] = attrId;
         attrValues.push(`('${attrId}', (SELECT id FROM public.categories WHERE slug = '${slug}'), ${groupId ? `'${groupId}'` : 'NULL'}, '${escapeSql(attr.id)}', '${escapeSql(attr.label)}', '${fieldType}', ${isReq}, ${isSearch}, false, ${aIndex}, ${lookupTypeStr})`);
         
+        // Handle Dependencies
+        if (attr.dependsOn) {
+          const dependsOnField = attr.dependsOn.field;
+          const effect = 'show'; // default in legacy
+          let operator = 'exists';
+          let depValStr = 'NULL';
+
+          if (attr.dependsOn.value !== undefined) {
+            operator = 'equals';
+            depValStr = `'${escapeSql(String(attr.dependsOn.value))}'::jsonb`;
+          }
+
+          // We defer the actual string building to after all attributes are mapped 
+          // so we can reliably lookup the dependsOn attribute UUID.
+          depValues.push({
+            attrId,
+            dependsOnSlugKey: `${slug}_${dependsOnField}`,
+            effect,
+            operator,
+            depValStr
+          });
+        }
+
         aIndex += 10;
       }
     }
@@ -127,6 +153,24 @@ const runMigration = () => {
     sql += `INSERT INTO public.attributes (id, category_id, group_id, name, label, field_type, is_required, is_searchable, is_listing_card, display_order, lookup_type) VALUES \n`;
     sql += attrValues.join(',\n');
     sql += `\nON CONFLICT DO NOTHING;\n\n`;
+  }
+
+  // 5. Dependencies
+  if (depValues.length > 0) {
+    const finalDepStrings = depValues.map(dep => {
+      const dependsOnAttrId = attrIdMap[dep.dependsOnSlugKey];
+      if (!dependsOnAttrId) {
+        console.warn(`WARNING: Dependency target ${dep.dependsOnSlugKey} not found!`);
+        return null;
+      }
+      return `('${uuidv4()}', '${dep.attrId}', '${dependsOnAttrId}', '${dep.effect}', '${dep.operator}', ${dep.depValStr})`;
+    }).filter(Boolean);
+
+    if (finalDepStrings.length > 0) {
+      sql += `INSERT INTO public.attribute_dependencies (id, attribute_id, depends_on_attribute_id, effect, operator, dependency_value) VALUES \n`;
+      sql += finalDepStrings.join(',\n');
+      sql += `\nON CONFLICT DO NOTHING;\n\n`;
+    }
   }
 
   fs.writeFileSync('d:/AdHubKenya/client-react/scripts/seed_all_metadata.sql', sql, { encoding: 'utf8' });
