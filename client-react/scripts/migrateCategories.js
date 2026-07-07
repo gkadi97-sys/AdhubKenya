@@ -24,8 +24,6 @@ const CATEGORY_MAP = {
   'seeking-work': { name: 'Seeking Work', level: 1, order: 180 }
 };
 
-let sql = `-- AdHubKenya Mass Metadata Seed SQL\n\n`;
-
 const escapeSql = (str) => {
   if (typeof str !== 'string') return str;
   return str.replace(/'/g, "''");
@@ -34,14 +32,13 @@ const escapeSql = (str) => {
 const runMigration = () => {
   console.log('Generating Migration SQL...');
 
-  let catSql = `INSERT INTO public.categories (id, slug, name, level, order_index, is_active, allow_price, allow_negotiable, allow_location, allow_condition) VALUES \n`;
-  const catValues = [];
-  
-  let groupSql = `INSERT INTO public.attribute_groups (id, category_id, name, order_index) VALUES \n`;
-  const groupValues = [];
+  let sql = `-- AdHubKenya Mass Metadata Seed SQL\n-- Generated: ${new Date().toISOString()}\n\n`;
 
-  let attrSql = `INSERT INTO public.attributes (id, category_id, group_id, name, label, field_type, is_required, is_searchable, is_listing_card, display_order, options) VALUES \n`;
+  const catValues = [];
+  const groupValues = [];
   const attrValues = [];
+  const lookupTypeSet = new Set(); // track unique lookup_type names already seeded
+  const lookupValues = []; // { lookup_type, value, order_index }
 
   for (const slug of Object.keys(CATEGORY_MAP)) {
     const meta = CATEGORY_MAP[slug];
@@ -77,35 +74,68 @@ const runMigration = () => {
         if (attr.type === 'boolean') fieldType = 'boolean';
         
         const groupId = groupMap[attr.postAd?.group];
-
-        let optionsStr = 'NULL';
-        if (attr.options && Array.isArray(attr.options)) {
-           // Stringify as JSON array
-           optionsStr = `'${escapeSql(JSON.stringify(attr.options))}'::jsonb`;
-        }
-
         const isReq = attr.postAd?.required ? 'true' : 'false';
         const isSearch = attr.search?.filterable ? 'true' : 'false';
-        const isCard = 'false'; // Default to false
+
+        // Generate lookup_type key: slug_attrId (e.g. phones-tablets_subcategory)
+        let lookupTypeStr = 'NULL';
+        if (attr.options && Array.isArray(attr.options) && attr.options.length > 0) {
+          const lookupType = `${slug}_${attr.id}`;
+          lookupTypeStr = `'${lookupType}'`;
+
+          // Only add lookup values once per unique lookup_type
+          if (!lookupTypeSet.has(lookupType)) {
+            lookupTypeSet.add(lookupType);
+            let lvIndex = 0;
+            for (const opt of attr.options) {
+              const optValue = typeof opt === 'string' ? opt : (opt.label || opt.value || String(opt));
+              lookupValues.push(`('${uuidv4()}', '${lookupType}', '${escapeSql(optValue)}', ${lvIndex})`);
+              lvIndex += 10;
+            }
+          }
+        }
 
         const attrId = uuidv4();
-        attrValues.push(`('${attrId}', (SELECT id FROM public.categories WHERE slug = '${slug}'), ${groupId ? `'${groupId}'` : 'NULL'}, '${escapeSql(attr.id)}', '${escapeSql(attr.label)}', '${fieldType}', ${isReq}, ${isSearch}, ${isCard}, ${aIndex}, ${optionsStr})`);
+        attrValues.push(`('${attrId}', (SELECT id FROM public.categories WHERE slug = '${slug}'), ${groupId ? `'${groupId}'` : 'NULL'}, '${escapeSql(attr.id)}', '${escapeSql(attr.label)}', '${fieldType}', ${isReq}, ${isSearch}, false, ${aIndex}, ${lookupTypeStr})`);
         
         aIndex += 10;
       }
     }
   }
 
-  sql += catSql + catValues.join(',\n') + `\nON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, order_index = EXCLUDED.order_index;\n\n`;
+  // 1. Categories
+  sql += `INSERT INTO public.categories (id, slug, name, level, order_index, is_active, allow_price, allow_negotiable, allow_location, allow_condition) VALUES \n`;
+  sql += catValues.join(',\n');
+  sql += `\nON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, order_index = EXCLUDED.order_index;\n\n`;
+
+  // 2. Attribute Groups
   if (groupValues.length > 0) {
-    sql += groupSql + groupValues.join(',\n') + `\nON CONFLICT DO NOTHING;\n\n`;
+    sql += `INSERT INTO public.attribute_groups (id, category_id, name, order_index) VALUES \n`;
+    sql += groupValues.join(',\n');
+    sql += `\nON CONFLICT DO NOTHING;\n\n`;
   }
+
+  // 3. Lookup Values (options)
+  if (lookupValues.length > 0) {
+    sql += `INSERT INTO public.lookup_values (id, lookup_type, value, order_index) VALUES \n`;
+    sql += lookupValues.join(',\n');
+    sql += `\nON CONFLICT DO NOTHING;\n\n`;
+  }
+
+  // 4. Attributes
   if (attrValues.length > 0) {
-    sql += attrSql + attrValues.join(',\n') + `\nON CONFLICT DO NOTHING;\n\n`;
+    sql += `INSERT INTO public.attributes (id, category_id, group_id, name, label, field_type, is_required, is_searchable, is_listing_card, display_order, lookup_type) VALUES \n`;
+    sql += attrValues.join(',\n');
+    sql += `\nON CONFLICT DO NOTHING;\n\n`;
   }
 
   fs.writeFileSync('d:/AdHubKenya/client-react/scripts/seed_all_metadata.sql', sql, { encoding: 'utf8' });
-  console.log('\nMigration Complete! Output written to: scripts/seed_all_metadata.sql');
+  console.log(`\nMigration Complete!`);
+  console.log(`  Categories: ${catValues.length}`);
+  console.log(`  Groups: ${groupValues.length}`);
+  console.log(`  Lookup Values: ${lookupValues.length}`);
+  console.log(`  Attributes: ${attrValues.length}`);
+  console.log(`  Output: scripts/seed_all_metadata.sql`);
 };
 
 runMigration();
