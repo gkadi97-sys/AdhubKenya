@@ -1,23 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getListings, getFilterAggregates } from '@/lib/api';
+import { getListings, getLookupValues } from '@/lib/api';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
-import {
-  hasCascadeFilters,
-  getLevel1Options,
-  getLevel2Options,
-  getLevel3Options,
-  getCascadeLabels,
-  getCascadeDepth,
-  getCascadeConfig,
-} from '@/lib/filterEngine';
-import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
-import { getValidOptions } from '@/lib/filterValidation';
+import { useMetadataCache } from '@/lib/useMetadataCache';
 import LocationCascader from './LocationCascader';
 import PriceFilter from './PriceFilter';
-import DynamicDataFilter from './DynamicDataFilter';
-import { ChevronDown, ChevronLeft, X } from 'lucide-react';
+import { ChevronDown, X, Loader2 } from 'lucide-react';
 
 function FilterGroup({ label, children, defaultOpen = true }) {
   return (
@@ -66,7 +55,7 @@ function MultiCheck({ options, value = '', onChange }) {
 
 function DebouncedInput({ value: initialValue, onChange, ...props }) {
   const [value, setValue] = useState(initialValue);
-  useEffect(() => { setValue(initialValue); }, [initialValue]);
+  useEffect(() => { setValue(initialValue || ''); }, [initialValue]);
   useEffect(() => {
     const timeout = setTimeout(() => { onChange(value); }, 400);
     return () => clearTimeout(timeout);
@@ -74,47 +63,149 @@ function DebouncedInput({ value: initialValue, onChange, ...props }) {
   return <input {...props} value={value} onChange={e => setValue(e.target.value)} />;
 }
 
+// ── Dynamic Field Renderer ──
+function DynamicFilterField({ attr, value, onChange, filters }) {
+  const [options, setOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (attr.is_lookup && attr.lookup_type) {
+      setLoading(true);
+      // Pass the parent filter value if there's a dependency (e.g., model depends on make)
+      // For simple filters, we might just load all options or we might need to filter.
+      // For now, let's just load all options and if there's a parentId, the API could filter it if we knew the ID.
+      // But we just use standard getLookupValues.
+      getLookupValues(attr.lookup_type).then(data => {
+        setOptions(data.map(d => d.value));
+        setLoading(false);
+      });
+    } else if (attr.options) {
+      try {
+        setOptions(typeof attr.options === 'string' ? JSON.parse(attr.options) : attr.options);
+      } catch (e) {
+        setOptions([]);
+      }
+    }
+  }, [attr.lookup_type, attr.options]);
+
+  if (loading) {
+    return <div className="flex items-center gap-2 text-muted-foreground text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>;
+  }
+
+  if (attr.field_type === 'select') {
+    return (
+      <div className="relative">
+        <select 
+          value={value || ''} 
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 pr-8"
+        >
+          <option value="">Any</option>
+          {options.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (attr.field_type === 'multiselect') {
+    return (
+      <div className="max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+        <MultiCheck options={options} value={value || ''} onChange={onChange} />
+      </div>
+    );
+  }
+
+  if (attr.field_type === 'radio') {
+    return (
+      <div className="max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+        <RadioGroup options={options} value={value || ''} onChange={onChange} />
+      </div>
+    );
+  }
+
+  if (attr.field_type === 'number') {
+    // Render min/max if it's a typical number filter
+    const minKey = `${attr.name}_min`;
+    const maxKey = `${attr.name}_max`;
+    return (
+      <div className="flex items-center gap-2">
+        <DebouncedInput
+          type="number"
+          placeholder="Min"
+          value={filters[minKey] || ''}
+          onChange={val => onChange(val, minKey)}
+          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+        />
+        <span className="text-muted-foreground text-xs font-medium shrink-0">to</span>
+        <DebouncedInput
+          type="number"
+          placeholder="Max"
+          value={filters[maxKey] || ''}
+          onChange={val => onChange(val, maxKey)}
+          className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+        />
+      </div>
+    );
+  }
+
+  if (attr.field_type === 'text') {
+    return (
+      <DebouncedInput
+        type="text"
+        placeholder={`Any ${attr.label}...`}
+        value={value || ''}
+        onChange={onChange}
+        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
+      />
+    );
+  }
+
+  return null;
+}
+
+
+// ── FilterPanel ──
 export default function FilterPanel({ isMobile = false, onClose }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Local state for mobile "staged" filters. On desktop, this syncs instantly.
   const [localParams, setLocalParams] = useState(new URLSearchParams(searchParams));
 
-  // Sync with URL if changed externally (or constantly on desktop)
   useEffect(() => {
     if (!isMobile) {
       setLocalParams(new URLSearchParams(searchParams));
     }
   }, [searchParams, isMobile]);
 
-  // Derive filters object
-  const filters = {};
-  for (const [k, v] of localParams.entries()) {
-    filters[k] = v;
-  }
-  const category = filters.category || '';
+  const filters = useMemo(() => {
+    const obj = {};
+    for (const [k, v] of localParams.entries()) obj[k] = v;
+    return obj;
+  }, [localParams]);
 
-  // Get live count for Mobile CTA
+  const category = filters.category || '';
+  const metadata = useMetadataCache(category);
+
   const { data: countData } = useQuery({
     queryKey: ['filter-live-count', filters],
     queryFn: () => getListings(filters),
     staleTime: 1000 * 60,
-    enabled: isMobile, // Only needed for the mobile CTA
+    enabled: isMobile,
   });
   const liveCount = countData?.total || 0;
 
-  // The single update handler
-  const updateFilter = (key, value) => {
+  const updateFilter = (key, value, explicitKey = null) => {
     const next = new URLSearchParams(localParams);
+    const targetKey = explicitKey || key;
+    
     if (value) {
-      next.set(key, value);
+      next.set(targetKey, value);
     } else {
-      next.delete(key);
+      next.delete(targetKey);
     }
-    next.delete('page'); // Reset pagination
+    next.delete('page');
 
-    // Dependency Resets
     if (key === 'county') {
       next.delete('town');
       next.delete('area');
@@ -123,36 +214,33 @@ export default function FilterPanel({ isMobile = false, onClose }) {
       next.delete('area');
     }
     if (key === 'category') {
-      // Clear EVERYTHING except category and keyword
       const keyword = next.get('keyword');
       const keys = [...next.keys()];
       keys.forEach(k => next.delete(k));
       next.set('category', value);
       if (keyword) next.set('keyword', keyword);
     }
-    
-    // Dynamic Attribute Resets
-    const schema = ATTRIBUTE_ENGINE[category]?.attributes || ATTRIBUTE_ENGINE.default.attributes;
-    
-    // Recursive function to find and delete all attributes that depend on the changed key
-    const clearDependentKeys = (parentKey) => {
-      schema.forEach(attr => {
-        if (attr.dependsOn && attr.dependsOn.field === parentKey) {
-          if (next.has(attr.id)) {
-            next.delete(attr.id);
-            // Recursively clear children of this attribute
-            clearDependentKeys(attr.id);
-          }
-        }
-      });
-    };
 
-    // If the value changed, trigger the cascade clear for its dependencies
-    clearDependentKeys(key);
+    // Dynamic Dependency Clears
+    if (metadata?.dependencies && metadata?.attributes) {
+      const clearDependentKeys = (parentName) => {
+        const parentAttr = metadata.attributes.find(a => a.name === parentName);
+        if (!parentAttr) return;
+
+        const deps = metadata.dependencies.filter(d => d.depends_on_attribute_id === parentAttr.id);
+        deps.forEach(dep => {
+          const childAttr = metadata.attributes.find(a => a.id === dep.attribute_id);
+          if (childAttr && next.has(childAttr.name)) {
+            next.delete(childAttr.name);
+            clearDependentKeys(childAttr.name);
+          }
+        });
+      };
+      clearDependentKeys(key);
+    }
 
     setLocalParams(next);
 
-    // If Desktop and NOT seeking-work (CVs have many filters, better to use Apply button), push to URL immediately
     if (!isMobile && category !== 'seeking-work') {
       navigate(`/browse?${next.toString()}`, { replace: true });
     }
@@ -172,181 +260,44 @@ export default function FilterPanel({ isMobile = false, onClose }) {
     if (onClose) onClose();
   };
 
-  // Pre-compute dynamic attributes
-  const schema = ATTRIBUTE_ENGINE[category]?.attributes || ATTRIBUTE_ENGINE.default.attributes;
+  // Evaluate if an attribute should be shown
+  const isAttrVisible = (attr) => {
+    if (!attr.is_filterable) return false;
+    if (!metadata?.dependencies) return true;
+    
+    const attrDeps = metadata.dependencies.filter(d => d.attribute_id === attr.id);
+    if (attrDeps.length === 0) return true;
 
-  // Render Subcategory / Attributes based on schema
-  const renderDynamicAttributes = () => {
-    if (!category) return null;
+    const showDeps = attrDeps.filter(d => d.effect === 'show');
+    const hideDeps = attrDeps.filter(d => d.effect === 'hide');
 
-    return schema.map(attr => {
-      // Check if it should be displayed in search
-      if (!attr.search || !attr.search.filterable) return null;
+    const evalCondition = (dep) => {
+      const parentAttr = metadata.attributes.find(a => a.id === dep.depends_on_attribute_id);
+      if (!parentAttr) return false;
+      
+      const fieldValue = filters[parentAttr.name];
+      const depVal = dep.dependency_value;
 
-      // Check dependencies
-      if (attr.dependsOn) {
-        const checkSingle = (dep) => {
-          if (dep.and) {
-            return dep.and.every(d => checkSingle(d));
-          }
-          const { field, value, notValue } = dep;
-          const parentValue = filters[field];
-          if (!parentValue) return false;
-          
-          if (Array.isArray(value)) {
-            if (!value.includes(parentValue)) return false;
-          } else if (value && parentValue !== value) {
-            return false;
-          }
-
-          if (notValue && parentValue === notValue) return false;
-          return true;
-        };
-
-        const isValid = Array.isArray(attr.dependsOn) 
-          ? attr.dependsOn.some(dep => checkSingle(dep))
-          : checkSingle(attr.dependsOn);
-
-        if (!isValid) return null;
+      switch (dep.operator) {
+        case 'equals':     return fieldValue === depVal;
+        case 'not_equals': return fieldValue !== depVal;
+        case 'exists':     return !!fieldValue;
+        case 'not_exists': return !fieldValue;
+        case 'contains':   return String(fieldValue || '').toLowerCase().includes(String(depVal || '').toLowerCase());
+        default:           return false;
       }
+    };
 
-      const uiType = attr.search.uiType;
-
-      // Filter options based on dependent constraints if any exist
-      let validOptionsList = attr.options || [];
-      const constraints = getValidOptions(category, filters, attr.id);
-      if (constraints) {
-        validOptionsList = validOptionsList.filter(o => constraints.includes(o));
-      }
-
-      if (uiType === 'dynamic-cascade') {
-        const config = getCascadeConfig(category, filters.subcategory || filters.bodyType);
-        
-        let options = [];
-        if (attr.cascadeLevel === 1) {
-          options = getLevel1Options(category, filters, attr.id);
-        } else if (attr.cascadeLevel === 2) {
-          const parentKey = attr.cascadeParent || (config && config.level1) || schema.find(a => a.cascadeLevel === 1)?.id;
-          if (filters[parentKey]) {
-            options = getLevel2Options(category, filters[parentKey], filters, attr.id);
-          }
-        } else if (attr.cascadeLevel === 3) {
-          const l1 = attr.cascadeGrandparent || config?.level1 || schema.find(a => a.cascadeLevel === 1)?.id;
-          const l2 = attr.cascadeParent || config?.level2 || schema.find(a => a.cascadeLevel === 2)?.id;
-          if (filters[l1] && filters[l2]) {
-            options = getLevel3Options(category, filters[l1], filters[l2], filters, attr.id);
-          }
-        }
-
-        if (!options || options.length === 0) return null;
-
-        return (
-          <FilterGroup key={attr.id} label={attr.label}>
-            <div className="max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-              <RadioGroup options={options} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
-            </div>
-          </FilterGroup>
-        );
-      }
-
-      if (uiType === 'radio') {
-        if (!validOptionsList.length) return null;
-        return (
-          <FilterGroup key={attr.id} label={attr.label}>
-            <RadioGroup options={validOptionsList} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
-          </FilterGroup>
-        );
-      }
-
-      if (uiType === 'multicheck') {
-        if (!validOptionsList.length) return null;
-        return (
-          <FilterGroup key={attr.id} label={attr.label}>
-             <MultiCheck options={validOptionsList} value={filters[attr.id] || ''} onChange={(val) => updateFilter(attr.id, val)} />
-          </FilterGroup>
-        );
-      }
-
-      if (uiType === 'select') {
-        if (!validOptionsList.length) return null;
-        return (
-          <FilterGroup key={attr.id} label={attr.label}>
-            <div className="relative">
-              <select 
-                value={filters[attr.id] || ''} 
-                onChange={(e) => updateFilter(attr.id, e.target.value)}
-                className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 pr-8"
-              >
-                <option value="">Any</option>
-                {validOptionsList.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            </div>
-          </FilterGroup>
-        );
-      }
-
-      if (uiType === 'dynamic-select') {
-        return (
-          <FilterGroup key={attr.id} label={attr.label}>
-            <DynamicDataFilter
-              category={category}
-              urlParam={attr.id}
-              filters={filters}
-              value={filters[attr.id] || ''}
-              onChange={(val) => updateFilter(attr.id, val)}
-            />
-          </FilterGroup>
-        );
-      }
-
-      if (uiType === 'range') {
-        const minKey = `${attr.id}_min`;
-        const maxKey = `${attr.id}_max`;
-        return (
-          <FilterGroup key={attr.id} label={attr.label}>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={filters[minKey] || ''}
-                onChange={e => updateFilter(minKey, e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
-              />
-              <span className="text-muted-foreground text-xs font-medium shrink-0">to</span>
-              <input
-                type="number"
-                placeholder="Max"
-                value={filters[maxKey] || ''}
-                onChange={e => updateFilter(maxKey, e.target.value)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-          </FilterGroup>
-        );
-      }
-
-      if (uiType === 'text') {
-        return (
-          <FilterGroup key={attr.id} label={attr.label}>
-            <DebouncedInput
-              type="text"
-              placeholder={`Any ${attr.label}...`}
-              value={filters[attr.id] || ''}
-              onChange={val => updateFilter(attr.id, val)}
-              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
-            />
-          </FilterGroup>
-        );
-      }
-
-      return null;
-    });
+    if (showDeps.length > 0) {
+      return showDeps.every(evalCondition);
+    } else if (hideDeps.length > 0) {
+      return !hideDeps.every(evalCondition);
+    }
+    return true;
   };
 
   return (
     <div className="flex h-full flex-col bg-background">
-      {/* Header (Mobile only) */}
       {isMobile && (
         <div className="flex items-center justify-between border-b border-border p-4">
           <h2 className="text-lg font-bold text-foreground">Filters</h2>
@@ -356,10 +307,8 @@ export default function FilterPanel({ isMobile = false, onClose }) {
         </div>
       )}
 
-      {/* Filter Content */}
       <div className={`flex-1 overflow-y-auto p-4 md:p-0 ${!isMobile ? 'pr-4 custom-scrollbar' : ''}`}>
         
-        {/* 1. Category */}
         <FilterGroup label="Category">
           <div className="relative">
             <select 
@@ -376,7 +325,6 @@ export default function FilterPanel({ isMobile = false, onClose }) {
           </div>
         </FilterGroup>
 
-        {/* 3. Location */}
         <FilterGroup label="Location">
           <LocationCascader 
             county={filters.county} 
@@ -386,7 +334,6 @@ export default function FilterPanel({ isMobile = false, onClose }) {
           />
         </FilterGroup>
 
-        {/* 4. Price */}
         {!['jobs', 'seeking-work'].includes(filters.category) && (
           <FilterGroup label="Price">
             <PriceFilter 
@@ -397,7 +344,7 @@ export default function FilterPanel({ isMobile = false, onClose }) {
           </FilterGroup>
         )}
 
-        {/* 5. Condition (Global Standard - exclude non-physical goods) */}
+        {/* Global Standard Condition fallback, could be driven by metadata but kept for standard backward compat */}
         {!['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
           <FilterGroup label="Condition">
             <RadioGroup 
@@ -408,48 +355,22 @@ export default function FilterPanel({ isMobile = false, onClose }) {
           </FilterGroup>
         )}
 
-        {/* 6. Dynamic Attributes */}
-        {renderDynamicAttributes()}
-
-        {/* 7. CV Specific Custom Toggles */}
-        {filters.category === 'seeking-work' && (
-          <>
-            <FilterGroup label="Profile Status">
-              <label className="flex items-center gap-3 py-1 cursor-pointer group">
-                <div className="relative flex items-center">
-                  <input
-                    type="checkbox"
-                    className="peer h-5 w-5 appearance-none rounded border-2 border-border transition-all checked:border-primary checked:bg-primary"
-                    checked={filters.verified === 'true'}
-                    onChange={(e) => updateFilter('verified', e.target.checked ? 'true' : '')}
-                  />
-                  <svg className="absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-primary-foreground opacity-0 transition-opacity peer-checked:opacity-100 pointer-events-none" viewBox="0 0 16 16" fill="none">
-                    <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Verified Candidates Only</span>
-              </label>
-              
-              <label className="flex items-center gap-3 py-1 cursor-pointer group mt-2">
-                <div className="relative flex items-center">
-                  <input
-                    type="checkbox"
-                    className="peer h-5 w-5 appearance-none rounded border-2 border-border transition-all checked:border-primary checked:bg-primary"
-                    checked={filters.has_cv === 'true'}
-                    onChange={(e) => updateFilter('has_cv', e.target.checked ? 'true' : '')}
-                  />
-                  <svg className="absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 text-primary-foreground opacity-0 transition-opacity peer-checked:opacity-100 pointer-events-none" viewBox="0 0 16 16" fill="none">
-                    <path d="M13.3332 4L5.99984 11.3333L2.6665 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Has CV Uploaded</span>
-              </label>
+        {/* ── Dynamic Metadata Filters ── */}
+        {metadata?.attributes && metadata.attributes
+          .filter(isAttrVisible)
+          .sort((a, b) => a.display_order - b.display_order)
+          .map(attr => (
+            <FilterGroup key={attr.id} label={attr.label}>
+              <DynamicFilterField
+                attr={attr}
+                value={filters[attr.name]}
+                filters={filters}
+                onChange={(val, explicitKey) => updateFilter(attr.name, val, explicitKey)}
+              />
             </FilterGroup>
-          </>
-        )}
+          ))}
       </div>
 
-      {/* Footer / Actions */}
       <div className={`border-t border-border bg-background p-4 flex items-center gap-3 ${isMobile ? 'sticky bottom-0 z-10' : 'mt-4 sticky bottom-0 z-10 pb-6'}`}>
         <button 
           onClick={handleClearAll}
@@ -457,7 +378,6 @@ export default function FilterPanel({ isMobile = false, onClose }) {
         >
           Clear All
         </button>
-        {/* On mobile, ALWAYS show the apply button. On desktop, show it for seeking-work since there are many complex filters that would cause lag if auto-applying on every keystroke. */}
         {(isMobile || filters.category === 'seeking-work') && (
           <button 
             onClick={handleApply}
