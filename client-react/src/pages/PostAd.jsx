@@ -4,7 +4,6 @@ import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { createListing, checkDuplicateListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
-import DynamicListingForm from '@/components/forms/DynamicListingForm';
 import MetadataDrivenForm from '@/components/forms/MetadataDrivenForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { TRUCK_CONDITIONS } from '@/lib/truckData';
@@ -346,7 +345,6 @@ export default function PostAdPage() {
                   watch={watch}
                   setValue={setValue}
                 />
-                <DynamicListingForm category={category} register={register} control={control} watch={watch} setValue={setValue} />
               </div>
             )}
 
