@@ -442,8 +442,9 @@ export default function PostAdPage() {
 
           {/* ── Step 4: Photos & Contact ────────────────────────── */}
           <div className={`${currentStep === 4 ? 'block' : 'hidden'} md:block md:mt-6`}>
-            <h3 className={cardHeaderClass}>🖼️ Photos {isVehicle ? '(up to 10)' : '(up to 5)'}</h3>
-            {isVehicle && <p className="mb-3 text-sm text-muted-foreground">Include exterior, interior, engine bay, dashboard, and tyre photos for faster sales.</p>}
+            <div className={cardClass}>
+              <h3 className={cardHeaderClass}>🖼️ Photos {isVehicle ? '(up to 10)' : '(up to 5)'}</h3>
+              {isVehicle && <p className="mb-3 text-sm text-muted-foreground">Include exterior, interior, engine bay, dashboard, and tyre photos for faster sales.</p>}
             
             {/* Label wrapper = reliable file picker on iOS Safari */}
             <label

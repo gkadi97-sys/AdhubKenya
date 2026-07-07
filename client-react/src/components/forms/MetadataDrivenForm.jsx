@@ -13,7 +13,26 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWatch, Controller } from 'react-hook-form';
 import { getCategoryMetadata, getLookupValues } from '@/lib/api';
-import { ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronDown, Loader2, AlertCircle } from 'lucide-react';
+
+// ─── Metadata Validation Engine ─────────────────────────────────────────────
+function validateMetadata(metadata) {
+  const errors = [];
+  if (!metadata.attributes || metadata.attributes.length === 0) {
+    errors.push("No attributes defined for this category.");
+  }
+  
+  // Check for orphaned dependencies
+  metadata.dependencies?.forEach(dep => {
+    const hasSource = metadata.attributes.some(a => a.id === dep.attribute_id);
+    const hasTarget = metadata.attributes.some(a => a.id === dep.depends_on_attribute_id);
+    if (!hasSource || !hasTarget) {
+      errors.push("Orphaned dependency detected.");
+    }
+  });
+
+  return errors;
+}
 
 // ─── Dependency Evaluation Engine ───────────────────────────────────────────
 function evaluateDependencies(attribute, dependencies, allValues) {
@@ -68,52 +87,61 @@ function evaluateDependencies(attribute, dependencies, allValues) {
 const LOOKUP_CACHE = {};
 
 async function cachedGetLookupValues(lookupType, parentId = null) {
-  const key = `${lookupType}::${parentId ?? 'root'}`;
-  if (LOOKUP_CACHE[key]) return LOOKUP_CACHE[key];
-  const data = await getLookupValues(lookupType, parentId);
-  LOOKUP_CACHE[key] = data;
-  return data;
+  // Always fetch fresh data to avoid Vite HMR caching issues during development
+  return await getLookupValues(lookupType, parentId);
 }
 
 // ─── Individual Field Renderer ───────────────────────────────────────────────
-function FieldRenderer({ attribute, required, register, control, allValues, attributes, dependencies }) {
+function FieldRenderer({ attribute, required, register, control, allValues, setValue, attributes, dependencies }) {
   const fieldName = `attrs.${attribute.id}`;
   const inputClass = 'w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground';
   const labelClass = 'text-sm font-semibold text-foreground mb-1.5 inline-flex items-center gap-1';
 
-  // ── Determine the parent attribute ID for cascading lookups ──────────────
-  // We look at attribute_dependencies to find which attribute this one depends on
-  const parentAttrId = useMemo(() => {
+  // ── Determine dependencies for this field ────────────────────────────────
+  // 'cascade' dep: this field's options are filtered by parent's lookup UUID
+  // 'show' dep:    this field is only visible when parent has a value, but options are NOT filtered
+  const cascadeDepAttrId = useMemo(() => {
+    const dep = dependencies.find(
+      d => d.attribute_id === attribute.id && d.effect === 'cascade' && d.operator === 'exists'
+    );
+    return dep ? dep.depends_on_attribute_id : null;
+  }, [dependencies, attribute.id]);
+
+  // Also track 'show' dependency so we know if we need parent value to display options
+  const showDepAttrId = useMemo(() => {
     const dep = dependencies.find(
       d => d.attribute_id === attribute.id && d.effect === 'show' && d.operator === 'exists'
     );
     return dep ? dep.depends_on_attribute_id : null;
   }, [dependencies, attribute.id]);
 
-  // Get parent attribute's current form value (for cascading selects)
+  // The controlling parent attr id (cascade takes priority)
+  const parentAttrId = cascadeDepAttrId || showDepAttrId;
+
+  // Get parent attribute's current form value
   const parentValue = useMemo(() => {
     if (!parentAttrId) return null;
     return allValues?.attrs?.[parentAttrId] ?? null;
   }, [parentAttrId, allValues]);
 
-  // Get parent lookup_values row ID by value string (to pass as parentId to getLookupValues)
+  // For CASCADE deps only: resolve the parent value to its UUID in lookup_values
   const [parentLookupId, setParentLookupId] = useState(null);
-  const parentAttr = useMemo(() => attributes.find(a => a.id === parentAttrId), [attributes, parentAttrId]);
+  const parentAttr = useMemo(() => attributes.find(a => a.id === cascadeDepAttrId), [attributes, cascadeDepAttrId]);
 
   useEffect(() => {
-    if (!parentAttr?.lookup_type || !parentValue) {
+    if (!cascadeDepAttrId || !parentAttr?.lookup_type || !parentValue) {
       setParentLookupId(null);
       return;
     }
     // Find the UUID of the selected parent option in lookup_values
-    cachedGetLookupValues(parentAttr.lookup_type, null).then(rows => {
+    cachedGetLookupValues(parentAttr.lookup_type, 'any').then(rows => {
       const match = rows.find(r => r.value === parentValue);
       setParentLookupId(match?.id ?? null);
     });
-  }, [parentAttr, parentValue]);
+  }, [cascadeDepAttrId, parentAttr, parentValue]);
 
   // ── Options state for select/multiselect/radio fields ───────────────────
-  const [options, setOptions] = useState([]);
+  const [options, setOptions] = useState([]); // Array of { value, metadata }
   const [loadingOptions, setLoadingOptions] = useState(false);
 
   const needsLookup = !!attribute.lookup_type;
@@ -124,25 +152,45 @@ function FieldRenderer({ attribute, required, register, control, allValues, attr
   useEffect(() => {
     if (!needsLookup) return;
 
-    // For cascading fields, wait until parent is selected OR field has no parent
-    const resolvedParentId = parentAttrId && parentValue ? parentLookupId : null;
-
-    // If parent is required but not yet selected, clear options
-    if (parentAttrId && parentValue && parentLookupId === null) {
-      setOptions([]);
-      return;
-    }
+    // If this field has ANY parent dependency, wait until parent has a value
     if (parentAttrId && !parentValue) {
       setOptions([]);
       return;
     }
 
+    // For CASCADE deps: wait until we have resolved the parent's UUID
+    if (cascadeDepAttrId && parentValue && parentLookupId === null) {
+      setOptions([]);
+      return;
+    }
+
+    // For CASCADE deps use the parent UUID as filter; for SHOW deps use null (no filter)
+    const resolvedParentId = cascadeDepAttrId && parentValue ? parentLookupId : null;
+
     setLoadingOptions(true);
     cachedGetLookupValues(attribute.lookup_type, resolvedParentId).then(data => {
-      setOptions(data.map(d => d.value));
+      setOptions(data.map(d => ({ value: d.value, metadata: d.metadata })));
       setLoadingOptions(false);
     });
-  }, [attribute.lookup_type, attribute.id, parentLookupId, parentValue, parentAttrId, needsLookup]);
+  }, [attribute.lookup_type, attribute.id, cascadeDepAttrId, parentLookupId, parentValue, parentAttrId, needsLookup]);
+
+  // Handle Select Change & Auto-Population
+  const handleSelectChange = (e) => {
+    const selectedValue = e.target.value;
+    
+    // Auto-populate based on metadata
+    const selectedOption = options.find(o => o.value === selectedValue);
+    if (selectedOption?.metadata?.auto_fill) {
+      const autoFill = selectedOption.metadata.auto_fill;
+      Object.entries(autoFill).forEach(([key, val]) => {
+        // Find the attribute id corresponding to the name key (e.g. 'os')
+        const targetAttr = attributes.find(a => a.name === key);
+        if (targetAttr) {
+          setValue(`attrs.${targetAttr.id}`, val, { shouldValidate: true, shouldDirty: true });
+        }
+      });
+    }
+  };
 
   // Reset this field when parent changes
   const prevParentVal = useRef(parentValue);
@@ -186,10 +234,14 @@ function FieldRenderer({ attribute, required, register, control, allValues, attr
             <select
               className={`${inputClass} appearance-none pr-8`}
               {...register(fieldName, validationRules)}
+              onChange={(e) => {
+                register(fieldName).onChange(e); // Let react-hook-form handle it
+                handleSelectChange(e); // Trigger auto-fill
+              }}
             >
               <option value="">{attribute.placeholder || `Select ${attribute.label}`}</option>
               {displayOptions.map(opt => (
-                <option key={opt} value={opt}>{opt}</option>
+                <option key={opt.value} value={opt.value}>{opt.value}</option>
               ))}
             </select>
           )}
@@ -219,14 +271,14 @@ function FieldRenderer({ attribute, required, register, control, allValues, attr
                 </div>
               ) : (
                 displayOptions.map(opt => {
-                  const isSelected = Array.isArray(field.value) && field.value.includes(opt);
+                  const isSelected = Array.isArray(field.value) && field.value.includes(opt.value);
                   return (
                     <button
-                      key={opt}
+                      key={opt.value}
                       type="button"
                       onClick={() => {
                         const current = Array.isArray(field.value) ? field.value : [];
-                        field.onChange(isSelected ? current.filter(i => i !== opt) : [...current, opt]);
+                        field.onChange(isSelected ? current.filter(i => i !== opt.value) : [...current, opt.value]);
                       }}
                       className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
                         isSelected
@@ -234,7 +286,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, attr
                           : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted'
                       }`}
                     >
-                      {opt}
+                      {opt.value}
                     </button>
                   );
                 })
@@ -261,19 +313,19 @@ function FieldRenderer({ attribute, required, register, control, allValues, attr
           render={({ field }) => (
             <div className="flex flex-wrap gap-2 mt-1">
               {displayOptions.map(opt => {
-                const isSelected = field.value === opt;
+                const isSelected = field.value === opt.value;
                 return (
                   <button
-                    key={opt}
+                    key={opt.value}
                     type="button"
-                    onClick={() => field.onChange(isSelected ? '' : opt)}
+                    onClick={() => field.onChange(isSelected ? '' : opt.value)}
                     className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${
                       isSelected
                         ? 'border-primary bg-primary/10 text-primary'
                         : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted'
                     }`}
                   >
-                    {opt}
+                    {opt.value}
                   </button>
                 );
               })}
@@ -386,6 +438,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, attr
 export default function MetadataDrivenForm({ categorySlug, register, control, watch, setValue }) {
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [validationErrors, setValidationErrors] = useState([]);
 
   // Reactive watch on all form values for dependency evaluation
   const allValues = useWatch({ control });
@@ -398,7 +451,14 @@ export default function MetadataDrivenForm({ categorySlug, register, control, wa
       return;
     }
     setLoading(true);
+    setValidationErrors([]);
     getCategoryMetadata(categorySlug).then(data => {
+      const errors = validateMetadata(data);
+      if (errors.length > 0) {
+        setValidationErrors(errors);
+        setLoading(false);
+        return;
+      }
       setMetadata(data);
       setLoading(false);
     }).catch(() => {
@@ -419,10 +479,19 @@ export default function MetadataDrivenForm({ categorySlug, register, control, wa
       .filter(attr => attr._visible);
   }, [metadata, allValues]);
 
-  // Group visible attributes by their group
+  // Group visible attributes by their group (with deduplication)
   const groupedAttributes = useMemo(() => {
     if (!metadata) return [];
-    return metadata.groups.map(group => ({
+    
+    // Deduplicate groups by name in case the DB has duplicates
+    const uniqueGroups = metadata.groups.reduce((acc, group) => {
+      if (!acc.some(g => g.name === group.name)) {
+        acc.push(group);
+      }
+      return acc;
+    }, []);
+
+    return uniqueGroups.map(group => ({
       ...group,
       fields: evaluatedAttributes.filter(attr => attr.group_id === group.id),
     })).filter(g => g.fields.length > 0);
@@ -440,6 +509,21 @@ export default function MetadataDrivenForm({ categorySlug, register, control, wa
         {[...Array(3)].map((_, i) => (
           <div key={i} className="h-14 animate-pulse rounded-xl bg-secondary/50" />
         ))}
+      </div>
+    );
+  }
+
+  if (validationErrors.length > 0) {
+    return (
+      <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-5 text-destructive">
+        <div className="flex items-center gap-2 font-bold mb-2">
+          <AlertCircle className="h-5 w-5" />
+          <span>Metadata Configuration Error</span>
+        </div>
+        <p className="text-sm mb-3 text-destructive/80">The form engine detected invalid metadata configuration for this category. Please contact an administrator.</p>
+        <ul className="list-disc pl-5 text-xs">
+          {validationErrors.map((err, i) => <li key={i}>{err}</li>)}
+        </ul>
       </div>
     );
   }
@@ -464,6 +548,7 @@ export default function MetadataDrivenForm({ categorySlug, register, control, wa
             register={register}
             control={control}
             allValues={allValues}
+            setValue={setValue}
             attributes={metadata.attributes}
             dependencies={metadata.dependencies}
           />

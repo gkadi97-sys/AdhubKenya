@@ -496,7 +496,9 @@ export const getLookupValues = async (lookupType, parentId = null) => {
     .eq('is_active', true)
     .order('order_index');
     
-  if (parentId) {
+  if (parentId === 'any') {
+    // No parent filter, just fetch by lookup_type
+  } else if (parentId) {
     query = query.eq('parent_id', parentId);
   } else {
     query = query.is('parent_id', null);
