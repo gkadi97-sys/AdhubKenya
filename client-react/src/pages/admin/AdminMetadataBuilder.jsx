@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Plus, Save, Settings, GripVertical, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Plus, Save, Settings, GripVertical, Trash2, X, Image, Video, FileText, RotateCw, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function AdminMetadataBuilder() {
@@ -11,10 +11,20 @@ export default function AdminMetadataBuilder() {
   const [groups, setGroups] = useState([]);
   const [attributes, setAttributes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('fields');
   
   // Edit State
   const [editingAttr, setEditingAttr] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Media Rules local state (mirrors category fields)
+  const [mediaRules, setMediaRules] = useState({
+    min_photos: 1,
+    max_photos: 10,
+    allow_video: false,
+    allow_pdf: false,
+    allow_360: false,
+  });
 
   useEffect(() => {
     if (id) fetchSchema();
@@ -27,6 +37,14 @@ export default function AdminMetadataBuilder() {
       const { data: catData, error: catError } = await supabase.from('categories').select('*').eq('id', id).single();
       if (catError) throw catError;
       setCategory(catData);
+      // Hydrate media rules from fetched category
+      setMediaRules({
+        min_photos: catData.min_photos ?? 1,
+        max_photos: catData.max_photos ?? 10,
+        allow_video: catData.allow_video ?? false,
+        allow_pdf: catData.allow_pdf ?? false,
+        allow_360: catData.allow_360 ?? false,
+      });
 
       // 2. Fetch Groups
       const { data: groupData, error: groupError } = await supabase.from('attribute_groups').select('*').eq('category_id', id).order('order_index');
@@ -49,8 +67,8 @@ export default function AdminMetadataBuilder() {
   const saveSchema = async () => {
     setIsSaving(true);
     try {
-      // Upsert attributes
-      const { error } = await supabase.from('attributes').upsert(
+      // 1. Upsert attributes
+      const { error: attrError } = await supabase.from('attributes').upsert(
         attributes.map(a => ({
           id: a.id,
           category_id: category.id,
@@ -64,12 +82,26 @@ export default function AdminMetadataBuilder() {
           display_order: a.display_order
         }))
       );
-      
-      if (error) throw error;
-      toast.success('Schema saved successfully!');
+      if (attrError) throw attrError;
+
+      // 2. Save media rules to categories table
+      const { error: mediaError } = await supabase
+        .from('categories')
+        .update({
+          min_photos: mediaRules.min_photos,
+          max_photos: mediaRules.max_photos,
+          allow_video: mediaRules.allow_video,
+          allow_pdf: mediaRules.allow_pdf,
+          allow_360: mediaRules.allow_360,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', category.id);
+      if (mediaError) throw mediaError;
+
+      toast.success('Schema & media rules saved!');
     } catch (err) {
       console.error(err);
-      toast.error('Failed to save schema');
+      toast.error('Failed to save: ' + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -94,11 +126,211 @@ export default function AdminMetadataBuilder() {
             <p className="text-sm text-muted-foreground font-mono">{category.slug} • Form Builder</p>
           </div>
         </div>
-        <button onClick={saveSchema} className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 shadow-sm">
-          <Save className="h-4 w-4" /> Save Schema
+        <button onClick={saveSchema} disabled={isSaving} className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 shadow-sm disabled:opacity-60">
+          <Save className="h-4 w-4" /> {isSaving ? 'Saving...' : 'Save Schema'}
         </button>
       </div>
 
+      {/* Tab Bar */}
+      <div className="flex gap-1 rounded-xl bg-secondary/50 p-1 w-fit">
+        {[{ id: 'fields', label: 'Form Fields' }, { id: 'media', label: 'Media Rules' }].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+              activeTab === tab.id
+                ? 'bg-card shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── MEDIA RULES TAB ── */}
+      {activeTab === 'media' && (
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_350px] gap-6">
+          <div className="space-y-6">
+
+            {/* Photos Card */}
+            <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+              <div className="bg-secondary/30 border-b border-border px-5 py-3 flex items-center gap-2">
+                <Camera className="w-4 h-4 text-primary" />
+                <h3 className="font-bold text-foreground">Photo Requirements</h3>
+              </div>
+              <div className="p-6 space-y-6">
+                {/* Min Photos */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-semibold text-foreground">Minimum Photos Required</label>
+                    <span className="text-sm font-bold text-primary bg-primary/10 rounded-lg px-2.5 py-1">{mediaRules.min_photos}</span>
+                  </div>
+                  <input
+                    type="range" min={0} max={10} step={1}
+                    value={mediaRules.min_photos}
+                    onChange={e => setMediaRules(r => ({ ...r, min_photos: parseInt(e.target.value) }))}
+                    className="w-full h-2 bg-border rounded-full appearance-none cursor-pointer accent-primary"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>0 (optional)</span><span>10</span>
+                  </div>
+                </div>
+
+                {/* Max Photos */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-semibold text-foreground">Maximum Photos Allowed</label>
+                    <span className="text-sm font-bold text-primary bg-primary/10 rounded-lg px-2.5 py-1">{mediaRules.max_photos}</span>
+                  </div>
+                  <input
+                    type="range" min={1} max={20} step={1}
+                    value={mediaRules.max_photos}
+                    onChange={e => setMediaRules(r => ({ ...r, max_photos: Math.max(parseInt(e.target.value), r.min_photos) }))}
+                    className="w-full h-2 bg-border rounded-full appearance-none cursor-pointer accent-primary"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>1</span><span>20</span>
+                  </div>
+                </div>
+
+                {/* Visual Indicator */}
+                <div className="rounded-xl bg-secondary/40 border border-border p-4">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Preview — Photo Slots</p>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from({ length: mediaRules.max_photos }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center text-xs font-bold transition ${
+                          i < mediaRules.min_photos
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-dashed border-border text-muted-foreground'
+                        }`}
+                      >
+                        {i + 1}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    <span className="text-primary font-bold">{mediaRules.min_photos} required</span> + {mediaRules.max_photos - mediaRules.min_photos} optional slots
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Media Card */}
+            <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+              <div className="bg-secondary/30 border-b border-border px-5 py-3 flex items-center gap-2">
+                <Image className="w-4 h-4 text-primary" />
+                <h3 className="font-bold text-foreground">Additional Media Types</h3>
+              </div>
+              <div className="divide-y divide-border">
+
+                {/* Video Toggle */}
+                <div className="flex items-center justify-between px-6 py-5">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${ mediaRules.allow_video ? 'bg-blue-500/10' : 'bg-secondary' }`}>
+                      <Video className={`w-5 h-5 ${ mediaRules.allow_video ? 'text-blue-500' : 'text-muted-foreground' }`} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">Allow Video Upload</p>
+                      <p className="text-xs text-muted-foreground">Sellers can attach an MP4 or YouTube link to the listing</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setMediaRules(r => ({ ...r, allow_video: !r.allow_video }))}
+                    className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${ mediaRules.allow_video ? 'bg-primary' : 'bg-border' }`}
+                  >
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all duration-200 ${ mediaRules.allow_video ? 'left-5' : 'left-0.5' }`} />
+                  </button>
+                </div>
+
+                {/* PDF Toggle */}
+                <div className="flex items-center justify-between px-6 py-5">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${ mediaRules.allow_pdf ? 'bg-orange-500/10' : 'bg-secondary' }`}>
+                      <FileText className={`w-5 h-5 ${ mediaRules.allow_pdf ? 'text-orange-500' : 'text-muted-foreground' }`} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">Allow PDF Attachment</p>
+                      <p className="text-xs text-muted-foreground">Useful for property brochures, machinery spec sheets, or CVs</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setMediaRules(r => ({ ...r, allow_pdf: !r.allow_pdf }))}
+                    className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${ mediaRules.allow_pdf ? 'bg-primary' : 'bg-border' }`}
+                  >
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all duration-200 ${ mediaRules.allow_pdf ? 'left-5' : 'left-0.5' }`} />
+                  </button>
+                </div>
+
+                {/* 360 Toggle */}
+                <div className="flex items-center justify-between px-6 py-5">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${ mediaRules.allow_360 ? 'bg-purple-500/10' : 'bg-secondary' }`}>
+                      <RotateCw className={`w-5 h-5 ${ mediaRules.allow_360 ? 'text-purple-500' : 'text-muted-foreground' }`} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">Allow 360° Tour</p>
+                      <p className="text-xs text-muted-foreground">Enable embedding a Matterport or similar 360° virtual tour link</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setMediaRules(r => ({ ...r, allow_360: !r.allow_360 }))}
+                    className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${ mediaRules.allow_360 ? 'bg-primary' : 'bg-border' }`}
+                  >
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all duration-200 ${ mediaRules.allow_360 ? 'left-5' : 'left-0.5' }`} />
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right sidebar summary */}
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-border bg-card p-5 sticky top-6">
+              <h3 className="font-bold text-lg mb-4">Current Rules</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Min Photos</span>
+                  <span className="font-bold text-foreground">{mediaRules.min_photos}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Max Photos</span>
+                  <span className="font-bold text-foreground">{mediaRules.max_photos}</span>
+                </div>
+                <hr className="border-border" />
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground flex items-center gap-2"><Video className="w-3.5 h-3.5" /> Video</span>
+                  <span className={`font-bold text-xs px-2 py-0.5 rounded-full ${ mediaRules.allow_video ? 'text-green-600 bg-green-500/10' : 'text-muted-foreground bg-secondary' }`}>
+                    {mediaRules.allow_video ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground flex items-center gap-2"><FileText className="w-3.5 h-3.5" /> PDF</span>
+                  <span className={`font-bold text-xs px-2 py-0.5 rounded-full ${ mediaRules.allow_pdf ? 'text-green-600 bg-green-500/10' : 'text-muted-foreground bg-secondary' }`}>
+                    {mediaRules.allow_pdf ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground flex items-center gap-2"><RotateCw className="w-3.5 h-3.5" /> 360°</span>
+                  <span className={`font-bold text-xs px-2 py-0.5 rounded-full ${ mediaRules.allow_360 ? 'text-green-600 bg-green-500/10' : 'text-muted-foreground bg-secondary' }`}>
+                    {mediaRules.allow_360 ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+              </div>
+              <button onClick={saveSchema} disabled={isSaving} className="mt-5 w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground transition hover:opacity-90 shadow-sm disabled:opacity-60">
+                <Save className="h-4 w-4" /> {isSaving ? 'Saving...' : 'Save Media Rules'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── FIELDS TAB ── */}
+      {activeTab === 'fields' && (
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_350px] gap-6">
         
         {/* Main Editor Canvas */}
@@ -203,6 +435,7 @@ export default function AdminMetadataBuilder() {
         </div>
 
       </div>
+      )}
 
       {/* Edit Attribute Modal */}
       {editingAttr && (
