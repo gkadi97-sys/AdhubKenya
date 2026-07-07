@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getListing, getListings, toggleSaved, getSaved, imageUrl, formatPrice, timeAgo, getSellerStats, getListingViews } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import { SCHEMA_ATTRIBUTES } from '@/lib/schemaEngine';
-import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
 import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import MetadataListingSpecs from '@/components/MetadataListingSpecs';

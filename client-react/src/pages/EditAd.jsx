@@ -4,7 +4,7 @@ import { useNavigate, useParams, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { getListing, updateListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
-import DynamicListingForm from '@/components/forms/DynamicListingForm';
+import MetadataDrivenForm from '@/components/forms/MetadataDrivenForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { useSEO } from '@/lib/useSEO';
@@ -191,7 +191,15 @@ export default function EditAdPage() {
 
             {category && (
               <div className="mt-5 pt-5 border-t border-border">
-                <DynamicListingForm category={category} register={register} control={control} watch={watch} setValue={setValue} />
+                <MetadataDrivenForm
+                  categorySlug={category}
+                  register={register}
+                  control={control}
+                  watch={watch}
+                  setValue={setValue}
+                  onProgressChange={() => {}}
+                  onSectionComplete={() => {}}
+                />
               </div>
             )}
 
