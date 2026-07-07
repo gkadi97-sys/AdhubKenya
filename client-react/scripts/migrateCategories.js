@@ -6,22 +6,22 @@ const uuidv4 = () => crypto.randomUUID();
 
 // Define categories we want to migrate
 const CATEGORY_MAP = {
-  'phones-tablets': { name: 'Phones & Tablets', icon: '📱', level: 1, order: 30 },
-  'electronics': { name: 'Electronics', icon: '💻', level: 1, order: 40 },
-  'home-living': { name: 'Home & Living', icon: '🛋️', level: 1, order: 50 },
-  'fashion': { name: 'Fashion', icon: '👕', level: 1, order: 60 },
-  'beauty': { name: 'Health & Beauty', icon: '💄', level: 1, order: 70 },
-  'services': { name: 'Services', icon: '🛠️', level: 1, order: 80 },
-  'repair-construction': { name: 'Repair & Construction', icon: '🏗️', level: 1, order: 90 },
-  'commercial-equipment': { name: 'Commercial Equipment', icon: '🏭', level: 1, order: 100 },
-  'commercial-vehicles': { name: 'Commercial Vehicles', icon: '🚛', level: 1, order: 110 },
-  'leisure': { name: 'Hobbies, Art & Sport', icon: '🎨', level: 1, order: 120 },
-  'babies-kids': { name: 'Babies & Kids', icon: '🧸', level: 1, order: 130 },
-  'food-agriculture': { name: 'Agriculture & Food', icon: '🌾', level: 1, order: 140 },
-  'animals-pets': { name: 'Animals & Pets', icon: '🐕', level: 1, order: 150 },
-  'auto-spares': { name: 'Auto Parts & Accessories', icon: '⚙️', level: 1, order: 160 },
-  'jobs': { name: 'Jobs', icon: '💼', level: 1, order: 170 },
-  'seeking-work': { name: 'Seeking Work', icon: '📝', level: 1, order: 180 }
+  'phones-tablets': { name: 'Phones & Tablets', level: 1, order: 30 },
+  'electronics': { name: 'Electronics', level: 1, order: 40 },
+  'home-living': { name: 'Home & Living', level: 1, order: 50 },
+  'fashion': { name: 'Fashion', level: 1, order: 60 },
+  'beauty': { name: 'Health & Beauty', level: 1, order: 70 },
+  'services': { name: 'Services', level: 1, order: 80 },
+  'repair-construction': { name: 'Repair & Construction', level: 1, order: 90 },
+  'commercial-equipment': { name: 'Commercial Equipment', level: 1, order: 100 },
+  'commercial-vehicles': { name: 'Commercial Vehicles', level: 1, order: 110 },
+  'leisure': { name: 'Hobbies, Art & Sport', level: 1, order: 120 },
+  'babies-kids': { name: 'Babies & Kids', level: 1, order: 130 },
+  'food-agriculture': { name: 'Agriculture & Food', level: 1, order: 140 },
+  'animals-pets': { name: 'Animals & Pets', level: 1, order: 150 },
+  'auto-spares': { name: 'Auto Parts & Accessories', level: 1, order: 160 },
+  'jobs': { name: 'Jobs', level: 1, order: 170 },
+  'seeking-work': { name: 'Seeking Work', level: 1, order: 180 }
 };
 
 let sql = `-- AdHubKenya Mass Metadata Seed SQL\n\n`;
@@ -34,7 +34,7 @@ const escapeSql = (str) => {
 const runMigration = () => {
   console.log('Generating Migration SQL...');
 
-  let catSql = `INSERT INTO public.categories (id, slug, name, icon, level, order_index, is_active, allow_price, allow_negotiable, allow_location, allow_condition) VALUES \n`;
+  let catSql = `INSERT INTO public.categories (id, slug, name, level, order_index, is_active, allow_price, allow_negotiable, allow_location, allow_condition) VALUES \n`;
   const catValues = [];
   
   let groupSql = `INSERT INTO public.attribute_groups (id, category_id, name, order_index) VALUES \n`;
@@ -48,7 +48,7 @@ const runMigration = () => {
     const engineConfig = ATTRIBUTE_ENGINE[slug];
     
     const catId = uuidv4();
-    catValues.push(`('${catId}', '${slug}', '${escapeSql(meta.name)}', '${meta.icon}', ${meta.level}, ${meta.order}, true, true, true, true, true)`);
+    catValues.push(`('${catId}', '${slug}', '${escapeSql(meta.name)}', ${meta.level}, ${meta.order}, true, true, true, true, true)`);
 
     if (!engineConfig) {
       console.warn(`No ATTRIBUTE_ENGINE config for ${slug}. Skipping attributes.`);
@@ -96,7 +96,7 @@ const runMigration = () => {
     }
   }
 
-  sql += catSql + catValues.join(',\n') + `\nON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, icon = EXCLUDED.icon;\n\n`;
+  sql += catSql + catValues.join(',\n') + `\nON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, order_index = EXCLUDED.order_index;\n\n`;
   if (groupValues.length > 0) {
     sql += groupSql + groupValues.join(',\n') + `\nON CONFLICT DO NOTHING;\n\n`;
   }
@@ -104,7 +104,7 @@ const runMigration = () => {
     sql += attrSql + attrValues.join(',\n') + `\nON CONFLICT DO NOTHING;\n\n`;
   }
 
-  fs.writeFileSync('d:/AdHubKenya/client-react/scripts/seed_all_metadata.sql', sql);
+  fs.writeFileSync('d:/AdHubKenya/client-react/scripts/seed_all_metadata.sql', sql, { encoding: 'utf8' });
   console.log('\nMigration Complete! Output written to: scripts/seed_all_metadata.sql');
 };
 
