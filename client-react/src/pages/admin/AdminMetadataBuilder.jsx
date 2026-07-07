@@ -54,7 +54,7 @@ export default function AdminMetadataBuilder() {
         attributes.map(a => ({
           id: a.id,
           category_id: category.id,
-          attribute_group_id: a.attribute_group_id,
+          group_id: a.group_id,
           name: a.name,
           label: a.label,
           field_type: a.field_type,
@@ -104,7 +104,7 @@ export default function AdminMetadataBuilder() {
         {/* Main Editor Canvas */}
         <div className="space-y-6">
           {groups.map((group) => {
-            const groupAttributes = attributes.filter(a => a.attribute_group_id === group.id);
+            const groupAttributes = attributes.filter(a => a.group_id === group.id);
             return (
               <div key={group.id} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
                 
@@ -246,8 +246,8 @@ export default function AdminMetadataBuilder() {
               <div>
                 <label className="block text-sm font-bold text-muted-foreground mb-1">Attribute Group</label>
                 <select className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 outline-none"
-                  value={editingAttr.attribute_group_id || ''}
-                  onChange={e => setEditingAttr({...editingAttr, attribute_group_id: e.target.value})}
+                  value={editingAttr.group_id || ''}
+                  onChange={e => setEditingAttr({...editingAttr, group_id: e.target.value})}
                 >
                   {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
                 </select>

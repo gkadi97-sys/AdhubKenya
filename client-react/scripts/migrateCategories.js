@@ -40,7 +40,7 @@ const runMigration = () => {
   let groupSql = `INSERT INTO public.attribute_groups (id, category_id, name, order_index) VALUES \n`;
   const groupValues = [];
 
-  let attrSql = `INSERT INTO public.attributes (id, category_id, attribute_group_id, name, label, field_type, is_required, is_searchable, is_listing_card, display_order, options) VALUES \n`;
+  let attrSql = `INSERT INTO public.attributes (id, category_id, group_id, name, label, field_type, is_required, is_searchable, is_listing_card, display_order, options) VALUES \n`;
   const attrValues = [];
 
   for (const slug of Object.keys(CATEGORY_MAP)) {
