@@ -1,37 +1,43 @@
 /**
- * MetadataDrivenForm
- * ==================
- * The Platform-Wide Metadata Form Engine for AdHub Kenya.
+ * MetadataDrivenForm — Workflow-Driven Listing Engine
+ * ====================================================
+ * Transforms any category into a guided, progressive workflow.
  *
- * Reads categories, attributes, groups, dependencies, and lookup values
- * directly from the Supabase database. Renders a fully dynamic, progressively
- * disclosed form with grouped sections and conditional field validation.
+ * Each attribute_group becomes a Section with 4 states:
+ *   locked → available → in-progress → completed
  *
- * Powers: Post Ad, Edit Listing, and is the foundation for search filter generation.
+ * Sections:
+ *  - Only render when all prior required sections are complete
+ *  - Auto-collapse when completed (with a metadata-driven summary)
+ *  - Conditionally hide when all their fields are hidden by dependencies
+ *
+ * The frontend renders whatever the metadata describes. No hardcoded behavior.
  */
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWatch, Controller } from 'react-hook-form';
 import { getCategoryMetadata, getLookupValues } from '@/lib/api';
-import { ChevronDown, Loader2, AlertCircle } from 'lucide-react';
+import {
+  ChevronDown, ChevronRight, Loader2, AlertCircle,
+  CheckCircle2, Lock, Car, Smartphone, Home, Briefcase,
+  Cpu, HardDrive, Camera, List, Info, Wrench, Package,
+  ShoppingBag, Leaf, PawPrint, Zap, Shirt, BookOpen,
+  GraduationCap, Laptop, Wifi, Battery, Monitor, Tag,
+} from 'lucide-react';
 
-// ─── Metadata Validation Engine ─────────────────────────────────────────────
-function validateMetadata(metadata) {
-  const errors = [];
-  if (!metadata.attributes || metadata.attributes.length === 0) {
-    errors.push("No attributes defined for this category.");
-  }
-  
-  // Check for orphaned dependencies
-  metadata.dependencies?.forEach(dep => {
-    const hasSource = metadata.attributes.some(a => a.id === dep.attribute_id);
-    const hasTarget = metadata.attributes.some(a => a.id === dep.depends_on_attribute_id);
-    if (!hasSource || !hasTarget) {
-      errors.push("Orphaned dependency detected.");
-    }
-  });
+// ─── Icon Map (maps icon name strings from DB to Lucide components) ──────────
+const ICON_MAP = {
+  car: Car, smartphone: Smartphone, home: Home, briefcase: Briefcase,
+  cpu: Cpu, 'hard-drive': HardDrive, camera: Camera, list: List,
+  info: Info, wrench: Wrench, package: Package, 'shopping-bag': ShoppingBag,
+  leaf: Leaf, 'paw-print': PawPrint, zap: Zap, shirt: Shirt,
+  'book-open': BookOpen, 'graduation-cap': GraduationCap, laptop: Laptop,
+  wifi: Wifi, battery: Battery, monitor: Monitor, tag: Tag,
+};
 
-  return errors;
+function SectionIcon({ name, className = 'h-4 w-4' }) {
+  const Comp = ICON_MAP[name] || Info;
+  return <Comp className={className} />;
 }
 
 // ─── Dependency Evaluation Engine ───────────────────────────────────────────
@@ -39,16 +45,12 @@ function evaluateDependencies(attribute, dependencies, allValues) {
   const attrDeps = dependencies.filter(d => d.attribute_id === attribute.id);
   if (attrDeps.length === 0) return { visible: true, required: attribute.is_required };
 
-  let visible = false;
-  let required = false;
-
-  const showDeps    = attrDeps.filter(d => d.effect === 'show');
+  const showDeps    = attrDeps.filter(d => d.effect === 'show' || d.effect === 'cascade');
   const hideDeps    = attrDeps.filter(d => d.effect === 'hide');
   const requireDeps = attrDeps.filter(d => d.effect === 'require');
 
   const evalCondition = (dep) => {
     const { depends_on_attribute_id, operator, dependency_value } = dep;
-    // Support both attrs.{id} and attrs.{name} lookups
     const fieldValue =
       allValues?.attrs?.[depends_on_attribute_id] ??
       allValues?.[depends_on_attribute_id];
@@ -68,12 +70,14 @@ function evaluateDependencies(attribute, dependencies, allValues) {
     }
   };
 
+  let visible = false;
   if (showDeps.length > 0) {
     visible = showDeps.every(evalCondition);
   } else {
     visible = hideDeps.length > 0 ? !hideDeps.every(evalCondition) : true;
   }
 
+  let required = false;
   if (requireDeps.length > 0) {
     required = requireDeps.some(evalCondition);
   } else {
@@ -83,23 +87,24 @@ function evaluateDependencies(attribute, dependencies, allValues) {
   return { visible, required };
 }
 
-// ─── Global lookup cache (module-level, survives re-renders) ────────────────
+// ─── Lookup Cache ─────────────────────────────────────────────────────────────
 const LOOKUP_CACHE = {};
-
 async function cachedGetLookupValues(lookupType, parentId = null) {
-  // Always fetch fresh data to avoid Vite HMR caching issues during development
-  return await getLookupValues(lookupType, parentId);
+  const key = `${lookupType}:${parentId}`;
+  if (LOOKUP_CACHE[key]) return LOOKUP_CACHE[key];
+  const result = await getLookupValues(lookupType, parentId);
+  LOOKUP_CACHE[key] = result;
+  return result;
 }
 
-// ─── Individual Field Renderer ───────────────────────────────────────────────
-function FieldRenderer({ attribute, required, register, control, allValues, setValue, attributes, dependencies }) {
+// ─── FieldRenderer ────────────────────────────────────────────────────────────
+function FieldRenderer({ attribute, required, register, control, allValues, setValue, attributes, dependencies, isGroupAvailable }) {
   const fieldName = `attrs.${attribute.id}`;
-  const inputClass = 'w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground';
+
+  const inputClass = 'w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed';
   const labelClass = 'text-sm font-semibold text-foreground mb-1.5 inline-flex items-center gap-1';
 
-  // ── Determine dependencies for this field ────────────────────────────────
-  // 'cascade' dep: this field's options are filtered by parent's lookup UUID
-  // 'show' dep:    this field is only visible when parent has a value, but options are NOT filtered
+  // Cascade dependency (options filtered by parent)
   const cascadeDepAttrId = useMemo(() => {
     const dep = dependencies.find(
       d => d.attribute_id === attribute.id && d.effect === 'cascade' && d.operator === 'exists'
@@ -107,7 +112,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     return dep ? dep.depends_on_attribute_id : null;
   }, [dependencies, attribute.id]);
 
-  // Also track 'show' dependency so we know if we need parent value to display options
+  // Show dependency (visible when parent has value)
   const showDepAttrId = useMemo(() => {
     const dep = dependencies.find(
       d => d.attribute_id === attribute.id && d.effect === 'show' && d.operator === 'exists'
@@ -115,16 +120,20 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     return dep ? dep.depends_on_attribute_id : null;
   }, [dependencies, attribute.id]);
 
-  // The controlling parent attr id (cascade takes priority)
   const parentAttrId = cascadeDepAttrId || showDepAttrId;
 
-  // Get parent attribute's current form value
   const parentValue = useMemo(() => {
     if (!parentAttrId) return null;
     return allValues?.attrs?.[parentAttrId] ?? null;
   }, [parentAttrId, allValues]);
 
-  // For CASCADE deps only: resolve the parent value to its UUID in lookup_values
+  // Resolve parent label for empty state
+  const parentAttrLabel = useMemo(() => {
+    if (!parentAttrId) return null;
+    const pa = attributes.find(a => a.id === parentAttrId);
+    return pa?.label || 'the previous field';
+  }, [parentAttrId, attributes]);
+
   const [parentLookupId, setParentLookupId] = useState(null);
   const parentAttr = useMemo(() => attributes.find(a => a.id === cascadeDepAttrId), [attributes, cascadeDepAttrId]);
 
@@ -133,40 +142,25 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
       setParentLookupId(null);
       return;
     }
-    // Find the UUID of the selected parent option in lookup_values
     cachedGetLookupValues(parentAttr.lookup_type, 'any').then(rows => {
       const match = rows.find(r => r.value === parentValue);
       setParentLookupId(match?.id ?? null);
     });
   }, [cascadeDepAttrId, parentAttr, parentValue]);
 
-  // ── Options state for select/multiselect/radio fields ───────────────────
-  const [options, setOptions] = useState([]); // Array of { value, metadata }
+  const [options, setOptions] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
+  const [autoFilled, setAutoFilled] = useState(false);
 
   const needsLookup = !!attribute.lookup_type;
-  // For cascading selects, only load options once we have the parent's ID resolved
-  // (or immediately if there's no parent dependency)
-  const shouldLoad = needsLookup && (!parentAttrId || parentLookupId !== null || !parentValue);
+  const isParentEmpty = parentAttrId && !parentValue;
 
   useEffect(() => {
     if (!needsLookup) return;
+    if (parentAttrId && !parentValue) { setOptions([]); return; }
+    if (cascadeDepAttrId && parentValue && parentLookupId === null) { setOptions([]); return; }
 
-    // If this field has ANY parent dependency, wait until parent has a value
-    if (parentAttrId && !parentValue) {
-      setOptions([]);
-      return;
-    }
-
-    // For CASCADE deps: wait until we have resolved the parent's UUID
-    if (cascadeDepAttrId && parentValue && parentLookupId === null) {
-      setOptions([]);
-      return;
-    }
-
-    // For CASCADE deps use the parent UUID as filter; for SHOW deps use null (no filter)
     const resolvedParentId = cascadeDepAttrId && parentValue ? parentLookupId : null;
-
     setLoadingOptions(true);
     cachedGetLookupValues(attribute.lookup_type, resolvedParentId).then(data => {
       setOptions(data.map(d => ({ value: d.value, metadata: d.metadata })));
@@ -174,37 +168,27 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     });
   }, [attribute.lookup_type, attribute.id, cascadeDepAttrId, parentLookupId, parentValue, parentAttrId, needsLookup]);
 
-  // Handle Select Change & Auto-Population
   const handleSelectChange = (e) => {
     const selectedValue = e.target.value;
-    
-    // Auto-populate based on metadata
     const selectedOption = options.find(o => o.value === selectedValue);
     if (selectedOption?.metadata?.auto_fill) {
       const autoFill = selectedOption.metadata.auto_fill;
       Object.entries(autoFill).forEach(([key, val]) => {
-        // Find the attribute id corresponding to the name key (e.g. 'os')
         const targetAttr = attributes.find(a => a.name === key);
         if (targetAttr) {
           setValue(`attrs.${targetAttr.id}`, val, { shouldValidate: true, shouldDirty: true });
+          setAutoFilled(true);
+          setTimeout(() => setAutoFilled(false), 1500);
         }
       });
     }
   };
 
-  // Reset this field when parent changes
-  const prevParentVal = useRef(parentValue);
-  useEffect(() => {
-    if (prevParentVal.current !== parentValue && parentAttrId) {
-      prevParentVal.current = parentValue;
-    }
-  }, [parentValue, parentAttrId]);
-
   const validationRules = {
     required: required ? `${attribute.label} is required` : false,
-    ...(attribute.min_value != null && { min: { value: attribute.min_value, message: `Minimum value is ${attribute.min_value}` } }),
-    ...(attribute.max_value != null && { max: { value: attribute.max_value, message: `Maximum value is ${attribute.max_value}` } }),
-    ...(attribute.validation_rules === 'email' && { pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Enter a valid email address' } }),
+    ...(attribute.min_value != null && { min: { value: attribute.min_value, message: `Minimum is ${attribute.min_value}` } }),
+    ...(attribute.max_value != null && { max: { value: attribute.max_value, message: `Maximum is ${attribute.max_value}` } }),
+    ...(attribute.validation_rules === 'email' && { pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Enter a valid email' } }),
     ...(attribute.validation_rules === 'phone' && { pattern: { value: /^(\+254|0)[0-9]{9}$/, message: 'Enter a valid Kenyan phone number' } }),
   };
 
@@ -216,7 +200,13 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     <p className="mt-1 text-xs text-muted-foreground">{attribute.help_text}</p>
   ) : null;
 
-  const displayOptions = options;
+  // Empty state for parent-dependent fields
+  const emptyStatePlaceholder = isParentEmpty
+    ? `Select ${parentAttrLabel} first`
+    : (attribute.placeholder || `Select ${attribute.label}`);
+
+  // Auto-fill highlight class
+  const autoFillClass = autoFilled ? 'ring-2 ring-emerald-400/60 border-emerald-400' : '';
 
   // SELECT
   if (attribute.field_type === 'select') {
@@ -232,22 +222,28 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
             </div>
           ) : (
             <select
-              className={`${inputClass} appearance-none pr-8`}
+              className={`${inputClass} ${autoFillClass} appearance-none pr-8 transition-all duration-150`}
+              disabled={isParentEmpty}
               {...register(fieldName, validationRules)}
               onChange={(e) => {
-                register(fieldName).onChange(e); // Let react-hook-form handle it
-                handleSelectChange(e); // Trigger auto-fill
+                register(fieldName).onChange(e);
+                handleSelectChange(e);
               }}
             >
-              <option value="">{attribute.placeholder || `Select ${attribute.label}`}</option>
-              {displayOptions.map(opt => (
+              <option value="">{emptyStatePlaceholder}</option>
+              {options.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.value}</option>
               ))}
             </select>
           )}
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         </div>
-        {helpText}
+        {isParentEmpty && (
+          <p className="mt-1 flex items-center gap-1 text-xs text-amber-500">
+            <Info className="h-3 w-3" /> Select {parentAttrLabel} to unlock this field
+          </p>
+        )}
+        {!isParentEmpty && helpText}
       </div>
     );
   }
@@ -270,7 +266,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
                   <Loader2 className="h-4 w-4 animate-spin" /> Loading options...
                 </div>
               ) : (
-                displayOptions.map(opt => {
+                options.map(opt => {
                   const isSelected = Array.isArray(field.value) && field.value.includes(opt.value);
                   return (
                     <button
@@ -299,7 +295,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     );
   }
 
-  // RADIO (small option sets — uses pill buttons)
+  // RADIO
   if (attribute.field_type === 'radio') {
     return (
       <div className="md:col-span-2">
@@ -312,7 +308,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
           rules={{ required: required ? `${attribute.label} is required` : false }}
           render={({ field }) => (
             <div className="flex flex-wrap gap-2 mt-1">
-              {displayOptions.map(opt => {
+              {options.map(opt => {
                 const isSelected = field.value === opt.value;
                 return (
                   <button
@@ -337,7 +333,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     );
   }
 
-  // BOOLEAN (toggle)
+  // BOOLEAN
   if (attribute.field_type === 'boolean') {
     return (
       <div className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3">
@@ -369,11 +365,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
         <label className={labelClass}>
           {attribute.label} {required && <span className="text-destructive">*</span>}
         </label>
-        <input
-          type="date"
-          className={inputClass}
-          {...register(fieldName, validationRules)}
-        />
+        <input type="date" className={inputClass} {...register(fieldName, validationRules)} />
         {helpText}
       </div>
     );
@@ -388,7 +380,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
         </label>
         <input
           type="number"
-          className={inputClass}
+          className={`${inputClass} ${autoFillClass}`}
           placeholder={attribute.placeholder || (attribute.min_value != null ? `Min: ${attribute.min_value}` : `Enter ${attribute.label.toLowerCase()}`)}
           min={attribute.min_value ?? undefined}
           max={attribute.max_value ?? undefined}
@@ -425,7 +417,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
       </label>
       <input
         type="text"
-        className={inputClass}
+        className={`${inputClass} ${autoFillClass}`}
         placeholder={attribute.placeholder || `Enter ${attribute.label.toLowerCase()}`}
         {...register(fieldName, validationRules)}
       />
@@ -434,28 +426,155 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
   );
 }
 
-// ─── Main MetadataDrivenForm Component ──────────────────────────────────────
-export default function MetadataDrivenForm({ categorySlug, register, control, watch, setValue }) {
+// ─── Section Summary Generator ────────────────────────────────────────────────
+function generateSummary(group, allValues, attributes) {
+  const summaryFieldNames = group.summary_fields || [];
+  if (!summaryFieldNames.length) return null;
+
+  const parts = summaryFieldNames.map(name => {
+    const attr = attributes.find(a => a.name === name || a.label.toLowerCase() === name.toLowerCase());
+    if (!attr) return null;
+    const val = allValues?.attrs?.[attr.id];
+    return val && val !== '' ? String(val) : null;
+  }).filter(Boolean);
+
+  return parts.length > 0 ? parts.join(' • ') : null;
+}
+
+// ─── Section Component ────────────────────────────────────────────────────────
+function WorkflowSection({
+  group, fields, state, isExpanded, onToggle,
+  register, control, allValues, setValue, attributes, dependencies,
+}) {
+  // State classes
+  const stateConfig = {
+    locked:     { ring: 'border-border/40 opacity-50', headerBg: 'bg-card', dot: 'bg-muted-foreground/30' },
+    available:  { ring: 'border-border', headerBg: 'bg-card', dot: 'bg-primary/40' },
+    'in-progress': { ring: 'border-primary/40 ring-1 ring-primary/10', headerBg: 'bg-card', dot: 'bg-primary animate-pulse' },
+    completed:  { ring: 'border-emerald-500/30', headerBg: 'bg-card', dot: 'bg-emerald-500' },
+  };
+  const cfg = stateConfig[state] || stateConfig.available;
+
+  const summary = useMemo(() =>
+    generateSummary(group, allValues, attributes),
+    [group, allValues, attributes]
+  );
+
+  return (
+    <div className={`rounded-2xl border ${cfg.ring} bg-card shadow-sm transition-all duration-200 overflow-hidden`}>
+      {/* Header */}
+      <button
+        type="button"
+        disabled={state === 'locked'}
+        onClick={onToggle}
+        className={`w-full flex items-center justify-between gap-3 px-5 py-4 sm:px-6 ${state !== 'locked' ? 'cursor-pointer hover:bg-muted/30' : 'cursor-default'} transition-colors`}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Status indicator */}
+          {state === 'completed' ? (
+            <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+          ) : state === 'locked' ? (
+            <Lock className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
+          ) : (
+            <div className={`h-2.5 w-2.5 rounded-full flex-shrink-0 mt-0.5 ${cfg.dot}`} />
+          )}
+
+          <div className="text-left min-w-0">
+            <div className="flex items-center gap-2">
+              {group.icon && <SectionIcon name={group.icon} className="h-4 w-4 text-primary/70" />}
+              <span className="font-display text-sm font-bold text-foreground">{group.name}</span>
+            </div>
+            {/* Summary line when collapsed */}
+            {state === 'completed' && !isExpanded && summary && (
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">{summary}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {state === 'completed' && !isExpanded && (
+            <span className="text-xs text-primary font-semibold hidden sm:block">Edit</span>
+          )}
+          {state !== 'locked' && (
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+          )}
+          {state === 'locked' && (
+            <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+          )}
+        </div>
+      </button>
+
+      {/* Fields — only rendered when expanded */}
+      {isExpanded && state !== 'locked' && (
+        <div className="border-t border-border px-5 pt-5 pb-6 sm:px-6 animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {fields.map(attr => (
+              <FieldRenderer
+                key={attr.id}
+                attribute={attr}
+                required={attr._required}
+                register={register}
+                control={control}
+                allValues={allValues}
+                setValue={setValue}
+                attributes={attributes}
+                dependencies={dependencies}
+                isGroupAvailable={state !== 'locked'}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Progress Bar ─────────────────────────────────────────────────────────────
+function WorkflowProgress({ completedCount, totalCount }) {
+  if (totalCount === 0) return null;
+  const pct = Math.round((completedCount / totalCount) * 100);
+  return (
+    <div className="mb-6 space-y-1.5">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>{completedCount} of {totalCount} sections complete</span>
+        <span className="font-semibold text-primary">{pct}%</span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+        <div
+          className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── Main MetadataDrivenForm Component ───────────────────────────────────────
+export default function MetadataDrivenForm({
+  categorySlug, register, control, watch, setValue,
+  onProgressChange,   // callback: (completedGroups, totalGroups) => void
+  onSectionComplete,  // callback: (groupId) => void
+}) {
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState([]);
 
+  // Track which sections are manually expanded/collapsed
+  const [expandedGroups, setExpandedGroups] = useState({});
+
   // Reactive watch on all form values for dependency evaluation
   const allValues = useWatch({ control });
 
-  // Fetch metadata from Supabase when category changes
+  // Fetch metadata
   useEffect(() => {
-    if (!categorySlug) {
-      setMetadata(null);
-      setLoading(false);
-      return;
-    }
+    if (!categorySlug) { setMetadata(null); setLoading(false); return; }
     setLoading(true);
     setValidationErrors([]);
+    setExpandedGroups({});
+
     getCategoryMetadata(categorySlug).then(data => {
-      const errors = validateMetadata(data);
-      if (errors.length > 0) {
-        setValidationErrors(errors);
+      if (!data.attributes || data.attributes.length === 0) {
+        setValidationErrors(['No attributes defined for this category.']);
         setLoading(false);
         return;
       }
@@ -467,7 +586,7 @@ export default function MetadataDrivenForm({ categorySlug, register, control, wa
     });
   }, [categorySlug]);
 
-  // Evaluate which attributes are visible and whether they're required
+  // Evaluate visible attributes
   const evaluatedAttributes = useMemo(() => {
     if (!metadata) return [];
     return metadata.attributes
@@ -479,35 +598,123 @@ export default function MetadataDrivenForm({ categorySlug, register, control, wa
       .filter(attr => attr._visible);
   }, [metadata, allValues]);
 
-  // Group visible attributes by their group (with deduplication)
-  const groupedAttributes = useMemo(() => {
+  // Build visible groups (deduplicated, only those with ≥1 visible field)
+  const visibleGroups = useMemo(() => {
     if (!metadata) return [];
-    
-    // Deduplicate groups by name in case the DB has duplicates
+
     const uniqueGroups = metadata.groups.reduce((acc, group) => {
-      if (!acc.some(g => g.name === group.name)) {
-        acc.push(group);
-      }
+      if (!acc.some(g => g.name === group.name)) acc.push(group);
       return acc;
     }, []);
 
-    return uniqueGroups.map(group => ({
-      ...group,
-      fields: evaluatedAttributes.filter(attr => attr.group_id === group.id),
-    })).filter(g => g.fields.length > 0);
+    return uniqueGroups
+      .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
+      .map(group => ({
+        ...group,
+        fields: evaluatedAttributes.filter(attr => attr.group_id === group.id),
+      }))
+      .filter(g => g.fields.length > 0);
   }, [metadata, evaluatedAttributes]);
 
-  // Attributes with no group get a catch-all group
-  const ungroupedAttributes = useMemo(() => {
+  // Ungrouped fields
+  const ungroupedFields = useMemo(() => {
     if (!metadata) return [];
     return evaluatedAttributes.filter(attr => !attr.group_id);
   }, [metadata, evaluatedAttributes]);
 
+  // Determine section completion: a group is "done" if all its _required fields have values
+  const groupCompletionMap = useMemo(() => {
+    const map = {};
+    visibleGroups.forEach(group => {
+      const requiredFields = group.fields.filter(f => f._required);
+      if (requiredFields.length === 0) {
+        // No required fields — completed if any field has a value
+        const anyFilled = group.fields.some(f => {
+          const val = allValues?.attrs?.[f.id];
+          return val != null && val !== '' && !(Array.isArray(val) && val.length === 0);
+        });
+        map[group.id] = anyFilled;
+      } else {
+        map[group.id] = requiredFields.every(f => {
+          const val = allValues?.attrs?.[f.id];
+          return val != null && val !== '' && !(Array.isArray(val) && val.length === 0);
+        });
+      }
+    });
+    return map;
+  }, [visibleGroups, allValues]);
+
+  // Compute states for each group
+  const groupStateMap = useMemo(() => {
+    const map = {};
+    let previousComplete = true;
+    visibleGroups.forEach(group => {
+      const isDone = groupCompletionMap[group.id];
+      if (isDone) {
+        map[group.id] = 'completed';
+      } else if (previousComplete) {
+        map[group.id] = expandedGroups[group.id] ? 'in-progress' : 'available';
+      } else {
+        map[group.id] = 'locked';
+      }
+      // For locking: only lock subsequent if this group has required fields that aren't filled
+      const hasRequired = group.fields.some(f => f._required);
+      if (hasRequired && !isDone) previousComplete = false;
+    });
+    return map;
+  }, [visibleGroups, groupCompletionMap, expandedGroups]);
+
+  // Auto-expand the first non-completed available section
+  useEffect(() => {
+    if (!visibleGroups.length) return;
+    const firstAvailable = visibleGroups.find(g =>
+      groupStateMap[g.id] === 'available' || groupStateMap[g.id] === 'in-progress'
+    );
+    if (firstAvailable && expandedGroups[firstAvailable.id] === undefined) {
+      setExpandedGroups(prev => ({ ...prev, [firstAvailable.id]: true }));
+    }
+  }, [visibleGroups, groupStateMap]);
+
+  // Auto-collapse completed sections & expand next
+  const prevCompletionRef = useRef({});
+  useEffect(() => {
+    visibleGroups.forEach((group, idx) => {
+      const wasDone = prevCompletionRef.current[group.id];
+      const isDone = groupCompletionMap[group.id];
+      if (!wasDone && isDone) {
+        // Collapse this section
+        setExpandedGroups(prev => ({ ...prev, [group.id]: false }));
+        // Auto-expand next available
+        const nextGroup = visibleGroups[idx + 1];
+        if (nextGroup && groupStateMap[nextGroup.id] !== 'locked') {
+          setTimeout(() => {
+            setExpandedGroups(prev => ({ ...prev, [nextGroup.id]: true }));
+          }, 200);
+        }
+        onSectionComplete?.(group.id);
+      }
+    });
+    prevCompletionRef.current = { ...groupCompletionMap };
+  }, [groupCompletionMap, visibleGroups]);
+
+  // Progress reporting
+  const completedCount = Object.values(groupCompletionMap).filter(Boolean).length;
+  useEffect(() => {
+    onProgressChange?.(completedCount, visibleGroups.length);
+  }, [completedCount, visibleGroups.length]);
+
+  const toggleGroup = (groupId) => {
+    const state = groupStateMap[groupId];
+    if (state === 'locked') return;
+    setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
+
+  // Loading skeleton
   if (loading) {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-14 animate-pulse rounded-xl bg-secondary/50" />
+          <div key={i} className="h-14 animate-pulse rounded-2xl bg-secondary/50" />
         ))}
       </div>
     );
@@ -520,7 +727,6 @@ export default function MetadataDrivenForm({ categorySlug, register, control, wa
           <AlertCircle className="h-5 w-5" />
           <span>Metadata Configuration Error</span>
         </div>
-        <p className="text-sm mb-3 text-destructive/80">The form engine detected invalid metadata configuration for this category. Please contact an administrator.</p>
         <ul className="list-disc pl-5 text-xs">
           {validationErrors.map((err, i) => <li key={i}>{err}</li>)}
         </ul>
@@ -528,39 +734,50 @@ export default function MetadataDrivenForm({ categorySlug, register, control, wa
     );
   }
 
-  if (!metadata || (groupedAttributes.length === 0 && ungroupedAttributes.length === 0)) {
-    return null;
-  }
-
-  const renderGroup = (group, fields) => (
-    <div key={group.id} className="mb-6 rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
-      {group.name && (
-        <h3 className="mb-5 flex items-center gap-2 border-b border-border pb-4 font-display text-base font-bold text-foreground">
-          {group.name}
-        </h3>
-      )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {fields.map(attr => (
-          <FieldRenderer
-            key={attr.id}
-            attribute={attr}
-            required={attr._required}
-            register={register}
-            control={control}
-            allValues={allValues}
-            setValue={setValue}
-            attributes={metadata.attributes}
-            dependencies={metadata.dependencies}
-          />
-        ))}
-      </div>
-    </div>
-  );
+  if (!metadata || (visibleGroups.length === 0 && ungroupedFields.length === 0)) return null;
 
   return (
-    <div className="space-y-0">
-      {groupedAttributes.map(g => renderGroup(g, g.fields))}
-      {ungroupedAttributes.length > 0 && renderGroup({ id: 'ungrouped', name: '' }, ungroupedAttributes)}
+    <div className="space-y-3">
+      {/* Internal progress bar removed because PostAd provides a global one */}
+
+      {visibleGroups.map(group => (
+        <WorkflowSection
+          key={group.id}
+          group={group}
+          fields={group.fields}
+          state={groupStateMap[group.id] || 'available'}
+          isExpanded={!!expandedGroups[group.id]}
+          onToggle={() => toggleGroup(group.id)}
+          register={register}
+          control={control}
+          allValues={allValues}
+          setValue={setValue}
+          attributes={metadata.attributes}
+          dependencies={metadata.dependencies}
+        />
+      ))}
+
+      {/* Ungrouped fields fallback */}
+      {ungroupedFields.length > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {ungroupedFields.map(attr => (
+              <FieldRenderer
+                key={attr.id}
+                attribute={attr}
+                required={attr._required}
+                register={register}
+                control={control}
+                allValues={allValues}
+                setValue={setValue}
+                attributes={metadata.attributes}
+                dependencies={metadata.dependencies}
+                isGroupAvailable={true}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

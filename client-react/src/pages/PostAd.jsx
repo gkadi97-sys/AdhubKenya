@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { createListing, checkDuplicateListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
@@ -10,8 +10,13 @@ import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { useSEO } from '@/lib/useSEO';
 import toast from 'react-hot-toast';
 import imageCompression from 'browser-image-compression';
-import { Lock, Image as ImageIcon, Camera, Trash2, Rocket } from 'lucide-react';
+import {
+  Lock, Image as ImageIcon, Camera, Trash2, Rocket, Save,
+  CheckCircle2, ChevronDown, MapPin, DollarSign, Eye,
+  ArrowLeft, Edit2
+} from 'lucide-react';
 
+// ─── Condition option sets ───────────────────────────────────────────────────
 const STANDARD_CONDITIONS   = ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
 const VEHICLE_CONDITIONS    = ['Brand New', 'Foreign Used', 'Locally Used', 'Accident Damaged', 'Rebuilt'];
 const AUTOSPARES_CONDITIONS = ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'];
@@ -19,64 +24,394 @@ const AUDIO_CONDITIONS      = ['Brand New', 'Open Box', 'Ex-UK', 'Foreign Used',
 const LAPTOP_CONDITIONS     = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
 const PHONE_CONDITIONS      = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
 
+// ─── Draft helpers ───────────────────────────────────────────────────────────
+const DRAFT_KEY = 'adhub_post_ad_draft';
+function saveDraft(data) {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...data, _savedAt: Date.now() })); } catch {}
+}
+function loadDraft() {
+  try { const raw = localStorage.getItem(DRAFT_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
+}
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch {}
+}
+
+// ─── Static Section Wrapper — matches MetadataDrivenForm section visual ──────
+function StaticSection({ id, icon, title, state, isExpanded, onToggle, summary, children }) {
+  const stateConfig = {
+    locked:       'border-border/40 opacity-50',
+    available:    'border-border',
+    'in-progress':'border-primary/40 ring-1 ring-primary/10',
+    completed:    'border-emerald-500/30',
+  };
+
+  return (
+    <div id={id} className={`rounded-2xl border bg-card shadow-sm transition-all duration-200 overflow-hidden ${stateConfig[state] || stateConfig.available}`}>
+      <button
+        type="button"
+        disabled={state === 'locked'}
+        onClick={onToggle}
+        className={`w-full flex items-center justify-between gap-3 px-5 py-4 sm:px-6 ${state !== 'locked' ? 'cursor-pointer hover:bg-muted/30' : 'cursor-default'} transition-colors`}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          {state === 'completed' ? (
+            <CheckCircle2 className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+          ) : state === 'locked' ? (
+            <Lock className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
+          ) : (
+            <div className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${state === 'in-progress' ? 'bg-primary animate-pulse' : 'bg-primary/40'}`} />
+          )}
+          <div className="text-left min-w-0">
+            <div className="flex items-center gap-2">
+              {icon}
+              <span className="font-display text-sm font-bold text-foreground">{title}</span>
+            </div>
+            {state === 'completed' && !isExpanded && summary && (
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">{summary}</p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {state === 'completed' && !isExpanded && (
+            <span className="text-xs text-primary font-semibold hidden sm:block">Edit</span>
+          )}
+          {state !== 'locked' && (
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+          )}
+        </div>
+      </button>
+
+      {isExpanded && state !== 'locked' && (
+        <div className="border-t border-border px-5 pt-5 pb-6 sm:px-6 animate-in fade-in slide-in-from-top-1 duration-150">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Review Screen ────────────────────────────────────────────────────────────
+function ReviewScreen({ formData, images, category, onEdit, onSubmit, loading }) {
+  const categoryName = TOP_CATEGORIES.find(c => c.slug === formData.category)?.name || formData.category;
+  const attrEntries = Object.entries(formData.attrs || {}).filter(([, v]) => v != null && v !== '' && !(Array.isArray(v) && v.length === 0));
+
+  return (
+    <div className="space-y-4 animate-in fade-in duration-200">
+      <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-display text-base font-bold text-foreground flex items-center gap-2">
+            <Eye className="h-4 w-4 text-primary" /> Review Your Listing
+          </h3>
+          <button type="button" onClick={onEdit} className="flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-muted transition">
+            <Edit2 className="h-3 w-3" /> Edit
+          </button>
+        </div>
+
+        <div className="space-y-3 text-sm">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <div><span className="text-muted-foreground">Category</span><p className="font-semibold">{categoryName}</p></div>
+            {formData.condition && <div><span className="text-muted-foreground">Condition</span><p className="font-semibold">{formData.condition}</p></div>}
+            {formData.title && <div className="col-span-2"><span className="text-muted-foreground">Title</span><p className="font-semibold">{formData.title}</p></div>}
+            {formData.price && <div><span className="text-muted-foreground">Price</span><p className="font-semibold text-primary">KES {Number(formData.price).toLocaleString()}{formData.negotiable ? ' (Negotiable)' : ''}</p></div>}
+            {formData.location && <div><span className="text-muted-foreground">Location</span><p className="font-semibold">{formData.location}</p></div>}
+          </div>
+
+          {attrEntries.length > 0 && (
+            <>
+              <div className="border-t border-border pt-3 mt-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Details</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                  {attrEntries.slice(0, 10).map(([k, v]) => (
+                    <div key={k}>
+                      <p className="text-xs text-muted-foreground capitalize">{k}</p>
+                      <p className="font-semibold text-sm truncate">{Array.isArray(v) ? v.join(', ') : String(v)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {images.length > 0 && (
+            <div className="border-t border-border pt-3 mt-1">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{images.length} Photo{images.length !== 1 ? 's' : ''} Ready</p>
+              <div className="flex gap-2 flex-wrap">
+                {images.slice(0, 6).map((src, i) => (
+                  <div key={i} className="w-14 h-14 rounded-lg overflow-hidden border border-border flex-shrink-0">
+                    <img src={src} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                {images.length > 6 && <div className="w-14 h-14 rounded-lg border border-border flex items-center justify-center text-xs font-bold text-muted-foreground bg-muted">+{images.length - 6}</div>}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="flex w-full items-center justify-center gap-2 rounded-xl gradient-emerald px-6 py-4 text-base font-bold text-primary-foreground shadow-elevated transition hover:opacity-95 disabled:opacity-70 disabled:cursor-not-allowed"
+      >
+        {loading ? '⏳ Posting...' : <><Rocket className="h-5 w-5" /> Publish Listing</>}
+      </button>
+    </div>
+  );
+}
+
+// ─── Main PostAd Page ────────────────────────────────────────────────────────
 export default function PostAdPage() {
   useSEO({
     title: 'Post a Free Ad | AdHub Kenya',
     description: 'Post your free classified ad on AdHub Kenya. Sell cars, property, electronics, clothes, and more to buyers across all 47 counties in Kenya.',
     canonicalPath: '/post-ad'
   });
+
   const { user } = useAuth();
   const navigate = useNavigate();
-  const {
-    register,
-    handleSubmit: rhfHandleSubmit,
-    watch,
-    control,
-    setValue,
-    trigger
-  } = useForm({
-    defaultValues: {
-      title: '', description: '', price: '', negotiable: false,
-      category: '', location: '', condition: '', phone: user?.phone || '', whatsapp: user?.whatsapp || '',
-      attrs: {}
-    }
+
+  const { register, handleSubmit: rhfHandleSubmit, watch, control, setValue, getValues } = useForm({
+    defaultValues: (() => {
+      const draft = loadDraft();
+      return draft ? { ...draft, _savedAt: undefined } : {
+        title: '', description: '', price: '', negotiable: false,
+        category: '', location: '', condition: '',
+        phone: user?.phone || '', whatsapp: user?.whatsapp || '',
+        attrs: {}
+      };
+    })()
   });
 
   const category = watch('category');
-  const make = watch('attrs.make');
-  const [images, setImages] = useState([]);
-  const [previews, setPreviews] = useState([]);
-  const [processingImages, setProcessingImages] = useState(false);
-  const [blurStatus, setBlurStatus] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  
-  // Mobile wizard state
-  const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const make     = watch('attrs.make');
+  const title    = watch('title');
+  const price    = watch('price');
+  const location = watch('location');
 
-  const handleNextStep = async () => {
-    let isValid = false;
-    if (currentStep === 1) {
-      const fields = ['category', 'title', 'description'];
-      if (getConditionOptions()) fields.push('condition');
-      isValid = await trigger(fields);
-    } else if (currentStep === 2) {
-      const attrFields = Object.keys(control._fields || {}).filter(f => f.startsWith('attrs.'));
-      isValid = await trigger(attrFields);
-    } else if (currentStep === 3) {
-      const fields = ['location'];
-      if (!(category === 'jobs' || category === 'seeking-work')) fields.push('price');
-      isValid = await trigger(fields);
+  const [images, setImages]             = useState([]);
+  const [previews, setPreviews]         = useState([]);
+  const [processingImages, setProcessingImages] = useState(false);
+  const [blurStatus, setBlurStatus]     = useState('');
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState('');
+  const [showReview, setShowReview]     = useState(false);
+  const [draftSaved, setDraftSaved]     = useState(false);
+
+  // Section expansion state for static sections
+  const [expanded, setExpanded] = useState({
+    basics: true, pricing: false, location: false, media: false
+  });
+
+  // Metadata section progress
+  const [metaProgress, setMetaProgress] = useState({ completed: 0, total: 0 });
+
+  // Category-derived flags
+  const isVehicle  = category === 'vehicles' || category === 'commercial-vehicles';
+  const isProperty = category === 'property' || category === 'land-plots';
+  const isJob      = category === 'jobs' || category === 'seeking-work';
+  const isAutoSpares = category === 'auto-spares';
+  const isPhone    = category === 'phones-tablets';
+  const isLaptop   = category === 'electronics' && typeof make === 'string' && make.toLowerCase().includes('laptop');
+  const isAudio    = category === 'electronics' && typeof make === 'string' && make.toLowerCase().includes('audio');
+  const showCondition = !isVehicle && !isAutoSpares && !isPhone && !isLaptop && !isAudio && category && !isJob;
+
+  const getConditionOptions = () => {
+    if (isVehicle && TRUCK_CONDITIONS && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers', 'Pickups'].includes(make)) return TRUCK_CONDITIONS;
+    if (isVehicle) return VEHICLE_CONDITIONS;
+    if (isAutoSpares) return AUTOSPARES_CONDITIONS;
+    if (isPhone) return PHONE_CONDITIONS;
+    if (isLaptop) return LAPTOP_CONDITIONS;
+    if (isAudio) return AUDIO_CONDITIONS;
+    if (showCondition) return STANDARD_CONDITIONS;
+    return null;
+  };
+  const conditionOptions = getConditionOptions();
+
+  // Determine states of static sections
+  const basicsComplete = !!(title && category);
+  const pricingComplete = isJob ? true : !!(price);
+  const locationComplete = !!(location);
+  const mediaComplete = images.length > 0;
+
+  const getSectionState = (key, prevComplete) => {
+    if (!prevComplete) return 'locked';
+    const complete = { basics: basicsComplete, pricing: pricingComplete, location: locationComplete, media: mediaComplete }[key];
+    if (complete) return 'completed';
+    return expanded[key] ? 'in-progress' : 'available';
+  };
+
+  // Unlock/auto-expand next section when previous completes
+  const prevStates = useRef({});
+  useEffect(() => {
+    const sections = ['basics', 'pricing', 'location', 'media'];
+    const completionMap = { basics: basicsComplete, pricing: pricingComplete, location: locationComplete, media: mediaComplete };
+    sections.forEach((key, i) => {
+      if (!prevStates.current[key] && completionMap[key]) {
+        // Collapse this, expand next
+        const nextKey = sections[i + 1];
+        if (nextKey) {
+          setExpanded(prev => ({ ...prev, [key]: false, [nextKey]: true }));
+        } else {
+          setExpanded(prev => ({ ...prev, [key]: false }));
+        }
+      }
+    });
+    prevStates.current = { ...completionMap };
+  }, [basicsComplete, pricingComplete, locationComplete, mediaComplete]);
+
+  // When category changes, reset metadata sections
+  useEffect(() => {
+    if (category) {
+      setExpanded(prev => ({ ...prev, basics: true }));
+    }
+  }, [category]);
+
+  const toggleSection = (key, state) => {
+    if (state === 'locked') return;
+    setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Auto-save draft
+  useEffect(() => {
+    const sub = watch((values) => {
+      saveDraft(values);
+    });
+    return () => sub.unsubscribe();
+  }, [watch]);
+
+  const handleSaveDraft = () => {
+    saveDraft(getValues());
+    setDraftSaved(true);
+    toast.success('Draft saved!');
+    setTimeout(() => setDraftSaved(false), 2000);
+  };
+
+  // Image handling
+  const handleImages = async (e) => {
+    const maxImages = isProperty ? 15 : (isVehicle ? 10 : 5);
+    const rawNewFiles = Array.from(e.target.files);
+    if (rawNewFiles.length === 0) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const maxSize = 15 * 1024 * 1024;
+    const validFiles = rawNewFiles.filter(file => {
+      if (!validTypes.includes(file.type)) { toast.error(`${file.name} is not a supported format.`); return false; }
+      if (file.size > maxSize) { toast.error(`${file.name} is larger than 15MB.`); return false; }
+      return true;
+    });
+    if (validFiles.length === 0) return;
+
+    setProcessingImages(true);
+    let finalNewFiles = [];
+    try {
+      const compressionOptions = { maxSizeMB: 0.5, maxWidthOrHeight: 1200, useWebWorker: true, fileType: 'image/webp' };
+      const compressedFiles = [];
+      for (let i = 0; i < validFiles.length; i++) {
+        setBlurStatus(`Compressing image ${i + 1} of ${validFiles.length}...`);
+        try {
+          const compressed = await imageCompression(validFiles[i], compressionOptions);
+          const named = new File([compressed], validFiles[i].name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' });
+          compressedFiles.push(named);
+        } catch { compressedFiles.push(validFiles[i]); }
+      }
+
+      if (isVehicle) {
+        const { autoBlurLicensePlate } = await import('@/lib/imageProcessing');
+        for (let i = 0; i < compressedFiles.length; i++) {
+          setBlurStatus(`Scanning image ${i + 1} of ${compressedFiles.length} for number plates...`);
+          const processed = await autoBlurLicensePlate(compressedFiles[i], setBlurStatus);
+          finalNewFiles.push(processed);
+        }
+      } else {
+        finalNewFiles = compressedFiles;
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to process images. Please try again.');
+      finalNewFiles = validFiles;
+    } finally {
+      setProcessingImages(false);
+      setBlurStatus('');
     }
 
-    if (isValid) {
-      setCurrentStep(s => s + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    setImages(prev => {
+      const combined = [...prev, ...finalNewFiles].slice(0, maxImages);
+      setPreviews(combined.map(f => URL.createObjectURL(f)));
+      return combined;
+    });
+  };
+
+  const removeImage = (i) => {
+    URL.revokeObjectURL(previews[i]);
+    setImages(imgs => imgs.filter((_, idx) => idx !== i));
+    setPreviews(prev => prev.filter((_, idx) => idx !== i));
+  };
+
+  useEffect(() => { return () => previews.forEach(url => URL.revokeObjectURL(url)); }, [previews]);
+
+  const getTitlePlaceholder = (cat) => {
+    switch (cat) {
+      case 'vehicles': case 'commercial-vehicles': return 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White';
+      case 'property': case 'land-plots': return 'e.g. 4 Bedroom Villa in Karen with Pool';
+      case 'phones-tablets': return 'e.g. Samsung Galaxy S24 Ultra 512GB - Titanium Black';
+      case 'electronics': return 'e.g. Samsung 65" QLED 4K Smart TV';
+      case 'jobs': return 'e.g. Senior Software Engineer - Remote (Nairobi)';
+      case 'fashion': return 'e.g. Men\'s Official Leather Shoes - Size 42';
+      default: return 'Write a clear, descriptive title...';
     }
   };
 
+  const getDescriptionPlaceholder = (cat) => {
+    if (isVehicle) return 'Describe the vehicle — any extras, reason for selling, service history, etc.';
+    if (isJob) return 'Describe the role, key responsibilities, requirements, and any benefits offered...';
+    switch (cat) {
+      case 'property': case 'land-plots': return 'Describe the property — amenities, exact location, title deed status, viewing arrangements...';
+      case 'phones-tablets': return 'Describe the device — battery health, storage, included accessories, condition...';
+      case 'electronics': return 'Describe the item — brand, model, condition, accessories included, reason for selling...';
+      default: return 'Describe your item in detail — condition, features, reason for selling...';
+    }
+  };
 
+  // Submit
+  const onSubmit = async (data) => {
+    setError('');
+    const { attrs, ...formValues } = data;
+
+    if (!formValues.title || !formValues.description || !formValues.category || !formValues.location || !formValues.phone) {
+      setError('Please fill in all required fields'); return;
+    }
+    if (!isJob && !formValues.price) { setError('Please enter a price'); return; }
+
+    setLoading(true);
+    try {
+      const listingData = { ...formValues };
+      if (isJob) listingData.price = 0;
+
+      if (user) {
+        const isDup = await checkDuplicateListing(user.id, formValues.title, formValues.category);
+        if (isDup) {
+          setError('You already have an active listing with a similar title in this category.');
+          setLoading(false); return;
+        }
+      }
+
+      listingData.status = 'pending';
+      const { make, model, year, ...restSpecs } = attrs || {};
+      if (make)  listingData.make  = make;
+      if (model) listingData.model = model;
+      if (year)  listingData.year  = year;
+      listingData.specs = restSpecs || {};
+
+      await createListing(listingData, images);
+      clearDraft();
+      navigate('/post-ad/success');
+    } catch (err) {
+      setError(err.message);
+    } finally { setLoading(false); }
+  };
+
+  const inputClass = 'w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground';
+  const labelClass = 'text-sm font-semibold text-foreground mb-1.5 inline-block';
 
   if (!user) return (
     <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
@@ -92,418 +427,285 @@ export default function PostAdPage() {
     </div>
   );
 
-  const isVehicle = category === 'vehicles' || category === 'commercial-vehicles';
-  const isProperty = category === 'property' || category === 'land-plots';
-  const isJob = category === 'jobs' || category === 'seeking-work';
-  const isAutoSpares = category === 'auto-spares';
-  const isPhone = category === 'phones-tablets';
-  const isLaptop = category === 'electronics' && make === 'Laptops & Computers';
-  const isAudio = category === 'electronics' && make === 'Audio & Music';
-  const showStandardCondition = !isVehicle && !isAutoSpares && !isPhone && !isLaptop && !isAudio && category && !isJob;
-  const isHeavyTruck = isVehicle && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers'].includes(make);
-  const isPickupTruck = isVehicle && make === 'Pickups';
+  // Overall progress across static + metadata sections
+  const staticTotal = isJob ? 3 : 4; // basics, [pricing], location, media
+  const staticComplete = [basicsComplete, !isJob && pricingComplete, locationComplete, mediaComplete].filter(Boolean).length;
+  const totalSections = staticTotal + metaProgress.total;
+  const doneSections  = staticComplete + metaProgress.completed;
+  const overallPct    = totalSections > 0 ? Math.round((doneSections / totalSections) * 100) : 0;
 
-  // Derive the correct condition options list from the selected category/subcategory
-  const getConditionOptions = () => {
-    if (isHeavyTruck || isPickupTruck) return TRUCK_CONDITIONS;
-    if (isVehicle) return VEHICLE_CONDITIONS;
-    if (isAutoSpares) return AUTOSPARES_CONDITIONS;
-    if (isPhone) return PHONE_CONDITIONS;
-    if (isLaptop) return LAPTOP_CONDITIONS;
-    if (isAudio) return AUDIO_CONDITIONS;
-    if (showStandardCondition) return STANDARD_CONDITIONS;
-    return null; // no condition field for jobs etc.
-  };
-  const conditionOptions = getConditionOptions();
+  const basicsState   = getSectionState('basics', true);
+  // Show metadata form as soon as category is selected — it provides context-specific fields
+  // that inform the rest of the form (e.g. Make → Model → auto-fill engine size)
+  const metadataReady = !!category;
+  const pricingState  = getSectionState('pricing', basicsComplete);
+  const locationState = getSectionState('location', basicsComplete);
+  const mediaState    = getSectionState('media', basicsComplete);
 
-  const handleImages = async (e) => {
-    const maxImages = isProperty ? 15 : (isVehicle ? 10 : 5);
-    const rawNewFiles = Array.from(e.target.files);
-    
-    if (rawNewFiles.length === 0) return;
-
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    const maxSize = 15 * 1024 * 1024; // 15MB raw size limit (will be compressed to <500KB)
-
-    const validFiles = rawNewFiles.filter(file => {
-      if (!validTypes.includes(file.type)) {
-        toast.error(`${file.name} is not a supported image format.`);
-        return false;
-      }
-      if (file.size > maxSize) {
-        toast.error(`${file.name} is larger than 15MB.`);
-        return false;
-      }
-      return true;
-    });
-
-    if (validFiles.length === 0) return;
-
-    setProcessingImages(true);
-    let finalNewFiles = [];
-
-    try {
-      // Step 1: Compress all images client-side
-      const compressionOptions = {
-        maxSizeMB: 0.5,           // max 500KB per image
-        maxWidthOrHeight: 1200,   // max 1200px
-        useWebWorker: true,
-        fileType: 'image/webp',   // convert to webp for better compression
-      };
-
-      const compressedFiles = [];
-      for (let i = 0; i < validFiles.length; i++) {
-        setBlurStatus(`Compressing image ${i + 1} of ${validFiles.length}...`);
-        try {
-          const compressed = await imageCompression(validFiles[i], compressionOptions);
-          // imageCompression returns a File-like Blob; ensure it has a name
-          const named = new File([compressed], validFiles[i].name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' });
-          compressedFiles.push(named);
-        } catch {
-          // If compression fails for this file, use the original
-          compressedFiles.push(validFiles[i]);
-        }
-      }
-
-      // Step 2: If vehicle, blur license plates on the compressed files
-      if (isVehicle) {
-        const { autoBlurLicensePlate } = await import('@/lib/imageProcessing');
-        for (let i = 0; i < compressedFiles.length; i++) {
-          setBlurStatus(`Scanning image ${i + 1} of ${compressedFiles.length} for number plates...`);
-          const processed = await autoBlurLicensePlate(compressedFiles[i], setBlurStatus);
-          finalNewFiles.push(processed);
-        }
-      } else {
-        finalNewFiles = compressedFiles;
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to process one or more images. Please try again.');
-      finalNewFiles = validFiles; // fallback to originals
-    } finally {
-      setProcessingImages(false);
-      setBlurStatus('');
-    }
-
-    setImages(prev => {
-      const combined = [...prev, ...finalNewFiles].slice(0, maxImages);
-      setPreviews(combined.map(f => URL.createObjectURL(f)));
-      return combined;
-    });
-  };
-
-  const removeImage = (i) => {
-    URL.revokeObjectURL(previews[i]);
-    const newImages = images.filter((_, idx) => idx !== i);
-    const newPreviews = previews.filter((_, idx) => idx !== i);
-    setImages(newImages);
-    setPreviews(newPreviews);
-  };
-
-  useEffect(() => {
-    return () => {
-      previews.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, [previews]);
-
-
-  const getTitlePlaceholder = (cat) => {
-    const attrs = watch("attrs") || {};
-    switch (cat) {
-      case 'vehicles':
-      case 'commercial-vehicles': return isHeavyTruck ? 'e.g. Isuzu NQR – 4×2 Dropside – 2020' : 'e.g. 2019 Toyota Harrier 2.0 Sunroof - Pearl White';
-      case 'property':
-      case 'land-plots': return 'e.g. 4 Bedroom Villa in Karen with Pool';
-      case 'auto-spares': return 'e.g. Toyota Fielder NZE141 Front Bumper';
-      case 'phones-tablets': return 'e.g. Samsung Galaxy S24 Ultra 512GB - Titanium Black';
-      case 'electronics': return attrs.specs?.brand && ['HP','Dell','Lenovo','Apple','Asus','Acer','Microsoft'].includes(attrs.specs.brand) ? `e.g. ${attrs.specs.brand} ${attrs.model || 'Laptop'} - ${attrs.specs.ram || ''} ${attrs.specs.storageSize || ''}`.trim() : 'e.g. Samsung 65" QLED 4K Smart TV';
-      case 'home-living': return 'e.g. 6-Seater Mahogany Dining Table Set';
-      case 'jobs': return 'e.g. Senior Software Engineer - Remote';
-      case 'fashion': return 'e.g. Men\'s Official Leather Shoes - Size 42';
-      case 'beauty': return 'e.g. Bath & Body Works Vanilla Bean Lotion';
-      case 'services': return 'e.g. Professional Plumbing & Pipe Repair Services';
-      case 'repair-construction': return 'e.g. 50kg Bamburi Portland Cement';
-      case 'commercial-equipment': return 'e.g. 2-Door Commercial Display Fridge';
-      case 'leisure': return 'e.g. Yamaha Acoustic Guitar - Like New';
-      case 'babies-kids': return 'e.g. Baby Cot with Mattress and Mosquito Net';
-      case 'food-agriculture': return 'e.g. 90kg Bag of Fresh Nyandarua Potatoes';
-      case 'animals-pets': return 'e.g. 2-Month-Old Purebred German Shepherd Puppy';
-      case 'seeking-work': return 'e.g. Experienced Driver with Class B, C, E License';
-      default: return '';
-    }
-  };
-
-  const getDescriptionPlaceholder = (cat) => {
-    if (isVehicle) return 'Describe the vehicle — any extras, reason for selling, service history, etc.';
-    if (isJob) return 'Describe the role, key responsibilities, requirements, and any benefits offered...';
-    switch (cat) {
-      case 'property':
-      case 'land-plots': return 'Describe the property — amenities, exact location details, title deed status, viewing arrangements...';
-      case 'auto-spares': return 'Describe the spare part — compatibility, condition, brand, reason for selling...';
-      case 'phones-tablets': return 'Describe the device — battery health, storage, included accessories, condition...';
-      case 'electronics': return 'Describe the item — brand, model, condition, accessories included, reason for selling...';
-      case 'home-living': return 'Describe the item — material, dimensions, condition, reason for selling...';
-      case 'fashion': return 'Describe the item — size, material, brand, condition...';
-      case 'beauty': return 'Describe the product — brand, quantity/volume, skin/hair type, condition...';
-      case 'services': return 'Describe the service — your expertise, what\'s included, coverage area, pricing structure...';
-      case 'repair-construction': return 'Describe the materials or tools — quantity, condition, brand...';
-      case 'commercial-equipment': return 'Describe the equipment — capacity, condition, brand, power requirements...';
-      case 'leisure': return 'Describe the item — condition, accessories included, brand...';
-      case 'babies-kids': return 'Describe the item — age range, condition, safety features...';
-      case 'food-agriculture': return 'Describe the produce/product — quantity, freshness, origin, delivery options...';
-      case 'animals-pets': return 'Describe the pet/animal — breed, age, vaccination status, temperament...';
-      case 'seeking-work': return 'Describe your skills, experience, and what kind of work you are looking for...';
-      default: return 'Describe your item in detail — condition, features, reason for selling...';
-    }
-  };
-
-  const onSubmit = async (data) => {
-    setError('');
-    const { attrs, ...formValues } = data;
-    
-    if (!formValues.title || !formValues.description || (!isJob && !formValues.price) || !formValues.category || !formValues.location || !formValues.phone) {
-      setError('Please fill in all required fields'); return;
-    }
-    if (isVehicle && !formValues.condition) {
-      setError('Please select vehicle condition'); return;
-    }
-    setLoading(true);
-    try {
-      const listingData = { ...formValues };
-      if (isJob) listingData.price = 0;
-      if (!showStandardCondition && !isVehicle && !isAutoSpares && !isPhone && !isLaptop && !isAudio) delete listingData.condition;
-
-      // Duplicate check
-      if (user) {
-        const isDup = await checkDuplicateListing(user.id, formValues.title, formValues.category);
-        if (isDup) {
-          setError('You already have an active listing with a similar title in this category. Please edit it or use a different title.');
-          setLoading(false);
-          return;
-        }
-      }
-
-      listingData.status = 'pending';
-
-      // Map dynamic attributes. Some need to be top level, rest go to specs.
-      const { make, model, year, ...restSpecs } = attrs;
-      if (make)  listingData.make  = make;
-      if (model) listingData.model = model;
-      if (year)  listingData.year  = year;
-      listingData.specs = restSpecs || {};
-      
-      const listing = await createListing(listingData, images);
-      
-      navigate('/post-ad/success');
-    } catch (err) {
-      setError(err.message);
-    } finally { setLoading(false); }
-  };
-
-  const inputClass = "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground";
-  const labelClass = "text-sm font-semibold text-foreground mb-1.5 inline-block";
-  const cardClass = "mb-6 rounded-2xl border border-border bg-card p-5 sm:p-7 shadow-sm";
-  const cardHeaderClass = "mb-5 flex items-center gap-2 border-b border-border pb-4 font-display text-lg font-bold text-foreground";
+  const maxPhotos = isProperty ? 15 : isVehicle ? 10 : 5;
 
   return (
     <div className="py-10 pb-24 px-4 sm:px-6 bg-background">
       <div className="mx-auto" style={{ maxWidth: (isVehicle || isProperty) ? 960 : 780 }}>
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold tracking-tight mb-2">
-            {category === 'jobs' ? 'Post a Job' : 'Post a Free Ad'}
-          </h1>
-          <p className="text-muted-foreground">
-            {category === 'jobs' ? 'Fill in the job details below to attract the right candidates' : 'Fill in the details below to list your item for sale'}
-          </p>
+
+        {/* Header */}
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl font-bold tracking-tight mb-1">
+              {isJob ? 'Post a Job' : 'Post a Free Ad'}
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              {isJob ? 'Fill in the details to attract the right candidates' : 'Follow the steps below to list your item'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSaveDraft}
+            className={`flex items-center gap-1.5 rounded-xl border border-border bg-background px-4 py-2 text-sm font-semibold transition hover:bg-muted flex-shrink-0 ${draftSaved ? 'text-emerald-500 border-emerald-500/40' : 'text-muted-foreground'}`}
+          >
+            {draftSaved ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+            <span className="hidden sm:inline">{draftSaved ? 'Saved!' : 'Save Draft'}</span>
+          </button>
         </div>
 
-        <form onSubmit={rhfHandleSubmit(onSubmit)}>
-          {error && <div className="mb-6 rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive border border-destructive/20">{error}</div>}
+        {/* Overall progress bar */}
+        {totalSections > 0 && (
+          <div className="mb-6 space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Listing progress</span>
+              <span className="font-semibold text-primary">{overallPct}% complete</span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+              <div className="h-full rounded-full bg-primary transition-all duration-500 ease-out" style={{ width: `${overallPct}%` }} />
+            </div>
+          </div>
+        )}
 
-          {/* Mobile Stepper UI */}
-          <div className="mb-8 md:hidden">
-            <div className="flex items-center justify-between relative px-2">
-              <div className="absolute left-0 top-1/2 -z-10 h-1 w-full -translate-y-1/2 bg-secondary rounded-full">
-                <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }} />
-              </div>
-              {[1, 2, 3, 4].map(step => (
-                <div key={step} className={`grid h-8 w-8 place-items-center rounded-full text-xs font-bold transition-colors ${currentStep >= step ? 'bg-primary text-primary-foreground shadow-md' : 'bg-secondary text-muted-foreground border border-border'}`}>
-                  {step}
+        <form onSubmit={rhfHandleSubmit(onSubmit)} className="space-y-3">
+          {error && <div className="rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive border border-destructive/20">{error}</div>}
+
+          {showReview ? (
+            <ReviewScreen
+              formData={getValues()}
+              images={previews}
+              category={category}
+              onEdit={() => setShowReview(false)}
+              onSubmit={rhfHandleSubmit(onSubmit)}
+              loading={loading}
+            />
+          ) : (
+            <>
+              {/* ── 1. Basic Information ─────────────────────────── */}
+              <StaticSection
+                id="section-basics"
+                icon={null}
+                title="Basic Information"
+                state={basicsState}
+                isExpanded={!!expanded.basics}
+                onToggle={() => toggleSection('basics', basicsState)}
+                summary={[TOP_CATEGORIES.find(c => c.slug === category)?.name, title].filter(Boolean).join(' • ')}
+              >
+                <div className="space-y-5">
+                  {/* Category */}
+                  <div>
+                    <label className={labelClass}>Category *</label>
+                    <select
+                      className={inputClass}
+                      {...register('category', { required: true })}
+                      onChange={e => {
+                        if (e.target.value === 'seeking-work') {
+                          window.location.href = '/post-cv';
+                        } else {
+                          register('category').onChange(e);
+                        }
+                      }}
+                    >
+                      <option value="">Select Category</option>
+                      {TOP_CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.icon} {c.name}</option>)}
+                    </select>
+                  </div>
+
+                  {/* Condition */}
+                  {conditionOptions && (
+                    <div>
+                      <label className={labelClass}>Condition *</label>
+                      <select className={inputClass} {...register('condition', { required: true })}>
+                        <option value="">Select Condition</option>
+                        {conditionOptions.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Title */}
+                  {category && (
+                    <div>
+                      <label className={labelClass}>Title *</label>
+                      <input
+                        className={inputClass}
+                        {...register('title', { required: true })}
+                        placeholder={getTitlePlaceholder(category)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  {category && (
+                    <div>
+                      <label className={labelClass}>Description *</label>
+                      <textarea
+                        className={`${inputClass} resize-y`}
+                        {...register('description', { required: true })}
+                        placeholder={getDescriptionPlaceholder(category)}
+                        rows={5}
+                      />
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-            <div className="mt-2 text-center text-sm font-semibold text-foreground">
-              {currentStep === 1 && 'Step 1: Basic Info'}
-              {currentStep === 2 && 'Step 2: Details'}
-              {currentStep === 3 && 'Step 3: Price & Location'}
-              {currentStep === 4 && 'Step 4: Photos & Contact'}
-            </div>
-          </div>
+              </StaticSection>
 
-          {/* ── Step 1: Basic Info ───────────────────────────────── */}
-          <div className={`${currentStep === 1 ? 'block' : 'hidden'} md:block`}>
-            <div className={cardClass}>
-              <h3 className={cardHeaderClass}>📋 Basic Information</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-              <div>
-                <label className={labelClass}>Category *</label>
-                <select
-                  className={inputClass}
-                  {...register("category", { required: true })}
-                  onChange={e => {
-                    if (e.target.value === 'seeking-work') {
-                      window.location.href = '/post-cv';
-                    } else {
-                      register("category").onChange(e);
-                    }
-                  }}
-                >
-                  <option value="">Select Category</option>
-                  {TOP_CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.icon} {c.name}</option>)}
-                </select>
-              </div>
-
-              {conditionOptions && (
-                <div>
-                  <label className={labelClass}>Condition *</label>
-                  <select className={inputClass} {...register("condition", { required: true })}>
-                    <option value="">Select Condition</option>
-                    {conditionOptions.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-5">
-              <label className={labelClass}>Description *</label>
-              <textarea className={`${inputClass} resize-y`} {...register("description", { required: true })} placeholder={getDescriptionPlaceholder(category)} rows={5} />
-            </div>
-          </div>
-            
-            {/* Mobile Next Button for Step 1 */}
-            <div className="md:hidden mt-2">
-              <button type="button" onClick={handleNextStep} className="flex w-full items-center justify-center rounded-xl gradient-emerald px-6 py-4 text-base font-bold text-primary-foreground shadow-elevated transition hover:opacity-95">Next Step</button>
-            </div>
-          </div>
-
-          {/* ── Step 2: Metadata / Details ──────────────────────── */}
-          <div className={`${currentStep === 2 ? 'block' : 'hidden'} md:block`}>
-            {category && (
-              <div className="md:mt-0 mt-2">
+              {/* ── 2. Category-Specific Details (MetadataDrivenForm) ── */}
+              {metadataReady && (
                 <MetadataDrivenForm
                   categorySlug={category}
                   register={register}
                   control={control}
                   watch={watch}
                   setValue={setValue}
+                  onProgressChange={(completed, total) => setMetaProgress({ completed, total })}
+                  onSectionComplete={() => {}}
                 />
-              </div>
-            )}
-            
-            {/* Mobile Nav for Step 2 */}
-            <div className="md:hidden mt-4 flex gap-3">
-              <button type="button" onClick={() => setCurrentStep(1)} className="flex-1 rounded-xl border border-border bg-background px-6 py-4 font-bold text-foreground">Back</button>
-              <button type="button" onClick={handleNextStep} className="flex-[2] rounded-xl gradient-emerald px-6 py-4 font-bold text-primary-foreground">Next Step</button>
-            </div>
-          </div>
+              )}
 
-          {/* ── Step 3: Pricing & Location ──────────────────────── */}
-          <div className={`${currentStep === 3 ? 'block' : 'hidden'} md:block md:mt-6`}>
-            {!isJob && (
-              <div className={cardClass}>
-                <h3 className={cardHeaderClass}>💰 Pricing</h3>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="flex-1">
-                    <label className={labelClass}>Asking Price (KES) *</label>
-                    <input className={inputClass} type="number" {...register("price", { required: true })} placeholder="e.g. 2500000" min="0" />
+              {/* ── 3. Pricing ───────────────────────────────────── */}
+              {!isJob && (
+                <StaticSection
+                  id="section-pricing"
+                  icon={<DollarSign className="h-4 w-4 text-primary/70" />}
+                  title="Pricing"
+                  state={pricingState}
+                  isExpanded={!!expanded.pricing}
+                  onToggle={() => toggleSection('pricing', pricingState)}
+                  summary={price ? `KES ${Number(price).toLocaleString()}${watch('negotiable') ? ' · Negotiable' : ''}` : null}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="flex-1">
+                      <label className={labelClass}>Asking Price (KES) *</label>
+                      <input className={inputClass} type="number" {...register('price', { required: !isJob })} placeholder="e.g. 2500000" min="0" />
+                    </div>
+                    <div className="sm:pt-7">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-muted-foreground select-none">
+                        <input type="checkbox" {...register('negotiable')} className="h-5 w-5 rounded border-border text-primary focus:ring-primary/40 accent-primary" />
+                        Price negotiable
+                      </label>
+                    </div>
                   </div>
-                  <div className="sm:pt-7">
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-muted-foreground select-none">
-                      <input type="checkbox" {...register("negotiable")} className="h-5 w-5 rounded border-border text-primary focus:ring-primary/40 accent-primary" />
-                      Price negotiable
-                    </label>
+                </StaticSection>
+              )}
+
+              {/* ── 4. Location ──────────────────────────────────── */}
+              <StaticSection
+                id="section-location"
+                icon={<MapPin className="h-4 w-4 text-primary/70" />}
+                title="Location"
+                state={locationState}
+                isExpanded={!!expanded.location}
+                onToggle={() => toggleSection('location', locationState)}
+                summary={location || null}
+              >
+                <Controller
+                  name="location"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <CountyTownSelect value={value} onChange={onChange} required />
+                  )}
+                />
+              </StaticSection>
+
+              {/* ── 5. Photos ────────────────────────────────────── */}
+              <StaticSection
+                id="section-media"
+                icon={<ImageIcon className="h-4 w-4 text-primary/70" />}
+                title={`Photos (up to ${maxPhotos})`}
+                state={mediaState}
+                isExpanded={!!expanded.media}
+                onToggle={() => toggleSection('media', mediaState)}
+                summary={images.length > 0 ? `${images.length} photo${images.length !== 1 ? 's' : ''} added` : null}
+              >
+                {isVehicle && <p className="mb-3 text-sm text-muted-foreground">Include exterior, interior, engine bay, dashboard, and tyre photos for faster sales.</p>}
+
+                <label
+                  htmlFor="img-input"
+                  className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-secondary/50 p-10 text-center transition ${processingImages ? 'opacity-60 cursor-not-allowed pointer-events-none' : 'hover:border-primary/50 hover:bg-secondary cursor-pointer'}`}
+                >
+                  <div className="grid h-14 w-14 place-items-center rounded-full bg-background mb-4 shadow-sm text-primary">
+                    {processingImages ? <Camera className="h-6 w-6 animate-pulse" /> : <ImageIcon className="h-6 w-6" />}
+                  </div>
+                  <p className="font-semibold text-foreground">{processingImages ? blurStatus || 'Processing...' : 'Tap to upload photos'}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WEBP — Max 15MB each</p>
+                  <input id="img-input" type="file" accept="image/*" multiple onChange={handleImages} className="hidden" disabled={processingImages} />
+                </label>
+
+                {previews.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {previews.map((src, i) => (
+                      <div key={i} className="group relative aspect-square w-24 overflow-hidden rounded-xl border border-border">
+                        <img src={src} alt="" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(i)}
+                          className="absolute top-1 right-1 grid h-6 w-6 place-items-center rounded-full bg-background/90 shadow-sm text-destructive md:opacity-0 md:top-0 md:right-0 md:h-full md:w-full md:rounded-none md:bg-background/80 md:backdrop-blur md:group-hover:opacity-100 transition"
+                          aria-label={`Remove image ${i + 1}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 md:h-5 md:w-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </StaticSection>
+
+              {/* ── 6. Contact ───────────────────────────────────── */}
+              <StaticSection
+                id="section-contact"
+                icon={null}
+                title="Contact Details"
+                state={basicsComplete ? 'available' : 'locked'}
+                isExpanded={!!expanded.contact}
+                onToggle={() => toggleSection('contact', basicsComplete ? 'available' : 'locked')}
+                summary={watch('phone') || null}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className={labelClass}>Phone Number *</label>
+                    <input className={inputClass} {...register('phone', { required: true })} placeholder="0712 345 678" />
+                  </div>
+                  <div>
+                    <label className={labelClass}>WhatsApp Number</label>
+                    <input className={inputClass} {...register('whatsapp')} placeholder="0712 345 678" />
                   </div>
                 </div>
+              </StaticSection>
+
+              {/* ── Review & Publish CTA ─────────────────────────── */}
+              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReview(true)}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-primary text-primary bg-primary/5 px-6 py-4 text-base font-bold transition hover:bg-primary/10"
+                >
+                  <Eye className="h-5 w-5" /> Review Listing
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl gradient-emerald px-6 py-4 text-base font-bold text-primary-foreground shadow-elevated transition hover:opacity-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {loading ? '⏳ Posting...' : <><Rocket className="h-5 w-5" /> Post Ad for Free</>}
+                </button>
               </div>
-            )}
-
-            <div className={cardClass}>
-              <h3 className={cardHeaderClass}>📍 Location</h3>
-              <Controller name="location" control={control} rules={{ required: true }} render={({ field: { value, onChange } }) => <CountyTownSelect value={value} onChange={onChange} required />} />
-            </div>
-
-            {/* Mobile Nav for Step 3 */}
-            <div className="md:hidden mt-4 flex gap-3">
-              <button type="button" onClick={() => setCurrentStep(2)} className="flex-1 rounded-xl border border-border bg-background px-6 py-4 font-bold text-foreground">Back</button>
-              <button type="button" onClick={handleNextStep} className="flex-[2] rounded-xl gradient-emerald px-6 py-4 font-bold text-primary-foreground">Next Step</button>
-            </div>
-          </div>
-
-          {/* ── Step 4: Photos & Contact ────────────────────────── */}
-          <div className={`${currentStep === 4 ? 'block' : 'hidden'} md:block md:mt-6`}>
-            <div className={cardClass}>
-              <h3 className={cardHeaderClass}>🖼️ Photos {isVehicle ? '(up to 10)' : '(up to 5)'}</h3>
-              {isVehicle && <p className="mb-3 text-sm text-muted-foreground">Include exterior, interior, engine bay, dashboard, and tyre photos for faster sales.</p>}
-            
-            {/* Label wrapper = reliable file picker on iOS Safari */}
-            <label
-              htmlFor="img-input"
-              className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-secondary/50 p-10 text-center transition ${processingImages ? 'opacity-60 cursor-not-allowed pointer-events-none' : 'hover:border-primary/50 hover:bg-secondary cursor-pointer'}`}
-            >
-              <div className="grid h-14 w-14 place-items-center rounded-full bg-background mb-4 shadow-sm text-primary">
-                {processingImages ? <Camera className="h-6 w-6 animate-pulse" /> : <ImageIcon className="h-6 w-6" />}
-              </div>
-              <p className="font-semibold text-foreground">{processingImages ? blurStatus || 'Scanning for number plates...' : 'Tap to upload photos'}</p>
-              <p className="mt-1 text-xs text-muted-foreground">JPG, PNG, WEBP — Max 15MB each</p>
-              <input id="img-input" type="file" accept="image/*" multiple onChange={handleImages} className="hidden" disabled={processingImages} />
-            </label>
-
-            {previews.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-3">
-                {previews.map((src, i) => (
-                  <div key={i} className="group relative aspect-square w-24 overflow-hidden rounded-xl border border-border">
-                    <img src={src} alt="" className="h-full w-full object-cover" />
-                    {/* Always visible on mobile, hover-reveal on desktop */}
-                    <button
-                      type="button"
-                      onClick={() => removeImage(i)}
-                      className="absolute top-1 right-1 grid h-6 w-6 place-items-center rounded-full bg-background/90 shadow-sm text-destructive md:opacity-0 md:top-0 md:right-0 md:h-full md:w-full md:rounded-none md:bg-background/80 md:backdrop-blur md:group-hover:opacity-100 transition"
-                      aria-label={`Remove image ${i + 1}`}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 md:h-5 md:w-5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ── Contact ────────────────────────────────────────── */}
-          <div className={cardClass}>
-            <h3 className={cardHeaderClass}>📱 Contact Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className={labelClass}>Phone Number *</label>
-                <input className={inputClass} {...register("phone", { required: true })} placeholder="0712 345 678" />
-              </div>
-              <div>
-                <label className={labelClass}>WhatsApp Number</label>
-                <input className={inputClass} {...register("whatsapp")} placeholder="0712 345 678" />
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Nav for Step 4 */}
-          <div className="md:hidden mb-4 flex gap-3">
-            <button type="button" onClick={() => setCurrentStep(3)} className="w-full rounded-xl border border-border bg-background px-6 py-4 font-bold text-foreground">Back to Details</button>
-          </div>
-
-          <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl gradient-emerald px-6 py-4 text-base font-bold text-primary-foreground shadow-elevated transition hover:opacity-95 disabled:opacity-70 disabled:cursor-not-allowed" disabled={loading}>
-            {loading ? '⏳ Posting...' : <><Rocket className="h-5 w-5" /> Post Ad for Free</>}
-          </button>
-          
-          </div>
+            </>
+          )}
         </form>
       </div>
     </div>
