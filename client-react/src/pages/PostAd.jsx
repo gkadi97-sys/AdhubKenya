@@ -32,7 +32,8 @@ export default function PostAdPage() {
     handleSubmit: rhfHandleSubmit,
     watch,
     control,
-    setValue
+    setValue,
+    trigger
   } = useForm({
     defaultValues: {
       title: '', description: '', price: '', negotiable: false,
@@ -49,6 +50,31 @@ export default function PostAdPage() {
   const [blurStatus, setBlurStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Mobile wizard state
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 4;
+
+  const handleNextStep = async () => {
+    let isValid = false;
+    if (currentStep === 1) {
+      const fields = ['category', 'title', 'description'];
+      if (getConditionOptions()) fields.push('condition');
+      isValid = await trigger(fields);
+    } else if (currentStep === 2) {
+      const attrFields = Object.keys(control._fields || {}).filter(f => f.startsWith('attrs.'));
+      isValid = await trigger(attrFields);
+    } else if (currentStep === 3) {
+      const fields = ['location'];
+      if (!(category === 'jobs' || category === 'seeking-work')) fields.push('price');
+      isValid = await trigger(fields);
+    }
+
+    if (isValid) {
+      setCurrentStep(s => s + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
 
 
@@ -294,9 +320,30 @@ export default function PostAdPage() {
         <form onSubmit={rhfHandleSubmit(onSubmit)}>
           {error && <div className="mb-6 rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive border border-destructive/20">{error}</div>}
 
-          {/* ── Basic Info ───────────────────────────────── */}
-          <div className={cardClass}>
-            <h3 className={cardHeaderClass}>📋 Basic Information</h3>
+          {/* Mobile Stepper UI */}
+          <div className="mb-8 md:hidden">
+            <div className="flex items-center justify-between relative px-2">
+              <div className="absolute left-0 top-1/2 -z-10 h-1 w-full -translate-y-1/2 bg-secondary rounded-full">
+                <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }} />
+              </div>
+              {[1, 2, 3, 4].map(step => (
+                <div key={step} className={`grid h-8 w-8 place-items-center rounded-full text-xs font-bold transition-colors ${currentStep >= step ? 'bg-primary text-primary-foreground shadow-md' : 'bg-secondary text-muted-foreground border border-border'}`}>
+                  {step}
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 text-center text-sm font-semibold text-foreground">
+              {currentStep === 1 && 'Step 1: Basic Info'}
+              {currentStep === 2 && 'Step 2: Details'}
+              {currentStep === 3 && 'Step 3: Price & Location'}
+              {currentStep === 4 && 'Step 4: Photos & Contact'}
+            </div>
+          </div>
+
+          {/* ── Step 1: Basic Info ───────────────────────────────── */}
+          <div className={`${currentStep === 1 ? 'block' : 'hidden'} md:block`}>
+            <div className={cardClass}>
+              <h3 className={cardHeaderClass}>📋 Basic Information</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               <div>
@@ -328,16 +375,22 @@ export default function PostAdPage() {
               )}
             </div>
 
-            <div className="mb-5">
-              <label className={labelClass}>Ad Title *</label>
-              <input className={inputClass} {...register("title", { required: true })} placeholder={getTitlePlaceholder(category)} maxLength={100} />
-              <div className="mt-1.5 text-xs font-medium text-muted-foreground text-right">{(watch("title") || "").length}/100 characters</div>
+            <div className="mt-5">
+              <label className={labelClass}>Description *</label>
+              <textarea className={`${inputClass} resize-y`} {...register("description", { required: true })} placeholder={getDescriptionPlaceholder(category)} rows={5} />
             </div>
+          </div>
+            
+            {/* Mobile Next Button for Step 1 */}
+            <div className="md:hidden mt-2">
+              <button type="button" onClick={handleNextStep} className="flex w-full items-center justify-center rounded-xl gradient-emerald px-6 py-4 text-base font-bold text-primary-foreground shadow-elevated transition hover:opacity-95">Next Step</button>
+            </div>
+          </div>
 
-            {/* Smart Forms — MetadataDrivenForm reads from the database first;
-                falls back to the static DynamicListingForm for legacy categories */}
+          {/* ── Step 2: Metadata / Details ──────────────────────── */}
+          <div className={`${currentStep === 2 ? 'block' : 'hidden'} md:block`}>
             {category && (
-              <div className="mt-5 pt-5 border-t border-border">
+              <div className="md:mt-0 mt-2">
                 <MetadataDrivenForm
                   categorySlug={category}
                   register={register}
@@ -347,40 +400,48 @@ export default function PostAdPage() {
                 />
               </div>
             )}
-
-            <div className="mt-5">
-              <label className={labelClass}>Description *</label>
-              <textarea className={`${inputClass} resize-y`} {...register("description", { required: true })} placeholder={getDescriptionPlaceholder(category)} rows={5} />
+            
+            {/* Mobile Nav for Step 2 */}
+            <div className="md:hidden mt-4 flex gap-3">
+              <button type="button" onClick={() => setCurrentStep(1)} className="flex-1 rounded-xl border border-border bg-background px-6 py-4 font-bold text-foreground">Back</button>
+              <button type="button" onClick={handleNextStep} className="flex-[2] rounded-xl gradient-emerald px-6 py-4 font-bold text-primary-foreground">Next Step</button>
             </div>
           </div>
 
-          {/* ── Pricing ────────────────────────────────────────── */}
-          {!isJob && (
-            <div className={cardClass}>
-              <h3 className={cardHeaderClass}>💰 Pricing</h3>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="flex-1">
-                  <label className={labelClass}>Asking Price (KES) *</label>
-                  <input className={inputClass} type="number" {...register("price", { required: true })} placeholder="e.g. 2500000" min="0" />
-                </div>
-                <div className="sm:pt-7">
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-muted-foreground select-none">
-                    <input type="checkbox" {...register("negotiable")} className="h-5 w-5 rounded border-border text-primary focus:ring-primary/40 accent-primary" />
-                    Price negotiable
-                  </label>
+          {/* ── Step 3: Pricing & Location ──────────────────────── */}
+          <div className={`${currentStep === 3 ? 'block' : 'hidden'} md:block md:mt-6`}>
+            {!isJob && (
+              <div className={cardClass}>
+                <h3 className={cardHeaderClass}>💰 Pricing</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex-1">
+                    <label className={labelClass}>Asking Price (KES) *</label>
+                    <input className={inputClass} type="number" {...register("price", { required: true })} placeholder="e.g. 2500000" min="0" />
+                  </div>
+                  <div className="sm:pt-7">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-muted-foreground select-none">
+                      <input type="checkbox" {...register("negotiable")} className="h-5 w-5 rounded border-border text-primary focus:ring-primary/40 accent-primary" />
+                      Price negotiable
+                    </label>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* ── Location ───────────────────────────────────────── */}
-          <div className={cardClass}>
-            <h3 className={cardHeaderClass}>📍 Location</h3>
-            <Controller name="location" control={control} rules={{ required: true }} render={({ field: { value, onChange } }) => <CountyTownSelect value={value} onChange={onChange} required />} />
+            <div className={cardClass}>
+              <h3 className={cardHeaderClass}>📍 Location</h3>
+              <Controller name="location" control={control} rules={{ required: true }} render={({ field: { value, onChange } }) => <CountyTownSelect value={value} onChange={onChange} required />} />
+            </div>
+
+            {/* Mobile Nav for Step 3 */}
+            <div className="md:hidden mt-4 flex gap-3">
+              <button type="button" onClick={() => setCurrentStep(2)} className="flex-1 rounded-xl border border-border bg-background px-6 py-4 font-bold text-foreground">Back</button>
+              <button type="button" onClick={handleNextStep} className="flex-[2] rounded-xl gradient-emerald px-6 py-4 font-bold text-primary-foreground">Next Step</button>
+            </div>
           </div>
 
-          {/* ── Photos ─────────────────────────────────────────── */}
-          <div className={cardClass}>
+          {/* ── Step 4: Photos & Contact ────────────────────────── */}
+          <div className={`${currentStep === 4 ? 'block' : 'hidden'} md:block md:mt-6`}>
             <h3 className={cardHeaderClass}>🖼️ Photos {isVehicle ? '(up to 10)' : '(up to 5)'}</h3>
             {isVehicle && <p className="mb-3 text-sm text-muted-foreground">Include exterior, interior, engine bay, dashboard, and tyre photos for faster sales.</p>}
             
@@ -432,9 +493,16 @@ export default function PostAdPage() {
             </div>
           </div>
 
+          {/* Mobile Nav for Step 4 */}
+          <div className="md:hidden mb-4 flex gap-3">
+            <button type="button" onClick={() => setCurrentStep(3)} className="w-full rounded-xl border border-border bg-background px-6 py-4 font-bold text-foreground">Back to Details</button>
+          </div>
+
           <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-xl gradient-emerald px-6 py-4 text-base font-bold text-primary-foreground shadow-elevated transition hover:opacity-95 disabled:opacity-70 disabled:cursor-not-allowed" disabled={loading}>
             {loading ? '⏳ Posting...' : <><Rocket className="h-5 w-5" /> Post Ad for Free</>}
           </button>
+          
+          </div>
         </form>
       </div>
     </div>
