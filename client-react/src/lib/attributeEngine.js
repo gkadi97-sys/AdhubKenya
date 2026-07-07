@@ -7,7 +7,7 @@
  * and the Browse Sidebar (FilterPanel).
  */
 
-import * as LaptopEnums from './laptopSchemaEnums';
+import * as LaptopEnums from './laptopSchemaEnums.js';
 
 export const ATTRIBUTE_ENGINE = {
   vehicles: {
