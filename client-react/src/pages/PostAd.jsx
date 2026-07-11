@@ -264,6 +264,8 @@ export default function PostAdPage() {
   useEffect(() => {
     if (category) {
       setExpanded(prev => ({ ...prev, basics: true }));
+    } else {
+      setMetaProgress({ completed: 0, total: 0 });
     }
   }, [category]);
 
@@ -463,8 +465,19 @@ export default function PostAdPage() {
   );
 
   // Overall progress across static + metadata sections
-  const staticTotal = isJob ? 3 : 4; // basics, [pricing], location, media
-  const staticComplete = [basicsComplete, !isJob && pricingComplete, locationComplete, mediaComplete].filter(Boolean).length;
+  const isPricingApplicable = !isJob;
+  const staticTotal = isPricingApplicable ? 5 : 4; // basics, [pricing], location, media, contact
+  
+  const contactComplete = !!(watch('phone'));
+  
+  const staticComplete = [
+    basicsComplete, 
+    isPricingApplicable ? pricingComplete : false, 
+    locationComplete, 
+    mediaComplete,
+    contactComplete
+  ].filter(Boolean).length;
+  
   const totalSections = staticTotal + metaProgress.total;
   const doneSections  = staticComplete + metaProgress.completed;
   const overallPct    = totalSections > 0 ? Math.round((doneSections / totalSections) * 100) : 0;
