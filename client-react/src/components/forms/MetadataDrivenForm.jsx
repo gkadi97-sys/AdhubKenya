@@ -554,6 +554,7 @@ export default function MetadataDrivenForm({
   categorySlug, register, control, watch, setValue,
   onProgressChange,   // callback: (completedGroups, totalGroups) => void
   onSectionComplete,  // callback: (groupId) => void
+  isLocked = false,
 }) {
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -649,6 +650,10 @@ export default function MetadataDrivenForm({
     const map = {};
     let previousComplete = true;
     visibleGroups.forEach(group => {
+      if (isLocked) {
+        map[group.id] = 'locked';
+        return;
+      }
       const isDone = groupCompletionMap[group.id];
       if (isDone) {
         map[group.id] = 'completed';
@@ -662,18 +667,18 @@ export default function MetadataDrivenForm({
       if (hasRequired && !isDone) previousComplete = false;
     });
     return map;
-  }, [visibleGroups, groupCompletionMap, expandedGroups]);
+  }, [visibleGroups, groupCompletionMap, expandedGroups, isLocked]);
 
   // Auto-expand the first non-completed available section
   useEffect(() => {
-    if (!visibleGroups.length) return;
+    if (!visibleGroups.length || isLocked) return;
     const firstAvailable = visibleGroups.find(g =>
       groupStateMap[g.id] === 'available' || groupStateMap[g.id] === 'in-progress'
     );
     if (firstAvailable && expandedGroups[firstAvailable.id] === undefined) {
       setExpandedGroups(prev => ({ ...prev, [firstAvailable.id]: true }));
     }
-  }, [visibleGroups, groupStateMap]);
+  }, [visibleGroups, groupStateMap, isLocked]);
 
   // Auto-collapse completed sections & expand next
   const prevCompletionRef = useRef({});

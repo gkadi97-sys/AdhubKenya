@@ -640,6 +640,7 @@ export default function PostAdPage() {
                   control={control}
                   watch={watch}
                   setValue={setValue}
+                  isLocked={!basicsComplete}
                   onProgressChange={(completed, total) => setMetaProgress({ completed, total })}
                   onSectionComplete={() => {}}
                 />
