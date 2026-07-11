@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { createListing, checkDuplicateListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
 import MetadataDrivenForm from '@/components/forms/MetadataDrivenForm';
+import PlateRedactModal from '@/components/PlateRedactModal';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { useSEO } from '@/lib/useSEO';
@@ -13,7 +14,7 @@ import imageCompression from 'browser-image-compression';
 import {
   Lock, Image as ImageIcon, Camera, Trash2, Rocket, Save,
   CheckCircle2, ChevronDown, MapPin, DollarSign, Eye,
-  ArrowLeft, Edit2
+  ArrowLeft, Edit2, ShieldAlert
 } from 'lucide-react';
 
 // ─── Condition option sets ───────────────────────────────────────────────────
@@ -196,6 +197,7 @@ export default function PostAdPage() {
   const [error, setError]               = useState('');
   const [showReview, setShowReview]     = useState(false);
   const [draftSaved, setDraftSaved]     = useState(false);
+  const [redactIndex, setRedactIndex]   = useState(null);
   const [draggedIdx, setDraggedIdx]     = useState(null);
 
   // Section expansion state for static sections
@@ -320,15 +322,7 @@ export default function PostAdPage() {
       for (let i = 0; i < validFiles.length; i++) {
         let fileToCompress = validFiles[i];
 
-        // Step 1: Run ALPR on the ORIGINAL high-res image BEFORE compression
-        // so Tesseract has the best chance of reading the plate text
-        if (isVehicle) {
-          const { autoBlurLicensePlate } = await import('@/lib/imageProcessing');
-          setBlurStatus(`Scanning image ${i + 1} of ${validFiles.length} for number plates...`);
-          fileToCompress = await autoBlurLicensePlate(validFiles[i], setBlurStatus);
-        }
-
-        // Step 2: Compress the (already blurred) image
+        // Compress the image
         setBlurStatus(`Compressing image ${i + 1} of ${validFiles.length}...`);
         try {
           const compressed = await imageCompression(fileToCompress, compressionOptions);
@@ -358,6 +352,35 @@ export default function PostAdPage() {
     URL.revokeObjectURL(previews[i]);
     setImages(imgs => imgs.filter((_, idx) => idx !== i));
     setPreviews(prev => prev.filter((_, idx) => idx !== i));
+  };
+
+  const handleRedactConfirm = async (newFile) => {
+    const compressionOptions = { maxSizeMB: 0.5, maxWidthOrHeight: 1200, useWebWorker: true, fileType: 'image/webp' };
+    let finalFile = newFile;
+    try {
+      setBlurStatus('Saving...');
+      setProcessingImages(true);
+      const compressed = await imageCompression(newFile, compressionOptions);
+      finalFile = new File([compressed], newFile.name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setProcessingImages(false);
+      setBlurStatus('');
+    }
+
+    setImages(prev => {
+      const arr = [...prev];
+      arr[redactIndex] = finalFile;
+      return arr;
+    });
+    setPreviews(prev => {
+      const arr = [...prev];
+      URL.revokeObjectURL(arr[redactIndex]); // clean up old
+      arr[redactIndex] = URL.createObjectURL(finalFile);
+      return arr;
+    });
+    setRedactIndex(null);
   };
 
   const handleDragStart = (e, i) => {
@@ -733,10 +756,23 @@ export default function PostAdPage() {
                           </div>
                         )}
                         <img src={src} alt="" className="h-full w-full object-cover pointer-events-none" />
+                        
+                        {/* Redact Plate Button (Vehicles Only) */}
+                        {isVehicle && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setRedactIndex(i); }}
+                            className="absolute bottom-1 left-1 bg-black/70 hover:bg-black text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1 transition z-20 cursor-pointer"
+                            title="Hide Number Plate"
+                          >
+                            <ShieldAlert className="h-3 w-3" /> Hide Plate
+                          </button>
+                        )}
+
                         <button
                           type="button"
-                          onClick={() => removeImage(i)}
-                          className="absolute top-1 right-1 grid h-6 w-6 place-items-center rounded-full bg-background/90 shadow-sm text-destructive md:opacity-0 md:top-0 md:right-0 md:h-full md:w-full md:rounded-none md:bg-background/80 md:backdrop-blur md:group-hover:opacity-100 transition cursor-pointer"
+                          onClick={(e) => { e.stopPropagation(); removeImage(i); }}
+                          className="absolute top-1 right-1 grid h-6 w-6 place-items-center rounded-full bg-background/90 shadow-sm text-destructive md:opacity-0 md:top-0 md:right-0 md:h-full md:w-full md:rounded-none md:bg-background/80 md:backdrop-blur md:group-hover:opacity-100 transition cursor-pointer z-20"
                           aria-label={`Remove image ${i + 1}`}
                         >
                           <Trash2 className="h-3.5 w-3.5 md:h-5 md:w-5" />
@@ -790,6 +826,16 @@ export default function PostAdPage() {
           )}
         </form>
       </div>
+
+      {/* Manual Plate Redaction Modal */}
+      {redactIndex !== null && images[redactIndex] && (
+        <PlateRedactModal
+          file={images[redactIndex]}
+          previewUrl={previews[redactIndex]}
+          onConfirm={handleRedactConfirm}
+          onCancel={() => setRedactIndex(null)}
+        />
+      )}
     </div>
   );
 }
