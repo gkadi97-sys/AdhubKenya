@@ -755,12 +755,12 @@ export const getFeaturedListings = async (limit = 6) => {
 export const getTrendingSearches = async (limitCount = 10) => {
   // Returns popular searches for the search dropdown
   return [
-    { term: 'Toyota', count: 150 },
-    { term: 'Apartments in Nairobi', count: 120 },
-    { term: 'iPhone 14', count: 95 },
-    { term: 'Laptops', count: 85 },
-    { term: 'Land for sale', count: 70 },
-    { term: 'Sneakers', count: 65 }
+    { search_term: 'Toyota', search_count: 150 },
+    { search_term: 'Apartments in Nairobi', search_count: 120 },
+    { search_term: 'iPhone 14', search_count: 95 },
+    { search_term: 'Laptops', search_count: 85 },
+    { search_term: 'Land for sale', search_count: 70 },
+    { search_term: 'Sneakers', search_count: 65 }
   ].slice(0, limitCount);
 };
 
