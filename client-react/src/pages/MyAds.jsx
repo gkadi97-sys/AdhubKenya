@@ -166,7 +166,7 @@ export default function MyAdsPage() {
                           <Eye className="h-3 w-3" /> {l.views} views
                         </span>
                         <span className="flex items-center gap-1.5 rounded-full bg-secondary/50 px-2.5 py-1">
-                          <Clock className="h-3 w-3" /> {timeAgo(l.createdAt)}
+                          <Clock className="h-3 w-3" /> {timeAgo(l.created_at)}
                         </span>
                         {l.status === 'active' && <span className="flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-500 border border-emerald-500/20">🟢 Approved</span>}
                         {l.status === 'pending' && <span className="flex items-center rounded-full bg-amber-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-500 border border-amber-500/20">🟡 Pending Review</span>}
