@@ -92,8 +92,8 @@ function StaticSection({ id, icon, title, state, isExpanded, onToggle, summary, 
 }
 
 // ─── Review Screen ────────────────────────────────────────────────────────────
-function ReviewScreen({ formData, images, category, onEdit, onSubmit, loading }) {
-  const categoryName = TOP_CATEGORIES.find(c => c.slug === formData.category)?.name || formData.category;
+function ReviewScreen({ formData, images, category, metadata, onEdit, onSubmit, loading }) {
+  const categoryName = TOP_CATEGORIES.find(c => c.slug === category)?.name || category;
   const attrEntries = Object.entries(formData.attrs || {}).filter(([, v]) => v != null && v !== '' && !(Array.isArray(v) && v.length === 0));
 
   return (
@@ -122,12 +122,16 @@ function ReviewScreen({ formData, images, category, onEdit, onSubmit, loading })
               <div className="border-t border-border pt-3 mt-1">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Details</p>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                  {attrEntries.slice(0, 10).map(([k, v]) => (
-                    <div key={k}>
-                      <p className="text-xs text-muted-foreground capitalize">{k}</p>
-                      <p className="font-semibold text-sm truncate">{Array.isArray(v) ? v.join(', ') : String(v)}</p>
-                    </div>
-                  ))}
+                  {attrEntries.slice(0, 10).map(([k, v]) => {
+                    const attrDef = metadata?.attributes?.find(a => a.id === k);
+                    const label = attrDef ? attrDef.name : k;
+                    return (
+                      <div key={k}>
+                        <p className="text-xs text-muted-foreground capitalize">{label}</p>
+                        <p className="font-semibold text-sm truncate">{Array.isArray(v) ? v.join(', ') : String(v)}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </>
@@ -206,6 +210,7 @@ export default function PostAdPage() {
   });
 
   // Metadata section progress
+  const [formMetadata, setFormMetadata] = useState(null);
   const [metaProgress, setMetaProgress] = useState({ completed: 0, total: 0 });
 
   // Category-derived flags
@@ -581,6 +586,7 @@ export default function PostAdPage() {
               formData={getValues()}
               images={previews}
               category={category}
+              metadata={formMetadata}
               onEdit={() => setShowReview(false)}
               onSubmit={rhfHandleSubmit(onSubmit)}
               loading={loading}
@@ -666,6 +672,7 @@ export default function PostAdPage() {
                   isLocked={!basicsComplete}
                   onProgressChange={(completed, total) => setMetaProgress({ completed, total })}
                   onSectionComplete={() => {}}
+                  onMetadataLoaded={setFormMetadata}
                 />
               )}
 

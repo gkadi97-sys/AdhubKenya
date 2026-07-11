@@ -554,6 +554,7 @@ export default function MetadataDrivenForm({
   categorySlug, register, control, watch, setValue,
   onProgressChange,   // callback: (completedGroups, totalGroups) => void
   onSectionComplete,  // callback: (groupId) => void
+  onMetadataLoaded,   // callback: (metadata) => void
   isLocked = false,
 }) {
   const [metadata, setMetadata] = useState(null);
@@ -580,6 +581,7 @@ export default function MetadataDrivenForm({
         return;
       }
       setMetadata(data);
+      if (onMetadataLoaded) onMetadataLoaded(data);
       setLoading(false);
     }).catch(() => {
       setMetadata(null);
