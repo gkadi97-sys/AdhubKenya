@@ -333,6 +333,67 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     );
   }
 
+  // MULTICHECK — chip grid (options stored in validation_rules.options)
+  if (attribute.field_type === 'multicheck') {
+    const checkOptions = (() => {
+      try {
+        if (typeof attribute.validation_rules === 'object' && Array.isArray(attribute.validation_rules?.options)) {
+          return attribute.validation_rules.options;
+        }
+        if (typeof attribute.validation_rules === 'string') {
+          const parsed = JSON.parse(attribute.validation_rules);
+          return parsed.options || [];
+        }
+      } catch { /* ignore */ }
+      return [];
+    })();
+
+    return (
+      <div className="md:col-span-2">
+        <label className={labelClass}>
+          {attribute.label} {required && <span className="text-destructive">*</span>}
+        </label>
+        <Controller
+          name={fieldName}
+          control={control}
+          rules={{ required: required ? `${attribute.label} is required` : false }}
+          render={({ field }) => {
+            const selected = Array.isArray(field.value) ? field.value : [];
+            const toggle = (opt) => {
+              const next = selected.includes(opt)
+                ? selected.filter(v => v !== opt)
+                : [...selected, opt];
+              field.onChange(next);
+            };
+            return (
+              <div className="flex flex-wrap gap-2 mt-1.5">
+                {checkOptions.map(opt => {
+                  const active = selected.includes(opt);
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => toggle(opt)}
+                      className={`rounded-xl border px-3 py-2 text-sm font-medium transition-all select-none ${
+                        active
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-background text-foreground hover:border-primary/40 hover:bg-muted'
+                      }`}
+                    >
+                      {active && <span className="mr-1.5 text-xs">✓</span>}
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          }}
+        />
+        {helpText}
+      </div>
+    );
+  }
+
   // BOOLEAN
   if (attribute.field_type === 'boolean') {
     return (
