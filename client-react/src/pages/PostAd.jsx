@@ -292,6 +292,13 @@ export default function PostAdPage() {
     setTimeout(() => setDraftSaved(false), 2000);
   };
 
+  const handleClearDraft = () => {
+    if (window.confirm('Are you sure you want to clear your draft and start over?')) {
+      clearDraft();
+      window.location.reload();
+    }
+  };
+
   // Image handling
   const handleImages = async (e) => {
     const maxImages = isProperty ? 15 : (isVehicle ? 10 : 5);
@@ -438,6 +445,7 @@ export default function PostAdPage() {
       listingData.specs = restSpecs || {};
 
       const newListing = await createListing(listingData, images);
+      clearDraft(); // Clear draft on successful submit
       toast.success('Listing created successfully!');
       navigate('/post-ad/success', { 
         state: { 
@@ -509,14 +517,24 @@ export default function PostAdPage() {
               {isJob ? 'Fill in the details to attract the right candidates' : 'Follow the steps below to list your item'}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            className={`flex items-center gap-1.5 rounded-xl border border-border bg-background px-4 py-2 text-sm font-semibold transition hover:bg-muted flex-shrink-0 ${draftSaved ? 'text-emerald-500 border-emerald-500/40' : 'text-muted-foreground'}`}
-          >
-            {draftSaved ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
-            <span className="hidden sm:inline">{draftSaved ? 'Saved!' : 'Save Draft'}</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <button
+              type="button"
+              onClick={handleClearDraft}
+              className="flex items-center gap-1.5 rounded-xl border border-border bg-background px-4 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 flex-shrink-0"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Start Over</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              className={`flex items-center gap-1.5 rounded-xl border border-border bg-background px-4 py-2 text-sm font-semibold transition hover:bg-muted flex-shrink-0 ${draftSaved ? 'text-emerald-500 border-emerald-500/40' : 'text-muted-foreground'}`}
+            >
+              {draftSaved ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+              <span className="hidden sm:inline">{draftSaved ? 'Saved!' : 'Save Draft'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Overall progress bar */}
