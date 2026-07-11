@@ -251,12 +251,10 @@ export default function PostAdPage() {
     const completionMap = { basics: basicsComplete, pricing: pricingComplete, location: locationComplete, media: mediaComplete };
     sections.forEach((key, i) => {
       if (!prevStates.current[key] && completionMap[key]) {
-        // Collapse this, expand next
+        // Auto-expand next without collapsing the current one
         const nextKey = sections[i + 1];
         if (nextKey) {
-          setExpanded(prev => ({ ...prev, [key]: false, [nextKey]: true }));
-        } else {
-          setExpanded(prev => ({ ...prev, [key]: false }));
+          setExpanded(prev => ({ ...prev, [nextKey]: true }));
         }
       }
     });

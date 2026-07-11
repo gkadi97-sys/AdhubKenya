@@ -687,9 +687,7 @@ export default function MetadataDrivenForm({
       const wasDone = prevCompletionRef.current[group.id];
       const isDone = groupCompletionMap[group.id];
       if (!wasDone && isDone) {
-        // Collapse this section
-        setExpandedGroups(prev => ({ ...prev, [group.id]: false }));
-        // Auto-expand next available
+        // Auto-expand next available without collapsing the current one
         const nextGroup = visibleGroups[idx + 1];
         if (nextGroup && groupStateMap[nextGroup.id] !== 'locked') {
           setTimeout(() => {
