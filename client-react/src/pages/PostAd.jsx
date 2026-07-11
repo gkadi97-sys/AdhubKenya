@@ -228,8 +228,11 @@ export default function PostAdPage() {
   };
   const conditionOptions = getConditionOptions();
 
+  const condition = watch('condition');
+  const description = watch('description');
+
   // Determine states of static sections
-  const basicsComplete = !!(title && category);
+  const basicsComplete = !!(title && category && description && (!conditionOptions || condition));
   const pricingComplete = isJob ? true : !!(price);
   const locationComplete = !!(location);
   const mediaComplete = images.length > 0;
