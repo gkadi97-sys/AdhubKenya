@@ -23,7 +23,7 @@ export default function ProfilePage() {
     canonicalPath: '/profile'
   });
 
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [stats, setStats] = useState({ total_listings: 0, member_since: null, average_rating: 0, review_count: 0 });
@@ -135,8 +135,7 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     try {
-      await signOut();
-      navigate('/');
+      await logout();
     } catch (error) {
       toast.error('Failed to sign out');
     }
