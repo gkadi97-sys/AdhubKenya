@@ -244,9 +244,28 @@ export default function ListingDetailPage() {
                           fallbackIconSize={48}
                         />
                         {/* Image Counter Overlay */}
-                        <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full z-10 shadow-sm border border-white/10">
+                        <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full z-10 shadow-sm border border-white/10 pointer-events-none">
                           {activeImg + 1} / {images.length}
                         </div>
+                        {/* Navigation Arrows */}
+                        {images.length > 1 && (
+                          <>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}
+                              aria-label="Previous image"
+                              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/80 transition backdrop-blur-md z-10 opacity-0 group-hover:opacity-100 border border-white/20 shadow-lg"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}
+                              aria-label="Next image"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/80 transition backdrop-blur-md z-10 opacity-0 group-hover:opacity-100 border border-white/20 shadow-lg"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
+                          </>
+                        )}
                         {/* Fullscreen Hint */}
                         <button 
                           onClick={() => setIsZoomModalOpen(true)}
