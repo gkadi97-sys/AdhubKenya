@@ -1,26 +1,38 @@
-import { TrendingUp, Search, BarChart2, PieChart, Activity, Download } from 'lucide-react';
-
-const CATEGORY_STATS = [
-  { name: 'Vehicles',         ads: 3420, pct: 88 },
-  { name: 'Property',         ads: 1940, pct: 63 },
-  { name: 'Phones & Tablets', ads: 2180, pct: 72 },
-  { name: 'Electronics',      ads: 1330, pct: 55 },
-  { name: 'Fashion',          ads: 1560, pct: 60 },
-  { name: 'Furniture',        ads: 870,  pct: 40 },
-  { name: 'Jobs',             ads: 640,  pct: 30 },
-];
-
-const TOP_SEARCHES = [
-  { term: 'Toyota Fielder',          count: 4230 },
-  { term: 'iPhone 15',               count: 3110 },
-  { term: 'Bedsitter Nairobi',       count: 2890 },
-  { term: 'Samsung Galaxy S24',      count: 2340 },
-  { term: 'Land for Sale Kitengela', count: 2100 },
-  { term: 'Nissan X-Trail',          count: 1870 },
-  { term: 'PlayStation 5',           count: 1560 },
-];
+import { useState, useEffect } from 'react';
+import { TrendingUp, Search, BarChart2, PieChart, Activity, Download, Loader2 } from 'lucide-react';
+import { fetchAdminAnalytics } from '@/lib/api';
+import toast from 'react-hot-toast';
 
 export default function AdminAnalytics() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadAnalytics() {
+      try {
+        const result = await fetchAdminAnalytics();
+        setData(result);
+      } catch (err) {
+        toast.error('Failed to load analytics.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadAnalytics();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const { metrics, category_stats, top_searches, device_breakdown } = data;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -36,10 +48,10 @@ export default function AdminAnalytics() {
       {/* Key Metrics */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
-          { label: 'Total Sessions', value: '89,431', icon: Activity, delta: '+12%' },
-          { label: 'Avg. Session Duration', value: '4m 32s', icon: TrendingUp, delta: '+5%' },
-          { label: 'Bounce Rate', value: '38.2%', icon: BarChart2, delta: '-3%' },
-          { label: 'Avg. CTR', value: '6.7%', icon: PieChart, delta: '+9%' },
+          { label: 'Total Sessions', value: metrics.total_sessions?.toLocaleString() || '0', icon: Activity, delta: '+12%' },
+          { label: 'Avg. Session Duration', value: metrics.avg_session_duration || '0s', icon: TrendingUp, delta: '+5%' },
+          { label: 'Bounce Rate', value: metrics.bounce_rate || '0%', icon: BarChart2, delta: '-3%' },
+          { label: 'Avg. CTR', value: metrics.avg_ctr || '0%', icon: PieChart, delta: '+9%' },
         ].map((m, i) => (
           <div key={i} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
@@ -55,19 +67,21 @@ export default function AdminAnalytics() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Category Performance */}
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-          <h3 className="mb-5 text-lg font-bold text-foreground">Category Performance</h3>
+          <h3 className="mb-5 text-lg font-bold text-foreground">Category Performance (Active Ads)</h3>
           <div className="space-y-4">
-            {CATEGORY_STATS.map(c => (
+            {category_stats?.length > 0 ? category_stats.map(c => (
               <div key={c.name}>
                 <div className="mb-1.5 flex items-center justify-between text-sm">
                   <span className="font-semibold text-foreground">{c.name}</span>
                   <span className="font-bold text-primary">{c.ads.toLocaleString()} ads</span>
                 </div>
-                <div className="h-2 w-full rounded-full bg-secondary">
-                  <div className="h-2 rounded-full bg-primary transition-all duration-500" style={{ width: `${c.pct}%` }} />
+                <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+                  <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.max(c.pct || 0, 1)}%` }} />
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-sm text-muted-foreground text-center py-4">No active listings data</div>
+            )}
           </div>
         </div>
 
@@ -75,16 +89,18 @@ export default function AdminAnalytics() {
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <h3 className="mb-5 text-lg font-bold text-foreground">Top Search Queries</h3>
           <div className="space-y-3">
-            {TOP_SEARCHES.map((s, i) => (
+            {top_searches?.length > 0 ? top_searches.map((s, i) => (
               <div key={s.term} className="flex items-center gap-4">
                 <span className="w-6 text-center text-xs font-black text-muted-foreground">{i + 1}</span>
                 <div className="flex flex-1 items-center gap-2 rounded-xl bg-secondary/50 px-4 py-2.5">
                   <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="flex-1 text-sm font-semibold text-foreground">{s.term}</span>
+                  <span className="flex-1 text-sm font-semibold text-foreground capitalize">{s.term}</span>
                   <span className="text-xs font-bold text-primary">{s.count.toLocaleString()}</span>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-sm text-muted-foreground text-center py-4">No search data yet</div>
+            )}
           </div>
         </div>
       </div>
@@ -92,17 +108,15 @@ export default function AdminAnalytics() {
       {/* Device breakdown */}
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
         <h3 className="mb-5 text-lg font-bold text-foreground">Device Breakdown</h3>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          {[
-            { device: 'Mobile', pct: 72 },
-            { device: 'Desktop', pct: 24 },
-            { device: 'Tablet', pct: 4 },
-          ].map(d => (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+          {device_breakdown?.length > 0 ? device_breakdown.map(d => (
             <div key={d.device} className="rounded-xl bg-secondary/50 p-4">
               <p className="font-display text-3xl font-bold text-primary">{d.pct}%</p>
               <p className="mt-1 text-sm font-semibold text-muted-foreground">{d.device}</p>
             </div>
-          ))}
+          )) : (
+            <div className="col-span-full text-sm text-muted-foreground text-center py-4">No device data yet</div>
+          )}
         </div>
       </div>
     </div>

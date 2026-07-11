@@ -1,5 +1,5 @@
 import { useSEO } from '@/lib/useSEO';
-import { Target, Users, Zap } from 'lucide-react';
+import { Target, Zap } from 'lucide-react';
 
 export default function AboutPage() {
   useSEO({

@@ -13,7 +13,7 @@ export default function AdminResetPassword() {
 
   useEffect(() => {
     // Check if the user is in a recovery session
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         // Proceed with reset
       }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getListing, getListings, toggleSaved, getSaved, imageUrl, formatPrice, timeAgo, getSellerStats, getListingViews } from '@/lib/api';
+import { getListing, getListings, toggleSaved, getSaved, imageUrl, formatPrice, timeAgo, getSellerStats, getListingViews, trackInteraction } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
@@ -9,12 +9,15 @@ import CandidateProfile from '@/components/CandidateProfile';
 import ListingCard from '@/components/ListingCard';
 import MessageButton from '@/components/MessageButton';
 import ReportModal from '@/components/ReportModal';
-import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import StarRating from '@/components/StarRating';
+import ReviewModal from '@/components/ReviewModal';
+import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight, X, Star } from 'lucide-react';
+import Image from '@/components/Image';
 
 export default function ListingDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { addListing } = useRecentlyViewed();
+  const { addListing, recentListings } = useRecentlyViewed();
   const [listing, setListing] = useState(null);
   const [zoomedImage, setZoomedImage] = useState(null);
   const [sellerStats, setSellerStats] = useState(null);
@@ -25,6 +28,7 @@ export default function ListingDetailPage() {
   const [descExpanded, setDescExpanded] = useState(false);
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [showNumber, setShowNumber] = useState(false);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
 
@@ -99,7 +103,12 @@ export default function ListingDetailPage() {
         setListing(data);
         if (data) {
           addListing(data);
-          getSellerStats(data.seller_id).then(setSellerStats);
+          // Track the view for personalized recommendations (fire and forget)
+          trackInteraction(data.id, data.category, 'view');
+          
+          if (data.seller_id) {
+            getSellerStats(data.seller_id).then(setSellerStats);
+          }
           getListingViews(data.id).then(setListingViews);
         }
       }).catch(() => setListing(null)).finally(() => setLoading(false));
@@ -226,12 +235,13 @@ export default function ListingDetailPage() {
                   <div className="relative rounded-2xl overflow-hidden border border-border bg-[#0f1411] dark:bg-black group flex items-center justify-center">
                     {images.length > 0 ? (
                       <>
-                        <img
+                        <Image
+                          key={activeImg}
                           src={imageUrl(images[activeImg])}
                           alt={`${listing.title} – image ${activeImg + 1} of ${images.length}`}
-                          className="w-full h-auto object-contain transition-transform duration-500 group-hover:scale-105"
-                          style={{ maxHeight: 'max(380px, min(65vh, 520px))' }}
-                          onError={e => { e.target.src = 'https://placehold.co/800x600/1a2b1e/00d168?text=AdHub'; }}
+                          className="w-full transition-transform duration-500 group-hover:scale-105"
+                          style={{ maxHeight: 'max(380px, min(65vh, 520px))', height: 'max(380px, min(65vh, 520px))' }}
+                          fallbackIconSize={48}
                         />
                         {/* Image Counter Overlay */}
                         <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full z-10 shadow-sm border border-white/10">
@@ -245,7 +255,7 @@ export default function ListingDetailPage() {
                         </button>
                       </>
                     ) : (
-                      <div className="flex items-center justify-center text-6xl bg-secondary w-full" style={{ height: 400 }}>🖼️</div>
+                      <Image src={null} className="w-full" style={{ height: 400 }} fallbackIconSize={56} />
                     )}
                   </div>
                   
@@ -258,11 +268,11 @@ export default function ListingDetailPage() {
                           onClick={() => setActiveImg(i)}
                           className={`snap-start relative h-16 w-20 sm:h-20 sm:w-28 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all duration-200 ${i === activeImg ? 'border-primary ring-2 ring-primary/20 scale-[1.02]' : 'border-transparent opacity-60 hover:opacity-100 hover:scale-95'}`}
                         >
-                          <img 
-                            src={imageUrl(img)} 
-                            alt=""
-                            className="w-full h-full object-cover"
-                            onError={e => { e.target.src = 'https://placehold.co/72x72/1a2b1e/00d168?text=img'; }}
+                            <Image
+                            src={imageUrl(img)}
+                            alt={`Thumbnail ${i + 1}`}
+                            className="w-full h-full"
+                            fallbackIconSize={14}
                           />
                         </button>
                       ))}
@@ -298,14 +308,16 @@ export default function ListingDetailPage() {
                 <div className="rounded-2xl border border-border bg-card shadow-sm flex flex-col">
                   
                   {/* Seller Info (Compact) */}
-                  <div className="p-5 flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary flex-shrink-0 border border-primary/20">
+                  <div className="p-5 flex items-center gap-4 group">
+                    <Link to={`/user/${listing.seller_id}`} className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary flex-shrink-0 border border-primary/20 hover:opacity-80 transition-opacity">
                       {listing.seller?.name?.[0]?.toUpperCase() || 'S'}
-                    </div>
+                    </Link>
                     <div className="min-w-0 flex-1">
-                      <div className="font-bold text-foreground text-lg truncate">{listing.seller?.name || 'Seller'}</div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                         Member since {new Date(listing.seller?.created_at || listing.created_at).getFullYear()}
+                      <Link to={`/user/${listing.seller_id}`} className="font-bold text-foreground text-lg truncate hover:underline hover:text-primary transition-colors block">
+                        {listing.seller?.name || 'Seller'}
+                      </Link>
+                      <div className="mt-1">
+                        <StarRating rating={sellerStats?.average_rating || 0} count={sellerStats?.review_count || 0} size="sm" />
                       </div>
                     </div>
                   </div>
@@ -379,6 +391,11 @@ export default function ListingDetailPage() {
                             </div>
                           </div>
                         )}
+                        {user.id !== listing.seller_id && (
+                          <button onClick={() => setIsReviewModalOpen(true)} className="flex items-center justify-center gap-2 w-full rounded-xl py-2.5 px-4 font-bold text-primary text-sm bg-primary/10 hover:bg-primary/20 transition-colors mt-2">
+                            <Star className="w-4 h-4 fill-current" /> Leave a Review
+                          </button>
+                        )}
                       </>
                     ) : (
                       <div className="relative">
@@ -435,6 +452,18 @@ export default function ListingDetailPage() {
             <h3 className="font-display text-2xl font-bold mb-6">You may also like</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {relatedListings.map(item => (
+                <ListingCard key={item.id} listing={item} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 6. RECENTLY VIEWED */}
+        {recentListings.filter(item => item.id !== listing.id).length > 0 && (
+          <div className="mt-16 border-t border-border pt-12">
+            <h3 className="font-display text-2xl font-bold mb-6">Recently viewed</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {recentListings.filter(item => item.id !== listing.id).slice(0, 4).map(item => (
                 <ListingCard key={item.id} listing={item} />
               ))}
             </div>
@@ -534,6 +563,15 @@ export default function ListingDetailPage() {
         listingId={listing.id}
         listingTitle={listing.title}
       />
+      
+      {isReviewModalOpen && (
+        <ReviewModal
+          sellerId={listing.seller_id}
+          sellerName={listing.seller?.name || 'Seller'}
+          onClose={() => setIsReviewModalOpen(false)}
+          onSuccess={() => getSellerStats(listing.seller_id).then(setSellerStats)}
+        />
+      )}
     </div>
   );
 }

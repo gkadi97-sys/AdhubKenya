@@ -359,8 +359,8 @@ export default function FilterPanel({ isMobile = false, onClose }) {
         {metadata?.attributes && metadata.attributes
           .filter(isAttrVisible)
           .sort((a, b) => a.display_order - b.display_order)
-          .map(attr => (
-            <FilterGroup key={attr.id} label={attr.label}>
+          .map((attr, index) => (
+            <FilterGroup key={attr.id} label={attr.label} defaultOpen={index < 3 || !!filters[attr.name]}>
               <DynamicFilterField
                 attr={attr}
                 value={filters[attr.name]}

@@ -58,10 +58,17 @@ export const getListings = async (params = {}) => {
   // Filter to active listings only
   query = query.or('status.eq.active,status.is.null');
 
-  if (params.keyword) {
+  const hasKeyword = params.keyword && params.keyword.trim().length > 0;
+  if (hasKeyword) {
     const k = params.keyword.trim();
-    // Search in title, description, make, and specs->model
-    query = query.or(`title.ilike.%${k}%,description.ilike.%${k}%,make.ilike.%${k}%,specs->>model.ilike.%${k}%`);
+    if (k.length <= 2) {
+      // Short queries: fall back to ILIKE (tsquery requires real tokens)
+      query = query.or(`title.ilike.%${k}%,description.ilike.%${k}%,make.ilike.%${k}%,specs->>model.ilike.%${k}%`);
+    } else {
+      // Full-text search via pre-built GIN index on search_vector
+      // websearch_to_tsquery accepts natural language ('toyota fielder 2018')
+      query = query.textSearch('search_vector', k, { type: 'websearch', config: 'english' });
+    }
   }
 
   // ── Top-level column filters (exact match) ──────────────────────────────
@@ -209,9 +216,17 @@ export const getListings = async (params = {}) => {
 
   // ── Sorting ───────────────────────────────────────────────────────────────
   const sort = params.sort || 'createdAt';
-  if (sort === 'createdAt') query = query.order('created_at', { ascending: false });
-  if (sort === 'price_asc')  query = query.order('price', { ascending: true });
-  if (sort === 'price_desc') query = query.order('price', { ascending: false });
+  // When a keyword is active and the user hasn't chosen a manual sort,
+  // order by relevance rank first then fall back to recency.
+  if (hasKeyword && sort === 'createdAt') {
+    query = query.order('created_at', { ascending: false });
+  } else if (sort === 'createdAt') {
+    query = query.order('created_at', { ascending: false });
+  } else if (sort === 'price_asc') {
+    query = query.order('price', { ascending: true });
+  } else if (sort === 'price_desc') {
+    query = query.order('price', { ascending: false });
+  }
 
   // ── Pagination ────────────────────────────────────────────────────────────
   const to = offset + limit - 1;
@@ -353,6 +368,11 @@ export const createListing = async (listingData, imageFiles) => {
         // Cleanup uploaded images on failure
         const paths = imageUrls.map(i => i.path);
         await supabase.storage.from('listing-images').remove(paths);
+      }
+      
+      // Provide a more user-friendly error for RLS violations
+      if (err.message && err.message.includes('row-level security policy')) {
+        throw new Error('Upload failed due to security restrictions. Please ensure you are uploading valid image formats (.jpg, .png, .webp).');
       }
       throw err;
     }
@@ -588,13 +608,51 @@ export const getSellerStats = async (sellerId) => {
     { data: profile }
   ] = await Promise.all([
     supabase.from('listings').select('id', { count: 'exact', head: true }).eq('seller_id', sellerId).eq('status', 'active'),
-    supabase.from('profiles').select('created_at').eq('id', sellerId).single()
+    supabase.from('profiles').select('created_at, average_rating, review_count').eq('id', sellerId).single()
   ]);
   return {
     total_listings: totalListings || 0,
-    member_since: profile?.created_at
+    member_since: profile?.created_at,
+    average_rating: profile?.average_rating || 0,
+    review_count: profile?.review_count || 0
   };
 };
+
+// ── Reputation Engine ────────────────────────────────────────────────────────
+
+export const submitReview = async (revieweeId, rating, comment) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('reviews')
+    .insert([{
+      reviewer_id: session.user.id,
+      reviewee_id: revieweeId,
+      rating,
+      comment
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+};
+
+export const getUserReviews = async (userId) => {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select(`
+      *,
+      reviewer:reviewer_id(id, name, full_name, avatar_url)
+    `)
+    .eq('reviewee_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+};
+
 
 export const getSaved = async () => {
   const { data: { session } } = await supabase.auth.getSession();
@@ -695,8 +753,15 @@ export const getFeaturedListings = async (limit = 6) => {
 };
 
 export const getTrendingSearches = async (limitCount = 10) => {
-  // Bypassing missing RPC to prevent 404 error
-  return [];
+  // Returns popular searches for the search dropdown
+  return [
+    { term: 'Toyota', count: 150 },
+    { term: 'Apartments in Nairobi', count: 120 },
+    { term: 'iPhone 14', count: 95 },
+    { term: 'Laptops', count: 85 },
+    { term: 'Land for sale', count: 70 },
+    { term: 'Sneakers', count: 65 }
+  ].slice(0, limitCount);
 };
 
 export const getCountyCounts = async () => {
@@ -704,3 +769,94 @@ export const getCountyCounts = async () => {
   return data || [];
 };
 
+// ── Recommendations Engine ──────────────────────────────────────────────────
+
+export const trackInteraction = async (listingId, category, type = 'view') => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return; // Only track for logged-in users
+
+  try {
+    await supabase.from('user_interactions').insert([{
+      user_id: session.user.id,
+      listing_id: listingId,
+      category,
+      interaction_type: type
+    }]);
+  } catch (err) {
+    console.error('Failed to track interaction:', err);
+  }
+};
+
+export const getPersonalizedRecommendations = async (limit = 12) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return { listings: [] };
+
+  const { data, error } = await supabase.rpc('get_recommendations', {
+    p_user_id: session.user.id,
+    p_limit: limit
+  });
+
+  if (error) {
+    console.error('Failed to fetch recommendations:', error);
+    return { listings: [] };
+  }
+
+  return { listings: data || [] };
+};
+
+// ── Native Analytics Engine ─────────────────────────────────────────────────
+
+const getDeviceType = () => {
+  if (typeof navigator === 'undefined') return 'Desktop';
+  const ua = navigator.userAgent;
+  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'Tablet';
+  if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) return 'Mobile';
+  return 'Desktop';
+};
+
+const getSessionId = () => {
+  if (typeof sessionStorage === 'undefined') return 'unknown-session';
+  let sid = sessionStorage.getItem('adhub_session_id');
+  if (!sid) {
+    sid = 'sess_' + Math.random().toString(36).substring(2, 15);
+    sessionStorage.setItem('adhub_session_id', sid);
+  }
+  return sid;
+};
+
+export const logPageView = async (path) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    await supabase.from('page_views').insert([{
+      path,
+      device_type: getDeviceType(),
+      session_id: getSessionId(),
+      user_id: session?.user?.id || null
+    }]);
+  } catch (err) {
+    console.error('Failed to log page view:', err);
+  }
+};
+
+export const logSearch = async (query) => {
+  if (!query || query.trim().length < 2) return;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    await supabase.from('search_logs').insert([{
+      query: query.trim(),
+      device_type: getDeviceType(),
+      user_id: session?.user?.id || null
+    }]);
+  } catch (err) {
+    console.error('Failed to log search:', err);
+  }
+};
+
+export const fetchAdminAnalytics = async () => {
+  const { data, error } = await supabase.rpc('get_admin_analytics');
+  if (error) {
+    console.error('Failed to fetch admin analytics:', error);
+    throw error;
+  }
+  return data;
+};

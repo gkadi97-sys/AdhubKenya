@@ -1,29 +1,57 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText, PlusCircle, Eye, EyeOff, Edit3 } from 'lucide-react';
-
-const INITIAL_PAGES = [
-  { id: 'about',    title: 'About Us',        status: 'published', slug: '/about' },
-  { id: 'terms',    title: 'Terms of Service', status: 'published', slug: '/terms' },
-  { id: 'privacy',  title: 'Privacy Policy',   status: 'published', slug: '/privacy' },
-  { id: 'faq',      title: 'FAQ',              status: 'published', slug: '/faq' },
-  { id: 'contact',  title: 'Contact Us',       status: 'draft',     slug: '/contact' },
-];
-
-const INITIAL_BANNERS = [
-  { id: 1, title: 'Free June Posting', subtitle: 'List your ad in 60 seconds', active: true },
-  { id: 2, title: 'Eid al-Adha Sale',  subtitle: 'Great deals on livestock!',  active: false },
-];
+import { supabase } from '@/lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function AdminCMS() {
-  const [pages, setPages] = useState(INITIAL_PAGES);
-  const [banners, setBanners] = useState(INITIAL_BANNERS);
+  const [pages, setPages] = useState([]);
+  const [banners, setBanners] = useState([]);
   const [activeTab, setActiveTab] = useState('pages');
+  const [loading, setLoading] = useState(true);
 
-  const togglePageStatus = (id) => {
-    setPages(prev => prev.map(p => p.id === id ? { ...p, status: p.status === 'published' ? 'draft' : 'published' } : p));
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const { data: pData, error: pError } = await supabase.from('pages').select('*').order('created_at');
+      if (pError) throw pError;
+      setPages(pData || []);
+
+      const { data: bData, error: bError } = await supabase.from('banners').select('*').order('created_at');
+      if (bError) throw bError;
+      setBanners(bData || []);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load CMS data');
+    } finally {
+      setLoading(false);
+    }
   };
-  const toggleBanner = (id) => {
-    setBanners(prev => prev.map(b => b.id === id ? { ...b, active: !b.active } : b));
+
+  const togglePageStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'published' ? 'draft' : 'published';
+    try {
+      const { error } = await supabase.from('pages').update({ status: newStatus }).eq('id', id);
+      if (error) throw error;
+      setPages(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+      toast.success('Page status updated');
+    } catch (err) {
+      toast.error('Failed to update page');
+    }
+  };
+
+  const toggleBanner = async (id, currentStatus) => {
+    try {
+      const { error } = await supabase.from('banners').update({ is_active: !currentStatus }).eq('id', id);
+      if (error) throw error;
+      setBanners(prev => prev.map(b => b.id === id ? { ...b, active: !currentStatus, is_active: !currentStatus } : b));
+      toast.success('Banner status updated');
+    } catch (err) {
+      toast.error('Failed to update banner');
+    }
   };
 
   return (
@@ -73,7 +101,7 @@ export default function AdminCMS() {
                   <button className="rounded-lg p-2 text-muted-foreground hover:bg-primary/10 hover:text-primary transition" title="Edit">
                     <Edit3 className="h-4 w-4" />
                   </button>
-                  <button onClick={() => togglePageStatus(page.id)} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary transition" title={page.status === 'published' ? 'Unpublish' : 'Publish'}>
+                  <button onClick={() => togglePageStatus(page.id, page.status)} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary transition" title={page.status === 'published' ? 'Unpublish' : 'Publish'}>
                     {page.status === 'published' ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
@@ -100,11 +128,11 @@ export default function AdminCMS() {
                   <p className="text-sm text-muted-foreground">{b.subtitle}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => toggleBanner(b.id)}
-                    className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${b.active ? 'bg-primary' : 'bg-secondary'}`}>
-                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-card shadow-sm transition-all duration-200 ${b.active ? 'left-5' : 'left-0.5'}`}></span>
+                  <button onClick={() => toggleBanner(b.id, b.is_active)}
+                    className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${b.is_active ? 'bg-primary' : 'bg-secondary'}`}>
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-card shadow-sm transition-all duration-200 ${b.is_active ? 'left-5' : 'left-0.5'}`}></span>
                   </button>
-                  <span className="text-xs font-semibold text-muted-foreground">{b.active ? 'Live' : 'Off'}</span>
+                  <span className="text-xs font-semibold text-muted-foreground">{b.is_active ? 'Live' : 'Off'}</span>
                 </div>
               </div>
             ))}

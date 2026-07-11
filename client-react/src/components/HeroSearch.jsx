@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Search, MapPin, Clock, Flame, Grid, Navigation, X, Mic, ArrowLeft } from 'lucide-react';
-import { getListings, getCategoryCounts } from '@/lib/api';
+import { getListings, getCategoryCounts, logSearch } from '@/lib/api';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 
@@ -45,7 +45,8 @@ export default function HeroSearch({ stickyCategory = null }) {
     try {
       const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
       if (stored) setRecentSearches(JSON.parse(stored).slice(0, 8));
-    } catch (e) { /* ignore */ }
+    } catch (_) { /* ignore storage errors */ }
+
   }, []);
 
   // ── Outside-click / outside-touch (iOS compatible) ─────────────────────────
@@ -114,21 +115,24 @@ export default function HeroSearch({ stickyCategory = null }) {
     let updated = [termClean, ...recentSearches.filter(s => s.toLowerCase() !== termClean.toLowerCase())];
     updated = updated.slice(0, 8);
     setRecentSearches(updated);
-    try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated)); } catch (e) {}
+    try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated)); } catch (_) { /* storage unavailable */ }
   };
 
   const removeRecentSearch = (term, e) => {
     e.stopPropagation();
     const updated = recentSearches.filter(s => s !== term);
     setRecentSearches(updated);
-    try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated)); } catch (e) {}
+    try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated)); } catch (_) { /* storage unavailable */ }
   };
 
   const handleSearch = (e, explicitKeyword = null, explicitCategory = null) => {
     if (e) e.preventDefault();
     const finalKeyword = explicitKeyword !== null ? explicitKeyword : keyword;
     const finalCategory = explicitCategory !== null ? explicitCategory : (categoryTab || stickyCategory || '');
-    if (finalKeyword) saveRecentSearch(finalKeyword);
+    if (finalKeyword) {
+      saveRecentSearch(finalKeyword);
+      logSearch(finalKeyword);
+    }
     setIsFocused(false);
     const p = new URLSearchParams();
     if (finalKeyword.trim()) p.set('keyword', finalKeyword.trim());

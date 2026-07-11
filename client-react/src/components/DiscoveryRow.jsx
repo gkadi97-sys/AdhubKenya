@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { getListings } from '@/lib/api';
 import ListingCard from '@/components/ListingCard';
+import ListingCardSkeleton from '@/components/ListingCardSkeleton';
 
 export default function DiscoveryRow({
   title,
@@ -47,11 +48,10 @@ export default function DiscoveryRow({
       {isLoading ? (
         /* Skeleton — horizontal scroll on mobile, grid on desktop */
         <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide md:grid md:grid-cols-3 md:overflow-visible md:pb-0 lg:grid-cols-4 xl:grid-cols-5 md:gap-5">
-          {[...Array(10)].map((_, i) => (
-            <div
-              key={i}
-              className="w-[260px] md:w-auto h-[320px] rounded-2xl bg-secondary/50 animate-pulse shrink-0"
-            />
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="w-[260px] md:w-auto shrink-0">
+              <ListingCardSkeleton />
+            </div>
           ))}
         </div>
       ) : listings.length > 0 ? (

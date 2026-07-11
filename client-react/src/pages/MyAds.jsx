@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { PlusCircle, MapPin, Eye, Clock, Trash2, ExternalLink, PackageOpen, Lock, Sparkles, Edit } from 'lucide-react';
 import PromoteAdModal from '@/components/PromoteAdModal';
+import Image from '@/components/Image';
 
 export default function MyAdsPage() {
   const { user } = useAuth();
@@ -74,12 +75,12 @@ export default function MyAdsPage() {
 
   if (!user) return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-20 text-center animate-in fade-in duration-500">
-      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-secondary shadow-inner">
+      <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-secondary/50 shadow-inner border border-border">
         <Lock className="h-10 w-10 text-muted-foreground" />
       </div>
-      <h3 className="mb-2 text-2xl font-bold tracking-tight text-foreground">Login Required</h3>
-      <p className="mb-8 text-muted-foreground max-w-sm">You need to be logged in to view your ads, manage your listings, and connect with buyers.</p>
-      <Link to="/login" className="rounded-xl bg-primary px-8 py-3.5 font-bold text-primary-foreground shadow-sm transition hover:opacity-90">
+      <h1 className="font-display text-3xl font-bold mb-3 tracking-tight text-foreground">Login Required</h1>
+      <p className="mb-8 text-muted-foreground max-w-sm text-lg">You need to be logged in to view your ads, manage your listings, and connect with buyers.</p>
+      <Link to="/login" className="rounded-xl bg-primary px-8 py-3.5 font-bold text-primary-foreground shadow-sm transition-all hover:scale-105 active:scale-95">
         Sign In to Continue
       </Link>
     </div>
@@ -121,13 +122,13 @@ export default function MyAdsPage() {
             ))}
           </div>
         ) : listings.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-secondary/20 px-4 py-24 text-center">
-            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-background shadow-sm">
-              <PackageOpen className="h-10 w-10 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card shadow-sm py-24 px-4 text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 shadow-inner">
+              <PackageOpen className="h-12 w-12 text-primary animate-bounce" />
             </div>
-            <h3 className="mb-2 text-xl font-bold text-foreground">No ads yet</h3>
-            <p className="mb-8 max-w-md text-muted-foreground">You haven't posted any ads. Start selling today and reach thousands of buyers across Kenya!</p>
-            <Link to="/post-ad" className="rounded-xl bg-primary px-8 py-3 text-sm font-bold text-primary-foreground shadow-sm transition hover:opacity-90">
+            <h2 className="text-2xl font-bold tracking-tight mb-3">No ads yet</h2>
+            <p className="mb-8 max-w-md text-muted-foreground text-lg">You haven't posted any ads. Start selling today and reach thousands of buyers across Kenya!</p>
+            <Link to="/post-ad" className="rounded-xl bg-primary px-8 py-3.5 font-bold text-primary-foreground shadow-sm transition-all hover:scale-105 active:scale-95 inline-block">
               Post your first Ad — Free
             </Link>
           </div>
@@ -137,12 +138,12 @@ export default function MyAdsPage() {
               <div key={l.id} className="group relative flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border bg-card transition hover:border-primary/30 hover:shadow-md">
                 
                 {/* Image */}
-                <div className="h-48 w-full shrink-0 sm:h-auto sm:w-[200px]">
-                  <img
-                    src={l.images?.[0] ? imageUrl(l.images[0]) : `https://placehold.co/400x300/1a2b1e/00d168?text=Ad`}
-                    alt={l.title} 
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                    onError={e=>{e.target.src='https://placehold.co/400x300/1a2b1e/00d168?text=Ad';}}
+                <div className="h-48 w-full shrink-0 sm:h-auto sm:w-[200px] overflow-hidden">
+                  <Image
+                    src={l.images?.[0] ? imageUrl(l.images[0]) : null}
+                    alt={l.title}
+                    className="h-full w-full transition duration-300 group-hover:scale-105"
+                    fallbackIconSize={28}
                   />
                 </div>
                 

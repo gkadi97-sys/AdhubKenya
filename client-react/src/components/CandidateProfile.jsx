@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { timeAgo, imageUrl, logCvEvent } from '@/lib/api';
-import { MapPin, Briefcase, GraduationCap, Clock, CheckCircle2, Languages, Phone, Link as LinkIcon, Download, Send, AlertCircle, Share2, Heart, Flag } from 'lucide-react';
+import { MapPin, Briefcase, GraduationCap, Clock, CheckCircle2, Languages, Phone, Link as LinkIcon, Download, Send, AlertCircle, Share2, Flag } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Image from '@/components/Image';
 
 export default function CandidateProfile({ listing }) {
   const s = listing.specs || {};
@@ -78,7 +79,12 @@ export default function CandidateProfile({ listing }) {
               {/* Avatar */}
               <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl bg-secondary shrink-0 border border-border overflow-hidden shadow-sm relative">
                 {listing.images && listing.images.length > 0 ? (
-                  <img src={imageUrl(listing.images[0])} alt="Profile" className="w-full h-full object-cover" />
+                  <Image
+                    src={imageUrl(listing.images[0])}
+                    alt="Profile"
+                    className="w-full h-full"
+                    fallbackIconSize={24}
+                  />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-primary-foreground font-display font-bold text-4xl">
                     {(listing.seller?.name || listing.title).charAt(0).toUpperCase()}

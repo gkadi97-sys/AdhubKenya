@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { VEHICLE_ACCESSORIES_DATA } from '@/lib/vehicleAccessoriesData';
 import { CATEGORY_ATTRIBUTES } from '@/lib/categoryData';
 

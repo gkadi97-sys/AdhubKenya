@@ -4,17 +4,24 @@ import { supabase } from '@/lib/supabase';
 import { ArrowLeft, Plus, Save, Settings, GripVertical, Trash2, X, Image, Video, FileText, RotateCw, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const slugify = (text) => text.toString().toLowerCase().trim()
+  .replace(/\s+/g, '_').replace(/[^\w_]+/g, '').replace(/__+/g, '_');
+
+
+
 export default function AdminMetadataBuilder() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [category, setCategory] = useState(null);
   const [groups, setGroups] = useState([]);
   const [attributes, setAttributes] = useState([]);
+  const [dependencies, setDependencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('fields');
   
   // Edit State
   const [editingAttr, setEditingAttr] = useState(null);
+  const [editingGroup, setEditingGroup] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Media Rules local state (mirrors category fields)
@@ -56,6 +63,14 @@ export default function AdminMetadataBuilder() {
       if (attrError) throw attrError;
       setAttributes(attrData || []);
 
+      // 4. Fetch Dependencies
+      if (attrData && attrData.length > 0) {
+        const attrIds = attrData.map(a => a.id);
+        const { data: depData, error: depError } = await supabase.from('attribute_dependencies').select('*').in('attribute_id', attrIds);
+        if (depError) throw depError;
+        setDependencies(depData || []);
+      }
+
     } catch (err) {
       console.error(err);
       toast.error('Failed to load schema');
@@ -67,6 +82,25 @@ export default function AdminMetadataBuilder() {
   const saveSchema = async () => {
     setIsSaving(true);
     try {
+      // 0. Client-side duplicate key validation
+      const keys = attributes.map(a => a.name);
+      const duplicates = keys.filter((item, index) => keys.indexOf(item) !== index);
+      if (duplicates.length > 0) {
+        throw new Error(`Duplicate Field Keys detected: ${[...new Set(duplicates)].join(', ')}. Keys must be unique within a category.`);
+      }
+
+      // 1.5 Upsert groups
+      const { error: groupErrorUpsert } = await supabase.from('attribute_groups').upsert(
+        groups.map(g => ({
+          id: g.id,
+          category_id: category.id,
+          name: g.name,
+          icon: g.icon || 'info',
+          order_index: g.order_index
+        }))
+      );
+      if (groupErrorUpsert) throw groupErrorUpsert;
+
       // 1. Upsert attributes
       const { error: attrError } = await supabase.from('attributes').upsert(
         attributes.map(a => ({
@@ -97,6 +131,24 @@ export default function AdminMetadataBuilder() {
         })
         .eq('id', category.id);
       if (mediaError) throw mediaError;
+
+      // 3. Save dependencies (replace all for simplicity)
+      if (attributes.length > 0) {
+        const attrIds = attributes.map(a => a.id);
+        await supabase.from('attribute_dependencies').delete().in('attribute_id', attrIds);
+        if (dependencies.length > 0) {
+          const { error: depError } = await supabase.from('attribute_dependencies').insert(
+            dependencies.map(d => ({
+              id: d.id || crypto.randomUUID(),
+              attribute_id: d.attribute_id,
+              depends_on_attribute_id: d.depends_on_attribute_id,
+              operator: d.operator || 'exists',
+              effect: d.effect || 'show'
+            }))
+          );
+          if (depError) throw depError;
+        }
+      }
 
       toast.success('Schema & media rules saved!');
     } catch (err) {
@@ -347,8 +399,16 @@ export default function AdminMetadataBuilder() {
                     <h3 className="font-bold text-foreground">{group.name}</h3>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-secondary transition" title="Edit Group">
+                    <button onClick={() => setEditingGroup(group)} className="p-1.5 text-muted-foreground hover:text-foreground rounded-md hover:bg-secondary transition" title="Edit Group">
                       <Settings className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => {
+                      if (window.confirm('Remove this group and all its fields?')) {
+                        setAttributes(prev => prev.filter(a => a.group_id !== group.id));
+                        setGroups(prev => prev.filter(g => g.id !== group.id));
+                      }
+                    }} className="p-1.5 text-muted-foreground hover:text-destructive rounded-md hover:bg-destructive/10 transition" title="Delete Group">
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -391,7 +451,24 @@ export default function AdminMetadataBuilder() {
                   
                   {/* Add Field Button */}
                   <div className="p-2">
-                    <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition">
+                    <button 
+                      onClick={() => {
+                        const newAttr = {
+                          id: crypto.randomUUID(),
+                          name: `new_field_${Math.floor(Math.random() * 10000)}`,
+                          label: 'New Field',
+                          field_type: 'text',
+                          group_id: group.id,
+                          is_required: false,
+                          is_searchable: false,
+                          is_listing_card: false,
+                          display_order: groupAttributes.length + 1
+                        };
+                        setAttributes([...attributes, newAttr]);
+                        setEditingAttr(newAttr);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition"
+                    >
                       <Plus className="w-4 h-4" /> Add Field to {group.name}
                     </button>
                   </div>
@@ -401,7 +478,20 @@ export default function AdminMetadataBuilder() {
             );
           })}
 
-          <button className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition">
+          <button 
+            onClick={() => {
+              const newGroup = {
+                id: crypto.randomUUID(),
+                name: 'New Group',
+                category_id: category.id,
+                icon: 'info',
+                order_index: groups.length + 1
+              };
+              setGroups([...groups, newGroup]);
+              setEditingGroup(newGroup);
+            }}
+            className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-border text-sm font-bold text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition"
+          >
             <Plus className="w-5 h-5" /> Add New Group
           </button>
         </div>
@@ -457,10 +547,28 @@ export default function AdminMetadataBuilder() {
                   <label className="block text-sm font-bold text-muted-foreground mb-1">Field Label</label>
                   <input type="text" className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 outline-none" 
                     value={editingAttr.label || ''} 
-                    onChange={e => setEditingAttr({...editingAttr, label: e.target.value})} 
+                    onChange={e => {
+                      const newLabel = e.target.value;
+                      // Auto-slugify if name matches old label slugification or is empty/default
+                      const currentSlug = slugify(editingAttr.label || '');
+                      const shouldAutoUpdateName = !editingAttr.name || editingAttr.name === currentSlug || editingAttr.name.startsWith('new_field_');
+                      
+                      setEditingAttr({
+                        ...editingAttr, 
+                        label: newLabel,
+                        name: shouldAutoUpdateName ? slugify(newLabel) : editingAttr.name
+                      });
+                    }} 
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-bold text-muted-foreground mb-1">Field Key (Database Column)</label>
+                  <input type="text" className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 outline-none font-mono text-xs" 
+                    value={editingAttr.name || ''} 
+                    onChange={e => setEditingAttr({...editingAttr, name: slugify(e.target.value)})} 
+                  />
+                </div>
+                <div className="col-span-2">
                   <label className="block text-sm font-bold text-muted-foreground mb-1">Field Type</label>
                   <select className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 outline-none"
                     value={editingAttr.field_type || 'text'}
@@ -490,7 +598,7 @@ export default function AdminMetadataBuilder() {
               <div className="p-4 rounded-xl border border-border bg-secondary/20 space-y-3">
                 <h4 className="font-bold text-sm text-foreground mb-3 uppercase tracking-wider">UI & Search Flags</h4>
                 <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" className="h-5 w-5 rounded border-2 border-border text-primary focus:ring-primary/20" 
+                  <input type="checkbox" className="h-5 w-5 rounded border-2 border-border text-primary accent-primary" 
                     checked={editingAttr.is_required || false}
                     onChange={e => setEditingAttr({...editingAttr, is_required: e.target.checked})}
                   />
@@ -500,7 +608,7 @@ export default function AdminMetadataBuilder() {
                   </div>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" className="h-5 w-5 rounded border-2 border-border text-primary focus:ring-primary/20" 
+                  <input type="checkbox" className="h-5 w-5 rounded border-2 border-border text-primary accent-primary" 
                     checked={editingAttr.is_searchable || false}
                     onChange={e => setEditingAttr({...editingAttr, is_searchable: e.target.checked})}
                   />
@@ -510,7 +618,7 @@ export default function AdminMetadataBuilder() {
                   </div>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" className="h-5 w-5 rounded border-2 border-border text-primary focus:ring-primary/20" 
+                  <input type="checkbox" className="h-5 w-5 rounded border-2 border-border text-primary accent-primary" 
                     checked={editingAttr.is_listing_card || false}
                     onChange={e => setEditingAttr({...editingAttr, is_listing_card: e.target.checked})}
                   />
@@ -519,6 +627,38 @@ export default function AdminMetadataBuilder() {
                     <div className="text-xs text-muted-foreground">Display this attribute on search result preview cards</div>
                   </div>
                 </label>
+              </div>
+
+
+              {/* Dependencies UI inside Edit Modal */}
+              <div className="p-4 rounded-xl border border-border bg-orange-500/5 space-y-3">
+                <h4 className="font-bold text-sm text-foreground mb-3 uppercase tracking-wider">Field Dependencies</h4>
+                {dependencies.filter(d => d.attribute_id === editingAttr.id).map(dep => {
+                  const targetAttr = attributes.find(a => a.id === dep.depends_on_attribute_id);
+                  return (
+                    <div key={dep.id} className="flex items-center justify-between bg-card border border-border rounded-lg p-2 text-sm">
+                      <div>
+                        <span className="font-semibold text-foreground">{editingAttr.label}</span> {dep.effect}s when <span className="font-semibold text-primary">{targetAttr?.label || 'Unknown'}</span> {dep.operator}
+                      </div>
+                      <button onClick={() => setDependencies(prev => prev.filter(d => d.id !== dep.id))} className="text-muted-foreground hover:text-destructive">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+                <button onClick={() => {
+                  const otherAttrs = attributes.filter(a => a.id !== editingAttr.id);
+                  if (otherAttrs.length === 0) return toast.error('Create other fields first.');
+                  setDependencies([...dependencies, {
+                    id: crypto.randomUUID(),
+                    attribute_id: editingAttr.id,
+                    depends_on_attribute_id: otherAttrs[0].id,
+                    operator: 'exists',
+                    effect: 'show'
+                  }]);
+                }} className="text-xs font-bold text-primary hover:underline">
+                  + Add Dependency Rule
+                </button>
               </div>
 
             </div>
@@ -536,6 +676,51 @@ export default function AdminMetadataBuilder() {
               </button>
             </div>
             
+          </div>
+        </div>
+      )}
+      {/* Edit Group Modal */}
+      {editingGroup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-elevated w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            
+            <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-secondary/30">
+              <h3 className="font-bold text-lg text-foreground">Edit Group: {editingGroup.name}</h3>
+              <button onClick={() => setEditingGroup(null)} className="p-2 hover:bg-secondary rounded-full transition text-muted-foreground">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-muted-foreground mb-1">Group Name</label>
+                <input type="text" className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 outline-none" 
+                  value={editingGroup.name || ''} 
+                  onChange={e => setEditingGroup({...editingGroup, name: e.target.value})} 
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-muted-foreground mb-1">Display Icon (Lucide string)</label>
+                <input type="text" className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 outline-none" 
+                  value={editingGroup.icon || ''} 
+                  onChange={e => setEditingGroup({...editingGroup, icon: e.target.value})} 
+                  placeholder="e.g. settings, box, info"
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-border p-4 bg-secondary/30 flex justify-end gap-3">
+              <button onClick={() => setEditingGroup(null)} className="px-5 py-2.5 rounded-xl font-bold text-sm text-muted-foreground hover:bg-secondary transition">
+                Cancel
+              </button>
+              <button onClick={() => {
+                setGroups(prev => prev.map(g => g.id === editingGroup.id ? editingGroup : g));
+                setEditingGroup(null);
+                toast.success('Group updated (staged)');
+              }} className="px-5 py-2.5 rounded-xl font-bold text-sm bg-primary text-primary-foreground hover:opacity-90 transition shadow-sm">
+                Apply Changes
+              </button>
+            </div>
           </div>
         </div>
       )}

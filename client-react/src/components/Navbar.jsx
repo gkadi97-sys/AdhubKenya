@@ -1,14 +1,13 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Search, PlusCircle, MessageSquare, Heart, Bell, User, LogOut, FileText } from 'lucide-react';
+import { PlusCircle, MessageSquare, Heart, Bell, User, LogOut, FileText } from 'lucide-react';
 import SearchInput from '@/components/SearchInput';
+import NotificationDropdown from '@/components/NotificationDropdown';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const [search, setSearch] = useState('');
   const [profileOpen, setProfileOpen] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
   const isHomepage = location.pathname === '/';
 
@@ -46,10 +45,12 @@ export default function Navbar() {
             </Link>
 
             {user ? (
-              <div className="flex items-center gap-2 ml-2">
+              <div className="flex items-center gap-1 sm:gap-2 ml-1 sm:ml-2">
                 <Link to="/messages" title="Messages" className="hidden lg:flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground">
                   <MessageSquare className="h-5 w-5" />
                 </Link>
+
+                <NotificationDropdown />
                 
                 <div className="relative">
                   <button 
@@ -82,9 +83,6 @@ export default function Navbar() {
                           <Link to="/messages" onClick={() => setProfileOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary/50 transition active:scale-[0.98] lg:hidden">
                             <MessageSquare className="h-4 w-4 text-muted-foreground" /> Messages
                           </Link>
-                          <button onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary/50 transition active:scale-[0.98]">
-                            <Bell className="h-4 w-4 text-muted-foreground" /> Notifications
-                          </button>
                         </div>
                         
                         <div className="h-px bg-border"></div>

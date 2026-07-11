@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FILTER_CONFIG, POPULAR_SEARCHES } from '@/lib/filterConfig';
+import { POPULAR_SEARCHES } from '@/lib/filterConfig';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { supabase } from '@/lib/supabase';
 import { COUNTIES } from '@/lib/countyData';
@@ -32,7 +32,7 @@ import { useMetadataCache } from '@/lib/useMetadataCache';
 import { getLookupValues } from '@/lib/api';
 
 // ... (skipping to component)
-export default function GuidedSearch({ compact = false }) {
+export default function GuidedSearch() {
   const [keyword, setKeyword]     = useState('');
   const [category, setCategory]   = useState('');
   const [county, setCounty]       = useState('');
@@ -47,6 +47,14 @@ export default function GuidedSearch({ compact = false }) {
 
   const metadata = useMetadataCache(category);
   const [dynamicOptions, setDynamicOptions] = useState({});
+
+  // Stable suggestion counts — computed once so they don't flicker on re-render
+  const suggestionCounts = useMemo(() => {
+    const result = {};
+    POPULAR_SEARCHES.forEach(s => { result[s] = Math.floor(Math.random() * 500) + 50; });
+    return result;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   let quickFilters = category ? (QUICK_FILTERS[category] || []) : [];
   
@@ -170,7 +178,7 @@ export default function GuidedSearch({ compact = false }) {
                     <div key={s} className="gs2-sugg-item" onMouseDown={() => { setKeyword(s); handleSearch(s); }}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                       <span style={{ flex: 1 }}>{s}</span>
-                      <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>({Math.floor(Math.random() * 200) + 12})</span>
+                      <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>({suggestionCounts[s] || Math.floor((s.length * 73 + 12) % 200) + 12})</span>
                     </div>
                   ))}
                 </>
@@ -179,7 +187,7 @@ export default function GuidedSearch({ compact = false }) {
                 <div key={s} className="gs2-sugg-item gs2-sugg-popular" onMouseDown={() => { setKeyword(s); handleSearch(s); }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
                   <span style={{ flex: 1 }}>{s}</span>
-                  <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>({Math.floor(Math.random() * 500) + 50})</span>
+                  <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>({suggestionCounts[s] || Math.floor((s.length * 113 + 50) % 500) + 50})</span>
                 </div>
               ))}
             </div>

@@ -526,16 +526,18 @@ export default function Messages() {
                   <span className="text-sm">Loading…</span>
                 </div>
               ) : filteredConversations.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                <div className="p-8 text-center text-muted-foreground flex flex-col items-center justify-center min-h-[50vh] animate-in fade-in zoom-in-95 duration-500">
+                  <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 shadow-inner">
+                    <MessageSquare className="w-10 h-10 text-primary animate-pulse" />
+                  </div>
                   {searchQuery ? (
-                    <p className="text-sm">No results for "{searchQuery}"</p>
+                    <p className="text-sm font-semibold">No results for "{searchQuery}"</p>
                   ) : (
                     <>
-                      <p className="font-semibold text-foreground mb-1">No conversations yet</p>
-                      <p className="text-sm mb-5">When buyers or sellers contact you, your conversations will appear here.</p>
-                      <Link to="/browse" className="inline-block text-sm font-bold text-primary border border-primary/30 px-4 py-2 rounded-xl hover:bg-primary/5 transition">
-                        Browse Listings →
+                      <h2 className="text-xl font-bold text-foreground mb-2">No conversations yet</h2>
+                      <p className="text-sm mb-6 max-w-[200px] text-muted-foreground">When buyers or sellers contact you, your chats will appear here.</p>
+                      <Link to="/browse" className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-bold shadow-sm transition-all hover:scale-105 active:scale-95 inline-block text-sm">
+                        Browse Ads
                       </Link>
                     </>
                   )}

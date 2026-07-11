@@ -14,9 +14,10 @@ export default function ContinueBrowsing() {
       if (stored) {
         setRecentCats(JSON.parse(stored).slice(0, 4));
       }
-    } catch (e) {
-      // ignore
+    } catch (_) {
+      // ignore storage errors
     }
+
   }, []);
 
   if (recentCats.length === 0) return null;

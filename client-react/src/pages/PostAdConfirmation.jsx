@@ -1,8 +1,11 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { CheckCircle, Clock } from 'lucide-react';
 import { useSEO } from '@/lib/useSEO';
 
 export default function PostAdConfirmation() {
+  const location = useLocation();
+  const { listingTitle, listingId } = location.state || {};
+
   useSEO({
     title: 'Ad Submitted | AdHub Kenya',
     description: 'Your advertisement has been submitted successfully and is pending approval.',
@@ -16,6 +19,12 @@ export default function PostAdConfirmation() {
       <h1 className="mb-4 text-3xl font-black tracking-tight text-foreground">
         Advertisement Submitted!
       </h1>
+      
+      {listingTitle && (
+        <p className="text-lg font-semibold text-primary mb-6">
+          "{listingTitle}"
+        </p>
+      )}
       
       <div className="mb-8 max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm text-left">
         <div className="flex items-start gap-4">
@@ -35,7 +44,7 @@ export default function PostAdConfirmation() {
       </div>
 
       <p className="text-muted-foreground mb-8">
-        You will receive a notification once your listing has been approved.
+        You will receive a notification in your <span className="font-semibold text-foreground">Notifications menu</span> once your listing has been approved.
       </p>
 
       <div className="flex flex-wrap items-center justify-center gap-4">

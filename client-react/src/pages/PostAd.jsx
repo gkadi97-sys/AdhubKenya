@@ -196,6 +196,7 @@ export default function PostAdPage() {
   const [error, setError]               = useState('');
   const [showReview, setShowReview]     = useState(false);
   const [draftSaved, setDraftSaved]     = useState(false);
+  const [draggedIdx, setDraggedIdx]     = useState(null);
 
   // Section expansion state for static sections
   const [expanded, setExpanded] = useState({
@@ -347,6 +348,35 @@ export default function PostAdPage() {
     setPreviews(prev => prev.filter((_, idx) => idx !== i));
   };
 
+  const handleDragStart = (e, i) => {
+    setDraggedIdx(i);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetIdx) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === targetIdx) return;
+    
+    setPreviews(prev => {
+      const newArr = [...prev];
+      const item = newArr.splice(draggedIdx, 1)[0];
+      newArr.splice(targetIdx, 0, item);
+      return newArr;
+    });
+    setImages(prev => {
+      const newArr = [...prev];
+      const item = newArr.splice(draggedIdx, 1)[0];
+      newArr.splice(targetIdx, 0, item);
+      return newArr;
+    });
+    setDraggedIdx(null);
+  };
+
   useEffect(() => { return () => previews.forEach(url => URL.revokeObjectURL(url)); }, [previews]);
 
   const getTitlePlaceholder = (cat) => {
@@ -402,9 +432,14 @@ export default function PostAdPage() {
       if (year)  listingData.year  = year;
       listingData.specs = restSpecs || {};
 
-      await createListing(listingData, images);
-      clearDraft();
-      navigate('/post-ad/success');
+      const newListing = await createListing(listingData, images);
+      toast.success('Listing created successfully!');
+      navigate('/post-ad/success', { 
+        state: { 
+          listingId: newListing.id, 
+          listingTitle: newListing.title 
+        } 
+      });
     } catch (err) {
       setError(err.message);
     } finally { setLoading(false); }
@@ -649,12 +684,24 @@ export default function PostAdPage() {
                 {previews.length > 0 && (
                   <div className="mt-4 flex flex-wrap gap-3">
                     {previews.map((src, i) => (
-                      <div key={i} className="group relative aspect-square w-24 overflow-hidden rounded-xl border border-border">
-                        <img src={src} alt="" className="h-full w-full object-cover" />
+                      <div 
+                        key={src} // use src as key for stable DOM reordering, assuming blob URLs are unique
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, i)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, i)}
+                        className={`group relative aspect-square w-24 overflow-hidden rounded-xl border-2 transition-all cursor-move ${draggedIdx === i ? 'opacity-50 scale-95 border-primary/50' : 'border-border hover:border-primary/30 shadow-sm'}`}
+                      >
+                        {i === 0 && (
+                          <div className="absolute top-0 left-0 bg-primary/90 text-primary-foreground text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-br-lg z-10 pointer-events-none">
+                            Cover
+                          </div>
+                        )}
+                        <img src={src} alt="" className="h-full w-full object-cover pointer-events-none" />
                         <button
                           type="button"
                           onClick={() => removeImage(i)}
-                          className="absolute top-1 right-1 grid h-6 w-6 place-items-center rounded-full bg-background/90 shadow-sm text-destructive md:opacity-0 md:top-0 md:right-0 md:h-full md:w-full md:rounded-none md:bg-background/80 md:backdrop-blur md:group-hover:opacity-100 transition"
+                          className="absolute top-1 right-1 grid h-6 w-6 place-items-center rounded-full bg-background/90 shadow-sm text-destructive md:opacity-0 md:top-0 md:right-0 md:h-full md:w-full md:rounded-none md:bg-background/80 md:backdrop-blur md:group-hover:opacity-100 transition cursor-pointer"
                           aria-label={`Remove image ${i + 1}`}
                         >
                           <Trash2 className="h-3.5 w-3.5 md:h-5 md:w-5" />

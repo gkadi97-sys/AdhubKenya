@@ -1,8 +1,6 @@
-import { Link } from 'react-router-dom';
 import { History, X } from 'lucide-react';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import ListingCard from '@/components/ListingCard';
-import { ChevronRight } from 'lucide-react';
 
 export default function RecentlyViewed() {
   const { recentListings, clearHistory } = useRecentlyViewed();

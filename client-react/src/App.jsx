@@ -1,10 +1,21 @@
-import { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { logPageView } from '@/lib/api';
+
+// --- Tracking Component ---
+function PageViewTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    logPageView(location.pathname + location.search);
+  }, [location]);
+  return null;
+}
 
 // --- Public Layout ---
+import GlobalSEO from '@/components/SEO.jsx';
 import Navbar from '@/components/Navbar.jsx';
 import Footer from '@/components/Footer.jsx';
 import MobileBottomNav from '@/components/MobileBottomNav.jsx';
@@ -17,7 +28,6 @@ import Category from '@/pages/Category.jsx';
 import Listing from '@/pages/Listing.jsx';
 import Login from '@/pages/Login.jsx';
 import Register from '@/pages/Register.jsx';
-import Profile from './pages/Profile';
 import SavedAds from './pages/SavedAds';
 import Messages from './pages/Messages';
 
@@ -28,6 +38,7 @@ const PostAdConfirmation = lazy(() => import('@/pages/PostAdConfirmation.jsx'));
 const EditAd = lazy(() => import('@/pages/EditAd.jsx'));
 const MyAds = lazy(() => import('@/pages/MyAds.jsx'));
 const ProfilePage = lazy(() => import('@/pages/Profile.jsx'));
+const PublicProfilePage = lazy(() => import('@/pages/PublicProfile.jsx'));
 const SavedSearches = lazy(() => import('@/pages/SavedSearches.jsx'));
 const PostCvPage = lazy(() => import('@/pages/PostCv.jsx'));
 
@@ -83,6 +94,7 @@ function AppLayout() {
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:p-4 focus:bg-background focus:text-foreground">
         Skip to main content
       </a>
+      <PageViewTracker />
       <Navbar />
       <main id="main-content">
         <Suspense fallback={<div className="flex h-[50vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div></div>}>
@@ -98,6 +110,7 @@ function AppLayout() {
               <Route key={cat} path={`/${cat}`} element={<Browse key={cat} defaultCategory={cat} />} />
             ))}
             <Route path="/listing/:id" element={<Listing />} />
+            <Route path="/user/:id" element={<PublicProfilePage />} />
             <Route path="/post-cv" element={<ProtectedRoute><PostCvPage /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -140,6 +153,7 @@ export default function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
+          <GlobalSEO />
           <Toaster position="top-center" />
           <Routes>
             {/* ── Admin Routes ── */}

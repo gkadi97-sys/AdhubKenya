@@ -1,15 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { getListings, saveSearch } from '@/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import ListingCard from '@/components/ListingCard';
+import ListingCardSkeleton from '@/components/ListingCardSkeleton';
 import CandidateCard from '@/components/CandidateCard';
 import DiscoveryRow from '@/components/DiscoveryRow';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
 import FilterPanel from '@/components/filters/FilterPanel';
-import { Filter, X, Search, Bell, PlusCircle, ChevronRight } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
+import { Filter, X, Search, Bell, PlusCircle, ChevronRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cleanInvalidFilters } from '@/lib/filterValidation';
 
@@ -34,6 +36,34 @@ const CATEGORY_META = {
   'jobs':                 { description: 'Job openings, internships and gig opportunities.',         placeholder: 'Search accountant, nurse, driver…',      suggestions: ['Accountant','Driver','Nurse','Teacher','Sales Rep'] },
   'seeking-work':         { description: 'Talented professionals and graduates ready to work.',      placeholder: 'Search by skill or job title…',          suggestions: [] },
   'auto-spares':          { description: 'Genuine and aftermarket auto parts for all vehicles.',     placeholder: 'Search brake pads, alternators…',        suggestions: ['Brake Pads','Filters','Alternator','Bumper','Shock Absorbers'] },
+};
+
+// ── Per-category quick links ──────────────────────────────────────────────────
+const CATEGORY_QUICK_LINKS = {
+  vehicles: [
+    { label: 'Toyota', query: { make: 'Toyota' } },
+    { label: 'Nissan', query: { make: 'Nissan' } },
+    { label: 'Mercedes-Benz', query: { make: 'Mercedes-Benz' } },
+    { label: 'Trucks', query: { subcategory: 'Trucks & Trailers' } },
+    { label: 'Motorbikes', query: { subcategory: 'Motorbikes' } }
+  ],
+  property: [
+    { label: 'Houses for Sale', query: { property_type: 'House', listingCategory: 'For Sale' } },
+    { label: 'Apartments for Rent', query: { property_type: 'Apartment', listingCategory: 'For Rent' } },
+    { label: 'Land', query: { property_type: 'Land & Plots' } },
+    { label: 'Commercial', query: { property_type: 'Commercial Property' } }
+  ],
+  'phones-tablets': [
+    { label: 'iPhones', query: { brand: 'Apple' } },
+    { label: 'Samsung', query: { brand: 'Samsung' } },
+    { label: 'Tablets', query: { subcategory: 'Tablets' } },
+    { label: 'Smartwatches', query: { subcategory: 'Smartwatches' } }
+  ],
+  electronics: [
+    { label: 'Laptops', query: { subcategory: 'Laptops & Computers' } },
+    { label: 'Smart TVs', query: { subcategory: 'TVs & Audio' } },
+    { label: 'Cameras', query: { subcategory: 'Cameras & Lenses' } }
+  ]
 };
 
 // Sidebar popular categories (exclude current)
@@ -71,11 +101,21 @@ function BrowseContent({ defaultCategory }) {
     }
   }, [paramsChanged, finalParams, navigate]);
 
-  const { data, isLoading: loading, isError } = useQuery({
+  const { 
+    data, 
+    isLoading: loading, 
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
     queryKey: ['listings', finalParams],
-    queryFn: () => getListings(finalParams),
+    queryFn: ({ pageParam = 1 }) => getListings({ ...finalParams, page: pageParam }),
+    getNextPageParam: (lastPage) => {
+      return lastPage.page < lastPage.pages ? lastPage.page + 1 : undefined;
+    },
     staleTime: 1000 * 60,
-    placeholderData: (prev) => prev, // Keep previous data while refetching, avoiding skeleton flash
+    placeholderData: (prev) => prev, // Keep previous data while refetching
     refetchOnWindowFocus: false,
   });
 
@@ -83,9 +123,8 @@ function BrowseContent({ defaultCategory }) {
     if (isError) toast.error('Failed to load listings. Please try again.');
   }, [isError]);
 
-  const listings = data?.listings || [];
-  const total    = data?.total    || 0;
-  const pages    = data?.pages    || 1;
+  const listings = data?.pages.flatMap(page => page.listings) || [];
+  const total    = data?.pages[0]?.total || 0;
 
   const catEntry    = CATEGORIES.find(c => c.slug === category);
   const catLabel    = catEntry?.name || (category ? category.replace(/-/g, ' ') : null);
@@ -317,6 +356,28 @@ function BrowseContent({ defaultCategory }) {
               <Link to="/browse" className="text-xs font-semibold text-primary hover:underline">
                 Browse all categories →
               </Link>
+
+              {/* Quick Links Section */}
+              {CATEGORY_QUICK_LINKS[category] && (
+                <div className="mt-8 pt-6 border-t border-border/50 w-full">
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Quick Links</p>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    {CATEGORY_QUICK_LINKS[category].map(ql => {
+                      const params = new URLSearchParams({ category });
+                      Object.entries(ql.query).forEach(([k, v]) => params.set(k, v));
+                      return (
+                        <Link
+                          key={ql.label}
+                          to={`/browse?${params.toString()}`}
+                          className="px-4 py-2 rounded-xl bg-card border border-border text-sm font-semibold text-foreground hover:border-primary/50 hover:text-primary transition-all shadow-sm flex items-center gap-2 group"
+                        >
+                          {ql.label} <ChevronRight className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
@@ -503,11 +564,15 @@ function BrowseContent({ defaultCategory }) {
                       <button
                         onClick={handleNotifyMe}
                         disabled={savingSearch}
-                        className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary/80 hover:text-primary transition-colors disabled:opacity-50"
-                        title={savingSearch ? 'Saving…' : 'Notify Me'}
+                        className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
+                          (keyword || activeChips.length > 0)
+                            ? 'border-primary bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground'
+                            : 'border-border bg-background text-foreground hover:bg-secondary/80 hover:text-primary'
+                        }`}
+                        title={savingSearch ? 'Saving…' : 'Save this search & get alerts'}
                       >
                         <Bell className="h-4 w-4" />
-                        <span className="hidden sm:inline">{savingSearch ? 'Saving…' : 'Notify Me'}</span>
+                        <span className="hidden sm:inline">{savingSearch ? 'Saving…' : 'Save Search'}</span>
                       </button>
                       <div className="h-6 w-px bg-border hidden sm:block" />
                       <span className="text-sm font-semibold text-foreground whitespace-nowrap">Sort by:</span>
@@ -538,14 +603,7 @@ function BrowseContent({ defaultCategory }) {
                 {loading ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {[...Array(12)].map((_,i) => (
-                      <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm animate-pulse">
-                        <div className="w-full aspect-[4/3] bg-secondary/50" />
-                        <div className="p-4 space-y-3">
-                          <div className="h-5 bg-secondary/60 rounded-md w-3/4" />
-                          <div className="h-4 bg-secondary/50 rounded-md w-full" />
-                          <div className="h-3 bg-secondary/40 rounded-md w-1/3" />
-                        </div>
-                      </div>
+                      <ListingCardSkeleton key={i} />
                     ))}
                   </div>
 
@@ -558,69 +616,45 @@ function BrowseContent({ defaultCategory }) {
                       )}
                     </div>
 
-                    {/* Pagination */}
-                    {pages > 1 && (
-                      <div className="flex items-center justify-center gap-2 mt-12">
-                        {page > 1 && (
-                          <button className="px-4 py-2 text-sm font-semibold hover:bg-secondary rounded-lg transition-colors" onClick={() => applyFilter({ page: page - 1 })}>← Prev</button>
-                        )}
-                        <div className="flex items-center gap-1">
-                          {(() => {
-                            const delta = 1, range = [], rd = [];
-                            let prev;
-                            for (let i = 1; i <= pages; i++) {
-                              if (i === 1 || i === pages || (i >= page - delta && i <= page + delta)) range.push(i);
-                            }
-                            for (const i of range) {
-                              if (prev !== undefined) {
-                                if (i - prev === 2) rd.push(prev + 1);
-                                else if (i - prev > 2) rd.push('...');
-                              }
-                              rd.push(i); prev = i;
-                            }
-                            return rd.map((item, idx) => item === '...'
-                              ? <span key={`d${idx}`} className="w-9 h-9 flex items-center justify-center text-muted-foreground text-sm">…</span>
-                              : <button key={item} onClick={() => applyFilter({ page: item })} className={`w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition-colors ${page === item ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-secondary'}`}>{item}</button>
-                            );
-                          })()}
-                        </div>
-                        {page < pages && (
-                          <button className="px-4 py-2 text-sm font-semibold hover:bg-secondary rounded-lg transition-colors" onClick={() => applyFilter({ page: page + 1 })}>Next →</button>
-                        )}
+                    {/* Load More Button */}
+                    {hasNextPage && (
+                      <div className="flex justify-center mt-12 mb-8">
+                        <button
+                          onClick={() => fetchNextPage()}
+                          disabled={isFetchingNextPage}
+                          className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-8 py-3 text-sm font-bold text-foreground shadow-sm hover:border-primary/40 hover:bg-secondary transition-all disabled:opacity-50"
+                        >
+                          {isFetchingNextPage ? (
+                            <><Loader2 className="w-4 h-4 animate-spin" /> Loading more...</>
+                          ) : (
+                            'Load more results'
+                          )}
+                        </button>
                       </div>
                     )}
                   </>
 
                 ) : (
                   /* Filter-induced empty state */
-                  <div className="flex flex-col items-center text-center py-16 px-4 rounded-2xl border border-dashed border-border bg-secondary/20 max-w-[760px]">
-                    <div className="w-16 h-16 rounded-2xl bg-background border border-border flex items-center justify-center mb-5 shadow-sm">
-                      <Search className="w-7 h-7 text-muted-foreground" />
-                    </div>
-                    <h2 className="text-xl font-bold text-foreground mb-2">No results found</h2>
-                    <p className="text-muted-foreground mb-6 max-w-sm text-sm">
-                      Try removing filters or broadening your search.
-                    </p>
-                    {activeChips.length > 0 && (
-                      <div className="flex flex-wrap justify-center gap-2 mb-5">
-                        {activeChips.map(chip => (
-                          <button key={chip.key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-background border border-border text-sm font-medium hover:border-primary/50 hover:text-primary transition-colors" onClick={() => applyFilter({ [chip.key]: '' })}>
-                            <X className="w-3.5 h-3.5" /> Remove "{chip.value}"
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex flex-wrap justify-center gap-3">
-                      {activeChips.length > 0 && (
-                        <button className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow hover:opacity-90 transition-opacity" onClick={clearAll}>
-                          Clear All Filters
-                        </button>
-                      )}
-                      <Link to="/post-ad" className="px-5 py-2.5 rounded-xl border border-border bg-background font-semibold text-sm hover:bg-secondary transition-colors">
-                        Post an Ad
-                      </Link>
-                    </div>
-                  </div>
+                  <EmptyState 
+                    icon={Search}
+                    title={keyword ? `No results for "${keyword}"` : 'No results found'}
+                    description={
+                      keyword
+                        ? `We couldn't find any listings matching "${keyword}"${category ? ` in ${catLabel}` : ''}. Try a different keyword or save this search to be notified when matches appear.`
+                        : 'Try removing filters or broadening your search terms to find what you\'re looking for.'
+                    }
+                    primaryAction={{
+                      label: activeChips.length > 0 ? 'Clear Filters' : (keyword && category ? `Browse all ${catLabel}` : 'Browse All Listings'),
+                      onClick: (e) => { e.preventDefault(); clearAll(); }
+                    }}
+                    secondaryAction={
+                      keyword
+                        ? { label: savingSearch ? 'Saving…' : '🔔 Save & Get Alerts', onClick: (e) => { e.preventDefault(); handleNotifyMe(); } }
+                        : { label: 'Post an Ad', href: '/post-ad' }
+                    }
+                    className="mt-8"
+                  />
                 )}
               </div>
             </div>

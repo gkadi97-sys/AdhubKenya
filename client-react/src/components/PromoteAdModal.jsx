@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { promoteListing } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';

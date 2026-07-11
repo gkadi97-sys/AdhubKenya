@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { timeAgo, formatPrice } from '@/lib/api';
-import { Heart, MapPin, BadgeCheck, Briefcase, GraduationCap, Clock, Banknote, Eye, CheckCircle2 } from 'lucide-react';
+import { timeAgo } from '@/lib/api';
+import { Heart, MapPin, BadgeCheck, Briefcase, GraduationCap, Clock, Banknote, CheckCircle2 } from 'lucide-react';
+
 
 // ── Availability badge colour ──────────────────────────────────────────────
 const availabilityBadge = {

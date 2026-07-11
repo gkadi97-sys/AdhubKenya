@@ -34,6 +34,8 @@ import FeaturedListings from '@/components/FeaturedListings';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import ContinueBrowsing from '@/components/ContinueBrowsing';
 import TrustSafety from '@/components/TrustSafety';
+import RecommendedRow from '@/components/RecommendedRow';
+import { useAuth } from '@/context/AuthContext';
 import { useSEO } from '@/lib/useSEO';
 import { getTrendingSearches, getCountyCounts } from '@/lib/api';
 
@@ -469,6 +471,7 @@ function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY
 // ─── HomePage ────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [liveAdCount, setLiveAdCount] = useState(null);
   const [trendingSearches, setTrendingSearches] = useState([]);
   const [countyCounts, setCountyCounts] = useState([]);
@@ -600,6 +603,8 @@ export default function HomePage() {
                   alt="Nairobi marketplace" 
                   width={1920} 
                   height={800} 
+                  fetchpriority="high"
+                  decoding="sync"
                   className="h-full w-full object-cover blur-[1.5px] scale-100 saturate-[.95] opacity-[.92] transition-transform duration-[800ms] ease-out group-hover:scale-[1.02]" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,247,242,0.78)] via-[rgba(248,247,242,0.45)] via-45% to-[rgba(248,247,242,0.10)] dark:from-[rgba(10,10,10,0.85)] dark:via-[rgba(10,10,10,0.65)] dark:via-45% dark:to-[rgba(10,10,10,0.15)] pointer-events-none" />
@@ -673,47 +678,38 @@ export default function HomePage() {
               </div>
             </section>
 
-            {/* ── MARKETPLACE FEEDS ── */}
-            <div className="flex flex-col gap-10 lg:gap-12">
+            {/* ── TRUST & DISCOVERY (Moved up) ── */}
+            <div className="flex flex-col gap-10 lg:gap-12 mb-10">
+              
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-center">
+                {/* Live counters */}
+                <div className="rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-sm h-full flex flex-col justify-center">
+                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-4 py-3 sm:px-6 sm:py-4 relative z-10 divide-x divide-primary-foreground/10 h-full items-center">
+                    {[
+                      { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Active Listings' },
+                      { icon: Grid,       n: '15+',     l: 'Categories' },
+                      { icon: MapPin,     n: '47',      l: 'Counties' },
+                      { icon: Sparkles,   n: '100%',    l: 'Free Posting' },
+                    ].map(({ icon: Icon, n, l }) => (
+                      <div key={l} className="flex flex-col items-center text-center gap-1.5 px-2">
+                        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-foreground/10 ring-1 ring-primary-foreground/20 text-gold shadow-inner">
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="font-display text-lg font-bold leading-none">{n}</div>
+                          <div className="text-[10px] opacity-90 mt-0.5 font-medium">{l}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-              {/* Featured Listings */}
-              <FeaturedListings />
-
-              <hr className="border-border/40" />
-
-              {/* Latest Listings */}
-              <DiscoveryRow
-                title="Latest Listings"
-                subtitle="Just posted"
-                sort="createdAt"
-                limit={10}
-                linkTo="/browse?sort=createdAt"
-              />
-
-              <hr className="border-border/40" />
-
-              {/* Trending Listings */}
-              <DiscoveryRow
-                title="Trending Now"
-                subtitle="Popular this week"
-                sort="clicks"
-                limit={10}
-                linkTo="/browse?sort=clicks"
-              />
-
-              <hr className="border-border/40" />
-
-              {/* Recently Viewed */}
-              <RecentlyViewed />
-
-              {/* Recommended For You */}
-              <DiscoveryRow
-                title="Recommended For You"
-                subtitle="Based on your activity"
-                sort="price_asc"
-                limit={10}
-                linkTo="/browse"
-              />
+                {/* Trust & Safety minimal block */}
+                <div className="hidden lg:block w-[300px]">
+                  <TrustSafety minimal />
+                </div>
+              </div>
 
               {/* Featured / Popular Categories */}
               <section className="mb-2">
@@ -758,35 +754,61 @@ export default function HomePage() {
                 </div>
               </section>
 
-              {/* ── MARKETING & UTILITIES (Moved down for mobile) ── */}
+            </div>
+
+            {/* ── MARKETPLACE FEEDS ── */}
+            <div className="flex flex-col gap-10 lg:gap-12">
+
+              {/* Featured Listings */}
+              <FeaturedListings />
+
+              <hr className="border-border/40" />
+
+              {/* Latest Listings */}
+              <DiscoveryRow
+                title="Latest Listings"
+                subtitle="Just posted"
+                sort="createdAt"
+                limit={10}
+                linkTo="/browse?sort=createdAt"
+              />
+
+              <hr className="border-border/40" />
+
+              {/* Trending Listings */}
+              <DiscoveryRow
+                title="Trending Now"
+                subtitle="Popular this week"
+                sort="clicks"
+                limit={10}
+                linkTo="/browse?sort=clicks"
+              />
+
+              <hr className="border-border/40" />
+
+              {/* Recently Viewed */}
+              <RecentlyViewed />
+
+              {/* Recommended For You */}
+              {user ? (
+                <RecommendedRow />
+              ) : (
+                <DiscoveryRow
+                  title="Recommended For You"
+                  subtitle="Based on your activity"
+                  sort="price_asc"
+                  limit={10}
+                  linkTo="/browse"
+                />
+              )}
+
+              {/* ── UTILITIES ── */}
               
               <hr className="border-border/50" />
 
-              {/* Live counters */}
-              <div className="rounded-2xl gradient-emerald text-primary-foreground relative overflow-hidden group shadow-sm">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-4 py-3 sm:px-6 sm:py-4 relative z-10 divide-x divide-primary-foreground/10">
-                  {[
-                    { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Active Listings' },
-                    { icon: Grid,       n: '15+',     l: 'Categories' },
-                    { icon: MapPin,     n: '47',      l: 'Counties' },
-                    { icon: Sparkles,   n: '100%',    l: 'Free Posting' },
-                  ].map(({ icon: Icon, n, l }) => (
-                    <div key={l} className="flex flex-col items-center text-center gap-1.5">
-                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary-foreground/10 ring-1 ring-primary-foreground/20 text-gold shadow-inner">
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <div className="font-display text-lg font-bold leading-none">{n}</div>
-                        <div className="text-[10px] opacity-90 mt-0.5 font-medium">{l}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="lg:hidden">
+                <TrustSafety />
               </div>
-
-              {/* Trust & Safety */}
-              <TrustSafety />
 
               {/* Quick Filters */}
               <QuickFilters />

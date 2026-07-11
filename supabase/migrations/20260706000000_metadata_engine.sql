@@ -28,8 +28,8 @@ CREATE TABLE IF NOT EXISTS public.categories (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_categories_parent_id ON public.categories(parent_id);
-CREATE INDEX idx_categories_slug ON public.categories(slug);
+CREATE INDEX IF NOT EXISTS idx_categories_parent_id ON public.categories(parent_id);
+CREATE INDEX IF NOT EXISTS idx_categories_slug ON public.categories(slug);
 
 -- 2. attribute_groups
 CREATE TABLE IF NOT EXISTS public.attribute_groups (
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS public.lookup_values (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_lookup_values_type ON public.lookup_values(lookup_type);
+CREATE INDEX IF NOT EXISTS idx_lookup_values_type ON public.lookup_values(lookup_type);
 
 -- 4. attributes
 CREATE TABLE IF NOT EXISTS public.attributes (
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS public.attributes (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_attributes_category_id ON public.attributes(category_id);
+CREATE INDEX IF NOT EXISTS idx_attributes_category_id ON public.attributes(category_id);
 
 -- 5. attribute_dependencies
 CREATE TABLE IF NOT EXISTS public.attribute_dependencies (
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS public.attribute_dependencies (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_dependencies_attr ON public.attribute_dependencies(attribute_id);
+CREATE INDEX IF NOT EXISTS idx_dependencies_attr ON public.attribute_dependencies(attribute_id);
 
 -- Seed Minimal Top-Level Categories for testing
 INSERT INTO public.categories (slug, name, icon, level, order_index, is_active)
@@ -113,8 +113,13 @@ ALTER TABLE public.lookup_values ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attributes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attribute_dependencies ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow public read access to categories" ON public.categories;
 CREATE POLICY "Allow public read access to categories" ON public.categories FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public read access to attribute_groups" ON public.attribute_groups;
 CREATE POLICY "Allow public read access to attribute_groups" ON public.attribute_groups FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public read access to lookup_values" ON public.lookup_values;
 CREATE POLICY "Allow public read access to lookup_values" ON public.lookup_values FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public read access to attributes" ON public.attributes;
 CREATE POLICY "Allow public read access to attributes" ON public.attributes FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Allow public read access to attribute_dependencies" ON public.attribute_dependencies;
 CREATE POLICY "Allow public read access to attribute_dependencies" ON public.attribute_dependencies FOR SELECT USING (true);

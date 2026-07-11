@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ShieldAlert, RefreshCw } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import { timeAgo } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 

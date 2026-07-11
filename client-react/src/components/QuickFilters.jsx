@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BadgeCheck, SlidersHorizontal } from 'lucide-react';
 import { COUNTIES } from '@/lib/countyData';
@@ -14,48 +13,60 @@ export default function QuickFilters() {
 
   return (
     <div className="w-full overflow-x-auto pb-4 mb-6 scrollbar-hide">
-      <div className="flex items-center gap-3 w-max px-1">
-        <div className="flex items-center gap-2 pr-4 border-r border-border">
+      <div
+        role="toolbar"
+        aria-label="Quick filters"
+        className="flex items-center gap-3 w-max px-1"
+      >
+        <div className="flex items-center gap-2 pr-4 border-r border-border" aria-hidden="true">
           <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
           <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Quick Filters</span>
         </div>
 
-        <button 
+        <button
+          type="button"
           onClick={() => handleFilter('seller_type', 'Verified')}
-          className="flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/40 hover:bg-primary/5 transition"
+          aria-label="Filter: Verified sellers only"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/40 hover:bg-primary/5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         >
           <BadgeCheck className="w-4 h-4 text-primary" /> Verified Sellers Only
         </button>
 
-        <button 
+        <button
+          type="button"
           onClick={() => handleFilter('condition', 'New')}
-          className="flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/40 hover:bg-primary/5 transition"
+          aria-label="Filter: Brand new items only"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/40 hover:bg-primary/5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         >
           Brand New
         </button>
 
-        <button 
+        <button
+          type="button"
           onClick={() => handleFilter('posted', 'Today')}
-          className="flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/40 hover:bg-primary/5 transition"
+          aria-label="Filter: Posted today"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/40 hover:bg-primary/5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         >
           Posted Today
         </button>
 
-        <select 
+        <select
+          aria-label="Filter by location"
           onChange={(e) => {
             if (e.target.value) handleFilter('county', e.target.value);
           }}
-          className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium outline-none hover:border-primary/40 cursor-pointer"
+          className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium outline-none hover:border-primary/40 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary/50"
         >
           <option value="">Location: Anywhere</option>
           {COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        
-        <select 
+
+        <select
+          aria-label="Filter by maximum price"
           onChange={(e) => {
             if (e.target.value) handleFilter('maxPrice', e.target.value);
           }}
-          className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium outline-none hover:border-primary/40 cursor-pointer"
+          className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium outline-none hover:border-primary/40 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary/50"
         >
           <option value="">Price: Any</option>
           <option value="5000">Under KSh 5,000</option>

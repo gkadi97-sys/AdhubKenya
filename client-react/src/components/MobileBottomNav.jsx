@@ -46,7 +46,7 @@ export default function MobileBottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-background/95 backdrop-blur-md border-t border-border pb-safe pt-2 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:hidden" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
-      {navItems.map((item, idx) => {
+      {navItems.map((item) => {
         // Center Sell Button
         if (item === null) {
           return (
@@ -82,6 +82,8 @@ export default function MobileBottomNav() {
           <Link
             key={item.label}
             to={item.path}
+            aria-label={item.label}
+            aria-current={isActive ? 'page' : undefined}
             className={`relative flex flex-col items-center justify-center p-2 min-w-[56px] min-h-[44px] transition-all active:scale-90 ${
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
             }`}
@@ -90,10 +92,10 @@ export default function MobileBottomNav() {
               <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
               {/* Unread badge for Messages */}
               {item.badge && user && (
-                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
+                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" aria-label="Unread messages" />
               )}
             </div>
-            <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'font-bold' : ''}`}>
+            <span className={`text-[10px] mt-0.5 font-medium ${isActive ? 'font-bold' : ''}`} aria-hidden="true">
               {item.label}
             </span>
           </Link>

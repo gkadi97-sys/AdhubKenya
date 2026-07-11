@@ -1,6 +1,6 @@
 import { ShieldCheck, UserCheck, MessageSquare, AlertOctagon } from 'lucide-react';
 
-export default function TrustSafety() {
+export default function TrustSafety({ minimal = false }) {
   const features = [
     {
       icon: ShieldCheck,
@@ -23,6 +23,27 @@ export default function TrustSafety() {
       desc: 'Found a suspicious ad? Let our moderation team know instantly.',
     },
   ];
+
+  if (minimal) {
+    return (
+      <div className="h-full rounded-2xl border border-border bg-card p-4 shadow-sm flex flex-col justify-center">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3 text-center">Why Trust AdHub?</h3>
+        <div className="space-y-3">
+          {features.slice(0, 3).map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="flex items-start gap-2.5">
+              <div className="mt-0.5 rounded-full bg-primary/10 p-1.5 text-primary shrink-0">
+                <Icon className="h-3 w-3" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground leading-tight">{title}</p>
+                <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="mb-10 rounded-3xl border border-border bg-card p-6 sm:p-8">

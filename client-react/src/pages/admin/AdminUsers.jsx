@@ -1,14 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, RefreshCw, ShieldOff, Trash2, Eye, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, Download } from 'lucide-react';
+import { Search, Filter, RefreshCw, ShieldOff, ChevronLeft, ChevronRight, CheckCircle, Clock, XCircle, Download } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const ROLE_BADGES = {
-  super_admin: { label: 'Super Admin', class: 'bg-purple-500/15 text-purple-600 border-purple-500/30' },
-  admin:       { label: 'Admin',       class: 'bg-primary/15 text-primary border-primary/30' },
-  moderator:   { label: 'Moderator',   class: 'bg-blue-500/15 text-blue-600 border-blue-500/30' },
-  support:     { label: 'Support',     class: 'bg-cyan-500/15 text-cyan-600 border-cyan-500/30' },
-  user:        { label: 'User',        class: 'bg-secondary text-muted-foreground border-border' },
-};
+
 
 const STATUS_BADGES = {
   active:    { label: 'Active',    icon: CheckCircle, class: 'bg-green-500/15 text-green-600' },
@@ -193,7 +187,6 @@ export default function AdminUsers() {
               ) : users.length === 0 ? (
                 <tr><td colSpan={7} className="py-16 text-center text-muted-foreground">No users found.</td></tr>
               ) : users.map(u => {
-                const roleBadge = ROLE_BADGES[u.role] || ROLE_BADGES.user;
                 return (
                   <tr key={u.id} className={`border-b border-border last:border-0 transition hover:bg-secondary/30 ${selectedIds.includes(u.id) ? 'bg-primary/5' : ''}`}>
                     <td className="py-4 pl-5 pr-3">
