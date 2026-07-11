@@ -36,11 +36,14 @@ export const autoBlurLicensePlate = async (file, onProgress = null) => {
     ocrCanvas.width = img.width * scale;
     ocrCanvas.height = img.height * scale;
     const ocrCtx = ocrCanvas.getContext('2d');
+    
+    // Convert to grayscale and increase contrast to help Tesseract read plates better
+    ocrCtx.filter = 'grayscale(100%) contrast(150%)';
     ocrCtx.drawImage(img, 0, 0, ocrCanvas.width, ocrCanvas.height);
 
     // Run OCR
     if (onProgress) onProgress('Scanning for number plates...');
-    const { data: { words } } = await Tesseract.recognize(
+    const { data: { lines, words } } = await Tesseract.recognize(
       ocrCanvas,
       'eng'
     );
@@ -54,63 +57,77 @@ export const autoBlurLicensePlate = async (file, onProgress = null) => {
     const outCtx = outCanvas.getContext('2d');
     outCtx.drawImage(img, 0, 0);
 
-    let previousWord = null;
+    // Identify words to blur
+    const wordsToBlur = new Set();
 
+    // Strategy 1: Check entire lines (handles spaces between letters and numbers)
+    lines.forEach(line => {
+      const lineText = line.text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      // If the line contains something that looks like a Kenyan plate (e.g. KDA123A or KDA123)
+      if (/K[A-Z]{2}[0-9]{3}[A-Z]?/i.test(lineText)) {
+        line.words.forEach(word => wordsToBlur.add(word));
+      }
+    });
+
+    // Strategy 2: Fallback to individual word checks
+    let previousWord = null;
     words.forEach(word => {
       const text = word.text.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      let blurBbox = null;
-      let blurRatio = 0; // 0 means blur the whole bbox, >0 means keep the left side
-
-      // Case 1: Tesseract read the entire plate as one word (e.g. KDA123A)
-      if (/^K[A-Z]{2}[0-9]{3}[A-Z]?$/i.test(text) || (text.startsWith('K') && text.length >= 6 && text.length <= 8 && /\d{3}/.test(text))) {
-        blurBbox = word.bbox;
-        blurRatio = 0.42; // Keep first ~3 letters
+      
+      // Full plate in one word or missing 'K'
+      if (/^K[A-Z]{2}[0-9]{3}[A-Z]?$/i.test(text) || (text.length >= 5 && text.length <= 7 && /^[A-Z]{2,3}[0-9]{3}[A-Z]?$/.test(text))) {
+        wordsToBlur.add(word);
       } 
-      // Case 2: Tesseract split the plate into two words (e.g. "KDA" and "123A")
+      // Split plate (KDA and 123A)
       else if (previousWord) {
         const prevText = previousWord.text.toUpperCase().replace(/[^A-Z0-9]/g, '');
         if (prevText.startsWith('K') && prevText.length === 3 && /^[0-9]{3}[A-Z]?$/i.test(text)) {
-          blurBbox = word.bbox; // Blur the entire numbers segment
-          blurRatio = 0.0; // Blur 100% of this word
+          wordsToBlur.add(word);
+          wordsToBlur.add(previousWord);
         }
       }
-
-      if (blurBbox) {
-        blurred = true;
-        
-        const x0 = blurBbox.x0 / scale;
-        const y0 = blurBbox.y0 / scale;
-        const x1 = blurBbox.x1 / scale;
-        const y1 = blurBbox.y1 / scale;
-        
-        const width = x1 - x0;
-        const height = y1 - y0;
-        
-        const keepWidth = width * blurRatio;
-        const blurX = x0 + keepWidth;
-        const blurWidth = width - keepWidth;
-        const padY = height * 0.2; 
-        const padX = blurRatio === 0 ? width * 0.1 : 0; // pad sides if blurring whole word
-        
-        const finalX = Math.max(0, blurX - padX);
-        const finalY = Math.max(0, y0 - padY);
-        const finalWidth = blurWidth + (padX * 2);
-        const finalHeight = height + (padY * 2);
-
-        outCtx.save();
-        outCtx.filter = 'blur(15px)';
-        outCtx.drawImage(
-          img,
-          finalX, finalY, finalWidth, finalHeight,
-          finalX, finalY, finalWidth, finalHeight
-        );
-        outCtx.restore();
-        
-        outCtx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        outCtx.fillRect(finalX, finalY, finalWidth, finalHeight);
-      }
-      
       previousWord = word;
+    });
+
+    // Apply blur to identified words
+    wordsToBlur.forEach(word => {
+      blurred = true;
+      const text = word.text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const bbox = word.bbox;
+      
+      // If the word contains the 'K' prefix, we try to keep it visible, otherwise blur entirely
+      const blurRatio = text.startsWith('K') ? 0.35 : 0; 
+      
+      const x0 = bbox.x0 / scale;
+      const y0 = bbox.y0 / scale;
+      const x1 = bbox.x1 / scale;
+      const y1 = bbox.y1 / scale;
+      
+      const width = x1 - x0;
+      const height = y1 - y0;
+      
+      const keepWidth = width * blurRatio;
+      const blurX = x0 + keepWidth;
+      const blurWidth = width - keepWidth;
+      const padY = height * 0.2; 
+      const padX = blurRatio === 0 ? width * 0.1 : 0;
+      
+      const finalX = Math.max(0, blurX - padX);
+      const finalY = Math.max(0, y0 - padY);
+      const finalWidth = blurWidth + (padX * 2);
+      const finalHeight = height + (padY * 2);
+
+      outCtx.save();
+      outCtx.filter = 'blur(15px)';
+      outCtx.drawImage(
+        img,
+        finalX, finalY, finalWidth, finalHeight,
+        finalX, finalY, finalWidth, finalHeight
+      );
+      outCtx.restore();
+      
+      outCtx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      outCtx.fillRect(finalX, finalY, finalWidth, finalHeight);
     });
 
     if (!blurred) {
