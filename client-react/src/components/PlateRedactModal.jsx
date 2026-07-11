@@ -25,9 +25,9 @@ export default function PlateRedactModal({ file, previewUrl, onConfirm, onCancel
 
     if (currentRect) {
       const { x, y, w, h } = currentRect;
-      // Darken the selected region
+      // Redact the selected region completely in preview
       ctx.save();
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillStyle = '#0f172a'; // solid slate-900
       ctx.fillRect(x, y, w, h);
       // Draw a border
       ctx.strokeStyle = '#10b981';
@@ -122,15 +122,11 @@ export default function PlateRedactModal({ file, previewUrl, onConfirm, onCancel
       const sw = rect.w * scale.x;
       const sh = rect.h * scale.y;
 
-      // Apply heavy blur to that region
+      // Apply solid redaction
       ctx.save();
-      ctx.filter = 'blur(20px)';
-      ctx.drawImage(img, sx, sy, sw, sh, sx, sy, sw, sh);
-      ctx.restore();
-
-      // Overlay dark rectangle for extra coverage
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillStyle = '#0f172a'; // solid slate-900
       ctx.fillRect(sx, sy, sw, sh);
+      ctx.restore();
     }
 
     // Convert canvas back to File
