@@ -8,22 +8,30 @@ export default class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    const isChunkLoadError = error?.name === 'TypeError' && (
-      error?.message?.includes('Failed to fetch dynamically imported module') ||
-      error?.message?.includes('importing a module')
-    );
+    const msg = error?.message || '';
+    const isChunkLoadError = (
+      error?.name === 'TypeError' && (
+        msg.includes('Failed to fetch dynamically imported module') ||
+        msg.includes('importing a module') ||
+        msg.includes('Unable to preload CSS') ||
+        msg.includes('Failed to load module script')
+      )
+    ) || error?.name === 'ChunkLoadError';
     return { hasError: true, error, isChunkLoadError };
   }
 
   componentDidCatch(error, errorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     
-    // Automatically reload the page once if a dynamic import fails (e.g., after a new deployment changes chunk hashes)
+    // Automatically reload once if a dynamic import fails after a new deployment
     if (this.state.isChunkLoadError) {
-      const hasReloaded = sessionStorage.getItem('vite_chunk_reload');
-      if (!hasReloaded) {
-        sessionStorage.setItem('vite_chunk_reload', 'true');
+      const reloadCount = parseInt(sessionStorage.getItem('vite_chunk_reload') || '0', 10);
+      if (reloadCount < 2) {
+        sessionStorage.setItem('vite_chunk_reload', String(reloadCount + 1));
         window.location.reload();
+      } else {
+        // Give up after 2 attempts — clear the flag so next visit auto-heals
+        sessionStorage.removeItem('vite_chunk_reload');
       }
     }
   }

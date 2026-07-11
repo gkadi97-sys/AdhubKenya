@@ -5,6 +5,10 @@ import { HelmetProvider } from 'react-helmet-async'
 import './index.css'
 import App from './App.jsx'
 
+// Clear stale chunk-load-error recovery flags so users never get permanently stuck
+// after a new deployment changes the JS chunk hashes.
+sessionStorage.removeItem('vite_chunk_reload');
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
