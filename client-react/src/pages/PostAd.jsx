@@ -316,25 +316,27 @@ export default function PostAdPage() {
     let finalNewFiles = [];
     try {
       const compressionOptions = { maxSizeMB: 0.5, maxWidthOrHeight: 1200, useWebWorker: true, fileType: 'image/webp' };
-      const compressedFiles = [];
+
       for (let i = 0; i < validFiles.length; i++) {
+        let fileToCompress = validFiles[i];
+
+        // Step 1: Run ALPR on the ORIGINAL high-res image BEFORE compression
+        // so Tesseract has the best chance of reading the plate text
+        if (isVehicle) {
+          const { autoBlurLicensePlate } = await import('@/lib/imageProcessing');
+          setBlurStatus(`Scanning image ${i + 1} of ${validFiles.length} for number plates...`);
+          fileToCompress = await autoBlurLicensePlate(validFiles[i], setBlurStatus);
+        }
+
+        // Step 2: Compress the (already blurred) image
         setBlurStatus(`Compressing image ${i + 1} of ${validFiles.length}...`);
         try {
-          const compressed = await imageCompression(validFiles[i], compressionOptions);
+          const compressed = await imageCompression(fileToCompress, compressionOptions);
           const named = new File([compressed], validFiles[i].name.replace(/\.[^.]+$/, '.webp'), { type: 'image/webp' });
-          compressedFiles.push(named);
-        } catch { compressedFiles.push(validFiles[i]); }
-      }
-
-      if (isVehicle) {
-        const { autoBlurLicensePlate } = await import('@/lib/imageProcessing');
-        for (let i = 0; i < compressedFiles.length; i++) {
-          setBlurStatus(`Scanning image ${i + 1} of ${compressedFiles.length} for number plates...`);
-          const processed = await autoBlurLicensePlate(compressedFiles[i], setBlurStatus);
-          finalNewFiles.push(processed);
+          finalNewFiles.push(named);
+        } catch {
+          finalNewFiles.push(fileToCompress);
         }
-      } else {
-        finalNewFiles = compressedFiles;
       }
     } catch (err) {
       console.error(err);

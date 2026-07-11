@@ -86,6 +86,13 @@ export const autoBlurLicensePlate = async (file, onProgress = null) => {
           wordsToBlur.add(previousWord);
         }
       }
+      
+      // Strategy 3: Aggressive Fallback - Blur ANY word that contains 3 consecutive digits 
+      // and is between 3 and 8 characters long. This catches heavily distorted plates.
+      if (/\d{3}/.test(text) && text.length >= 3 && text.length <= 8) {
+        wordsToBlur.add(word);
+      }
+
       previousWord = word;
     });
 
@@ -149,6 +156,8 @@ export const autoBlurLicensePlate = async (file, onProgress = null) => {
 
   } catch (error) {
     console.error('ALPR Error:', error);
-    return file; // If it fails, fallback to original to prevent blocking upload
+    if (onProgress) onProgress('');
+    // Optionally alert the user so they know OCR failed entirely
+    return file; // Fallback to original to prevent blocking upload
   }
 };
