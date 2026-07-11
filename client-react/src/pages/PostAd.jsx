@@ -472,10 +472,10 @@ export default function PostAdPage() {
   
   const staticComplete = [
     basicsComplete, 
-    isPricingApplicable ? pricingComplete : false, 
-    locationComplete, 
-    mediaComplete,
-    contactComplete
+    isPricingApplicable ? (basicsComplete && pricingComplete) : false, 
+    basicsComplete && locationComplete, 
+    basicsComplete && mediaComplete,
+    basicsComplete && contactComplete
   ].filter(Boolean).length;
   
   const totalSections = staticTotal + metaProgress.total;
