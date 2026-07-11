@@ -772,10 +772,10 @@ export default function PostAdPage() {
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); removeImage(i); }}
-                          className="absolute top-1 right-1 grid h-6 w-6 place-items-center rounded-full bg-background/90 shadow-sm text-destructive md:opacity-0 md:top-0 md:right-0 md:h-full md:w-full md:rounded-none md:bg-background/80 md:backdrop-blur md:group-hover:opacity-100 transition cursor-pointer z-20"
+                          className="absolute top-1 right-1 grid h-7 w-7 place-items-center rounded-full bg-background/90 shadow-sm text-destructive opacity-100 hover:bg-background hover:scale-105 transition cursor-pointer z-30"
                           aria-label={`Remove image ${i + 1}`}
                         >
-                          <Trash2 className="h-3.5 w-3.5 md:h-5 md:w-5" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     ))}
