@@ -701,10 +701,17 @@ export default function MetadataDrivenForm({
   }, [groupCompletionMap, visibleGroups]);
 
   // Progress reporting
-  const completedCount = Object.values(groupCompletionMap).filter(Boolean).length;
+  const progressCompletedCount = useMemo(() => {
+    return visibleGroups.filter(group => {
+      const requiredFields = group.fields.filter(f => f._required);
+      if (requiredFields.length === 0) return true; // Optional groups always count towards 100% progress
+      return groupCompletionMap[group.id];
+    }).length;
+  }, [visibleGroups, groupCompletionMap]);
+
   useEffect(() => {
-    onProgressChange?.(completedCount, visibleGroups.length);
-  }, [completedCount, visibleGroups.length]);
+    onProgressChange?.(progressCompletedCount, visibleGroups.length);
+  }, [progressCompletedCount, visibleGroups.length]);
 
   const toggleGroup = (groupId) => {
     const state = groupStateMap[groupId];
