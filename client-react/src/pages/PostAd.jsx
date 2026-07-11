@@ -445,7 +445,8 @@ export default function PostAdPage() {
   // Submit
   const onSubmit = async (data) => {
     setError('');
-    const { attrs, ...formValues } = data;
+    // Strip internal draft keys (e.g. _savedAt) before submitting
+    const { attrs, _savedAt, ...formValues } = data;
 
     if (!formValues.title || !formValues.description || !formValues.category || !formValues.location || !formValues.phone) {
       setError('Please fill in all required fields'); return;
