@@ -51,12 +51,15 @@ export function useRecentlyViewed() {
       // We only store the bare minimum metadata needed for the cards to save storage space
       const listingToStore = {
         id: listing.id,
+        slug: listing.slug,
         title: listing.title,
         price: listing.price,
-        county: listing.county,
+        location: listing.location,
         condition: listing.condition,
         images: listing.images ? [listing.images[0]] : [],
-        category: listing.category
+        category: listing.category,
+        created_at: listing.created_at,
+        seller: listing.seller ? { name: listing.seller.name } : null
       };
       
       const updated = [listingToStore, ...filtered].slice(0, MAX_ITEMS);
