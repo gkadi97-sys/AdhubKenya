@@ -133,12 +133,14 @@ export default function ListingCard({ listing, featured }) {
           <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground font-medium">
             <span className="inline-flex items-center gap-1 truncate max-w-[60%]">
               <MapPin className="h-3 w-3 shrink-0" />
-              <span className="truncate">{listing.location}</span>
+              <span className="truncate">{listing.location || listing.county || 'Kenya'}</span>
             </span>
-            <span className="inline-flex items-center gap-1 shrink-0">
-              <Clock className="w-3 h-3" />
-              {timeAgo(listing.created_at)}
-            </span>
+            {listing.created_at && (
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <Clock className="w-3 h-3" />
+                {timeAgo(listing.created_at)}
+              </span>
+            )}
           </div>
 
           <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
