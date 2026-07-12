@@ -31,6 +31,8 @@ export default function ListingDetailPage() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [showNumber, setShowNumber] = useState(false);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savingListing, setSavingListing] = useState(false);
 
   // Keyboard navigation for zoom modal
   const handleZoomKeyDown = useCallback((e) => {
@@ -119,11 +121,34 @@ export default function ListingDetailPage() {
   useEffect(() => {
     if (listing?.category) {
       getListings({ category: listing.category, limit: 5 }).then(data => {
-        // filter out current listing and take top 4
-        setRelatedListings(data.filter(item => item.id !== listing.id).slice(0, 4));
+        // getListings returns { listings, total, pages } — use .listings
+        const items = data?.listings || [];
+        setRelatedListings(items.filter(item => item.id !== listing.id).slice(0, 4));
       }).catch(() => {});
     }
   }, [listing?.category, listing?.id]);
+
+  // Load saved state for this listing
+  useEffect(() => {
+    if (!user || !listing?.id) return;
+    getSaved().then(saved => {
+      setIsSaved(saved.some(s => s.listing_id === listing.id));
+    }).catch(() => {});
+  }, [user, listing?.id]);
+
+  const handleToggleSave = async () => {
+    if (!user) { toast('Sign in to save listings', { icon: '🔒' }); return; }
+    setSavingListing(true);
+    try {
+      const newState = await toggleSaved(listing.id);
+      setIsSaved(newState);
+      toast.success(newState ? 'Saved to your list!' : 'Removed from saved');
+    } catch {
+      toast.error('Failed to save. Please try again.');
+    } finally {
+      setSavingListing(false);
+    }
+  };
 
   if (loading) return (
     <div className="py-16 px-4 sm:px-6 max-w-6xl mx-auto">
@@ -435,12 +460,21 @@ export default function ListingDetailPage() {
                     
                     {/* Action Row (Save / Share Inline) */}
                     <div className="flex gap-3 mt-1">
-                       <button className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold">
-                         <Heart className="w-4 h-4" /> Save
-                       </button>
-                       <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold">
-                         <Share2 className="w-4 h-4" /> Share
-                       </button>
+                      <button
+                        onClick={handleToggleSave}
+                        disabled={savingListing}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border transition-colors text-sm font-semibold disabled:opacity-50 ${
+                          isSaved
+                            ? 'border-rose-400/50 bg-rose-50 dark:bg-rose-900/20 text-rose-500'
+                            : 'border-border bg-secondary hover:bg-secondary/70 text-foreground'
+                        }`}
+                      >
+                        <Heart className={`w-4 h-4 transition-all ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`} />
+                        {isSaved ? 'Saved' : 'Save'}
+                      </button>
+                      <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold">
+                        <Share2 className="w-4 h-4" /> Share
+                      </button>
                     </div>
                   </div>
                 </div>

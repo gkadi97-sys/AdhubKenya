@@ -466,7 +466,7 @@ export default function PostAdPage() {
         }
       }
 
-      listingData.status = 'pending';
+      listingData.status = 'active';
       const { make, model, year, ...restSpecs } = attrs || {};
       if (make)  listingData.make  = make;
       if (model) listingData.model = model;
