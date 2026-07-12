@@ -45,8 +45,8 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
     const rect = triggerRef.current?.getBoundingClientRect();
     if (!rect) return;
     setDropPos({
-      top: rect.bottom + window.scrollY + 4,
-      left: rect.left + window.scrollX,
+      top: rect.bottom + 4,
+      left: rect.left,
       width: rect.width,
     });
     setOpen(true);
@@ -118,7 +118,7 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
       {open && createPortal(
         <div
           style={{
-            position: 'absolute',
+            position: 'fixed',
             top: dropPos.top,
             left: dropPos.left,
             width: dropPos.width,
