@@ -640,18 +640,46 @@ export const getSellerStats = async (sellerId) => {
 
 // ── Reputation Engine ────────────────────────────────────────────────────────
 
+export const canUserReviewSeller = async (sellerId) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return false;
+  if (session.user.id === sellerId) return false;
+
+  // Check if they have a conversation
+  const { data, error } = await supabase
+    .from('conversations')
+    .select('id')
+    .or(`and(buyer_id.eq.${session.user.id},seller_id.eq.${sellerId}),and(buyer_id.eq.${sellerId},seller_id.eq.${session.user.id})`)
+    .limit(1);
+    
+  if (error || !data || data.length === 0) return false;
+  return true;
+};
+
+export const getUserReviewForSeller = async (sellerId) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+  const { data } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('reviewer_id', session.user.id)
+    .eq('reviewee_id', sellerId)
+    .single();
+  return data;
+};
+
 export const submitReview = async (revieweeId, rating, comment) => {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
   const { data, error } = await supabase
     .from('reviews')
-    .insert([{
+    .upsert({
       reviewer_id: session.user.id,
       reviewee_id: revieweeId,
       rating,
       comment
-    }])
+    }, { onConflict: 'reviewer_id,reviewee_id' })
     .select()
     .single();
 

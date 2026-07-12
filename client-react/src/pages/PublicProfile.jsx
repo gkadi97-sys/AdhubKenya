@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { getUserReviews, timeAgo } from '@/lib/api';
+import { getUserReviews, timeAgo, canUserReviewSeller } from '@/lib/api';
 import { MapPin, Calendar, Star, ShieldCheck, Mail, Phone, ChevronLeft } from 'lucide-react';
 import ListingCard from '@/components/ListingCard';
 import StarRating from '@/components/StarRating';
+import ReviewModal from '@/components/ReviewModal';
 
 export default function PublicProfile() {
   const { id } = useParams();
@@ -13,6 +14,8 @@ export default function PublicProfile() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('listings');
+  const [canReview, setCanReview] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -38,6 +41,10 @@ export default function PublicProfile() {
         // Fetch Reviews
         const revs = await getUserReviews(id);
         setReviews(revs || []);
+
+        // Check if user can review
+        const canRev = await canUserReviewSeller(id);
+        setCanReview(canRev);
       } catch (err) {
         console.error('Failed to load profile:', err);
       } finally {
@@ -94,9 +101,19 @@ export default function PublicProfile() {
             <h1 className="text-xl font-bold text-foreground">
               {profile.full_name || profile.name}
             </h1>
-            <div className="mt-2 flex justify-center">
+            <div className="mt-2 flex flex-col items-center justify-center gap-1">
               <StarRating rating={profile.average_rating || 0} count={profile.review_count || 0} size="md" />
+              <span className="text-xs text-muted-foreground">({profile.review_count || 0} reviews)</span>
             </div>
+            
+            {canReview && (
+              <button 
+                onClick={() => setShowReviewModal(true)}
+                className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-secondary py-2.5 text-sm font-semibold text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              >
+                <Star className="w-4 h-4" /> Rate Seller
+              </button>
+            )}
             
             <div className="mt-6 flex flex-col gap-3 text-sm text-left">
               <div className="flex items-center gap-3 text-muted-foreground">
@@ -181,6 +198,19 @@ export default function PublicProfile() {
           )}
         </div>
       </div>
+
+      {showReviewModal && (
+        <ReviewModal
+          sellerId={id}
+          sellerName={profile.full_name || profile.name}
+          onClose={() => setShowReviewModal(false)}
+          onSuccess={() => {
+            getUserReviews(id).then(r => setReviews(r || []));
+            // Trigger a reload of the profile to update the rating display
+            supabase.from('profiles').select('*').eq('id', id).single().then(({data}) => setProfile(data));
+          }}
+        />
+      )}
     </div>
   );
 }

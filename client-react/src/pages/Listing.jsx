@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getListing, getListings, toggleSaved, getSaved, imageUrl, formatPrice, timeAgo, getSellerStats, getListingViews, trackInteraction } from '@/lib/api';
+import { getListing, getListings, toggleSaved, getSaved, imageUrl, formatPrice, timeAgo, getSellerStats, getListingViews, trackInteraction, canUserReviewSeller } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
@@ -29,6 +29,7 @@ export default function ListingDetailPage() {
   const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [canReview, setCanReview] = useState(false);
   const [showNumber, setShowNumber] = useState(false);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -110,6 +111,7 @@ export default function ListingDetailPage() {
           
           if (data.seller_id) {
             getSellerStats(data.seller_id).then(setSellerStats);
+            canUserReviewSeller(data.seller_id).then(setCanReview);
           }
           getListingViews(data.id).then(setListingViews);
         }
@@ -435,10 +437,12 @@ export default function ListingDetailPage() {
                             </div>
                           </div>
                         )}
-                        {user.id !== listing.seller_id && (
-                          <button onClick={() => setIsReviewModalOpen(true)} className="flex items-center justify-center gap-2 w-full rounded-xl py-2.5 px-4 font-bold text-primary text-sm bg-primary/10 hover:bg-primary/20 transition-colors mt-2">
-                            <Star className="w-4 h-4 fill-current" /> Leave a Review
-                          </button>
+                        {canReview && (
+                          <div className="pt-2">
+                            <button onClick={() => setIsReviewModalOpen(true)} className="flex items-center justify-center gap-2 w-full rounded-xl py-2.5 px-4 font-bold text-primary text-sm bg-primary/10 hover:bg-primary/20 transition-colors">
+                              <Star className="w-4 h-4 fill-current" /> Rate Seller
+                            </button>
+                          </div>
                         )}
                       </>
                     ) : (
