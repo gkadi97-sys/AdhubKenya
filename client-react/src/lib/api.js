@@ -581,7 +581,10 @@ export const formatPrice = (price) => {
 
 // Time ago
 export const timeAgo = (date) => {
-  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+  if (!date) return '';
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) return '';
+  const seconds = Math.floor((new Date() - parsedDate) / 1000);
   if (seconds < 60) return 'just now';
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;

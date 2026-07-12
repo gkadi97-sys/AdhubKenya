@@ -135,7 +135,7 @@ export default function ListingCard({ listing, featured }) {
               <MapPin className="h-3 w-3 shrink-0" />
               <span className="truncate">{listing.location || listing.county || 'Kenya'}</span>
             </span>
-            {listing.created_at && (
+            {timeAgo(listing.created_at) && (
               <span className="inline-flex items-center gap-1 shrink-0">
                 <Clock className="w-3 h-3" />
                 {timeAgo(listing.created_at)}
