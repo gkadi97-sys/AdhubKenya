@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getListings, getLookupValues } from '@/lib/api';
+import { getListings, getLookupValues, getVehicleMakes } from '@/lib/api';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useMetadataCache } from '@/lib/useMetadataCache';
 import LocationCascader from './LocationCascader';
@@ -64,18 +64,20 @@ function DebouncedInput({ value: initialValue, onChange, ...props }) {
 }
 
 // ── Dynamic Field Renderer ──
-function DynamicFilterField({ attr, value, onChange, filters }) {
+function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (attr.is_lookup && attr.lookup_type) {
+      // For vehicle_model, we need the parent make's DB id, not just the name string.
+      // parentLookupId is pre-resolved and passed in from DynamicFilterField's parent.
+      if (attr.lookup_type === 'vehicle_model' && !parentLookupId) {
+        setOptions([]);
+        return;
+      }
       setLoading(true);
-      // Pass the parent filter value if there's a dependency (e.g., model depends on make)
-      // For simple filters, we might just load all options or we might need to filter.
-      // For now, let's just load all options and if there's a parentId, the API could filter it if we knew the ID.
-      // But we just use standard getLookupValues.
-      getLookupValues(attr.lookup_type).then(data => {
+      getLookupValues(attr.lookup_type, parentLookupId || null).then(data => {
         setOptions(data.map(d => d.value));
         setLoading(false);
       });
@@ -86,7 +88,7 @@ function DynamicFilterField({ attr, value, onChange, filters }) {
         setOptions([]);
       }
     }
-  }, [attr.lookup_type, attr.options]);
+  }, [attr.lookup_type, attr.options, parentLookupId]);
 
   if (loading) {
     return <div className="flex items-center gap-2 text-muted-foreground text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>;
@@ -186,6 +188,18 @@ export default function FilterPanel({ isMobile = false, onClose }) {
 
   const category = filters.category || '';
   const metadata = useMetadataCache(category);
+
+  // Resolve make name -> vehicle_makes DB id so Model can cascade
+  const [vehicleMakeMap, setVehicleMakeMap] = useState({});
+  useEffect(() => {
+    if (category && category.includes('vehicle') || category === 'vehicles' || category === 'cars' || category === 'motorcycles' || category === 'trucks' || category === 'agriculture' || category === 'construction') {
+      getVehicleMakes().then(makes => {
+        const m = {};
+        makes.forEach(mk => { m[mk.name] = mk.id; });
+        setVehicleMakeMap(m);
+      });
+    }
+  }, [category]);
 
   const { data: countData } = useQuery({
     queryKey: ['filter-live-count', filters],
@@ -359,16 +373,28 @@ export default function FilterPanel({ isMobile = false, onClose }) {
         {metadata?.attributes && metadata.attributes
           .filter(isAttrVisible)
           .sort((a, b) => a.display_order - b.display_order)
-          .map((attr, index) => (
-            <FilterGroup key={attr.id} label={attr.label} defaultOpen={index < 3 || !!filters[attr.name]}>
-              <DynamicFilterField
-                attr={attr}
-                value={filters[attr.name]}
-                filters={filters}
-                onChange={(val, explicitKey) => updateFilter(attr.name, val, explicitKey)}
-              />
-            </FilterGroup>
-          ))}
+          .map((attr, index) => {
+            // For vehicle_model fields, resolve the parent make's DB id
+            let parentLookupId = null;
+            if (attr.lookup_type === 'vehicle_model') {
+              const makeAttr = metadata.attributes.find(a => a.lookup_type === 'vehicle_make');
+              if (makeAttr) {
+                const selectedMakeName = filters[makeAttr.name];
+                parentLookupId = vehicleMakeMap[selectedMakeName] || null;
+              }
+            }
+            return (
+              <FilterGroup key={attr.id} label={attr.label} defaultOpen={index < 3 || !!filters[attr.name]}>
+                <DynamicFilterField
+                  attr={attr}
+                  value={filters[attr.name]}
+                  filters={filters}
+                  parentLookupId={parentLookupId}
+                  onChange={(val, explicitKey) => updateFilter(attr.name, val, explicitKey)}
+                />
+              </FilterGroup>
+            );
+          })}
       </div>
 
       <div className={`border-t border-border bg-background p-4 flex items-center gap-3 ${isMobile ? 'sticky bottom-0 z-10' : 'mt-4 sticky bottom-0 z-10 pb-6'}`}>

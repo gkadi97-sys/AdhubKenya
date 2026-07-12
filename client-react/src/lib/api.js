@@ -509,6 +509,26 @@ export const getCategoryMetadata = async (categorySlug) => {
 };
 
 export const getLookupValues = async (lookupType, parentId = null) => {
+  if (lookupType === 'vehicle_make') {
+    const makes = await getVehicleMakes();
+    return makes.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+  }
+  if (lookupType === 'vehicle_model') {
+    if (!parentId || parentId === 'any') return [];
+    const models = await getVehicleModels(parentId);
+    return models.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+  }
+  if (lookupType === 'vehicle_generation') {
+    if (!parentId || parentId === 'any') return [];
+    const gens = await getVehicleGenerations(parentId);
+    return gens.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+  }
+  if (lookupType === 'vehicle_trim') {
+    if (!parentId || parentId === 'any') return [];
+    const trims = await getVehicleTrims(parentId);
+    return trims.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+  }
+
   let query = supabase
     .from('lookup_values')
     .select('*')
@@ -860,3 +880,32 @@ export const fetchAdminAnalytics = async () => {
   }
   return data;
 };
+
+// ============================================================================
+// Phase 4: Vehicle Taxonomy lookups
+// ==========================================
+
+export const getVehicleMakes = async () => {
+  const { data, error } = await supabase.from('vehicle_makes').select('id, name').eq('is_active', true).order('name');
+  if (error) throw error;
+  return data;
+};
+
+export const getVehicleModels = async (makeId) => {
+  const { data, error } = await supabase.from('vehicle_models').select('id, name').eq('make_id', makeId).eq('is_active', true).order('name');
+  if (error) throw error;
+  return data;
+};
+
+export const getVehicleGenerations = async (modelId) => {
+  const { data, error } = await supabase.from('vehicle_generations').select('id, name').eq('model_id', modelId).eq('is_active', true).order('name');
+  if (error) throw error;
+  return data;
+};
+
+export const getVehicleTrims = async (modelId) => {
+  const { data, error } = await supabase.from('vehicle_trims').select('id, name').eq('model_id', modelId).eq('is_active', true).order('name');
+  if (error) throw error;
+  return data;
+};
+

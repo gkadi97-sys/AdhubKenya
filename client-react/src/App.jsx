@@ -69,6 +69,7 @@ const AdminAnalytics = lazy(() => import('@/pages/admin/AdminAnalytics.jsx'));
 const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings.jsx'));
 const AdminMetadata = lazy(() => import('@/pages/admin/AdminMetadata.jsx'));
 const AdminMetadataBuilder = lazy(() => import('@/pages/admin/AdminMetadataBuilder.jsx'));
+const AdminVehicles = lazy(() => import('@/pages/admin/AdminVehicles.jsx'));
 
 // --- Guards ---
 function ProtectedRoute({ children }) {
@@ -186,6 +187,7 @@ export default function App() {
               <Route path="settings" element={<AdminSettings />} />
               <Route path="metadata" element={<AdminMetadata />} />
               <Route path="metadata/builder/:id" element={<AdminMetadataBuilder />} />
+              <Route path="vehicles" element={<AdminVehicles />} />
               <Route path="*" element={<Navigate to="/admin" replace />} />
             </Route>
 
