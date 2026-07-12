@@ -64,7 +64,6 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
     onChange('');
   };
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
@@ -75,30 +74,44 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
   }, [open]);
 
   return (
-    <div ref={triggerRef} className="relative">
+    <div ref={triggerRef} style={{ position: 'relative' }}>
       <button
         type="button"
         disabled={disabled}
         onClick={openDropdown}
-        className={`w-full flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm text-left transition focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed ${
-          open ? 'border-primary/50 ring-2 ring-primary/20' : ''
-        }`}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderRadius: '0.75rem',
+          border: `1px solid ${open ? 'hsl(var(--primary) / 0.5)' : 'hsl(var(--border)'}`,
+          backgroundColor: 'hsl(var(--background))',
+          padding: '0.75rem 1rem',
+          fontSize: '0.875rem',
+          textAlign: 'left',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.5 : 1,
+          boxShadow: open ? '0 0 0 2px hsl(var(--primary) / 0.2)' : 'none',
+          outline: 'none',
+          transition: 'border-color 0.15s, box-shadow 0.15s',
+        }}
       >
-        <span className={value ? 'text-foreground' : 'text-muted-foreground'}>
+        <span style={{ color: value ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {value || placeholder}
         </span>
-        <span className="flex items-center gap-1 shrink-0 ml-2">
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0, marginLeft: '0.5rem' }}>
           {value && (
             <span
               role="button"
               tabIndex={-1}
               onMouseDown={clear}
-              className="flex items-center justify-center w-4 h-4 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1rem', height: '1rem', borderRadius: '9999px', color: 'hsl(var(--muted-foreground))', cursor: 'pointer', fontSize: '0.875rem' }}
             >
-              ×
+              ✕
             </span>
           )}
-          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+          <ChevronDown style={{ width: '1rem', height: '1rem', color: 'hsl(var(--muted-foreground))', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
         </span>
       </button>
 
@@ -110,34 +123,57 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
             left: dropPos.left,
             width: dropPos.width,
             zIndex: 99999,
+            borderRadius: '0.75rem',
+            border: '1px solid hsl(var(--border))',
+            backgroundColor: 'hsl(var(--background))',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+            overflow: 'hidden',
           }}
           onMouseDown={e => e.stopPropagation()}
-          className="rounded-xl border border-border bg-background shadow-xl overflow-hidden"
         >
-          <div className="p-2 border-b border-border">
+          <div style={{ padding: '0.5rem', borderBottom: '1px solid hsl(var(--border))' }}>
             <input
               ref={inputRef}
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search…"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+              style={{
+                width: '100%',
+                borderRadius: '0.5rem',
+                border: '1px solid hsl(var(--border))',
+                backgroundColor: 'hsl(var(--background))',
+                padding: '0.5rem 0.75rem',
+                fontSize: '0.875rem',
+                outline: 'none',
+                color: 'hsl(var(--foreground))',
+                boxSizing: 'border-box',
+              }}
             />
           </div>
-          <div className="max-h-52 overflow-y-auto">
+          <div style={{ maxHeight: '13rem', overflowY: 'auto' }}>
             {filtered.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-muted-foreground">No results</p>
+              <p style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }}>No results</p>
             ) : (
               filtered.map(opt => (
                 <button
                   key={opt}
                   type="button"
                   onMouseDown={() => select(opt)}
-                  className={`w-full text-left px-4 py-2.5 text-sm transition ${
-                    opt === value
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : 'text-foreground hover:bg-muted'
-                  }`}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '0.625rem 1rem',
+                    fontSize: '0.875rem',
+                    border: 'none',
+                    cursor: 'pointer',
+                    backgroundColor: opt === value ? 'hsl(var(--primary) / 0.1)' : 'transparent',
+                    color: opt === value ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                    fontWeight: opt === value ? '600' : '400',
+                    display: 'block',
+                  }}
+                  onMouseEnter={e => { if (opt !== value) e.currentTarget.style.backgroundColor = 'hsl(var(--muted))'; }}
+                  onMouseLeave={e => { if (opt !== value) e.currentTarget.style.backgroundColor = 'transparent'; }}
                 >
                   {opt}
                 </button>
@@ -150,6 +186,7 @@ function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
     </div>
   );
 }
+
 
 // ─── Icon Map (maps icon name strings from DB to Lucide components) ──────────
 const ICON_MAP = {
