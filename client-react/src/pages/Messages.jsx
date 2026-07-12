@@ -142,17 +142,19 @@ export default function Messages() {
     fetchConversations();
     touchPresence();
     const heartbeat = setInterval(touchPresence, 30_000);
-    
-    const globalSub = supabase
-      .channel('global-msgs')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+
+    // Listen for conversation updates (triggered when a message is sent, updating updated_at)
+    // This refreshes the sidebar for the recipient without needing a per-message global sub.
+    const convSub = supabase
+      .channel('global-conv-updates')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations' }, () => {
         fetchConversations();
       })
       .subscribe();
 
     return () => {
       clearInterval(heartbeat);
-      supabase.removeChannel(globalSub);
+      supabase.removeChannel(convSub);
     };
   }, [session]);
 
@@ -281,9 +283,16 @@ export default function Messages() {
 
   const subscribeMessages = (cId) => {
     if (msgSubRef.current) supabase.removeChannel(msgSubRef.current);
+    // NOTE: We intentionally do NOT use a server-side `filter` here.
+    // With RLS enabled, Supabase Realtime only broadcasts filtered rows to
+    // the sender. Dropping the filter and filtering client-side ensures the
+    // recipient also receives the event. REPLICA IDENTITY FULL is set on the
+    // messages table so all columns are available in the change payload.
     msgSubRef.current = supabase
       .channel(`msgs:${cId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${cId}` }, ({ new: msg }) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, ({ new: msg }) => {
+        // Client-side filter: only process messages for the active conversation
+        if (msg.conversation_id !== cId) return;
         setMessages(prev => {
           if (prev.find(m => m.id === msg.id)) return prev;
           const withoutTemp = prev.filter(m => !String(m.id).startsWith('temp-'));
@@ -292,7 +301,8 @@ export default function Messages() {
         if (msg.sender_id !== session?.user?.id) markAsRead(cId);
         fetchConversations();
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${cId}` }, ({ new: msg }) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, ({ new: msg }) => {
+        if (msg.conversation_id !== cId) return;
         setMessages(prev => prev.map(m => m.id === msg.id ? msg : m));
       })
       .subscribe();
