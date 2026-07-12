@@ -547,7 +547,7 @@ export default function HomePage() {
       <div className="gradient-emerald text-primary-foreground">
         <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-1.5 text-xs">
           <Sparkles className="h-3 w-3 text-gold" />
-          <span className="opacity-90">Free posting all June — list your ad in under 60 seconds.</span>
+          <span className="opacity-90">Free posting — list your ad in under 60 seconds.</span>
         </div>
       </div>
 
@@ -686,7 +686,7 @@ export default function HomePage() {
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-4 py-3 sm:px-6 sm:py-4 relative z-10 divide-x divide-primary-foreground/10 h-full items-center">
                     {[
                       { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Active Listings' },
-                      { icon: Grid,       n: '15+',     l: 'Categories' },
+                      { icon: Grid,       n: '18',     l: 'Categories' },
                       { icon: MapPin,     n: '47',      l: 'Counties' },
                       { icon: Sparkles,   n: '100%',    l: 'Free Posting' },
                     ].map(({ icon: Icon, n, l }) => (

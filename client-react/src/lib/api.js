@@ -763,7 +763,7 @@ export const getFeaturedListings = async (limit = 6) => {
       .from('listings')
       .select('*')
       .eq('status', 'active')
-      .order('createdAt', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(limit);
       
     if (fallbackErr) throw fallbackErr;
