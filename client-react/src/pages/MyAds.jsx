@@ -215,51 +215,51 @@ const handleDelete = async (id) => {
                       </div>
                     </div>
                     
-                    <div className="flex shrink-0 items-center gap-2 mt-4 sm:mt-0 pt-4 sm:pt-0 border-t border-border sm:border-0 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
+                    <div className="flex shrink-0 items-center gap-2 mt-4 sm:mt-0 pt-4 sm:pt-0 border-t border-border sm:border-0 w-full sm:w-auto justify-end flex-wrap">
                       {/* Edit (Active, Pending, Draft, Needs Revision) */}
                       {['active', 'pending', 'draft', 'needs_revision'].includes(l.status) && (
-                        <Link to={`/edit-ad/${l.id}`} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-foreground transition hover:bg-secondary sm:w-auto flex-1">
+                        <Link to={`/edit-ad/${l.id}`} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-foreground transition hover:bg-secondary sm:w-auto flex-1 sm:flex-none">
                           <Edit className="h-3.5 w-3.5" /> Edit
                         </Link>
                       )}
 
                       {/* Promote (Active) */}
                       {l.status === 'active' && (
-                        <button onClick={() => setPromoteModalOpen(l)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-4 text-xs font-semibold text-gold transition hover:bg-gold hover:text-white sm:w-auto flex-1">
+                        <button onClick={() => setPromoteModalOpen(l)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-4 text-xs font-semibold text-gold transition hover:bg-gold hover:text-white sm:w-auto flex-1 sm:flex-none">
                           <Sparkles className="h-3.5 w-3.5" /> Promote
                         </button>
                       )}
 
                       {/* Mark Sold (Active) */}
                       {l.status === 'active' && (
-                        <button onClick={() => handleStatusChange(l.id, 'sold', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 text-xs font-semibold text-blue-600 transition hover:bg-blue-600 hover:text-white sm:w-auto flex-1">
+                        <button onClick={() => handleStatusChange(l.id, 'sold', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 text-xs font-semibold text-blue-600 transition hover:bg-blue-600 hover:text-white sm:w-auto flex-1 sm:flex-none">
                           Sold
                         </button>
                       )}
 
                       {/* Close (Active) */}
                       {l.status === 'active' && (
-                        <button onClick={() => handleStatusChange(l.id, 'closed', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-muted-foreground transition hover:bg-secondary sm:w-auto flex-1">
+                        <button onClick={() => handleStatusChange(l.id, 'closed', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-muted-foreground transition hover:bg-secondary sm:w-auto flex-1 sm:flex-none">
                           Close
                         </button>
                       )}
 
                       {/* Reactivate (Sold, Closed, Expired) */}
                       {['sold', 'closed', 'expired'].includes(l.status) && (
-                        <button onClick={() => handleStatusChange(l.id, 'pending', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-green-500/30 bg-green-500/10 px-4 text-xs font-semibold text-green-600 transition hover:bg-green-600 hover:text-white sm:w-auto flex-1">
+                        <button onClick={() => handleStatusChange(l.id, 'pending', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-green-500/30 bg-green-500/10 px-4 text-xs font-semibold text-green-600 transition hover:bg-green-600 hover:text-white sm:w-auto flex-1 sm:flex-none">
                           Reactivate
                         </button>
                       )}
 
                       {/* Publish (Draft, Rejected, Needs Revision) */}
                       {['draft', 'rejected', 'needs_revision'].includes(l.status) && (
-                        <button onClick={() => handleStatusChange(l.id, 'pending', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-4 text-xs font-semibold text-primary transition hover:bg-primary hover:text-primary-foreground sm:w-auto flex-1">
+                        <button onClick={() => handleStatusChange(l.id, 'pending', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-4 text-xs font-semibold text-primary transition hover:bg-primary hover:text-primary-foreground sm:w-auto flex-1 sm:flex-none">
                           Publish
                         </button>
                       )}
 
                       {/* Delete (All) */}
-                      <button onClick={()=>handleDelete(l.id)} disabled={deleting===l.id} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 px-4 text-xs font-semibold text-destructive transition hover:bg-destructive hover:text-destructive-foreground disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto flex-1">
+                      <button onClick={()=>handleDelete(l.id)} disabled={deleting===l.id} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-destructive/20 bg-destructive/10 px-4 text-xs font-semibold text-destructive transition hover:bg-destructive hover:text-destructive-foreground disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto flex-1 sm:flex-none">
                         <Trash2 className="h-3.5 w-3.5" /> {deleting===l.id ? '...' : 'Delete'}
                       </button>
                     </div>
