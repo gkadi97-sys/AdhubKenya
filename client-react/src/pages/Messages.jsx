@@ -142,7 +142,18 @@ export default function Messages() {
     fetchConversations();
     touchPresence();
     const heartbeat = setInterval(touchPresence, 30_000);
-    return () => clearInterval(heartbeat);
+    
+    const globalSub = supabase
+      .channel('global-msgs')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+        fetchConversations();
+      })
+      .subscribe();
+
+    return () => {
+      clearInterval(heartbeat);
+      supabase.removeChannel(globalSub);
+    };
   }, [session]);
 
   // ── Messages + realtime when conversation changes ─────────────────────────
