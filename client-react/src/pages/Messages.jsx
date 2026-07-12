@@ -130,6 +130,7 @@ export default function Messages() {
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const emojiPickerRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
   // ── Session ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -173,7 +174,13 @@ export default function Messages() {
 
   // ── Auto-scroll ──────────────────────────────────────────────────────────
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    } else {
+      // Fallback
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }, [messages, typingUsers.size]);
 
   // ── Click-outside emoji picker ────────────────────────────────────────────
@@ -743,6 +750,7 @@ export default function Messages() {
 
                 {/* ── Messages Area ── */}
                 <div
+                  ref={scrollContainerRef}
                   className="flex-1 overflow-y-auto px-4 py-2"
                   role="log"
                   aria-label="Conversation messages"
