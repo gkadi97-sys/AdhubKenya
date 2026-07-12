@@ -28,12 +28,12 @@ const MSG_PAGE = 30;
 function Avatar({ user, size = 'md', online = false }) {
   const cls = { sm: 'w-7 h-7 text-[10px]', md: 'w-10 h-10 text-sm', lg: 'w-12 h-12 text-base' };
   const dot = { sm: 'w-2 h-2 border', md: 'w-2.5 h-2.5 border-2', lg: 'w-3 h-3 border-2' };
-  const name = user?.full_name || user?.name || '?';
+  const name = user?.name || '?';
   return (
     <div className="relative shrink-0">
-      {user?.avatar_url ? (
+      {user?.avatar ? (
         <img
-          src={user.avatar_url}
+          src={user.avatar}
           alt={name}
           className={`${cls[size]} rounded-full object-cover border border-border`}
         />
@@ -196,7 +196,7 @@ export default function Messages() {
     await supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', session.user.id);
   };
 
-  const getDisplayName = (user) => user?.full_name || user?.name || 'Unknown User';
+  const getDisplayName = (user) => user?.name || 'Unknown User';
 
   const lastSeenLabel = (user) => {
     if (!user?.last_seen_at) return 'Offline';
@@ -217,8 +217,8 @@ export default function Messages() {
         .select(`
           id, updated_at, is_archived, buyer_id, seller_id,
           listing:listings(id, title, price, images, location, status),
-          buyer:profiles!buyer_id(id, name, full_name, avatar_url, last_seen_at, is_phone_verified),
-          seller:profiles!seller_id(id, name, full_name, avatar_url, last_seen_at, is_phone_verified),
+          buyer:profiles!buyer_id(id, name, avatar, last_seen_at, is_phone_verified),
+          seller:profiles!seller_id(id, name, avatar, last_seen_at, is_phone_verified),
           messages(id, content, image_url, is_read, sender_id, created_at)
         `)
         .or(`buyer_id.eq.${session.user.id},seller_id.eq.${session.user.id}`)

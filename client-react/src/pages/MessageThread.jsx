@@ -80,11 +80,11 @@ export default function MessageThreadPage() {
       const otherUserId = conv.buyer_id === user.id ? conv.seller_id : conv.buyer_id;
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, is_phone_verified')
+        .select('name, is_phone_verified')
         .eq('id', otherUserId)
         .single();
 
-      setConversation({ ...conv, otherUser: profile || { full_name: 'Unknown User' } });
+      setConversation({ ...conv, otherUser: profile || { name: 'Unknown User' } });
 
       const { data: msgs, error: msgError } = await supabase
         .from('messages')
@@ -176,11 +176,11 @@ export default function MessageThreadPage() {
         
         <div className="flex-1 min-w-0 flex items-center gap-3">
           <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">
-            {conversation.otherUser.full_name?.charAt(0) || 'U'}
+            {conversation.otherUser.name?.charAt(0) || 'U'}
           </div>
           <div>
             <h2 className="font-bold text-foreground leading-tight truncate">
-              {conversation.otherUser.full_name || 'User'}
+              {conversation.otherUser.name || 'User'}
             </h2>
             <div className="text-xs text-muted-foreground truncate">
               {conversation.otherUser.is_phone_verified ? 'Verified User' : 'Unverified'}
