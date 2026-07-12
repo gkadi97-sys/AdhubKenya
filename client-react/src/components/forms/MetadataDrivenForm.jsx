@@ -16,6 +16,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWatch, Controller } from 'react-hook-form';
+import Select from 'react-select';
 import { getCategoryMetadata, getLookupValues } from '@/lib/api';
 import {
   ChevronDown, ChevronRight, Loader2, AlertCircle,
@@ -221,22 +222,61 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <select
-              className={`${inputClass} ${autoFillClass} appearance-none pr-8 transition-all duration-150`}
-              disabled={isParentEmpty}
-              {...register(fieldName, validationRules)}
-              onChange={(e) => {
-                register(fieldName).onChange(e);
-                handleSelectChange(e);
-              }}
-            >
-              <option value="">{emptyStatePlaceholder}</option>
-              {options.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.value}</option>
-              ))}
-            </select>
+            <Controller
+              name={fieldName}
+              control={control}
+              rules={validationRules}
+              render={({ field }) => (
+                <Select
+                  options={options.map(o => ({ value: o.value, label: o.value }))}
+                  value={field.value ? { value: field.value, label: field.value } : null}
+                  onChange={(selectedOption) => {
+                    field.onChange(selectedOption ? selectedOption.value : '');
+                    handleSelectChange({ target: { value: selectedOption ? selectedOption.value : '' } });
+                  }}
+                  isDisabled={isParentEmpty}
+                  placeholder={emptyStatePlaceholder}
+                  isClearable
+                  isSearchable
+                  className="react-select-container"
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      minHeight: '3rem',
+                      borderRadius: '0.75rem',
+                      borderColor: state.isFocused ? 'hsl(var(--primary) / 0.5)' : 'hsl(var(--border))',
+                      boxShadow: state.isFocused ? '0 0 0 2px hsl(var(--primary) / 0.2)' : 'none',
+                      backgroundColor: 'hsl(var(--background))',
+                      '&:hover': { borderColor: 'hsl(var(--primary) / 0.5)' }
+                    }),
+                    menu: (base) => ({
+                      ...base,
+                      zIndex: 9999,
+                      borderRadius: '0.75rem',
+                      overflow: 'hidden',
+                      backgroundColor: 'hsl(var(--background))',
+                      border: '1px solid hsl(var(--border))'
+                    }),
+                    option: (base, state) => ({
+                      ...base,
+                      backgroundColor: state.isSelected 
+                        ? 'hsl(var(--primary) / 0.1)' 
+                        : state.isFocused 
+                          ? 'hsl(var(--muted))' 
+                          : 'transparent',
+                      color: state.isSelected ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
+                      cursor: 'pointer',
+                      '&:active': { backgroundColor: 'hsl(var(--primary) / 0.2)' }
+                    }),
+                    singleValue: (base) => ({ ...base, color: 'hsl(var(--foreground))' }),
+                    input: (base) => ({ ...base, color: 'hsl(var(--foreground))' }),
+                    placeholder: (base) => ({ ...base, color: 'hsl(var(--muted-foreground))' })
+                  }}
+                />
+              )}
+            />
           )}
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         </div>
         {isParentEmpty && (
           <p className="mt-1 flex items-center gap-1 text-xs text-amber-500">
