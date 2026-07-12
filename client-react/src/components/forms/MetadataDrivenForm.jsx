@@ -15,7 +15,6 @@
  */
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useWatch, Controller } from 'react-hook-form';
 import { getCategoryMetadata, getLookupValues } from '@/lib/api';
 import {
@@ -25,168 +24,6 @@ import {
   ShoppingBag, Leaf, PawPrint, Zap, Shirt, BookOpen,
   GraduationCap, Laptop, Wifi, Battery, Monitor, Tag,
 } from 'lucide-react';
-
-// ─── SearchableSelect ────────────────────────────────────────────────────────
-function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
-  const triggerRef = useRef(null);
-  const inputRef = useRef(null);
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return options;
-    const q = search.toLowerCase();
-    return options.filter(o => o.toLowerCase().includes(q));
-  }, [options, search]);
-
-  const openDropdown = () => {
-    if (disabled) return;
-    const rect = triggerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    setDropPos({
-      top: rect.bottom + 4,
-      left: rect.left,
-      width: rect.width,
-    });
-    setOpen(true);
-    setSearch('');
-    setTimeout(() => inputRef.current?.focus(), 50);
-  };
-
-  const select = (opt) => {
-    onChange(opt);
-    setOpen(false);
-  };
-
-  const clear = (e) => {
-    e.stopPropagation();
-    onChange('');
-  };
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e) => {
-      if (!triggerRef.current?.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  return (
-    <div ref={triggerRef} style={{ position: 'relative' }}>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={openDropdown}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderRadius: '0.75rem',
-          border: `1px solid ${open ? 'hsl(var(--primary) / 0.5)' : 'hsl(var(--border)'}`,
-          backgroundColor: 'hsl(var(--background))',
-          padding: '0.75rem 1rem',
-          fontSize: '0.875rem',
-          textAlign: 'left',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.5 : 1,
-          boxShadow: open ? '0 0 0 2px hsl(var(--primary) / 0.2)' : 'none',
-          outline: 'none',
-          transition: 'border-color 0.15s, box-shadow 0.15s',
-        }}
-      >
-        <span style={{ color: value ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {value || placeholder}
-        </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0, marginLeft: '0.5rem' }}>
-          {value && (
-            <span
-              role="button"
-              tabIndex={-1}
-              onMouseDown={clear}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1rem', height: '1rem', borderRadius: '9999px', color: 'hsl(var(--muted-foreground))', cursor: 'pointer', fontSize: '0.875rem' }}
-            >
-              ✕
-            </span>
-          )}
-          <ChevronDown style={{ width: '1rem', height: '1rem', color: 'hsl(var(--muted-foreground))', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
-        </span>
-      </button>
-
-      {open && createPortal(
-        <div
-          style={{
-            position: 'fixed',
-            top: dropPos.top,
-            left: dropPos.left,
-            width: dropPos.width,
-            zIndex: 99999,
-            borderRadius: '0.75rem',
-            border: '1px solid hsl(var(--border))',
-            backgroundColor: 'hsl(var(--background))',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-            overflow: 'hidden',
-          }}
-          onMouseDown={e => e.stopPropagation()}
-        >
-          <div style={{ padding: '0.5rem', borderBottom: '1px solid hsl(var(--border))' }}>
-            <input
-              ref={inputRef}
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search…"
-              style={{
-                width: '100%',
-                borderRadius: '0.5rem',
-                border: '1px solid hsl(var(--border))',
-                backgroundColor: 'hsl(var(--background))',
-                padding: '0.5rem 0.75rem',
-                fontSize: '0.875rem',
-                outline: 'none',
-                color: 'hsl(var(--foreground))',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-          <div style={{ maxHeight: '13rem', overflowY: 'auto' }}>
-            {filtered.length === 0 ? (
-              <p style={{ padding: '0.75rem 1rem', fontSize: '0.875rem', color: 'hsl(var(--muted-foreground))' }}>No results</p>
-            ) : (
-              filtered.map(opt => (
-                <button
-                  key={opt}
-                  type="button"
-                  onMouseDown={() => select(opt)}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '0.625rem 1rem',
-                    fontSize: '0.875rem',
-                    border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: opt === value ? 'hsl(var(--primary) / 0.1)' : 'transparent',
-                    color: opt === value ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                    fontWeight: opt === value ? '600' : '400',
-                    display: 'block',
-                  }}
-                  onMouseEnter={e => { if (opt !== value) e.currentTarget.style.backgroundColor = 'hsl(var(--muted))'; }}
-                  onMouseLeave={e => { if (opt !== value) e.currentTarget.style.backgroundColor = 'transparent'; }}
-                >
-                  {opt}
-                </button>
-              ))
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
-    </div>
-  );
-}
-
 
 // ─── Icon Map (maps icon name strings from DB to Lucide components) ──────────
 const ICON_MAP = {
@@ -385,24 +222,22 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <Controller
-              name={fieldName}
-              control={control}
-              rules={validationRules}
-              render={({ field }) => (
-                <SearchableSelect
-                  options={options.map(o => o.value)}
-                  value={field.value || ''}
-                  onChange={(val) => {
-                    field.onChange(val);
-                    handleSelectChange({ target: { value: val } });
-                  }}
-                  disabled={isParentEmpty}
-                  placeholder={emptyStatePlaceholder}
-                />
-              )}
-            />
+            <select
+              className={`${inputClass} ${autoFillClass} appearance-none pr-8 transition-all duration-150`}
+              disabled={isParentEmpty}
+              {...register(fieldName, validationRules)}
+              onChange={(e) => {
+                register(fieldName).onChange(e);
+                handleSelectChange(e);
+              }}
+            >
+              <option value="">{emptyStatePlaceholder}</option>
+              {options.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.value}</option>
+              ))}
+            </select>
           )}
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         </div>
         {isParentEmpty && (
           <p className="mt-1 flex items-center gap-1 text-xs text-amber-500">
