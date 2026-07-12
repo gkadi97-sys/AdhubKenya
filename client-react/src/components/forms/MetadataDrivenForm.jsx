@@ -164,7 +164,8 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     const resolvedParentId = cascadeDepAttrId && parentValue ? parentLookupId : null;
     setLoadingOptions(true);
     cachedGetLookupValues(attribute.lookup_type, resolvedParentId).then(data => {
-      setOptions(data.map(d => ({ value: d.value, metadata: d.metadata })));
+      const sorted = [...data].sort((a, b) => a.value.localeCompare(b.value));
+      setOptions(sorted.map(d => ({ value: d.value, metadata: d.metadata })));
       setLoadingOptions(false);
     });
   }, [attribute.lookup_type, attribute.id, cascadeDepAttrId, parentLookupId, parentValue, parentAttrId, needsLookup]);
