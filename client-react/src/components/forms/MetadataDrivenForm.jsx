@@ -15,8 +15,8 @@
  */
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useWatch, Controller } from 'react-hook-form';
-import Select from 'react-select';
 import { getCategoryMetadata, getLookupValues } from '@/lib/api';
 import {
   ChevronDown, ChevronRight, Loader2, AlertCircle,
@@ -25,6 +25,131 @@ import {
   ShoppingBag, Leaf, PawPrint, Zap, Shirt, BookOpen,
   GraduationCap, Laptop, Wifi, Battery, Monitor, Tag,
 } from 'lucide-react';
+
+// ─── SearchableSelect ────────────────────────────────────────────────────────
+function SearchableSelect({ options, value, onChange, placeholder, disabled }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
+  const triggerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return options;
+    const q = search.toLowerCase();
+    return options.filter(o => o.toLowerCase().includes(q));
+  }, [options, search]);
+
+  const openDropdown = () => {
+    if (disabled) return;
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setDropPos({
+      top: rect.bottom + window.scrollY + 4,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+    });
+    setOpen(true);
+    setSearch('');
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const select = (opt) => {
+    onChange(opt);
+    setOpen(false);
+  };
+
+  const clear = (e) => {
+    e.stopPropagation();
+    onChange('');
+  };
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (!triggerRef.current?.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={triggerRef} className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={openDropdown}
+        className={`w-full flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-sm text-left transition focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed ${
+          open ? 'border-primary/50 ring-2 ring-primary/20' : ''
+        }`}
+      >
+        <span className={value ? 'text-foreground' : 'text-muted-foreground'}>
+          {value || placeholder}
+        </span>
+        <span className="flex items-center gap-1 shrink-0 ml-2">
+          {value && (
+            <span
+              role="button"
+              tabIndex={-1}
+              onMouseDown={clear}
+              className="flex items-center justify-center w-4 h-4 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+            >
+              ×
+            </span>
+          )}
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+        </span>
+      </button>
+
+      {open && createPortal(
+        <div
+          style={{
+            position: 'absolute',
+            top: dropPos.top,
+            left: dropPos.left,
+            width: dropPos.width,
+            zIndex: 99999,
+          }}
+          onMouseDown={e => e.stopPropagation()}
+          className="rounded-xl border border-border bg-background shadow-xl overflow-hidden"
+        >
+          <div className="p-2 border-b border-border">
+            <input
+              ref={inputRef}
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search…"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+          <div className="max-h-52 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <p className="px-4 py-3 text-sm text-muted-foreground">No results</p>
+            ) : (
+              filtered.map(opt => (
+                <button
+                  key={opt}
+                  type="button"
+                  onMouseDown={() => select(opt)}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition ${
+                    opt === value
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'text-foreground hover:bg-muted'
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
 
 // ─── Icon Map (maps icon name strings from DB to Lucide components) ──────────
 const ICON_MAP = {
@@ -228,55 +353,15 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
               control={control}
               rules={validationRules}
               render={({ field }) => (
-                <Select
-                  options={options.map(o => ({ value: o.value, label: o.value }))}
-                  value={field.value ? { value: field.value, label: field.value } : null}
-                  onChange={(selectedOption) => {
-                    field.onChange(selectedOption ? selectedOption.value : '');
-                    handleSelectChange({ target: { value: selectedOption ? selectedOption.value : '' } });
+                <SearchableSelect
+                  options={options.map(o => o.value)}
+                  value={field.value || ''}
+                  onChange={(val) => {
+                    field.onChange(val);
+                    handleSelectChange({ target: { value: val } });
                   }}
-                  isDisabled={isParentEmpty}
+                  disabled={isParentEmpty}
                   placeholder={emptyStatePlaceholder}
-                  isClearable
-                  isSearchable
-                  menuPortalTarget={document.body}
-                  menuPosition="fixed"
-                  className="react-select-container"
-                  classNamePrefix="react-select"
-                  styles={{
-                    control: (base, state) => ({
-                      ...base,
-                      minHeight: '3rem',
-                      borderRadius: '0.75rem',
-                      borderColor: state.isFocused ? 'hsl(var(--primary) / 0.5)' : 'hsl(var(--border))',
-                      boxShadow: state.isFocused ? '0 0 0 2px hsl(var(--primary) / 0.2)' : 'none',
-                      backgroundColor: 'hsl(var(--background))',
-                      '&:hover': { borderColor: 'hsl(var(--primary) / 0.5)' }
-                    }),
-                    menu: (base) => ({
-                      ...base,
-                      zIndex: 9999,
-                      borderRadius: '0.75rem',
-                      overflow: 'hidden',
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))'
-                    }),
-                    option: (base, state) => ({
-                      ...base,
-                      backgroundColor: state.isSelected 
-                        ? 'hsl(var(--primary) / 0.1)' 
-                        : state.isFocused 
-                          ? 'hsl(var(--muted))' 
-                          : 'transparent',
-                      color: state.isSelected ? 'hsl(var(--primary))' : 'hsl(var(--foreground))',
-                      cursor: 'pointer',
-                      '&:active': { backgroundColor: 'hsl(var(--primary) / 0.2)' }
-                    }),
-                    singleValue: (base) => ({ ...base, color: 'hsl(var(--foreground))' }),
-                    input: (base) => ({ ...base, color: 'hsl(var(--foreground))' }),
-                    placeholder: (base) => ({ ...base, color: 'hsl(var(--muted-foreground))' }),
-                    menuPortal: (base) => ({ ...base, zIndex: 9999 })
-                  }}
                 />
               )}
             />
