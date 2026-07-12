@@ -239,6 +239,8 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
                   placeholder={emptyStatePlaceholder}
                   isClearable
                   isSearchable
+                  menuPortalTarget={document.body}
+                  menuPosition="fixed"
                   className="react-select-container"
                   classNamePrefix="react-select"
                   styles={{
@@ -272,7 +274,8 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
                     }),
                     singleValue: (base) => ({ ...base, color: 'hsl(var(--foreground))' }),
                     input: (base) => ({ ...base, color: 'hsl(var(--foreground))' }),
-                    placeholder: (base) => ({ ...base, color: 'hsl(var(--muted-foreground))' })
+                    placeholder: (base) => ({ ...base, color: 'hsl(var(--muted-foreground))' }),
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 })
                   }}
                 />
               )}
