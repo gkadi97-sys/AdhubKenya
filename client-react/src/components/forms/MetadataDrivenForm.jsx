@@ -219,10 +219,14 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     <p className="mt-1 text-xs text-muted-foreground">{attribute.help_text}</p>
   ) : null;
 
+  const isResolvingParent = cascadeDepAttrId && parentValue && parentLookupId === null;
+
   // Empty state for parent-dependent fields
   const emptyStatePlaceholder = isParentEmpty
     ? `Select ${parentAttrLabel} first`
-    : (attribute.placeholder || `Select ${attribute.label}`);
+    : isResolvingParent
+      ? 'Loading options...'
+      : (attribute.placeholder || `Select ${attribute.label}`);
 
   // Auto-fill highlight class
   const autoFillClass = autoFilled ? 'ring-2 ring-emerald-400/60 border-emerald-400' : '';
@@ -245,20 +249,21 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
         </label>
         
         {isAsync ? (
-          <Controller
-            name={fieldName}
-            control={control}
-            rules={validationRules}
-            render={({ field }) => (
-              <AsyncSelect
-                {...field}
-                isDisabled={isParentEmpty}
-                placeholder={emptyStatePlaceholder}
-                cacheOptions
-                defaultOptions
-                loadOptions={loadOptions}
-                value={field.value ? { label: field.value, value: field.value } : null}
-                onChange={(option) => {
+            <Controller
+              name={fieldName}
+              control={control}
+              rules={validationRules}
+              render={({ field }) => (
+                <AsyncSelect
+                  {...field}
+                  key={parentLookupId || 'default'}
+                  isDisabled={isParentEmpty || isResolvingParent}
+                  placeholder={emptyStatePlaceholder}
+                  cacheOptions
+                  defaultOptions={!isParentEmpty && !isResolvingParent}
+                  loadOptions={loadOptions}
+                  value={field.value ? { label: field.value, value: field.value } : null}
+                  onChange={(option) => {
                   field.onChange(option ? option.value : '');
                   if (option) {
                     handleSelectChange({ target: { value: option.value } }, option);
