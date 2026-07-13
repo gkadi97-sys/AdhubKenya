@@ -193,7 +193,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     if (selectedOption?.metadata?.auto_fill) {
       const autoFill = selectedOption.metadata.auto_fill;
       Object.entries(autoFill).forEach(([key, val]) => {
-        const targetAttr = attributes.find(a => a.name === key);
+        const targetAttr = attributes.find(a => a.id === key || a.name === key);
         if (targetAttr) {
           setValue(`attrs.${targetAttr.id}`, val, { shouldValidate: true, shouldDirty: true });
           setAutoFilled(true);
