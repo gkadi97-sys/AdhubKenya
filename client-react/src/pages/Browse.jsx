@@ -65,9 +65,6 @@ const CATEGORY_QUICK_LINKS = {
   ]
 };
 
-// All categories for the sidebar
-const SIDEBAR_POPULAR = CATEGORIES.map(c => c.slug);
-
 // ── BrowseContent ──────────────────────────────────────────────────────────────
 function BrowseContent({ defaultCategory }) {
   const [searchParams] = useSearchParams();
@@ -389,21 +386,17 @@ function BrowseContent({ defaultCategory }) {
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1 px-1">
                   Browse Categories
                 </p>
-                {SIDEBAR_POPULAR.map(slug => {
-                  const c = CATEGORIES.find(x => x.slug === slug);
-                  if (!c) return null;
-                  return (
-                    <Link
-                      key={slug}
-                      to={`/browse?category=${slug}`}
-                      className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm transition-all group"
-                    >
-                      <span className="text-2xl leading-none w-8 text-center">{c.icon}</span>
-                      <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">{c.name}</span>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                    </Link>
-                  );
-                })}
+                {CATEGORIES.map(c => (
+                  <Link
+                    key={c.slug}
+                    to={`/browse?category=${c.slug}`}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm transition-all group"
+                  >
+                    <span className="text-2xl leading-none w-8 text-center">{c.icon}</span>
+                    <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">{c.name}</span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </Link>
+                ))}
 
                 {/* Collapsed filter notice */}
                 <div className="mt-2 rounded-xl border border-dashed border-border bg-secondary/30 px-4 py-4">
