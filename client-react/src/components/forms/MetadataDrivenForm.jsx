@@ -95,10 +95,10 @@ function evaluateDependencies(attribute, dependencies, allValues) {
 // ─── Lookup Cache ─────────────────────────────────────────────────────────────
 // Session-scoped cache (cleared on each page load via module re-import)
 const LOOKUP_CACHE = new Map();
-async function cachedGetLookupValues(lookupType, parentId = null) {
-  const key = `${lookupType}:${parentId}`;
+async function cachedGetLookupValues(lookupType, parentId = null, search = '') {
+  const key = `${lookupType}:${parentId}:${search}`;
   if (LOOKUP_CACHE.has(key)) return LOOKUP_CACHE.get(key);
-  const result = await getLookupValues(lookupType, parentId);
+  const result = await getLookupValues(lookupType, parentId, search);
   // Only cache small/static lists — not large models/variants
   if (!['phones_model', 'phones_variant'].includes(lookupType)) {
     LOOKUP_CACHE.set(key, result);
@@ -151,8 +151,8 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
       setParentLookupId(null);
       return;
     }
-    cachedGetLookupValues(parentAttr.lookup_type, 'any').then(rows => {
-      const match = rows.find(r => r.value === parentValue);
+    cachedGetLookupValues(parentAttr.lookup_type, 'any', parentValue).then(rows => {
+      const match = rows.find(r => r.value.toLowerCase() === parentValue.toLowerCase());
       setParentLookupId(match?.id ?? null);
     });
   }, [cascadeDepAttrId, parentAttr, parentValue]);
