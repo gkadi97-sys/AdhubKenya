@@ -220,17 +220,14 @@ export default function PostAdPage() {
   const isJob      = category === 'jobs' || category === 'seeking-work';
   const isAutoSpares = category === 'auto-spares';
   const isPhone    = category === 'phones-tablets';
-  const isLaptop   = category === 'electronics' && typeof make === 'string' && make.toLowerCase().includes('laptop');
-  const isAudio    = category === 'electronics' && typeof make === 'string' && make.toLowerCase().includes('audio');
-  const showCondition = !isVehicle && !isAutoSpares && !isPhone && !isLaptop && !isAudio && category && !isJob;
+  const isElectronics = category === 'electronics';
+  const showCondition = !isVehicle && !isAutoSpares && !isPhone && !isElectronics && category && !isJob;
 
   const getConditionOptions = () => {
     if (isVehicle && TRUCK_CONDITIONS && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers', 'Pickups'].includes(make)) return TRUCK_CONDITIONS;
     if (isVehicle) return VEHICLE_CONDITIONS;
     if (isAutoSpares) return AUTOSPARES_CONDITIONS;
     if (isPhone) return PHONE_CONDITIONS;
-    if (isLaptop) return LAPTOP_CONDITIONS;
-    if (isAudio) return AUDIO_CONDITIONS;
     if (showCondition) return STANDARD_CONDITIONS;
     return null;
   };

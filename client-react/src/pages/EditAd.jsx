@@ -99,9 +99,8 @@ export default function EditAdPage() {
   const isJob = category === 'jobs' || category === 'seeking-work';
   const isAutoSpares = category === 'auto-spares';
   const isPhone = category === 'phones-tablets';
-  const isLaptop = category === 'electronics' && make === 'Laptops & Computers';
-  const isAudio = category === 'electronics' && make === 'Audio & Music';
-  const showStandardCondition = !isVehicle && !isAutoSpares && !isPhone && !isLaptop && !isAudio && category && !isJob;
+  const isElectronics = category === 'electronics';
+  const showStandardCondition = !isVehicle && !isAutoSpares && !isPhone && !isElectronics && category && !isJob;
   const isHeavyTruck = isVehicle && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers'].includes(make);
   const isPickupTruck = isVehicle && make === 'Pickups';
 
@@ -110,8 +109,6 @@ export default function EditAdPage() {
     if (isVehicle) return VEHICLE_CONDITIONS;
     if (isAutoSpares) return AUTOSPARES_CONDITIONS;
     if (isPhone) return PHONE_CONDITIONS;
-    if (isLaptop) return LAPTOP_CONDITIONS;
-    if (isAudio) return AUDIO_CONDITIONS;
     if (showStandardCondition) return STANDARD_CONDITIONS;
     return null;
   };
@@ -128,7 +125,7 @@ export default function EditAdPage() {
     try {
       const listingData = { ...formValues };
       if (isJob) listingData.price = 0;
-      if (!showStandardCondition && !isVehicle && !isAutoSpares && !isPhone && !isLaptop && !isAudio) delete listingData.condition;
+      if (!showStandardCondition && !isVehicle && !isAutoSpares && !isPhone && !isElectronics) delete listingData.condition;
 
       const { make, model, year, ...restSpecs } = attrs || {};
       if (make)  listingData.make  = make;
