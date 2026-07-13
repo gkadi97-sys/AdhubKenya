@@ -25,8 +25,7 @@ const CATEGORY_META = {
   'phones-tablets':       { description: 'Smartphones, tablets and accessories.',                    placeholder: 'Search iPhone, Samsung, tablets…',       suggestions: ['iPhone','Samsung','Tecno','iPad','Smartwatch','Earbuds'] },
   'electronics':          { description: 'TVs, laptops, cameras and home electronics.',              placeholder: 'Search laptops, TVs, cameras…',          suggestions: ['Laptop','Smart TV','Camera','Speaker','Projector'] },
   'home-living':       { description: 'Sofas, beds, kitchen items and home décor.',               placeholder: 'Search sofas, beds, fridges…',           suggestions: ['Sofa','Bed','Dining Table','Curtains','Fridge'] },
-  'fashion':              { description: 'Clothes, shoes, bags and accessories.',                    placeholder: 'Search dresses, shoes, bags…',           suggestions: ['Dresses','Sneakers','Handbag','Suit','Jewelry'] },
-  'beauty':               { description: 'Skincare, makeup, haircare and personal care.',            placeholder: 'Search skincare, wigs, perfume…',        suggestions: ['Skincare','Wig','Perfume','Makeup','Hair Extensions'] },
+  'fashion':              { description: 'Clothes, shoes, bags, skincare and beauty products.',      placeholder: 'Search dresses, shoes, makeup, bags…',   suggestions: ['Dresses','Sneakers','Handbag','Skincare','Perfume','Suit','Jewelry','Wig'] },
   'services':             { description: 'Skilled professionals for any job across Kenya.',          placeholder: 'Search plumbers, tutors, drivers…',      suggestions: ['Plumber','Electrician','Cleaner','Driver','Tutor'] },
   'repair-construction':  { description: 'Builders, contractors and construction services.',         placeholder: 'Search builders, painters…',             suggestions: ['Builder','Painter','Tiler','Welder','Carpenter'] },
   'commercial-equipment': { description: 'Industrial, farming and commercial machinery.',            placeholder: 'Search generators, tractors…',           suggestions: ['Generator','Tractor','Pump','Compressor','Fork Lift'] },
@@ -66,8 +65,8 @@ const CATEGORY_QUICK_LINKS = {
   ]
 };
 
-// Sidebar popular categories (exclude current)
-const SIDEBAR_POPULAR = ['vehicles','property','phones-tablets','electronics','services','jobs'];
+// All categories for the sidebar
+const SIDEBAR_POPULAR = CATEGORIES.map(c => c.slug);
 
 // ── BrowseContent ──────────────────────────────────────────────────────────────
 function BrowseContent({ defaultCategory }) {
@@ -388,7 +387,7 @@ function BrowseContent({ defaultCategory }) {
               {/* Sidebar: Popular + collapsed filters */}
               <aside className="hidden md:flex w-[280px] shrink-0 flex-col gap-3">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1 px-1">
-                  Popular in marketplace
+                  Browse Categories
                 </p>
                 {SIDEBAR_POPULAR.map(slug => {
                   const c = CATEGORIES.find(x => x.slug === slug);

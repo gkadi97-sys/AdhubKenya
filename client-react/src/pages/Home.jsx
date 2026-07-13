@@ -422,7 +422,6 @@ function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY
   return (
     <nav className={`flex flex-col gap-6 ${transitionClass}`}>
       {SIDEBAR_SECTIONS.map((section) => {
-        if (!showAll && (section.id === 'specialized' || section.id === 'more')) return null;
         const rankedCategories = getRankedCategoriesWithCounts(section.slugs, enrichedIcons);
         if (!rankedCategories.length) return null;
         return (
@@ -452,11 +451,6 @@ function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY
           </div>
         );
       })}
-      <div className="px-3 mt-2">
-        <button onClick={() => setShowAll(!showAll)} className="w-full py-2.5 rounded-xl border border-border bg-secondary/50 hover:bg-secondary text-xs font-semibold text-foreground transition-colors cursor-pointer">
-          {showAll ? 'Show Less' : 'Explore All Categories'}
-        </button>
-      </div>
       <div className="mt-4 border-t border-border pt-4 px-3">
         <Link to="/browse" className="flex items-center gap-2 text-xs font-semibold text-primary hover:underline">
           Browse all listings <ChevronRight className="w-3.5 h-3.5" />
