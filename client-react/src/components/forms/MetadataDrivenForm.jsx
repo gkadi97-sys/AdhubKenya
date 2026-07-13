@@ -23,8 +23,10 @@ import {
   Cpu, HardDrive, Camera, List, Info, Wrench, Package,
   ShoppingBag, Leaf, PawPrint, Zap, Shirt, BookOpen,
   GraduationCap, Laptop, Wifi, Battery, Monitor, Tag,
+  Search
 } from 'lucide-react';
 import AsyncSelect from 'react-select/async';
+import AmenitiesSearchPicker from './AmenitiesSearchPicker';
 
 const ASYNC_LOOKUPS = ['phones_brand', 'phones_series', 'phones_model', 'phones_variant', 'vehicle_model', 'vehicle_trim'];
 
@@ -325,34 +327,47 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
           control={control}
           rules={{ required: required ? `Select at least one ${attribute.label}` : false }}
           render={({ field }) => (
-            <div className="flex flex-wrap gap-2 mt-1">
-              {loadingOptions ? (
-                <div className="flex h-10 items-center gap-2 text-muted-foreground text-sm">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Loading options...
+            <>
+              {attribute.lookup_type === 'property_amenities' || attribute.lookup_type === 'property_nearbyFacilities' ? (
+                <div className="mt-2">
+                  <AmenitiesSearchPicker
+                    options={options}
+                    value={field.value}
+                    onChange={field.onChange}
+                    propertyType={watch('attrs.propertyType') || ''}
+                  />
                 </div>
               ) : (
-                options.map(opt => {
-                  const isSelected = Array.isArray(field.value) && field.value.includes(opt.value);
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        const current = Array.isArray(field.value) ? field.value : [];
-                        field.onChange(isSelected ? current.filter(i => i !== opt.value) : [...current, opt.value]);
-                      }}
-                      className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
-                        isSelected
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted'
-                      }`}
-                    >
-                      {opt.value}
-                    </button>
-                  );
-                })
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {loadingOptions ? (
+                    <div className="flex h-10 items-center gap-2 text-muted-foreground text-sm">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Loading options...
+                    </div>
+                  ) : (
+                    options.map(opt => {
+                      const isSelected = Array.isArray(field.value) && field.value.includes(opt.value);
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => {
+                            const current = Array.isArray(field.value) ? field.value : [];
+                            field.onChange(isSelected ? current.filter(i => i !== opt.value) : [...current, opt.value]);
+                          }}
+                          className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
+                            isSelected
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-muted'
+                          }`}
+                        >
+                          {opt.value}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
         />
         {helpText}

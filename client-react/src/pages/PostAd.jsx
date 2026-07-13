@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { createListing, checkDuplicateListing } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
 import MetadataDrivenForm from '@/components/forms/MetadataDrivenForm';
+import ListingPreviewCard from '@/components/forms/ListingPreviewCard';
 import PlateRedactModal from '@/components/PlateRedactModal';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
 import { TRUCK_CONDITIONS } from '@/lib/truckData';
@@ -533,9 +534,11 @@ export default function PostAdPage() {
 
   return (
     <div className="py-10 pb-24 px-4 sm:px-6 bg-background">
-      <div className="mx-auto" style={{ maxWidth: (isVehicle || isProperty) ? 960 : 780 }}>
-
-        {/* Header */}
+      <div className="mx-auto max-w-6xl">
+        <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-8 items-start">
+          
+          <div className="min-w-0" style={{ maxWidth: (isVehicle || isProperty) ? 960 : 780 }}>
+            {/* Header */}
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h1 className="font-display text-3xl font-bold tracking-tight mb-1">
@@ -567,7 +570,7 @@ export default function PostAdPage() {
 
         {/* Overall progress bar */}
         {totalSections > 0 && (
-          <div className="mb-6 space-y-1.5">
+          <div className="sticky top-20 z-40 bg-background/95 backdrop-blur py-3 mb-6 space-y-1.5 border-b border-border/50">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>Listing progress</span>
               <span className="font-semibold text-primary">{overallPct}% complete</span>
@@ -833,6 +836,19 @@ export default function PostAdPage() {
           )}
         </form>
       </div>
+      
+      {/* Right Column: Live Preview Card (Desktop) */}
+      <div className="hidden lg:block">
+        <div className="sticky top-24">
+          <ListingPreviewCard
+            control={control}
+            category={category}
+            images={previews}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
 
       {/* Manual Plate Redaction Modal */}
       {redactIndex !== null && images[redactIndex] && (

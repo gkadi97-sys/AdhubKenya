@@ -62,7 +62,7 @@ COUNTY_TOWNS['Kajiado']['Kitengela'] = ['Chang\'ombe', 'Milimani', 'Yukos', 'Aca
 COUNTY_TOWNS['Kajiado']['Ongata Rongai'] = ['Nkoroi', 'Kandisi', 'Olekasasi', 'Laiser Hill', 'Rimpa'];
 COUNTY_TOWNS['Kajiado']['Ngong'] = ['Matasia', 'Bulbul', 'Zambia', 'Kibiko', 'Lemelepo'];
 
-COUNTY_TOWNS['Nairobi']['Westlands'] = ['Rhapta Road', 'Brookside', 'Spring Valley', 'Waiyaki Way', 'Karura'];
+COUNTY_TOWNS['Nairobi']['Westlands'] = ['Rhapta Road', 'Brookside', 'Spring Valley', 'Waiyaki Way', 'Karura', 'Kangemi', 'Lavington', 'Parklands', 'Lower Kabete'];
 COUNTY_TOWNS['Nairobi']['Kilimani'] = ['Yaya', 'Dennis Pritt', 'Lenana Road', 'Argwings Kodhek', 'Riara'];
 COUNTY_TOWNS['Nairobi']['Kasarani'] = ['Seasons', 'Hunters', 'Sunton', 'Mwiki', 'Clay City'];
 
