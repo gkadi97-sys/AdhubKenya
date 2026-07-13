@@ -287,8 +287,18 @@ export const getListing = async (idOrSlug) => {
     
   if (error) throw error;
   
-  // Increment views
-  supabase.from('listing_events').insert({ listing_id: data.id, event_type: 'view' }).then();
+  // Try atomic increment (requires migration 20260713000000_fix_views_permissions.sql)
+  try {
+    const { data: newViews, error: rpcErr } = await supabase.rpc('increment_listing_views', { p_listing_id: data.id });
+    if (!rpcErr && newViews != null) {
+      data.views = newViews;
+    } else {
+      // Fallback: fire-and-forget insert to listing_events, keep existing views count
+      supabase.from('listing_events').insert({ listing_id: data.id, event_type: 'view' }).then();
+    }
+  } catch (_) {
+    // ignore — non-critical
+  }
   
   return data;
 };
@@ -628,11 +638,12 @@ export async function checkDuplicateListing(sellerId, title, category) {
 // ==========================================
 
 export const getListingViews = async (listingId) => {
-  const { count } = await supabase.from('listing_events')
-    .select('id', { count: 'exact', head: true })
-    .eq('listing_id', listingId)
-    .eq('event_type', 'view');
-  return count || 0;
+  // Try the SECURITY DEFINER RPC first (requires GRANT EXECUTE TO anon — see migration 20260713000000)
+  const { data, error } = await supabase.rpc('get_listing_views', { p_listing_id: listingId });
+  if (!error && data != null) return data;
+  // Fallback: read views directly from the listings row (always readable by anon)
+  const { data: row } = await supabase.from('listings').select('views').eq('id', listingId).single();
+  return row?.views || 0;
 };
 
 export const getSellerStats = async (sellerId) => {

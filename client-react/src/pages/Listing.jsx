@@ -113,7 +113,10 @@ export default function ListingDetailPage() {
             getSellerStats(data.seller_id).then(setSellerStats);
             canUserReviewSeller(data.seller_id).then(setCanReview);
           }
-          getListingViews(data.id).then(setListingViews);
+          // Set from the listing data first (may already be incremented by RPC)
+          setListingViews(data.views || 0);
+          // Also fetch via getListingViews for accurate count (falls back through multiple methods)
+          getListingViews(data.id).then(count => { if (count > 0) setListingViews(count); });
         }
       }).catch(() => setListing(null)).finally(() => setLoading(false));
     }
