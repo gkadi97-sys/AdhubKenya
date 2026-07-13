@@ -53,10 +53,10 @@ const CATEGORY_QUICK_LINKS = {
     { label: 'Commercial', query: { property_type: 'Commercial Property' } }
   ],
   'phones-tablets': [
-    { label: 'iPhones', query: { brand: 'Apple' } },
-    { label: 'Samsung', query: { brand: 'Samsung' } },
+    { label: 'Mobile Phones', query: { subcategory: 'Mobile Phones' } },
     { label: 'Tablets', query: { subcategory: 'Tablets' } },
-    { label: 'Smartwatches', query: { subcategory: 'Smartwatches' } }
+    { label: 'Wearables', query: { subcategory: 'Wearables' } },
+    { label: 'Feature Phones', query: { subcategory: 'Feature Phones' } },
   ],
   electronics: [
     { label: 'Laptops', query: { subcategory: 'Laptops & Computers' } },

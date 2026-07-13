@@ -715,6 +715,15 @@ export const CATEGORY_ATTRIBUTES = {
         'Fitbit Versa','Fitbit Charge',
         'Xiaomi Mi Band','Huawei Band',
         'Other Smartwatch / Fitness Tracker'
+      ],
+      'Feature Phones': [
+        'Nokia 3310','Nokia 3310 (2017)','Nokia 105','Nokia 110','Nokia 150','Nokia 215',
+        'Nokia 225 4G','Nokia 230','Nokia 2720 Flip','Nokia 2780 Flip','Nokia 800 Tough',
+        'Samsung Galaxy A03 Core','Samsung Metro','Samsung Guru',
+        'Tecno T301','Tecno T313','Tecno T528','Tecno T901',
+        'Infinix S200','Infinix F150',
+        'Itel it600','Itel it5030','Itel it2163','Itel it2590',
+        'Other Feature Phone'
       ]
     }
   },
