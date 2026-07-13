@@ -91,12 +91,16 @@ function evaluateDependencies(attribute, dependencies, allValues) {
 }
 
 // ─── Lookup Cache ─────────────────────────────────────────────────────────────
-const LOOKUP_CACHE = {};
+// Session-scoped cache (cleared on each page load via module re-import)
+const LOOKUP_CACHE = new Map();
 async function cachedGetLookupValues(lookupType, parentId = null) {
   const key = `${lookupType}:${parentId}`;
-  if (LOOKUP_CACHE[key]) return LOOKUP_CACHE[key];
+  if (LOOKUP_CACHE.has(key)) return LOOKUP_CACHE.get(key);
   const result = await getLookupValues(lookupType, parentId);
-  LOOKUP_CACHE[key] = result;
+  // Only cache small/static lists — not large models/variants
+  if (!['phones_model', 'phones_variant'].includes(lookupType)) {
+    LOOKUP_CACHE.set(key, result);
+  }
   return result;
 }
 
