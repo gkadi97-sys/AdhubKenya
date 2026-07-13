@@ -59,7 +59,10 @@ function evaluateDependencies(attribute, dependencies, allValues) {
     const fieldValue =
       allValues?.attrs?.[depends_on_attribute_id] ??
       allValues?.[depends_on_attribute_id];
-    const depVal = dependency_value;
+    let depVal = dependency_value;
+    if (typeof depVal === 'string' && depVal.startsWith('[')) {
+      try { depVal = JSON.parse(depVal); } catch (e) { /* ignore */ }
+    }
 
     switch (operator) {
       case 'equals':       return String(fieldValue ?? '') === String(depVal ?? '');
