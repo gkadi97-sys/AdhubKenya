@@ -24,6 +24,9 @@ import {
   ShoppingBag, Leaf, PawPrint, Zap, Shirt, BookOpen,
   GraduationCap, Laptop, Wifi, Battery, Monitor, Tag,
 } from 'lucide-react';
+import AsyncSelect from 'react-select/async';
+
+const ASYNC_LOOKUPS = ['phones_brand', 'phones_series', 'phones_model', 'phones_variant', 'vehicle_model', 'vehicle_trim'];
 
 // ─── Icon Map (maps icon name strings from DB to Lucide components) ──────────
 const ICON_MAP = {
@@ -148,6 +151,15 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     });
   }, [cascadeDepAttrId, parentAttr, parentValue]);
 
+  // Recursive Reset Logic: When parentValue changes, clear this field.
+  const prevParentValue = useRef(parentValue);
+  useEffect(() => {
+    if (prevParentValue.current !== parentValue) {
+      setValue(fieldName, '', { shouldValidate: true, shouldDirty: true });
+      prevParentValue.current = parentValue;
+    }
+  }, [parentValue, fieldName, setValue]);
+
   const [options, setOptions] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [autoFilled, setAutoFilled] = useState(false);
@@ -169,9 +181,9 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     });
   }, [attribute.lookup_type, attribute.id, cascadeDepAttrId, parentLookupId, parentValue, parentAttrId, needsLookup]);
 
-  const handleSelectChange = (e) => {
+  const handleSelectChange = (e, fullOption = null) => {
     const selectedValue = e.target.value;
-    const selectedOption = options.find(o => o.value === selectedValue);
+    const selectedOption = fullOption || options.find(o => o.value === selectedValue);
     if (selectedOption?.metadata?.auto_fill) {
       const autoFill = selectedOption.metadata.auto_fill;
       Object.entries(autoFill).forEach(([key, val]) => {
@@ -211,34 +223,82 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
 
   // SELECT
   if (attribute.field_type === 'select') {
+    const isAsync = ASYNC_LOOKUPS.includes(attribute.lookup_type);
+
+    const loadOptions = (inputValue) => {
+      const resolvedParentId = cascadeDepAttrId && parentValue ? parentLookupId : null;
+      return getLookupValues(attribute.lookup_type, resolvedParentId, inputValue).then(data => {
+        return data.map(d => ({ label: d.value, value: d.value, metadata: d.metadata }));
+      });
+    };
+
     return (
       <div>
         <label className={labelClass}>
           {attribute.label}{unitLabel} {required && <span className="text-destructive">*</span>}
         </label>
-        <div className="relative">
-          {loadingOptions ? (
-            <div className="flex h-12 items-center justify-center rounded-xl border border-border bg-background">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <select
-              className={`${inputClass} ${autoFillClass} appearance-none pr-8 transition-all duration-150`}
-              disabled={isParentEmpty}
-              {...register(fieldName, validationRules)}
-              onChange={(e) => {
-                register(fieldName).onChange(e);
-                handleSelectChange(e);
-              }}
-            >
-              <option value="">{emptyStatePlaceholder}</option>
-              {options.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.value}</option>
-              ))}
-            </select>
-          )}
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        </div>
+        
+        {isAsync ? (
+          <Controller
+            name={fieldName}
+            control={control}
+            rules={validationRules}
+            render={({ field }) => (
+              <AsyncSelect
+                {...field}
+                isDisabled={isParentEmpty}
+                placeholder={emptyStatePlaceholder}
+                cacheOptions
+                defaultOptions
+                loadOptions={loadOptions}
+                value={field.value ? { label: field.value, value: field.value } : null}
+                onChange={(option) => {
+                  field.onChange(option ? option.value : '');
+                  if (option) {
+                    handleSelectChange({ target: { value: option.value } }, option);
+                  }
+                }}
+                menuPortalTarget={document.body}
+                styles={{
+                  menuPortal: base => ({ ...base, zIndex: 9999 }),
+                  control: (base, state) => ({
+                    ...base,
+                    borderRadius: '0.75rem',
+                    padding: '0.2rem',
+                    borderColor: autoFilled ? '#34d399' : state.isFocused ? '#2563eb' : '#e2e8f0',
+                    boxShadow: autoFilled ? '0 0 0 2px rgba(52, 211, 153, 0.6)' : state.isFocused ? '0 0 0 1px #2563eb' : 'none',
+                    '&:hover': { borderColor: state.isFocused ? '#2563eb' : '#cbd5e1' }
+                  })
+                }}
+              />
+            )}
+          />
+        ) : (
+          <div className="relative">
+            {loadingOptions ? (
+              <div className="flex h-12 items-center justify-center rounded-xl border border-border bg-background">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <select
+                className={`${inputClass} ${autoFillClass} appearance-none pr-8 transition-all duration-150`}
+                disabled={isParentEmpty}
+                {...register(fieldName, validationRules)}
+                onChange={(e) => {
+                  register(fieldName).onChange(e);
+                  handleSelectChange(e);
+                }}
+              >
+                <option value="">{emptyStatePlaceholder}</option>
+                {options.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.value}</option>
+                ))}
+              </select>
+            )}
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          </div>
+        )}
+        
         {isParentEmpty && (
           <p className="mt-1 flex items-center gap-1 text-xs text-amber-500">
             <Info className="h-3 w-3" /> Select {parentAttrLabel} to unlock this field

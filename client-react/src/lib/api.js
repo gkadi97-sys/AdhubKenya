@@ -508,15 +508,17 @@ export const getCategoryMetadata = async (categorySlug) => {
   };
 };
 
-export const getLookupValues = async (lookupType, parentId = null) => {
+export const getLookupValues = async (lookupType, parentId = null, search = '') => {
   if (lookupType === 'vehicle_make') {
     const makes = await getVehicleMakes();
-    return makes.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    const mapped = makes.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
   }
   if (lookupType === 'vehicle_model') {
     if (!parentId || parentId === 'any') return [];
     const models = await getVehicleModels(parentId);
-    return models.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    const mapped = models.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
   }
   if (lookupType === 'vehicle_generation') {
     if (!parentId || parentId === 'any') return [];
@@ -542,6 +544,14 @@ export const getLookupValues = async (lookupType, parentId = null) => {
     query = query.eq('parent_id', parentId);
   } else {
     query = query.is('parent_id', null);
+  }
+  
+  if (search && search.trim().length > 0) {
+    query = query.ilike('value', `%${search.trim()}%`).limit(50);
+  } else {
+    if (['phones_model', 'phones_variant'].includes(lookupType)) {
+      query = query.limit(300);
+    }
   }
   
   const { data, error } = await query;
