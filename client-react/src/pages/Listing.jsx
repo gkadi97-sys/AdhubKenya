@@ -199,7 +199,7 @@ export default function ListingDetailPage() {
       <div className="mx-auto max-w-6xl">
 
         {listing.category === 'seeking-work' ? (
-          <CandidateProfile listing={listing} />
+          <CandidateProfile listing={listing} listingViews={listingViews} />
         ) : (
           <>
             {/* Breadcrumb - Truncated earlier items, only active final */}
@@ -244,7 +244,7 @@ export default function ListingDetailPage() {
                         <MapPin className="w-3 h-3" /> {listing.location}
                       </span>
                       <span className="inline-flex items-center gap-1 text-muted-foreground px-2 py-1">
-                        <Eye className="w-3 h-3" /> {listing.views} Views
+                        <Eye className="w-3 h-3" /> {listingViews} Views
                       </span>
                     </div>
                   </div>

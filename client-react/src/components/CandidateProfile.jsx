@@ -4,7 +4,7 @@ import { MapPin, Briefcase, GraduationCap, Clock, CheckCircle2, Languages, Phone
 import toast from 'react-hot-toast';
 import Image from '@/components/Image';
 
-export default function CandidateProfile({ listing }) {
+export default function CandidateProfile({ listing, listingViews }) {
   const s = listing.specs || {};
   
   // Handlers
@@ -279,7 +279,7 @@ export default function CandidateProfile({ listing }) {
               </div>
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5"><Send className="w-3.5 h-3.5" /> Views</span>
-                <span>{listing.views || 0}</span>
+                <span>{listingViews || 0}</span>
               </div>
             </div>
 
