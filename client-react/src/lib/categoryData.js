@@ -948,34 +948,6 @@ export const CATEGORY_ATTRIBUTES = {
         'Projectors','Power Banks','Cables & Adapters','Smart Home Devices'
       ]
     }
-  },
-
-  'home-furniture': {
-    level1Label: 'Category',
-    level2Label: 'Item',
-    hasYear: false,
-    data: {
-      'Appliances': [
-        'Fridges & Freezers','Cookers & Ovens','Microwaves',
-        'Washing Machines & Dryers','Blenders & Mixers','Water Dispensers',
-        'Vacuum Cleaners','Irons & Steamers','Fans & Air Conditioners'
-      ],
-      'Furniture': [
-        'Beds & Frames','Mattresses','Sofas & Couches',
-        'Wardrobes & Closets','Dining Tables & Chairs','TV Stands',
-        'Coffee Tables','Office Desks & Chairs','Outdoor Furniture'
-      ],
-      'Home Decor': [
-        'Rugs & Carpets','Curtains & Blinds','Lighting & Lamps',
-        'Wall Art & Mirrors','Cushions & Pillows','Clocks'
-      ],
-      'Kitchenware': [
-        'Pots & Pans','Cutlery & Utensils','Plates & Bowls',
-        'Glasses & Mugs','Storage Containers'
-      ]
-    }
-  },
-
   'fashion': {
     level1Label: 'Category',
     level2Label: 'Item',
@@ -1289,10 +1261,12 @@ export const CATEGORY_ICONS = [
   { slug: 'services',             name: 'Services',                     icon: '🔧', count: 0, activity: 65, clicks: 60, searchDemand: 75 },
   { slug: 'repair-construction',  name: 'Repair & Construction',        icon: '🛠️', count: 0, activity: 30, clicks: 40, searchDemand: 50 },
   { slug: 'commercial-equipment', name: 'Business & Industrial',        icon: '🚜', count: 0, activity: 40, clicks: 45, searchDemand: 40 },
+  { slug: 'commercial-vehicles',  name: 'Commercial Vehicles',          icon: '🚛', count: 0, activity: 45, clicks: 50, searchDemand: 45 },
   { slug: 'leisure',              name: 'Hobbies & Entertainment',      icon: '⚽', count: 0, activity: 20, clicks: 25, searchDemand: 30 },
   { slug: 'babies-kids',          name: 'Babies & Kids',                icon: '🧸', count: 0, activity: 45, clicks: 50, searchDemand: 55 },
   { slug: 'food-agriculture',     name: 'Agriculture & Food',           icon: '🍎', count: 0, activity: 30, clicks: 35, searchDemand: 40 },
   { slug: 'animals-pets',         name: 'Animals & Pets',               icon: '🐶', count: 0, activity: 50, clicks: 55, searchDemand: 60 },
+  { slug: 'beauty',               name: 'Health & Beauty',              icon: '💄', count: 0, activity: 65, clicks: 70, searchDemand: 75 },
   { slug: 'jobs',                 name: 'Jobs',                         icon: '💼', count: 0, activity: 80, clicks: 85, searchDemand: 95 },
   { slug: 'seeking-work',         name: 'CVs & Resumes',                icon: '📄', count: 0, activity: 40, clicks: 45, searchDemand: 50 },
 ];
