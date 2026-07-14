@@ -948,6 +948,7 @@ export const CATEGORY_ATTRIBUTES = {
         'Projectors','Power Banks','Cables & Adapters','Smart Home Devices'
       ]
     }
+  },
   'fashion': {
     level1Label: 'Category',
     level2Label: 'Item',
