@@ -17,9 +17,11 @@ export default function HeroSearch({ stickyCategory = null }) {
   const [isFocused, setIsFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [isListening, setIsListening] = useState(false);
 
   const searchRef = useRef(null);
   const overlayInputRef = useRef(null);
+  const recognitionRef = useRef(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -139,6 +141,51 @@ export default function HeroSearch({ stickyCategory = null }) {
     if (location !== 'All Kenya') p.set('county', location);
     if (finalCategory) p.set('category', finalCategory);
     navigate(`/browse?${p.toString()}`);
+  };
+
+  const handleVoiceSearch = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Voice search is not supported in your browser.');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setKeyword('');
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setKeyword(transcript);
+      setIsListening(false);
+      // Auto-focus input so they see the dropdown suggestions
+      setIsFocused(true);
+      if (overlayInputRef.current) overlayInputRef.current.focus();
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error', event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
   };
 
   const closeOverlay = useCallback(() => setIsFocused(false), []);
@@ -346,6 +393,15 @@ export default function HeroSearch({ stickyCategory = null }) {
                   <X className="h-4 w-4" />
                 </button>
               )}
+              {!keyword && (
+                <button
+                  type="button"
+                  onClick={handleVoiceSearch}
+                  className={`shrink-0 p-1.5 rounded-full transition ${isListening ? 'bg-destructive/10 text-destructive animate-pulse' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
+                >
+                  <Mic className="h-4 w-4" />
+                </button>
+              )}
             </form>
           </div>
 
@@ -418,7 +474,12 @@ export default function HeroSearch({ stickyCategory = null }) {
                 autoComplete="off"
               />
             </div>
-            <button type="button" className="shrink-0 p-2 -mr-2 rounded-full text-muted-foreground hover:bg-secondary/50 transition" title="Voice Search">
+            <button 
+              type="button" 
+              onClick={handleVoiceSearch}
+              className={`shrink-0 p-2 -mr-2 rounded-full transition ${isListening ? 'bg-destructive/10 text-destructive animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'text-muted-foreground hover:bg-secondary/50'}`}
+              title="Voice Search"
+            >
               <Mic className="h-5 w-5" />
             </button>
           </div>
