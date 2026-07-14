@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getSellerListings, deleteListing, formatPrice, timeAgo, imageUrl , updateListing } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+// eslint-disable-next-line no-unused-vars
 import { PlusCircle, MapPin, Eye, Clock, Trash2, ExternalLink, PackageOpen, Lock, Sparkles, Edit } from 'lucide-react';
 import PromoteAdModal from '@/components/PromoteAdModal';
 import Image from '@/components/Image';
@@ -17,15 +18,16 @@ export default function MyAdsPage() {
   useEffect(() => {
     if (user?.id) {
       getSellerListings(user.id).then(setListings).catch(()=>setListings([])).finally(()=>setLoading(false));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     } else { setLoading(false); }
-    // eslint-disable-next-line
+     
   }, [user]);
 
   
   const handleStatusChange = async (id, newStatus, currentTitle) => {
     let message = `Change status to ${newStatus}?`;
     if (newStatus === 'sold') message = `Mark "${currentTitle}" as Sold? It will remain visible but marked as SOLD.`;
-    if (newStatus === 'closed') message = `Close "${currentTitle}"? It will be hidden from public search.`;
+    if (newStatus === 'expired') message = `Close "${currentTitle}"? It will be hidden from public search.`;
     if (newStatus === 'active') message = `Reactivate "${currentTitle}"?`;
     if (newStatus === 'pending') message = `Submit "${currentTitle}" for review?`;
 
@@ -204,7 +206,7 @@ const handleDelete = async (id) => {
                         {l.status === 'active' && <span className="flex items-center rounded-full bg-green-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-green-600 border border-green-500/20">ACTIVE</span>}
                         {l.status === 'sold' && <span className="flex items-center rounded-full bg-blue-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-blue-600 border border-blue-500/20">SOLD</span>}
                         {l.status === 'pending' && <span className="flex items-center rounded-full bg-orange-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-orange-600 border border-orange-500/20">PENDING</span>}
-                        {(l.status === 'closed' || l.status === 'expired') && <span className="flex items-center rounded-full bg-gray-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-600 border border-gray-500/20">{l.status.toUpperCase()}</span>}
+                        {l.status === 'expired' && <span className="flex items-center rounded-full bg-gray-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-600 border border-gray-500/20">CLOSED</span>}
                         {l.status === 'draft' && <span className="flex items-center rounded-full bg-slate-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-600 border border-slate-500/20">DRAFT</span>}
                         {(l.status === 'rejected' || l.status === 'needs_revision' || l.status === 'suspended') && <span className="flex items-center rounded-full bg-red-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-red-600 border border-red-500/20">{l.status.toUpperCase().replace('_', ' ')}</span>}
                         {l.promoted_until && new Date(l.promoted_until) > new Date() && (
@@ -239,13 +241,13 @@ const handleDelete = async (id) => {
 
                       {/* Close (Active) */}
                       {l.status === 'active' && (
-                        <button onClick={() => handleStatusChange(l.id, 'closed', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-muted-foreground transition hover:bg-secondary sm:w-auto flex-1 sm:flex-none">
+                        <button onClick={() => handleStatusChange(l.id, 'expired', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-4 text-xs font-semibold text-muted-foreground transition hover:bg-secondary sm:w-auto flex-1 sm:flex-none">
                           Close
                         </button>
                       )}
 
                       {/* Reactivate (Sold, Closed, Expired) */}
-                      {['sold', 'closed', 'expired'].includes(l.status) && (
+                      {['sold', 'expired'].includes(l.status) && (
                         <button onClick={() => handleStatusChange(l.id, 'pending', l.title)} className="flex h-9 items-center justify-center gap-1.5 rounded-lg border border-green-500/30 bg-green-500/10 px-4 text-xs font-semibold text-green-600 transition hover:bg-green-600 hover:text-white sm:w-auto flex-1 sm:flex-none">
                           Reactivate
                         </button>

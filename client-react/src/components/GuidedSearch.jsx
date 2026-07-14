@@ -51,9 +51,10 @@ export default function GuidedSearch() {
   // Stable suggestion counts — computed once so they don't flicker on re-render
   const suggestionCounts = useMemo(() => {
     const result = {};
+    // eslint-disable-next-line react-hooks/purity
     POPULAR_SEARCHES.forEach(s => { result[s] = Math.floor(Math.random() * 500) + 50; });
     return result;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   let quickFilters = category ? (QUICK_FILTERS[category] || []) : [];
@@ -99,6 +100,7 @@ export default function GuidedSearch() {
 
   // Autocomplete — Supabase + popular fallback
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!keyword.trim() || keyword.length < 2) { setSugg([]); return; }
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {

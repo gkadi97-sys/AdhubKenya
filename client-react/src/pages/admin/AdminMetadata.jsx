@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+// eslint-disable-next-line no-unused-vars
 import { Settings, Edit, Plus, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -10,6 +11,7 @@ export default function AdminMetadata() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     fetchCategories();
   }, []);
 

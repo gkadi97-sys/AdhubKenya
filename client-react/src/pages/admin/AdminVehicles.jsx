@@ -230,6 +230,7 @@ function MakeCard({ make, isSelected, onSelect, onRefresh }) {
 // ─── Main AdminVehicles ────────────────────────────────────────────────────────
 
 export default function AdminVehicles() {
+  // eslint-disable-next-line no-unused-vars
   const { user } = useAuth();
   const [makes, setMakes] = useState([]);
   const [models, setModels] = useState([]);
@@ -263,6 +264,7 @@ export default function AdminVehicles() {
       const { count: makeCount } = await supabase.from('vehicle_makes').select('*', { count: 'exact', head: true });
       const { count: modelCount } = await supabase.from('vehicle_models').select('*', { count: 'exact', head: true });
       setStats({ makes: makeCount || 0, models: modelCount || 0 });
+    // eslint-disable-next-line no-unused-vars
     } catch (e) {
       toast.error('Failed to load makes');
     }
@@ -274,6 +276,7 @@ export default function AdminVehicles() {
     try {
       const data = await fetchModels(makeId);
       setModels(data);
+    // eslint-disable-next-line no-unused-vars
     } catch (e) {
       toast.error('Failed to load models');
     }
@@ -281,10 +284,12 @@ export default function AdminVehicles() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadMakes();
   }, [loadMakes]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (selectedMake) loadModels(selectedMake.id);
     else setModels([]);
   }, [selectedMake, loadModels]);
@@ -340,6 +345,7 @@ export default function AdminVehicles() {
       a.click();
       toast.dismiss();
       toast.success('Exported!');
+    // eslint-disable-next-line no-unused-vars
     } catch (e) {
       toast.dismiss();
       toast.error('Export failed');

@@ -52,6 +52,7 @@ function Avatar({ name, size = 14 }) {
 // ── Main component ─────────────────────────────────────────────────────────
 export default function CandidateCard({ listing }) {
   const [saved, setSaved] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setSaved(getSaved().includes(listing.id)); }, [listing.id]);
 
   const s = listing.specs || {};

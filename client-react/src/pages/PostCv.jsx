@@ -33,6 +33,7 @@ export default function PostCvPage() {
   // Load auto-save draft
   const savedDraft = JSON.parse(localStorage.getItem('adhub_cv_draft') || '{}');
 
+  // eslint-disable-next-line no-unused-vars
   const { register, handleSubmit, watch, control, setValue, formState: { errors } } = useForm({
     defaultValues: {
       title: savedDraft.title || '',
@@ -68,6 +69,7 @@ export default function PostCvPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Auto-save form data on change
+  // eslint-disable-next-line react-hooks/incompatible-library
   const formValues = watch();
   useEffect(() => {
     const draftToSave = { ...formValues, photoPreview };

@@ -12,8 +12,10 @@ export default function ContinueBrowsing() {
     try {
       const stored = localStorage.getItem(RECENT_CATS_KEY);
       if (stored) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setRecentCats(JSON.parse(stored).slice(0, 4));
       }
+    // eslint-disable-next-line no-unused-vars
     } catch (_) {
       // ignore storage errors
     }

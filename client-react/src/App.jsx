@@ -20,6 +20,7 @@ import Navbar from '@/components/Navbar.jsx';
 import Footer from '@/components/Footer.jsx';
 import MobileBottomNav from '@/components/MobileBottomNav.jsx';
 import GoogleSignInPrompt from '@/components/GoogleSignInPrompt.jsx';
+import AIChatbot from '@/components/AIChatbot.jsx';
 
 // --- Public Pages (Eager) ---
 import Home from '@/pages/Home.jsx';
@@ -144,6 +145,7 @@ function AppLayout() {
       <Footer />
       <MobileBottomNav />
       <GoogleSignInPrompt />
+      <AIChatbot />
     </>
   );
 }

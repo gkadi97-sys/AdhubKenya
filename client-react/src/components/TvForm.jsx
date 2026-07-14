@@ -53,6 +53,7 @@ export default function TvForm({ values = {}, onChange }) {
   // Reset dependent fields when brand changes
   useEffect(() => {
     if (brand !== values.specs?.brand) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSpec('screenSize', '');
       setSpec('displayTech', '');
       setSpec('series', '');
@@ -63,6 +64,7 @@ export default function TvForm({ values = {}, onChange }) {
 
   // Reset when size changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSpec('displayTech', '');
     setSpec('series', '');
     setModel('');
@@ -71,6 +73,7 @@ export default function TvForm({ values = {}, onChange }) {
 
   // Reset when tech changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSpec('series', '');
     setModel('');
   // eslint-disable-next-line react-hooks/exhaustive-deps

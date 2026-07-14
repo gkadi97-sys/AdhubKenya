@@ -34,7 +34,9 @@ export default function AdminMetadataBuilder() {
   });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     if (id) fetchSchema();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchSchema = async () => {

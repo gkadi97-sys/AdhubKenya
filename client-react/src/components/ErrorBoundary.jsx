@@ -47,7 +47,7 @@ export default class ErrorBoundary extends React.Component {
           <p className="text-muted-foreground mb-6 max-w-md">
             We apologize for the inconvenience. An unexpected error has occurred in the application.
           </p>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
+          {import.meta.env.DEV && this.state.error && (
             <pre className="text-left bg-muted p-4 rounded-xl text-xs overflow-auto max-w-2xl mb-6 w-full">
               {this.state.error.toString()}
             </pre>

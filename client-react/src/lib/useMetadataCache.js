@@ -11,6 +11,7 @@ export function useMetadataCache(categorySlug) {
   useEffect(() => {
     if (!categorySlug) return;
     if (metadataCache[categorySlug]) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMetadata(metadataCache[categorySlug]);
       return;
     }

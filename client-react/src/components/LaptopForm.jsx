@@ -70,6 +70,7 @@ export default function LaptopForm({ values = {}, onChange }) {
 
   // ── Reset cascade ─────────────────────────────────────────────────────────
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSeries(''); setModel('');
     const next = { ...specs, brand, series: '', cpuBrand: '', cpuFamily: '', cpuGen: '' };
     setCpuBrand(''); setCpuFamily(''); setCpuGen('');
@@ -79,6 +80,7 @@ export default function LaptopForm({ values = {}, onChange }) {
   }, [brand]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setModel('');
     const next = { ...specs, series };
     setSpecs(next);
@@ -87,6 +89,7 @@ export default function LaptopForm({ values = {}, onChange }) {
   }, [series]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCpuFamily(''); setCpuGen('');
     const next = { ...specs, cpuBrand, cpuFamily: '', cpuGen: '' };
     setSpecs(next);

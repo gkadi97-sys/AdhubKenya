@@ -4,6 +4,7 @@ import { useSEO } from '@/lib/useSEO';
 
 export default function PostAdConfirmation() {
   const location = useLocation();
+  // eslint-disable-next-line no-unused-vars
   const { listingTitle, listingId } = location.state || {};
 
   useSEO({

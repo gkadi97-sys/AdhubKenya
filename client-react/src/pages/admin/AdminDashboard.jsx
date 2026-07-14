@@ -65,7 +65,7 @@ export default function AdminDashboard() {
         <div className="rounded-2xl border border-border bg-card p-6">
           <h3 className="mb-4 text-lg font-bold text-foreground">Recent Activity</h3>
           <div className="space-y-4">
-            {recentAds.length > 0 ? recentAds.map((ad, i) => (
+            {recentAds.length > 0 ? recentAds.map((ad) => (
               <div key={ad.id} className="flex items-start gap-4 border-b border-border pb-4 last:border-0 last:pb-0">
                 <div className={`mt-0.5 h-2 w-2 rounded-full ${ad.status === 'active' ? 'bg-green-500 ring-green-500/20' : 'bg-primary ring-primary/20'} ring-4`}></div>
                 <div>

@@ -55,6 +55,7 @@ function MultiCheck({ options, value = '', onChange }) {
 
 function DebouncedInput({ value: initialValue, onChange, ...props }) {
   const [value, setValue] = useState(initialValue);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setValue(initialValue || ''); }, [initialValue]);
   useEffect(() => {
     const timeout = setTimeout(() => { onChange(value); }, 400);
@@ -73,6 +74,7 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
       // For vehicle_model, we need the parent make's DB id, not just the name string.
       // parentLookupId is pre-resolved and passed in from DynamicFilterField's parent.
       if (attr.lookup_type === 'vehicle_model' && !parentLookupId) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setOptions([]);
         return;
       }
@@ -84,10 +86,12 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
     } else if (attr.options) {
       try {
         setOptions(typeof attr.options === 'string' ? JSON.parse(attr.options) : attr.options);
+      // eslint-disable-next-line no-unused-vars
       } catch (e) {
         setOptions([]);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attr.lookup_type, attr.options, parentLookupId]);
 
   if (loading) {
@@ -176,6 +180,7 @@ export default function FilterPanel({ isMobile = false, onClose }) {
 
   useEffect(() => {
     if (!isMobile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocalParams(new URLSearchParams(searchParams));
     }
   }, [searchParams, isMobile]);

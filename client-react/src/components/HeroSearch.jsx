@@ -40,13 +40,16 @@ export default function HeroSearch({ stickyCategory = null }) {
       setPlaceholderIdx(prev => (prev + 1) % PLACEHOLDERS.length);
     }, 3500);
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Recent searches from localStorage ──────────────────────────────────────
   useEffect(() => {
     try {
       const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (stored) setRecentSearches(JSON.parse(stored).slice(0, 8));
+    // eslint-disable-next-line no-unused-vars
     } catch (_) { /* ignore storage errors */ }
 
   }, []);
@@ -117,6 +120,7 @@ export default function HeroSearch({ stickyCategory = null }) {
     let updated = [termClean, ...recentSearches.filter(s => s.toLowerCase() !== termClean.toLowerCase())];
     updated = updated.slice(0, 8);
     setRecentSearches(updated);
+    // eslint-disable-next-line no-unused-vars
     try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated)); } catch (_) { /* storage unavailable */ }
   };
 
@@ -124,6 +128,7 @@ export default function HeroSearch({ stickyCategory = null }) {
     e.stopPropagation();
     const updated = recentSearches.filter(s => s !== term);
     setRecentSearches(updated);
+    // eslint-disable-next-line no-unused-vars
     try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated)); } catch (_) { /* storage unavailable */ }
   };
 
@@ -433,7 +438,7 @@ export default function HeroSearch({ stickyCategory = null }) {
 
           {/* Scrollable results */}
           <div className="flex-1 overflow-y-auto">
-            <DropdownContent />
+            {DropdownContent()}
           </div>
 
           {/* Search button pinned at bottom */}
@@ -453,7 +458,7 @@ export default function HeroSearch({ stickyCategory = null }) {
       {/* ── Desktop / compact sticky search ───────────────────────────────── */}
       {/* z-[35] keeps it below the Navbar (z-40) and above page content (z-10) */}
       <div ref={searchRef} className="relative w-full max-w-3xl mt-4 sm:mt-6 sticky top-16 z-[35]">
-        <CategoryPills />
+        {CategoryPills()}
 
         <form
           onSubmit={handleSearch}
@@ -508,7 +513,7 @@ export default function HeroSearch({ stickyCategory = null }) {
         {!isMobile && isFocused && (
           <div className="absolute top-full left-0 right-0 mt-2 rounded-2xl border border-border bg-card shadow-2xl z-50 overflow-hidden">
             <div className="max-h-[400px] overflow-y-auto">
-              <DropdownContent />
+              {DropdownContent()}
             </div>
           </div>
         )}

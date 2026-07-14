@@ -20,7 +20,9 @@ export function evaluateDependencies(attribute, dependencies, allValues) {
   const attrDeps = dependencies.filter(d => d.attribute_id === attribute.id);
   if (attrDeps.length === 0) return { visible: true, required: attribute.is_required };
 
+  // eslint-disable-next-line no-useless-assignment
   let visible = false;
+  // eslint-disable-next-line no-useless-assignment
   let required = false;
 
   const showDeps    = attrDeps.filter(d => d.effect === 'show' || d.effect === 'cascade'); // Cascade acts as show

@@ -19,6 +19,7 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     // Check if the user is in a recovery session
+    // eslint-disable-next-line no-unused-vars
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         // Proceed with reset

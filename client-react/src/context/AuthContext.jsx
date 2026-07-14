@@ -13,6 +13,7 @@ export function AuthProvider({ children }) {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        // eslint-disable-next-line react-hooks/immutability
         fetchProfile(session.user.id);
       } else {
         setLoading(false);
@@ -108,4 +109,5 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

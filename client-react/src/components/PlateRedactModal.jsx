@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { X, Check, RotateCcw, Eye, EyeOff } from 'lucide-react';
 
 /**
@@ -12,6 +13,7 @@ export default function PlateRedactModal({ file, previewUrl, onConfirm, onCancel
   const [isDrawing, setIsDrawing] = useState(false);
   const [rect, setRect] = useState(null); // { x, y, w, h } in canvas coords
   const [startPt, setStartPt] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [showPreview, setShowPreview] = useState(false);
   const [scale, setScale] = useState({ x: 1, y: 1 }); // canvas px → image px ratio
 

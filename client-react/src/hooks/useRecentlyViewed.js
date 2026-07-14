@@ -11,6 +11,7 @@ export function useRecentlyViewed() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setRecentListings(parsed);
         
         // Background validation: remove any listings that are no longer active (e.g. banned, sold, deleted)

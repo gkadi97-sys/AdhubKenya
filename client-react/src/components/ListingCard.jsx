@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { imageUrl, formatPrice, timeAgo } from '@/lib/api';
 import { getSpecTags } from '@/lib/categoryData';
 import { useMetadataCache } from '@/lib/useMetadataCache';
+// eslint-disable-next-line no-unused-vars
 import { Heart, MapPin, Camera, Clock, Truck, Image as ImageIcon } from 'lucide-react';
 import Image from './Image';
 import Badge from './ui/Badge';
@@ -21,6 +22,7 @@ function toggleSaved(id) {
 
 export default function ListingCard({ listing, featured }) {
   const [saved, setSaved] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setSaved(getSaved().includes(listing.id)); }, [listing.id]);
 
   const handleAction = (e, action) => {

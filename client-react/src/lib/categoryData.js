@@ -1,4 +1,5 @@
 import { MASTER_SPARE_PARTS, MASTER_ACCESSORIES, PART_POSITIONS } from './autoSparesData';
+import { HEAVY_TRUCK_DATA, PICKUP_DATA } from './truckData';
 
 // ============================================================
 //  ADHUB KENYA — Category Attributes Data (Comprehensive Edition)
@@ -443,6 +444,39 @@ export const CATEGORY_ATTRIBUTES = {
       ],
       'Other / Unspecified': ['Other Make & Model'],
     },
+  },
+
+  'commercial-vehicles': {
+    level1Label: 'Type',
+    level2Label: 'Make',
+    hasYear: true,
+    data: {
+      'Heavy Duty Trucks': Object.fromEntries(
+        Object.entries(HEAVY_TRUCK_DATA.hierarchy).map(([make, makeData]) => [
+          make,
+          makeData.series
+        ])
+      ),
+      'Pickup Trucks': Object.fromEntries(
+        Object.entries(PICKUP_DATA.hierarchy).map(([make, makeData]) => [
+          make,
+          makeData.series
+        ])
+      ),
+      'Buses & Vans': {
+        'Toyota': ['HiAce', 'Coaster', 'Dyna Van'],
+        'Nissan': ['Caravan', 'Urvan', 'Civilian'],
+        'Mitsubishi': ['Rosa', 'Delica', 'L300'],
+        'Isuzu': ['Journey Bus', 'Elf Van'],
+        'Other': ['Other Bus/Van']
+      },
+      'Trailers & Heavy Equipment': {
+        'Trailers': ['Flatbed Trailer', 'Lowboy Trailer', 'Tanker Trailer'],
+        'Construction': ['Excavator', 'Bulldozer', 'Loader', 'Grader', 'Roller'],
+        'Agricultural': ['Tractor', 'Harvester', 'Planter'],
+        'Other': ['Other Heavy Equipment']
+      }
+    }
   },
 
   'auto-spares': {
@@ -1367,6 +1401,7 @@ export function getSpecTags(listing) {
   return [];
 }
 
+// eslint-disable-next-line no-unused-vars
 export const getSpecs = (categorySlug, make) => {
   if (categorySlug === 'auto-spares') {
     return [

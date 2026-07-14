@@ -296,6 +296,7 @@ export const getListing = async (idOrSlug) => {
       // Fallback: fire-and-forget insert to listing_events, keep existing views count
       supabase.from('listing_events').insert({ listing_id: data.id, event_type: 'view' }).then();
     }
+  // eslint-disable-next-line no-unused-vars
   } catch (_) {
     // ignore — non-critical
   }
@@ -342,6 +343,7 @@ export const logCvEvent = async (listingId, eventType) => {
       listing_id: listingId,
       event_type: eventType
     });
+  // eslint-disable-next-line no-unused-vars
   } catch (_) { /* non-critical */ }
 };
 
@@ -382,6 +384,7 @@ export const createListing = async (listingData, imageFiles) => {
       
       // Provide a more user-friendly error for RLS violations
       if (err.message && err.message.includes('row-level security policy')) {
+        // eslint-disable-next-line preserve-caught-error
         throw new Error('Upload failed due to security restrictions. Please ensure you are uploading valid image formats (.jpg, .png, .webp).');
       }
       throw err;

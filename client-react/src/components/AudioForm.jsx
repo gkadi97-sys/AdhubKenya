@@ -47,6 +47,7 @@ export default function AudioForm({ values = {}, onChange }) {
   // Reset logic: Type -> Brand -> Series -> Model
   useEffect(() => {
     if (s.equipmentType && !AUDIO_SPECS.hierarchy[s.equipmentType]?.brands?.includes(brand)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setBrand('');
       setSpec('series', '');
       setModel('');
@@ -55,20 +56,23 @@ export default function AudioForm({ values = {}, onChange }) {
   }, [s.equipmentType]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSpec('series', '');
     setModel('');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brand]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setModel('');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [s.series]);
 
   // Derived properties from Model selection (auto-populate Channels & Connectivity)
   useEffect(() => {
     if (s.equipmentType === 'Soundbar' && model) {
       if (model.includes('Bar 5.0')) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSpec('channels', '5.0');
         setSpec('connectivity', 'Bluetooth, Wi-Fi, HDMI, HDMI ARC');
       }

@@ -24,6 +24,7 @@ export default function CountyTownSelect({ value = '', onChange, required = fals
     if (value) {
       const parts = value.split(',').map(s => s.trim());
       if (parts.length === 3) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setArea(parts[0]);
         setTown(parts[1]);
         setCounty(parts[2]);

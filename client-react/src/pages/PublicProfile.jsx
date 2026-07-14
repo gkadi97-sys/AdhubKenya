@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { getUserReviews, timeAgo, canUserReviewSeller } from '@/lib/api';
+// eslint-disable-next-line no-unused-vars
 import { MapPin, Calendar, Star, ShieldCheck, Mail, Phone, ChevronLeft } from 'lucide-react';
 import ListingCard from '@/components/ListingCard';
 import StarRating from '@/components/StarRating';

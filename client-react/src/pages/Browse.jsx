@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { getListings, saveSearch } from '@/lib/api';

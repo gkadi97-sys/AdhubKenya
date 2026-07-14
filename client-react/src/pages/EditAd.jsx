@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+// eslint-disable-next-line no-unused-vars
 import { useNavigate, useParams, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { getListing, updateListing } from '@/lib/api';
@@ -14,7 +15,9 @@ import { Lock, Save } from 'lucide-react';
 const STANDARD_CONDITIONS   = ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
 const VEHICLE_CONDITIONS    = ['Brand New', 'Foreign Used', 'Locally Used', 'Accident Damaged', 'Rebuilt'];
 const AUTOSPARES_CONDITIONS = ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'];
+// eslint-disable-next-line no-unused-vars
 const AUDIO_CONDITIONS      = ['Brand New', 'Open Box', 'Ex-UK', 'Foreign Used', 'Locally Used', 'Refurbished'];
+// eslint-disable-next-line no-unused-vars
 const LAPTOP_CONDITIONS     = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
 const PHONE_CONDITIONS      = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
 
@@ -78,6 +81,7 @@ export default function EditAdPage() {
     fetchAd();
   }, [id, user, navigate, reset]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const category = watch('category');
   const make = watch('attrs.make');
 
