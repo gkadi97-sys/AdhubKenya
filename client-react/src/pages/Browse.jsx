@@ -139,7 +139,6 @@ function BrowseContent({ defaultCategory, defaultBrand, defaultModel }) {
   }, [isError]);
 
   // Memoized to keep a stable reference, preventing unnecessary useEffect re-runs
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- data.pages is stable; flatMap creates new array reference each render
   const listings = useMemo(() => data?.pages.flatMap(page => page.listings) || [], [data]);
   const total    = data?.pages[0]?.total || 0;
 
