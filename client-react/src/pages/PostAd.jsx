@@ -228,7 +228,8 @@ export default function PostAdPage() {
   const isAutoSpares = category === 'auto-spares';
   const isPhone    = category === 'phones-tablets';
   const isElectronics = category === 'electronics';
-  const showCondition = !isVehicle && !isAutoSpares && !isPhone && !isElectronics && category && !isJob;
+  const isNoConditionCategory = ['property', 'land-plots', 'jobs', 'seeking-work', 'services', 'animals-pets', 'food-agriculture'].includes(category);
+  const showCondition = !isVehicle && !isAutoSpares && !isPhone && !isElectronics && category && !isNoConditionCategory;
 
   const getConditionOptions = () => {
     if (isVehicle && TRUCK_CONDITIONS && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers', 'Pickups'].includes(make)) return TRUCK_CONDITIONS;
