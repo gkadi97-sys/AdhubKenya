@@ -7,7 +7,7 @@ export default function SearchableSelect({ value, onChange, options, placeholder
 
   // Sync internal search term with external value if external value changes (e.g. form reset)
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setSearchTerm(value || '');
   }, [value]);
 

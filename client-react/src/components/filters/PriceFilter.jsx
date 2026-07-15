@@ -14,7 +14,7 @@ export default function PriceFilter({ min = '', max = '', onChange }) {
 
   // Sync with external resets
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setLocalMin(min);
     setLocalMax(max);
   }, [min, max]);

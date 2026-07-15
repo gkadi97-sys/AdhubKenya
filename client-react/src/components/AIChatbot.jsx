@@ -139,7 +139,7 @@ export default function AIChatbot() {
   // Focus textarea when panel opens
   useEffect(() => {
     if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
       setHasUnread(false);
       setTimeout(() => textareaRef.current?.focus(), 300);
     } else {
@@ -147,7 +147,7 @@ export default function AIChatbot() {
       if (isListening) stopListening();
       window.speechSynthesis.cancel();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [open]);
 
   // Init SpeechRecognition
@@ -321,7 +321,7 @@ export default function AIChatbot() {
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [messages, loading, speechSynthesisEnabled]);
 
   // Keep sendMessageRef updated to avoid stale closures in SpeechRecognition

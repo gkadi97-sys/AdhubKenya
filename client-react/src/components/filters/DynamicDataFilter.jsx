@@ -19,7 +19,7 @@ export default function DynamicDataFilter({ category, urlParam, filters, value, 
       if (isMounted) setCounts({});
     });
     return () => { isMounted = false };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [category, urlParam, JSON.stringify(filters)]);
 
   if (!counts) return <div className="animate-pulse h-10 w-full bg-secondary/50 rounded-xl" />;

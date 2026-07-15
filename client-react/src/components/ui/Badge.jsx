@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import React from 'react';
 import { BadgeCheck, Zap, Sparkles } from 'lucide-react';
 

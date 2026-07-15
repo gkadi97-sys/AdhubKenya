@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { getSavedSearches, deleteSavedSearch } from '@/lib/api';
 import { Link, useNavigate } from 'react-router-dom';
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import { Bell, Search, X, Lock, ExternalLink, Trash2, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -54,7 +54,7 @@ export default function SavedSearchesPage() {
   const [lastRunMap, setLastRunMap] = useState({});
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setLastRunMap(getLastRunMap());
   }, []);
 
@@ -65,7 +65,7 @@ export default function SavedSearchesPage() {
         .catch(() => setSearches([]))
         .finally(() => setLoading(false));
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
       setLoading(false);
     }
   }, [user]);

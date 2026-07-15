@@ -53,30 +53,30 @@ export default function TvForm({ values = {}, onChange }) {
   // Reset dependent fields when brand changes
   useEffect(() => {
     if (brand !== values.specs?.brand) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
       setSpec('screenSize', '');
       setSpec('displayTech', '');
       setSpec('series', '');
       setModel('');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [brand]);
 
   // Reset when size changes
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setSpec('displayTech', '');
     setSpec('series', '');
     setModel('');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [s.screenSize]);
 
   // Reset when tech changes
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setSpec('series', '');
     setModel('');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [s.displayTech]);
 
   // Compute model examples

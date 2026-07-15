@@ -70,31 +70,31 @@ export default function LaptopForm({ values = {}, onChange }) {
 
   // ── Reset cascade ─────────────────────────────────────────────────────────
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setSeries(''); setModel('');
     const next = { ...specs, brand, series: '', cpuBrand: '', cpuFamily: '', cpuGen: '' };
     setCpuBrand(''); setCpuFamily(''); setCpuGen('');
     setSpecs(next);
     emit({ model: '', specs: next });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [brand]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setModel('');
     const next = { ...specs, series };
     setSpecs(next);
     emit({ model: '', specs: next });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [series]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setCpuFamily(''); setCpuGen('');
     const next = { ...specs, cpuBrand, cpuFamily: '', cpuGen: '' };
     setSpecs(next);
     emit({ specs: next });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [cpuBrand]);
 
   // ── Apple special case — no CPU pickers ───────────────────────────────────

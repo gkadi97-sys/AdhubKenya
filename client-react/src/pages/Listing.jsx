@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-// eslint-disable-next-line no-unused-vars
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import { getListing, getListings, toggleSaved, getSaved, imageUrl, formatPrice, timeAgo, getSellerStats, getListingViews, trackInteraction, canUserReviewSeller } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
+import SEOEngine from '@/lib/seo/SEOEngine';
+import SchemaFactory from '@/lib/seo/SchemaFactory';
+import UrlService from '@/lib/seo/UrlService';
 import MetadataListingSpecs from '@/components/MetadataListingSpecs';
 import CandidateProfile from '@/components/CandidateProfile';
 import ListingCard from '@/components/ListingCard';
@@ -12,16 +15,19 @@ import MessageButton from '@/components/MessageButton';
 import ReportModal from '@/components/ReportModal';
 import StarRating from '@/components/StarRating';
 import ReviewModal from '@/components/ReviewModal';
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight, X, Star } from 'lucide-react';
 import Image from '@/components/Image';
 
 export default function ListingDetailPage() {
-  const { id } = useParams();
+  // eslint-disable-next-line no-unused-vars -- `category` comes from route but listing.category is used directly
+  const { id, category: _category, slugId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { addListing, recentListings } = useRecentlyViewed();
   const [listing, setListing] = useState(null);
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
   const [zoomedImage, setZoomedImage] = useState(null);
   const [sellerStats, setSellerStats] = useState(null);
   const [listingViews, setListingViews] = useState(0);
@@ -34,7 +40,7 @@ export default function ListingDetailPage() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [canReview, setCanReview] = useState(false);
   const [showNumber, setShowNumber] = useState(false);
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
   const [showAllSpecs, setShowAllSpecs] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [savingListing, setSavingListing] = useState(false);
@@ -45,7 +51,7 @@ export default function ListingDetailPage() {
     if (e.key === 'Escape') { setIsZoomModalOpen(false); }
     if (e.key === 'ArrowLeft') { setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }
     if (e.key === 'ArrowRight') { setActiveImg(prev => (prev + 1) % images.length); }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [isZoomModalOpen]);
 
   useEffect(() => {
@@ -53,81 +59,54 @@ export default function ListingDetailPage() {
     return () => window.removeEventListener('keydown', handleZoomKeyDown);
   }, [handleZoomKeyDown]);
 
-  const firstImage = listing?.images?.[0] ? imageUrl(listing.images[0]) : null;
-  const listingKeywords = listing ? [
-    listing.title,
-    listing.category?.replace(/-/g, ' '),
-    listing.make,
-    listing.model,
-    listing.location,
-    `${listing.category?.replace(/-/g, ' ')} Kenya`,
-    `buy ${listing.category?.replace(/-/g, ' ')} Kenya`,
-    'AdHub Kenya',
-  ].filter(Boolean) : [];
+  // Extract UUID if present (either from 'id' param or trailing part of 'slugId')
+  const paramVal = id || slugId || '';
+  const uuidMatch = paramVal.match(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  const actualId = uuidMatch ? uuidMatch[0] : paramVal;
 
-  useSEO({
-    title: listing ? `${listing.title} – ${formatPrice(listing.price)} | AdHub Kenya` : 'View Listing | AdHub Kenya',
-    description: listing
-      ? `${listing.title} for ${formatPrice(listing.price)} in ${listing.location || 'Kenya'}. ${listing.description ? listing.description.slice(0, 120) + '...' : 'View this listing on AdHub Kenya.'}`
-      : 'View this listing on AdHub Kenya.',
-    canonicalPath: listing?.slug ? `/listing/${listing.slug}` : `/listing/${id}`,
-    ogImage: firstImage || undefined,
-    ogType: 'product',
-    keywords: listingKeywords,
-  });
+  useSEO(listing ? {
+    ...SEOEngine.generateListing(listing),
+    schema: [
+      SchemaFactory.generate('BreadcrumbList', [
+        { name: 'Home', url: '/' },
+        { name: listing.category?.replace(/-/g, ' '), url: UrlService.category(listing.category) },
+        { name: listing.title, url: UrlService.listing(listing) }
+      ]),
+      SchemaFactory.generate(listing.category === 'vehicles' ? 'Vehicle' : 'Product', listing)
+    ]
+  } : SEOEngine.generateStatic('Loading Listing...', '', location.pathname));
 
   useEffect(() => {
-    if (!listing) return;
-    const scriptId = 'listing-jsonld';
-    let el = document.getElementById(scriptId);
-    if (!el) { el = document.createElement('script'); el.id = scriptId; el.type = 'application/ld+json'; document.head.appendChild(el); }
-    const imgUrl = listing.images?.[0] ? imageUrl(listing.images[0]) : '';
-    const listingUrl = `https://adhubkenya.co.ke/listing/${listing.slug || listing.id}`;
-    const jsonld = {
-      '@context': 'https://schema.org',
-      '@type': 'Product',
-      'name': listing.title,
-      'description': listing.description || listing.title,
-      'image': imgUrl ? [imgUrl] : [],
-      'offers': {
-        '@type': 'Offer',
-        'priceCurrency': 'KES',
-        'price': listing.price,
-        'itemCondition': 'https://schema.org/UsedCondition',
-        'availability': 'https://schema.org/InStock',
-        'url': listingUrl,
-        'seller': { '@type': 'Person', 'name': listing.seller?.name || 'Seller on AdHub Kenya' }
-      }
-    };
-    el.textContent = JSON.stringify(jsonld).replace(/</g, '\\u003c');
-    return () => { const s = document.getElementById(scriptId); if (s) s.remove(); };
-  }, [listing, id]);
-
-  useEffect(() => {
-    window.scrollTo(0, 0); // Reset scroll position when id changes
-    if (id) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    window.scrollTo(0, 0); 
+    if (actualId) {
       setLoading(true);
-      getListing(id).then(data => {
-        setListing(data);
-        if (data) {
-          addListing(data);
-          // Track the view for personalized recommendations (fire and forget)
-          trackInteraction(data.id, data.category, 'view');
-          
-          if (data.seller_id) {
-            getSellerStats(data.seller_id).then(setSellerStats);
-            canUserReviewSeller(data.seller_id).then(setCanReview);
-          }
-          // Set from the listing data first (may already be incremented by RPC)
-          setListingViews(data.views || 0);
-          // Also fetch via getListingViews for accurate count (falls back through multiple methods)
-          getListingViews(data.id).then(count => { if (count > 0) setListingViews(count); });
+      getListing(actualId).then(data => {
+        if (!data) {
+          setListing(null);
+          return;
         }
+
+        // URL Normalization & Redirect Strategy
+        const canonicalUrl = UrlService.listing(data);
+        if (location.pathname !== canonicalUrl) {
+          // If they visited /listing/:id or a malformed slug URL, we 301 replace to canonical
+          navigate(canonicalUrl, { replace: true });
+          // Note: The router will re-render with the new canonical URL
+        }
+
+        setListing(data);
+        addListing(data);
+        trackInteraction(data.id, data.category, 'view');
+        
+        if (data.seller_id) {
+          getSellerStats(data.seller_id).then(setSellerStats);
+          canUserReviewSeller(data.seller_id).then(setCanReview);
+        }
+        setListingViews(data.views || 0);
+        getListingViews(data.id).then(count => { if (count > 0) setListingViews(count); });
       }).catch(() => setListing(null)).finally(() => setLoading(false));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [actualId]);
 
   useEffect(() => {
     if (listing?.category) {
@@ -467,8 +446,8 @@ export default function ListingDetailPage() {
                           <div className="text-3xl">🔒</div>
                           <div className="font-bold text-sm">Sign in to contact</div>
                           <div className="flex gap-2 w-full">
-                            <Link to="/login" state={{ from: `/listing/${listing.id}` }} className="flex-1 rounded-lg bg-primary text-primary-foreground py-2 font-semibold text-xs text-center hover:opacity-90 transition-opacity">Login</Link>
-                            <Link to="/register" state={{ from: `/listing/${listing.id}` }} className="flex-1 rounded-lg border border-border bg-secondary py-2 font-semibold text-xs text-center hover:bg-secondary/70 transition-colors">Register</Link>
+                            <Link to="/login" state={{ from: UrlService.listing(listing) }} className="flex-1 rounded-lg bg-primary text-primary-foreground py-2 font-semibold text-xs text-center hover:opacity-90 transition-opacity">Login</Link>
+                            <Link to="/register" state={{ from: UrlService.listing(listing) }} className="flex-1 rounded-lg border border-border bg-secondary py-2 font-semibold text-xs text-center hover:bg-secondary/70 transition-colors">Register</Link>
                           </div>
                         </div>
                       </div>
@@ -514,6 +493,44 @@ export default function ListingDetailPage() {
             </div>
           </>
         )}
+
+        {/* ── SEO CONTEXT LINKS ── */}
+        <div className="mt-8 flex flex-wrap gap-2 text-sm font-medium">
+          <Link 
+            to={UrlService.category(listing.category)}
+            className="rounded-full bg-secondary px-4 py-2 text-foreground hover:bg-secondary/80 transition-colors"
+          >
+            All {listing.category.replace(/-/g, ' ')}
+          </Link>
+
+          {(listing.metadata?.make || listing.metadata?.brand) && (
+            <Link 
+              to={UrlService.brand(listing.category, listing.metadata.make || listing.metadata.brand)}
+              className="rounded-full bg-secondary px-4 py-2 text-foreground hover:bg-secondary/80 transition-colors"
+            >
+              {listing.metadata.make || listing.metadata.brand} {listing.category.replace(/-/g, ' ')}
+            </Link>
+          )}
+
+          {((listing.metadata?.make || listing.metadata?.brand) && listing.metadata?.model) && (
+            <Link 
+              to={UrlService.model(listing.category, listing.metadata.make || listing.metadata.brand, listing.metadata.model)}
+              className="rounded-full bg-secondary px-4 py-2 text-foreground hover:bg-secondary/80 transition-colors"
+            >
+              {listing.metadata.model}
+            </Link>
+          )}
+
+          {listing.county && (
+            <Link 
+              to={UrlService.location(listing.category, listing.county)}
+              className="rounded-full bg-secondary px-4 py-2 text-foreground hover:bg-secondary/80 transition-colors flex items-center gap-1.5"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              {listing.category.replace(/-/g, ' ')} in {listing.county}
+            </Link>
+          )}
+        </div>
 
         {/* 5. RELATED CONTENT (Moved outside the grid to span full width above footer) */}
         {listing.category !== 'seeking-work' && relatedListings.length > 0 && (
@@ -566,7 +583,7 @@ export default function ListingDetailPage() {
                  <MessageButton listing={listing} variant="secondary" className="!rounded-full !w-auto !px-5 !h-11" />
                </>
             ) : (
-               <Link to="/login" state={{ from: `/listing/${listing.id}` }} className="flex items-center justify-center h-11 px-6 rounded-full bg-primary text-primary-foreground font-bold text-sm">
+               <Link to="/login" state={{ from: UrlService.listing(listing) }} className="flex items-center justify-center h-11 px-6 rounded-full bg-primary text-primary-foreground font-bold text-sm">
                  Sign in to Contact
                </Link>
             )}

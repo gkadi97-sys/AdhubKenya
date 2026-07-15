@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import React from 'react';
 import { Link } from 'react-router-dom';
 

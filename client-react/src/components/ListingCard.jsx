@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { imageUrl, formatPrice, timeAgo } from '@/lib/api';
 import { getSpecTags } from '@/lib/categoryData';
 import { useMetadataCache } from '@/lib/useMetadataCache';
-// eslint-disable-next-line no-unused-vars
+import UrlService from '@/lib/seo/UrlService';
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import { Heart, MapPin, Camera, Clock, Truck, Image as ImageIcon } from 'lucide-react';
 import Image from './Image';
 import Badge from './ui/Badge';
@@ -22,7 +23,7 @@ function toggleSaved(id) {
 
 export default function ListingCard({ listing, featured }) {
   const [saved, setSaved] = useState(false);
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
   useEffect(() => { setSaved(getSaved().includes(listing.id)); }, [listing.id]);
 
   const handleAction = (e, action) => {
@@ -61,7 +62,7 @@ export default function ListingCard({ listing, featured }) {
   const imageCount = listing.images?.length || 0;
 
   return (
-    <Link to={`/listing/${listing.slug || listing.id}`} className="block h-full group">
+    <Link to={UrlService.listing(listing)} className="block h-full group">
       <article className="card-hover overflow-hidden rounded-2xl border border-border bg-card h-full flex flex-col relative">
         {/* Fixed aspect ratio container */}
         <div className="relative overflow-hidden shrink-0" style={{ aspectRatio: '4/3' }}>

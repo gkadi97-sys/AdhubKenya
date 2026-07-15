@@ -42,7 +42,7 @@ export default function AdminReports() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     fetchReports();
   }, [fetchReports]);
 

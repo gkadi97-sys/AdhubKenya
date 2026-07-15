@@ -15,7 +15,7 @@ export default function ThemeSwitcher() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setMounted(true);
     const stored = localStorage.getItem('theme') || 'light';
     setCurrentTheme(stored);

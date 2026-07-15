@@ -1401,7 +1401,7 @@ export function getSpecTags(listing) {
   return [];
 }
 
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 export const getSpecs = (categorySlug, make) => {
   if (categorySlug === 'auto-spares') {
     return [

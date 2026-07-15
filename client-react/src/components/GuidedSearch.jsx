@@ -100,7 +100,7 @@ export default function GuidedSearch() {
 
   // Autocomplete — Supabase + popular fallback
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     if (!keyword.trim() || keyword.length < 2) { setSugg([]); return; }
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {

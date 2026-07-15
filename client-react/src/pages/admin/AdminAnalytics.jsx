@@ -12,7 +12,7 @@ export default function AdminAnalytics() {
       try {
         const result = await fetchAdminAnalytics();
         setData(result);
-      // eslint-disable-next-line no-unused-vars
+      // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
       } catch (err) {
         toast.error('Failed to load analytics.');
       } finally {

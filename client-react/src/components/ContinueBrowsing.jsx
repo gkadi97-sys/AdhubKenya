@@ -12,10 +12,10 @@ export default function ContinueBrowsing() {
     try {
       const stored = localStorage.getItem(RECENT_CATS_KEY);
       if (stored) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
         setRecentCats(JSON.parse(stored).slice(0, 4));
       }
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (_) {
       // ignore storage errors
     }

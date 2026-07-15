@@ -3,7 +3,8 @@ import { useAuth } from '@/context/AuthContext';
 import { getSellerListings, deleteListing, formatPrice, timeAgo, imageUrl , updateListing } from '@/lib/api';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-// eslint-disable-next-line no-unused-vars
+import UrlService from '@/lib/seo/UrlService';
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import { PlusCircle, MapPin, Eye, Clock, Trash2, ExternalLink, PackageOpen, Lock, Sparkles, Edit } from 'lucide-react';
 import PromoteAdModal from '@/components/PromoteAdModal';
 import Image from '@/components/Image';
@@ -18,7 +19,7 @@ export default function MyAdsPage() {
   useEffect(() => {
     if (user?.id) {
       getSellerListings(user.id).then(setListings).catch(()=>setListings([])).finally(()=>setLoading(false));
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     } else { setLoading(false); }
      
   }, [user]);
@@ -186,7 +187,7 @@ const handleDelete = async (id) => {
                 <div className="flex flex-1 flex-col justify-between p-5">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <Link to={`/listing/${l.id}`} className="block truncate text-lg font-bold text-foreground transition hover:text-primary">
+                      <Link to={UrlService.listing(l)} className="block truncate text-lg font-bold text-foreground transition hover:text-primary">
                         {l.title}
                       </Link>
                       <div className="font-display mt-1 text-xl font-black text-primary">

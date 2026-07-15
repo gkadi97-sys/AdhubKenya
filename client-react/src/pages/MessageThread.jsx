@@ -115,7 +115,7 @@ export default function MessageThreadPage() {
         .eq('conversation_id', id)
         .neq('sender_id', user.id)
         .eq('is_read', false);
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (e) {
       // non critical
     }
@@ -157,7 +157,7 @@ export default function MessageThreadPage() {
         .update({ updated_at: new Date().toISOString() })
         .eq('id', id);
 
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (error) {
       toast.error('Failed to send message');
       setNewMessage(content); // restore text

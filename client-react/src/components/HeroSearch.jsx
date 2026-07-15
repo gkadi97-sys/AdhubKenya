@@ -40,16 +40,16 @@ export default function HeroSearch({ stickyCategory = null }) {
       setPlaceholderIdx(prev => (prev + 1) % PLACEHOLDERS.length);
     }, 3500);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, []);
 
   // ── Recent searches from localStorage ──────────────────────────────────────
   useEffect(() => {
     try {
       const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
       if (stored) setRecentSearches(JSON.parse(stored).slice(0, 8));
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (_) { /* ignore storage errors */ }
 
   }, []);
@@ -120,7 +120,7 @@ export default function HeroSearch({ stickyCategory = null }) {
     let updated = [termClean, ...recentSearches.filter(s => s.toLowerCase() !== termClean.toLowerCase())];
     updated = updated.slice(0, 8);
     setRecentSearches(updated);
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated)); } catch (_) { /* storage unavailable */ }
   };
 
@@ -128,7 +128,7 @@ export default function HeroSearch({ stickyCategory = null }) {
     e.stopPropagation();
     const updated = recentSearches.filter(s => s !== term);
     setRecentSearches(updated);
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated)); } catch (_) { /* storage unavailable */ }
   };
 

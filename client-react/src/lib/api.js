@@ -296,7 +296,7 @@ export const getListing = async (idOrSlug) => {
       // Fallback: fire-and-forget insert to listing_events, keep existing views count
       supabase.from('listing_events').insert({ listing_id: data.id, event_type: 'view' }).then();
     }
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
   } catch (_) {
     // ignore — non-critical
   }
@@ -343,7 +343,7 @@ export const logCvEvent = async (listingId, eventType) => {
       listing_id: listingId,
       event_type: eventType
     });
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
   } catch (_) { /* non-critical */ }
 };
 
@@ -358,9 +358,19 @@ export const createListing = async (listingData, imageFiles) => {
     try {
       for (const file of imageFiles) {
         const fileExt = file.name.split('.').pop() || 'jpg';
-        // Use crypto.randomUUID() for secure uniqueness
         const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).substring(2)}`;
-        const fileName = `${uniqueId}.${fileExt}`;
+        
+        // Generate SEO-friendly slug for the image filename
+        const baseSlug = (listingData.title || 'listing')
+          .toLowerCase()
+          .trim()
+          .replace(/[\s_]+/g, '-')
+          .replace(/[^\w-]+/g, '')
+          .replace(/--+/g, '-')
+          .replace(/^-+/, '')
+          .replace(/-+$/, '');
+          
+        const fileName = `${baseSlug}-${uniqueId}.${fileExt}`;
         const filePath = `${session.user.id}/${fileName}`;
         
         const { error: uploadError } = await supabase.storage

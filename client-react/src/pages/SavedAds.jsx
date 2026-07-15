@@ -1,8 +1,9 @@
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { getSaved, toggleSaved, formatPrice, imageUrl, timeAgo } from '@/lib/api';
+import UrlService from '@/lib/seo/UrlService';
 import { Heart, Clock, MapPin, Trash2, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Image from '@/components/Image';
@@ -17,7 +18,7 @@ export default function SavedAds() {
       // eslint-disable-next-line react-hooks/immutability
       loadSavedAds();
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
       setLoading(false);
     }
   }, [user]);
@@ -27,7 +28,7 @@ export default function SavedAds() {
       setLoading(true);
       const data = await getSaved();
       setSavedAds(data || []);
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (error) {
       toast.error('Failed to load saved ads');
     } finally {
@@ -41,7 +42,7 @@ export default function SavedAds() {
       await toggleSaved(listingId, true);
       setSavedAds(prev => prev.filter(ad => ad.listing_id !== listingId));
       toast.success('Removed from saved ads');
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (error) {
       toast.error('Failed to remove ad');
     }
@@ -87,7 +88,7 @@ export default function SavedAds() {
             const ad = saved.listings;
             if (!ad) return null;
             return (
-              <Link key={saved.id} to={`/listing/${ad.slug || ad.id}`} className="group bg-card rounded-2xl overflow-hidden border border-border hover:shadow-lg transition-all flex flex-col relative">
+              <Link key={saved.id} to={UrlService.listing(ad)} className="group bg-card rounded-2xl overflow-hidden border border-border hover:shadow-lg transition-all flex flex-col relative">
                 <button 
                   onClick={(e) => handleRemove(ad.id, e)}
                   className="absolute top-3 right-3 bg-white/90 dark:bg-black/90 p-2 rounded-full text-red-500 hover:scale-110 transition-transform z-10 shadow-sm"

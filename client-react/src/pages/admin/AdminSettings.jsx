@@ -29,7 +29,7 @@ export default function AdminSettings() {
   useEffect(() => {
     const val = localStorage.getItem('adhub_require_approval');
     if (val !== null) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
       setSettings(prev => ({ ...prev, requireApproval: val === 'true' }));
     }
   }, []);

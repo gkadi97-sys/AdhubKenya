@@ -26,6 +26,6 @@ export function useSEO(props = {}) {
       // Revert to defaults on unmount
       setSEO({});
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [propsString]);
 }

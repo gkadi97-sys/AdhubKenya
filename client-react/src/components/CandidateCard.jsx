@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { timeAgo } from '@/lib/api';
+import UrlService from '@/lib/seo/UrlService';
 import { Heart, MapPin, BadgeCheck, Briefcase, GraduationCap, Clock, Banknote, CheckCircle2 } from 'lucide-react';
 
 
@@ -52,7 +53,7 @@ function Avatar({ name, size = 14 }) {
 // ── Main component ─────────────────────────────────────────────────────────
 export default function CandidateCard({ listing }) {
   const [saved, setSaved] = useState(false);
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
   useEffect(() => { setSaved(getSaved().includes(listing.id)); }, [listing.id]);
 
   const s = listing.specs || {};
@@ -76,7 +77,7 @@ export default function CandidateCard({ listing }) {
   };
 
   return (
-    <Link to={`/listing/${listing.id}`} className="block group" aria-label={`View profile: ${listing.title}`}>
+    <Link to={UrlService.listing(listing)} className="block group" aria-label={`View profile: ${listing.title}`}>
       <article className="relative overflow-hidden rounded-2xl border border-border bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-elevated flex flex-col h-full">
 
         {/* ── Top accent bar ── */}
@@ -196,7 +197,7 @@ export default function CandidateCard({ listing }) {
         {/* ── CTA buttons ── */}
         <div className="px-5 pb-5 flex gap-2">
           <Link
-            to={`/listing/${listing.id}`}
+            to={UrlService.listing(listing)}
             className="flex-1 rounded-xl bg-primary text-primary-foreground text-sm font-semibold py-2.5 text-center hover:opacity-90 transition-opacity"
             onClick={e => e.stopPropagation()}
           >

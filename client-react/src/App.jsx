@@ -27,6 +27,7 @@ import Home from '@/pages/Home.jsx';
 import Browse from '@/pages/Browse.jsx';
 import Category from '@/pages/Category.jsx';
 import Listing from '@/pages/Listing.jsx';
+import ListingOrBrowse from '@/pages/ListingOrBrowse.jsx';
 import Login from '@/pages/Login.jsx';
 import Register from '@/pages/Register.jsx';
 import SavedAds from './pages/SavedAds';
@@ -112,6 +113,8 @@ function AppLayout() {
               <Route key={cat} path={`/${cat}`} element={<Browse key={cat} defaultCategory={cat} />} />
             ))}
             <Route path="/listing/:id" element={<Listing />} />
+            <Route path="/:category/:slugId" element={<ListingOrBrowse />} />
+            <Route path="/:category/:brand/:model" element={<Browse />} />
             <Route path="/user/:id" element={<PublicProfilePage />} />
             <Route path="/post-cv" element={<ProtectedRoute><PostCvPage /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />

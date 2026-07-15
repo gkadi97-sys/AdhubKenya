@@ -2,58 +2,80 @@ import { Helmet } from 'react-helmet-async';
 import { useState, useEffect } from 'react';
 import { subscribeSEO } from '@/lib/seoStore';
 
-const SITE_NAME = 'AdHub Kenya';
-const TWITTER_SITE = '@AdHubKenya';
-const BASE_URL = 'https://adhubkenya.co.ke';
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
-
+/**
+ * GlobalSEO is a thin renderer.
+ * It consumes the output of SEOEngine and SchemaFactory via seoStore.
+ * It contains NO business logic for generating titles or urls.
+ */
 export default function GlobalSEO() {
-  const [seo, setSeo] = useState({});
+  const [seoConfig, setSeoConfig] = useState(null);
 
   useEffect(() => {
-    return subscribeSEO(setSeo);
+    return subscribeSEO(setSeoConfig);
   }, []);
 
-  const { title, description, canonicalPath, ogImage, ogType = 'website', keywords, noindex = false } = seo;
+  if (!seoConfig) return null;
 
-  const fullTitle = title
-    ? (title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`)
-    : `${SITE_NAME} – Buy & Sell Anything in Kenya`;
+  const {
+    title,
+    description,
+    canonical,
+    noindex,
+    openGraph,
+    twitter,
+    schema = []
+  } = seoConfig;
 
-  const fullUrl = canonicalPath ? `${BASE_URL}${canonicalPath}` : undefined;
+  const BASE_URL = 'https://adhubkenya.co.ke';
+  const fullCanonical = canonical ? `${BASE_URL}${canonical}` : undefined;
 
   return (
     <Helmet>
       {/* Primary Meta Tags */}
-      <title>{fullTitle}</title>
-      <meta name="title" content={fullTitle} />
+      {title && <title>{title}</title>}
+      {title && <meta name="title" content={title} />}
       {description && <meta name="description" content={description} />}
-      {keywords?.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
 
-      {/* Robots */}
+      {/* Robots Directives */}
       {noindex ? (
         <meta name="robots" content="noindex, follow" />
       ) : (
         <meta name="robots" content="index, follow" />
       )}
 
-      {/* Canonical */}
-      {fullUrl && <link rel="canonical" href={fullUrl} />}
+      {/* Canonical URL */}
+      {fullCanonical && <link rel="canonical" href={fullCanonical} />}
 
-      {/* Open Graph / Facebook */}
-      <meta property="og:type" content={ogType} />
-      {fullUrl && <meta property="og:url" content={fullUrl} />}
-      <meta property="og:title" content={fullTitle} />
-      {description && <meta property="og:description" content={description} />}
-      <meta property="og:image" content={ogImage || DEFAULT_OG_IMAGE} />
+      {/* Open Graph */}
+      {openGraph && (
+        <>
+          {openGraph.type && <meta property="og:type" content={openGraph.type} />}
+          {openGraph.url && <meta property="og:url" content={openGraph.url} />}
+          {openGraph.title && <meta property="og:title" content={openGraph.title} />}
+          {openGraph.description && <meta property="og:description" content={openGraph.description} />}
+          {openGraph.image && <meta property="og:image" content={openGraph.image} />}
+          <meta property="og:locale" content="en_KE" />
+          <meta property="og:site_name" content="AdHub Kenya" />
+        </>
+      )}
 
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content={TWITTER_SITE} />
-      {fullUrl && <meta name="twitter:url" content={fullUrl} />}
-      <meta name="twitter:title" content={fullTitle} />
-      {description && <meta name="twitter:description" content={description} />}
-      <meta name="twitter:image" content={ogImage || DEFAULT_OG_IMAGE} />
+      {/* Twitter Cards */}
+      {twitter && (
+        <>
+          {twitter.card && <meta name="twitter:card" content={twitter.card} />}
+          {twitter.site && <meta name="twitter:site" content={twitter.site} />}
+          {twitter.title && <meta name="twitter:title" content={twitter.title} />}
+          {twitter.description && <meta name="twitter:description" content={twitter.description} />}
+          {twitter.image && <meta name="twitter:image" content={twitter.image} />}
+        </>
+      )}
+
+      {/* Structured Data (JSON-LD) */}
+      {schema && schema.length > 0 && schema.map((s, idx) => (
+        <script key={idx} type="application/ld+json">
+          {JSON.stringify(s)}
+        </script>
+      ))}
     </Helmet>
   );
 }

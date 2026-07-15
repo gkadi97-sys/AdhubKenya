@@ -33,7 +33,7 @@ export default function PostCvPage() {
   // Load auto-save draft
   const savedDraft = JSON.parse(localStorage.getItem('adhub_cv_draft') || '{}');
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
   const { register, handleSubmit, watch, control, setValue, formState: { errors } } = useForm({
     defaultValues: {
       title: savedDraft.title || '',

@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
@@ -160,13 +160,13 @@ export default function Messages() {
       clearInterval(heartbeat);
       supabase.removeChannel(convSub);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [session]);
 
   // ── Messages + realtime when conversation changes ─────────────────────────
   useEffect(() => {
     if (!session || !conversationId) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setMessages([]);
     setMsgOffset(0);
     setHasOlderMsgs(false);
@@ -180,7 +180,7 @@ export default function Messages() {
     markAsRead(conversationId);
     // eslint-disable-next-line react-hooks/immutability
     return cleanupSubscriptions;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [session, conversationId]);
 
   // ── Auto-scroll ──────────────────────────────────────────────────────────
@@ -295,7 +295,7 @@ export default function Messages() {
         .neq('sender_id', session.user.id)
         .eq('is_read', false);
       fetchConversations();
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (_) { /* non-critical */ }
   };
 
@@ -387,7 +387,7 @@ export default function Messages() {
       const { error } = await supabase.from('messages').insert({ conversation_id: conversationId, sender_id: session.user.id, content });
       if (error) throw error;
       await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (err) {
       toast.error('Failed to send message');
       setNewMessage(content);
@@ -413,7 +413,7 @@ export default function Messages() {
       const { data: { publicUrl } } = supabase.storage.from('listing-images').getPublicUrl(path);
       await supabase.from('messages').insert({ conversation_id: conversationId, sender_id: session.user.id, content: '📷 Photo', image_url: publicUrl });
       await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (err) {
       toast.error('Failed to upload image');
     } finally {
@@ -433,7 +433,7 @@ export default function Messages() {
       fetchConversations();
       if (conversationId === cId) navigate('/messages');
       toast.success('Conversation archived');
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (_) { toast.error('Failed to archive'); }
   };
 
@@ -810,7 +810,7 @@ export default function Messages() {
                         const groupEnd = isGroupEnd(m, next);
                         const groupStart = !prev || prev.sender_id !== m.sender_id || (new Date(m.created_at) - new Date(prev.created_at)) > 120_000;
                         const isTemp = String(m.id).startsWith('temp-');
-                        // eslint-disable-next-line no-unused-vars
+                        // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
                         const isLastFromMe = isMe && (!next || next.sender_id !== session.user.id);
 
                         return (

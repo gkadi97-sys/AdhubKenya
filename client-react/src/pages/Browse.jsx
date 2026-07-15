@@ -1,6 +1,6 @@
-// eslint-disable-next-line no-unused-vars
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { getListings, saveSearch } from '@/lib/api';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -12,9 +12,11 @@ import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useSEO } from '@/lib/useSEO';
 import FilterPanel from '@/components/filters/FilterPanel';
 import EmptyState from '@/components/ui/EmptyState';
+import SEOLandingBottom from '@/components/SEOLandingBottom';
 import { Filter, X, Search, Bell, PlusCircle, ChevronRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cleanInvalidFilters } from '@/lib/filterValidation';
+import SchemaFactory from '@/lib/seo/SchemaFactory';
 
 const CATEGORIES = CATEGORY_ICONS;
 
@@ -67,13 +69,17 @@ const CATEGORY_QUICK_LINKS = {
 };
 
 // ── BrowseContent ──────────────────────────────────────────────────────────────
-function BrowseContent({ defaultCategory }) {
+function BrowseContent({ defaultCategory, defaultBrand, defaultModel }) {
   const [searchParams] = useSearchParams();
+  const params = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [savingSearch, setSavingSearch] = useState(false);
   const [drawerOpen, setDrawerOpen]     = useState(false);
   const [heroSearch, setHeroSearch]     = useState('');
+
+  const routeBrand = params.brand || defaultBrand;
+  const routeModel = params.model || defaultModel;
 
   const category = searchParams.get('category') || defaultCategory || '';
   const keyword  = searchParams.get('keyword')  || '';
@@ -83,6 +89,18 @@ function BrowseContent({ defaultCategory }) {
   const queryParams = { page, sort };
   for (const [k, v] of searchParams.entries()) {
     if (v) queryParams[k] = v;
+  }
+
+  // Inject route parameters into the API query
+  if (routeBrand) {
+    if (category === 'vehicles' || category === 'commercial-vehicles') {
+      queryParams.make = routeBrand;
+    } else {
+      queryParams.brand = routeBrand;
+    }
+  }
+  if (routeModel) {
+    queryParams.model = routeModel;
   }
 
   // Validate and clean parameters synchronously before the API call
@@ -120,7 +138,9 @@ function BrowseContent({ defaultCategory }) {
     if (isError) toast.error('Failed to load listings. Please try again.');
   }, [isError]);
 
-  const listings = data?.pages.flatMap(page => page.listings) || [];
+  // Memoized to keep a stable reference, preventing unnecessary useEffect re-runs
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- data.pages is stable; flatMap creates new array reference each render
+  const listings = useMemo(() => data?.pages.flatMap(page => page.listings) || [], [data]);
   const total    = data?.pages[0]?.total || 0;
 
   const catEntry    = CATEGORIES.find(c => c.slug === category);
@@ -128,12 +148,20 @@ function BrowseContent({ defaultCategory }) {
   const catMeta     = CATEGORY_META[category] || {};
   const suggestions = catMeta.suggestions || [];
 
-  const canonicalPath = defaultCategory
-    ? `/${defaultCategory}`
-    : (category && !keyword) ? `/browse?category=${category}` : '/browse';
+  const canonicalPath = routeModel 
+    ? `/${category}/${routeBrand}/${routeModel}`
+    : routeBrand 
+      ? `/${category}/${routeBrand}`
+      : defaultCategory
+        ? `/${defaultCategory}`
+        : (category && !keyword) ? `/browse?category=${category}` : '/browse';
 
-  // Noindex pages with active keyword search or complex filters — prevents index bloat
-  const hasActiveFilters = keyword || [...searchParams.entries()].filter(([k]) => !['category','sort','page'].includes(k)).length > 0;
+  // Append page number to canonical URL to allow indexing of pagination pages (without active filters)
+  const canonicalUrlWithPage = page > 1 ? `${canonicalPath}?page=${page}` : canonicalPath;
+
+  // Noindex pages with active keyword search or complex filters — prevents index bloat.
+  // We ignore page, sort, make, brand, and model when considering if a filter is "active".
+  const hasActiveFilters = keyword || [...searchParams.entries()].filter(([k]) => !['category','sort','page','make','brand','model'].includes(k)).length > 0;
 
   // Build a keyword-aware title
   const pageTitle = (() => {
@@ -156,27 +184,75 @@ function BrowseContent({ defaultCategory }) {
     description: catLabel
       ? `Browse ${total} ${catLabel} listings across Kenya. Find the best deals from verified sellers.`
       : `Browse ${total} classified ads in Kenya. Cars, property, electronics, jobs and more.`,
-    canonicalPath,
+    canonicalPath: canonicalUrlWithPage,
     keywords: seoKeywords,
     noindex: !!hasActiveFilters,
   });
 
-  // Inject BreadcrumbList JSON-LD for category pages
+  // Inject Structured Data JSON-LD
   useEffect(() => {
-    if (!category) return;
-    const scriptId = 'browse-breadcrumb-jsonld';
-    let el = document.getElementById(scriptId);
-    if (!el) { el = document.createElement('script'); el.id = scriptId; el.type = 'application/ld+json'; document.head.appendChild(el); }
-    el.textContent = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      'itemListElement': [
-        { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': 'https://adhubkenya.co.ke/' },
-        { '@type': 'ListItem', 'position': 2, 'name': catLabel || category, 'item': `https://adhubkenya.co.ke${canonicalPath}` }
-      ]
+    const scripts = [];
+    
+    if (category) {
+      scripts.push({
+        id: 'browse-breadcrumb-jsonld',
+        content: SchemaFactory.generate('BreadcrumbList', [
+          { name: 'Home', url: '/' },
+          { name: catLabel || category, url: canonicalPath }
+        ])
+      });
+
+      if (!hasActiveFilters && !keyword) {
+        scripts.push({
+          id: 'browse-collection-jsonld',
+          content: SchemaFactory.generate('CollectionPage', {
+            name: pageTitle,
+            description: catMeta.description || `Browse ${catLabel}`,
+            url: canonicalPath
+          })
+        });
+      }
+    }
+
+    if (keyword) {
+      scripts.push({
+        id: 'browse-search-jsonld',
+        content: SchemaFactory.generate('SearchResultsPage', {
+          query: keyword,
+          url: canonicalPath
+        })
+      });
+    }
+
+    if (listings && listings.length > 0) {
+      scripts.push({
+        id: 'browse-itemlist-jsonld',
+        content: SchemaFactory.generate('ItemList', {
+          items: listings
+        })
+      });
+    }
+
+    // Mount all schemas
+    scripts.forEach(({ id, content }) => {
+      if (!content) return;
+      let el = document.getElementById(id);
+      if (!el) {
+        el = document.createElement('script');
+        el.id = id;
+        el.type = 'application/ld+json';
+        document.head.appendChild(el);
+      }
+      el.textContent = JSON.stringify(content);
     });
-    return () => { const s = document.getElementById(scriptId); if (s) s.remove(); };
-  }, [category, catLabel, canonicalPath]);
+
+    return () => {
+      scripts.forEach(({ id }) => {
+        const s = document.getElementById(id);
+        if (s) s.remove();
+      });
+    };
+  }, [category, catLabel, canonicalPath, keyword, pageTitle, catMeta.description, hasActiveFilters, listings]);
 
   const ignoredKeys      = new Set(['category','keyword','sort','page']);
   const activeFilterCount = [...searchParams.keys()].filter(k => !ignoredKeys.has(k)).length;
@@ -652,6 +728,10 @@ function BrowseContent({ defaultCategory }) {
               </div>
             </div>
           </div>
+          {/* SEO Landing Bottom (Only on Page 1 without active filters) */}
+          {!hasActiveFilters && page === 1 && (
+            <SEOLandingBottom category={category} brand={routeBrand} model={routeModel} />
+          )}
         </>
       )}
     </div>

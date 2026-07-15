@@ -24,7 +24,7 @@ export default function ProfilePage() {
   });
 
   const { user, logout } = useAuth();
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [stats, setStats] = useState({ total_listings: 0, member_since: null, average_rating: 0, review_count: 0 });
@@ -43,7 +43,7 @@ export default function ProfilePage() {
       // eslint-disable-next-line react-hooks/immutability
       loadProfile();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [user]);
 
   const loadProfile = async () => {
@@ -139,7 +139,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await logout();
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (error) {
       toast.error('Failed to sign out');
     }

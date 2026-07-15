@@ -6,3 +6,13 @@ build/
 .env.local
 .DS_Store
 *.log
+
+# Debug, seed, and audit scripts (may contain credentials)
+**/audit_*.mjs
+**/audit_*.js
+**/check_*.mjs
+**/fix_*.mjs
+**/seed_*.js
+**/seed_*.mjs
+**/lint_output.txt
+**/test-render.jsx

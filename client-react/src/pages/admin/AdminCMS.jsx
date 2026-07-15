@@ -7,7 +7,7 @@ export default function AdminCMS() {
   const [pages, setPages] = useState([]);
   const [banners, setBanners] = useState([]);
   const [activeTab, setActiveTab] = useState('pages');
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function AdminCMS() {
       if (error) throw error;
       setPages(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
       toast.success('Page status updated');
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (err) {
       toast.error('Failed to update page');
     }
@@ -52,7 +52,7 @@ export default function AdminCMS() {
       if (error) throw error;
       setBanners(prev => prev.map(b => b.id === id ? { ...b, active: !currentStatus, is_active: !currentStatus } : b));
       toast.success('Banner status updated');
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
     } catch (err) {
       toast.error('Failed to update banner');
     }

@@ -47,23 +47,23 @@ export default function AudioForm({ values = {}, onChange }) {
   // Reset logic: Type -> Brand -> Series -> Model
   useEffect(() => {
     if (s.equipmentType && !AUDIO_SPECS.hierarchy[s.equipmentType]?.brands?.includes(brand)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
       setBrand('');
       setSpec('series', '');
       setModel('');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [s.equipmentType]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setSpec('series', '');
     setModel('');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [brand]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
     setModel('');
    
   }, [s.series]);
@@ -72,12 +72,12 @@ export default function AudioForm({ values = {}, onChange }) {
   useEffect(() => {
     if (s.equipmentType === 'Soundbar' && model) {
       if (model.includes('Bar 5.0')) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
         setSpec('channels', '5.0');
         setSpec('connectivity', 'Bluetooth, Wi-Fi, HDMI, HDMI ARC');
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [model]);
 
   return (
