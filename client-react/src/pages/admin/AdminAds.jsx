@@ -4,11 +4,16 @@ import { supabase } from '@/lib/supabase';
 import { formatPrice, timeAgo } from '@/lib/api';
 
 const STATUS_CONFIG = {
-  active:   { label: 'Active',   class: 'bg-green-500/15 text-green-600 border-green-500/20' },
-  pending:  { label: 'Pending',  class: 'bg-amber-500/15 text-amber-600 border-amber-500/20' },
-  rejected: { label: 'Rejected', class: 'bg-destructive/15 text-destructive border-destructive/20' },
-  archived: { label: 'Archived', class: 'bg-secondary text-muted-foreground border-border' },
-  featured: { label: 'Featured', class: 'bg-purple-500/15 text-purple-600 border-purple-500/20' },
+  active:         { label: 'Active',         class: 'bg-green-500/15 text-green-600 border-green-500/20' },
+  pending:        { label: 'Pending',        class: 'bg-amber-500/15 text-amber-600 border-amber-500/20' },
+  rejected:       { label: 'Rejected',       class: 'bg-destructive/15 text-destructive border-destructive/20' },
+  archived:       { label: 'Archived',       class: 'bg-secondary text-muted-foreground border-border' },
+  featured:       { label: 'Featured',       class: 'bg-purple-500/15 text-purple-600 border-purple-500/20' },
+  expired:        { label: 'Closed',         class: 'bg-gray-500/15 text-gray-600 border-gray-500/20' },
+  sold:           { label: 'Sold',           class: 'bg-blue-500/15 text-blue-600 border-blue-500/20' },
+  draft:          { label: 'Draft',          class: 'bg-slate-500/15 text-slate-600 border-slate-500/20' },
+  needs_revision: { label: 'Needs Revision', class: 'bg-red-500/15 text-red-600 border-red-500/20' },
+  suspended:      { label: 'Suspended',      class: 'bg-red-700/15 text-red-700 border-red-700/20' }
 };
 
 function StatusBadge({ status = 'active' }) {
