@@ -551,24 +551,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* DEV NOTICE BANNER */}
-      {showDevBanner && (
-        <div className="w-full bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-800 relative flex items-center">
-          <div className="mx-auto flex max-w-[1600px] w-full items-center justify-center gap-2 px-10 py-2 text-xs text-amber-800 dark:text-amber-300">
-            <span className="text-sm">🔧</span>
-            <span className="font-semibold">Heads up!</span>
-            <span className="opacity-80 text-center">We're improving AdHub — some features may still be evolving.</span>
-          </div>
-          <button 
-            onClick={dismissDevBanner} 
-            className="absolute right-4 text-amber-700 hover:text-amber-900 transition-colors p-1"
-            aria-label="Dismiss banner"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
       {/* ── TWO-COLUMN LAYOUT ─────────────────────────────────────── */}
       <div className="mx-auto max-w-[1800px] px-4 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-6 pt-6">
