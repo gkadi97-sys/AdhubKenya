@@ -66,6 +66,8 @@ COUNTY_TOWNS['Nairobi']['Westlands'] = ['Rhapta Road', 'Brookside', 'Spring Vall
 COUNTY_TOWNS['Nairobi']['Kilimani'] = ['Yaya', 'Dennis Pritt', 'Lenana Road', 'Argwings Kodhek', 'Riara'];
 COUNTY_TOWNS['Nairobi']['Kasarani'] = ['Seasons', 'Hunters', 'Sunton', 'Mwiki', 'Clay City'];
 
+COUNTY_TOWNS['Kisii']['Ogembo'] = ['Egetuki', 'Nyamonyo'];
+
 export const COUNTIES = Object.keys(COUNTY_TOWNS).sort();
 export const getTowns = (county) => county && COUNTY_TOWNS[county] ? Object.keys(COUNTY_TOWNS[county]).sort() : [];
 export const getAreas = (county, town) => (county && town && COUNTY_TOWNS[county] && COUNTY_TOWNS[county][town]) ? COUNTY_TOWNS[county][town].sort() : [];
