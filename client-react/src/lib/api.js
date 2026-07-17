@@ -136,18 +136,27 @@ export const getListings = async (params = {}) => {
 
   // Fields that come from structured dropdowns/radios → exact match
   const EXACT_MATCH_FIELDS = new Set([
-    'fuelType', 'transmission', 'bodyType', 'driveType', 'color', 'condition',
-    'registered', 'exchange', 'seats', 'doors', 'usageType',
-    'listingType', 'partCategory', 'part', 'position', 'universal', 'vehicleType',
-    'listingCategory', 'propertyCategory', 'propertyType', 'bedrooms', 'bathrooms',
-    'furnished', 'floors', 'parking',
-    'brand', 'series', 'storage', 'ram', 'network', 'os',
-    'subcategory', 'cpuBrand', 'storageType', 'storageSize', 'screenSize', 'screenSizeTv',
-    'displayTech', 'resolution', 'smartPlatform', 'tvBrand', 'tvSeries',
-    'equipmentType', 'audioBrand', 'channels', 'connectivity',
-    'employmentType', 'workArrangement', 'experienceLevel', 'educationLevel', 'industry',
-    // CV / seeking-work specific
-    'availability', 'employmentStatus', 'languages', 'salaryPeriod',
+    'accCategory', 'accessories', 'accSubcategory', 'ageRange', 'amenities', 'animalType', 
+    'assemblyRequired', 'availability', 'axles', 'bathrooms', 'battery', 'batteryMah', 
+    'bedrooms', 'bedSize', 'brand', 'bulbType', 'category', 'color', 'compatibility', 
+    'compatibleYear', 'condition', 'connectivity', 'deliveryAvailable', 'device_type', 
+    'dewormed', 'displaySize', 'driveConfig', 'educationLevel', 'employmentStatus', 
+    'employmentType', 'energyRating', 'equipmentType', 'experience', 'experienceLevel', 
+    'experienceYears', 'floor', 'floors', 'fuel_type', 'fuelType', 'furnishing', 'gender', 
+    'grading', 'includesBox', 'indoorOutdoor', 'industry', 'item', 'itemType', 'languages', 
+    'leisureType', 'licenceClass', 'listingType', 'make', 'manualElectric', 'material', 
+    'mattressIncluded', 'mattressSize', 'microchipped', 'model', 'nearbyFacilities', 'network', 
+    'organic', 'os', 'parking', 'part', 'partCategory', 'position', 'pricePeriod', 'produceType', 
+    'propertyType', 'ram', 'ramGB', 'registered', 'releaseYear', 'salaryPeriod', 'sellerType', 
+    'series', 'serviceMode', 'serviceType', 'size', 'sizeUnit', 'smartCompatible', 'storage', 
+    'storageGB', 'storageIncluded', 'subcategory', 'targetGender', 'tenure', 'transmission', 
+    'truckBed', 'unit', 'vaccinated', 'vehicleClass', 'vehicleType', 'voltage', 'warranty', 
+    'workArrangement', 'year',
+    // Legacy / Hardcoded fields not natively in attributes table but handled via aliases
+    'bodyType', 'driveType', 'exchange', 'seats', 'doors', 'usageType', 'universal', 
+    'listingCategory', 'propertyCategory', 'furnished', 'cpuBrand', 'storageType', 
+    'storageSize', 'screenSize', 'screenSizeTv', 'displayTech', 'resolution', 
+    'smartPlatform', 'tvBrand', 'tvSeries', 'audioBrand', 'channels'
   ]);
   
   Object.keys(params).forEach(key => {
