@@ -533,14 +533,22 @@ export const getCategoryMetadata = async (categorySlug) => {
 
 export const getLookupValues = async (lookupType, parentId = null, search = '') => {
   if (lookupType === 'vehicle_make') {
+    // If a parentId is given (commercial vehicle type), use lookup_values (type-specific brands)
+    if (parentId && parentId !== 'any') {
+      let q = supabase
+        .from('lookup_values')
+        .select('*')
+        .eq('lookup_type', 'vehicle_make')
+        .eq('is_active', true)
+        .eq('parent_id', parentId)
+        .order('order_index');
+      if (search) q = q.ilike('value', `%${search}%`);
+      const { data } = await q;
+      return (data || []).map(m => ({ id: m.id, value: m.value, metadata: m.metadata || {} }));
+    }
+    // Default: use vehicle_makes table (for regular cars/bikes with no vehicle type filter)
     const makes = await getVehicleMakes();
     const mapped = makes.map(m => ({ id: m.id, value: m.name, metadata: {} }));
-    return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
-  }
-  if (lookupType === 'vehicle_model') {
-    if (!parentId || parentId === 'any') return [];
-    const models = await getVehicleModels(parentId);
-    const mapped = models.map(m => ({ id: m.id, value: m.name, metadata: {} }));
     return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
   }
   if (lookupType === 'vehicle_generation') {
