@@ -350,8 +350,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
                     options={options}
                     value={field.value}
                     onChange={field.onChange}
-                    // eslint-disable-next-line no-undef
-                    propertyType={watch('attrs.propertyType') || ''}
+                    propertyType={allValues?.attrs?.propertyType || ''}
                   />
                 </div>
               ) : (
