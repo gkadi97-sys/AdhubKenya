@@ -71,7 +71,7 @@ const SIDEBAR_SECTIONS = [
 const MORE_SLUGS = CATEGORY_ICONS.filter(c => !SIDEBAR_SECTIONS.some(s => s.slugs.includes(c.slug))).map(c => c.slug);
 SIDEBAR_SECTIONS.push({ id: 'more', title: 'MORE CATEGORIES', slugs: MORE_SLUGS });
 
-// ─── Left Category Sidebar ───────────────────────────────────────────────────
+// â”€â”€â”€ Left Category Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY_ICONS }) {
   const [selectedSlug, setSelectedSlug] = useState(null);
   const [filters, setFilters]           = useState({});
@@ -209,12 +209,12 @@ function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY
 
   const transitionClass = `transition-all duration-200 ease-out ${animating ? 'opacity-0 translate-y-1 scale-[0.98]' : 'opacity-100 translate-y-0 scale-100'}`;
 
-  // ─── FOCUSED MODE ──────────────────────────────────────────────────────────
+  // â”€â”€â”€ FOCUSED MODE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (focusMode) {
     const isPreview = cat && cat.count === 0;
     return (
       <nav className={`flex flex-col gap-4 ${transitionClass}`}>
-        {/* ← Change Category */}
+        {/* â† Change Category */}
         <button
           onClick={exitFocus}
           className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer group -mx-1 px-2 py-1 rounded-lg hover:bg-muted/50 w-fit"
@@ -249,7 +249,7 @@ function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY
         {/* OEM Quick-Access (Auto Spares) */}
         {selectedSlug === 'auto-spares' && (
           <div className="rounded-xl border border-amber-400/40 bg-amber-50/60 dark:bg-amber-900/10 px-3 py-2.5 flex flex-col gap-1.5">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400 flex items-center gap-1">⚡ OEM Part Number</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400 flex items-center gap-1">âš¡ OEM Part Number</p>
             <p className="text-[10px] text-amber-700/70 dark:text-amber-400/60 leading-tight">Know the exact part no.? Skip the search.</p>
             <div className="relative mt-0.5">
               <input
@@ -267,7 +267,7 @@ function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY
             </div>
             {filters['oemNumber'] && (
               <button onClick={browse} className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-[11px] font-bold text-white transition cursor-pointer">
-                Find by OEM No. →
+                Find by OEM No. â†’
               </button>
             )}
           </div>
@@ -424,7 +424,7 @@ function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY
     );
   }
 
-  // ─── DEFAULT MODE: Full category list ──────────────────────────────────────
+  // â”€â”€â”€ DEFAULT MODE: Full category list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <nav className={`flex flex-col gap-6 ${transitionClass}`}>
       {SIDEBAR_SECTIONS.map((section) => {
@@ -466,7 +466,7 @@ function CategorySidebar({ onNavigate, onCategoryFocus, enrichedIcons = CATEGORY
   );
 }
 
-// ─── HomePage ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ HomePage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -474,12 +474,14 @@ export default function HomePage() {
   const [trendingSearches, setTrendingSearches] = useState([]);
   const [countyCounts, setCountyCounts] = useState([]);
   const [focusedCat, setFocusedCat] = useState(null);
+  // eslint-disable-next-line no-unused-vars -- Dev banner preserved for future use
   const [showDevBanner, setShowDevBanner] = useState(() => localStorage.getItem('adhub_hide_dev') !== 'true');
   const [realCategoryCounts, setRealCategoryCounts] = useState({});
 
   // enrichedIcons = CATEGORY_ICONS with real DB counts merged in
   const enrichedIcons = mergeRealCounts(realCategoryCounts);
 
+  // eslint-disable-next-line no-unused-vars -- Dev banner preserved for future use
   const dismissDevBanner = () => {
     setShowDevBanner(false);
     localStorage.setItem('adhub_hide_dev', 'true');
@@ -516,7 +518,7 @@ export default function HomePage() {
   }, []);
 
   useSEO({
-    title: 'AdHub Kenya – Buy & Sell Anything in Kenya',
+    title: 'AdHub Kenya â€“ Buy & Sell Anything in Kenya',
     description: "AdHub Kenya is Kenya's free classifieds marketplace. Buy and sell cars, property, electronics, phones, fashion, and jobs across all 47 counties.",
     canonicalPath: '/'
   });
@@ -547,17 +549,17 @@ export default function HomePage() {
       <div className="gradient-emerald text-primary-foreground">
         <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-1.5 text-xs">
           <Sparkles className="h-3 w-3 text-gold" />
-          <span className="opacity-90">Free posting — list your ad in under 60 seconds.</span>
+          <span className="opacity-90">Free posting â€” list your ad in under 60 seconds.</span>
         </div>
       </div>
 
-      {/* ── TWO-COLUMN LAYOUT ─────────────────────────────────────── */}
+      {/* â”€â”€ TWO-COLUMN LAYOUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="mx-auto max-w-[1800px] px-4 sm:px-8 lg:px-10">
         <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-6 pt-6">
 
-          {/* ── LEFT SIDEBAR: Categories ──────────────────────────── */}
+          {/* â”€â”€ LEFT SIDEBAR: Categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           <aside className="hidden lg:block w-full">
-            {/* Breadcrumb — visible when a category is focused */}
+            {/* Breadcrumb â€” visible when a category is focused */}
             {focusedCat && (
               <nav className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-3 px-1" aria-label="Breadcrumb">
                 <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
@@ -572,10 +574,10 @@ export default function HomePage() {
             </div>
           </aside>
 
-          {/* ── RIGHT MAIN CONTENT ────────────────────────────────── */}
+          {/* â”€â”€ RIGHT MAIN CONTENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           <main className="flex-1 min-w-0">
 
-            {/* ── DESKTOP HERO ── */}
+            {/* â”€â”€ DESKTOP HERO â”€â”€ */}
             <section className="relative mb-8 z-20 group hidden lg:block">
               <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl bg-background">
                 <img 
@@ -598,7 +600,7 @@ export default function HomePage() {
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                     </span>
                     {(liveAdCount !== null && liveAdCount >= 100) ? (
-                       `Live from 47 counties · ${liveAdCount.toLocaleString()} active ads`
+                       `Live from 47 counties Â· ${liveAdCount.toLocaleString()} active ads`
                     ) : (
                        `Live across Kenya`
                     )}
@@ -634,7 +636,7 @@ export default function HomePage() {
               </div>
             </section>
 
-            {/* ── MOBILE HERO (Search + Categories) ── */}
+            {/* â”€â”€ MOBILE HERO (Search + Categories) â”€â”€ */}
             <section className="lg:hidden mb-6 pt-2">
               <div className="px-4 pb-5">
                 <HeroSearch stickyCategory={focusedCat} />
@@ -658,7 +660,7 @@ export default function HomePage() {
               </div>
             </section>
 
-            {/* ── TRUST & DISCOVERY (Moved up) ── */}
+            {/* â”€â”€ TRUST & DISCOVERY (Moved up) â”€â”€ */}
             <div className="flex flex-col gap-10 lg:gap-12 mb-10">
               
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-center">
@@ -667,7 +669,7 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-4 py-3 sm:px-6 sm:py-4 relative z-10 divide-x divide-primary-foreground/10 h-full items-center">
                     {[
-                      { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : '…', l: 'Active Listings' },
+                      { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : 'â€¦', l: 'Active Listings' },
                       { icon: Grid,       n: '18',     l: 'Categories' },
                       { icon: MapPin,     n: '47',      l: 'Counties' },
                       { icon: Sparkles,   n: '100%',    l: 'Free Posting' },
@@ -734,7 +736,7 @@ export default function HomePage() {
 
             </div>
 
-            {/* ── MARKETPLACE FEEDS ── */}
+            {/* â”€â”€ MARKETPLACE FEEDS â”€â”€ */}
             <div className="flex flex-col gap-10 lg:gap-12">
 
               {/* Featured Listings */}
@@ -780,7 +782,7 @@ export default function HomePage() {
                 />
               )}
 
-              {/* ── UTILITIES ── */}
+              {/* â”€â”€ UTILITIES â”€â”€ */}
               
               <hr className="border-border/50" />
 
@@ -815,7 +817,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <ul className="grid gap-2.5 text-sm">
-                      {['List in under 60 seconds','Reach buyers across 47 counties','Verified seller badges build trust','Chat directly — no commissions'].map(p => (
+                      {['List in under 60 seconds','Reach buyers across 47 counties','Verified seller badges build trust','Chat directly â€” no commissions'].map(p => (
                         <li key={p} className="flex items-center gap-3 rounded-xl bg-primary-foreground/10 px-4 py-2.5 ring-1 ring-primary-foreground/15">
                           <BadgeCheck className="h-4 w-4 shrink-0 text-gold" />
                           <span>{p}</span>

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
+// eslint-disable-next-line no-unused-vars
 export default function CascadingLocationSelect({ value = null, onChange, required = false, showLabel = true }) {
   // `value` is expected to be a location object or ID
   const [hierarchy, setHierarchy] = useState([]); // Array of { levelName: string, selected: obj|null, options: [] }

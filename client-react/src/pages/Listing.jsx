@@ -79,6 +79,7 @@ export default function ListingDetailPage() {
   useEffect(() => {
     window.scrollTo(0, 0); 
     if (actualId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: initiates loading state
       setLoading(true);
       getListing(actualId).then(data => {
         if (!data) {
@@ -106,12 +107,13 @@ export default function ListingDetailPage() {
         getListingViews(data.id).then(count => { if (count > 0) setListingViews(count); });
       }).catch(() => setListing(null)).finally(() => setLoading(false));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- addListing/navigate/location are stable refs; only re-run when actualId changes
   }, [actualId]);
 
   useEffect(() => {
     if (listing?.category) {
       getListings({ category: listing.category, limit: 5 }).then(data => {
-        // getListings returns { listings, total, pages } — use .listings
+        // getListings returns { listings, total, pages } â€” use .listings
         const items = data?.listings || [];
         setRelatedListings(items.filter(item => item.id !== listing.id).slice(0, 4));
       }).catch(() => {});
@@ -128,7 +130,7 @@ export default function ListingDetailPage() {
 
   const handleToggleSave = async () => {
     // eslint-disable-next-line no-undef
-    if (!user) { toast('Sign in to save listings', { icon: '🔒' }); return; }
+    if (!user) { toast('Sign in to save listings', { icon: 'ðŸ”’' }); return; }
     setSavingListing(true);
     try {
       const newState = await toggleSaved(listing.id);
@@ -157,7 +159,7 @@ export default function ListingDetailPage() {
 
   if (!listing) return (
     <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
-      <div className="text-6xl mb-4">😕</div>
+      <div className="text-6xl mb-4">ðŸ˜•</div>
       <h3 className="font-display text-2xl font-bold mb-2">Listing not found</h3>
       <p className="text-muted-foreground mb-6">This ad may have been removed or expired</p>
       <Link to="/browse" className="rounded-xl bg-primary text-primary-foreground px-6 py-3 font-semibold text-sm hover:opacity-90 transition-opacity">Browse Ads</Link>
@@ -196,17 +198,17 @@ export default function ListingDetailPage() {
             {/* Breadcrumb - Truncated earlier items, only active final */}
             <nav className="flex items-center gap-1 sm:gap-2 mb-4 text-xs sm:text-sm text-muted-foreground flex-nowrap overflow-x-auto pb-2 scrollbar-none whitespace-nowrap">
               <Link to="/" className="hover:text-foreground transition-colors shrink-0">Home</Link>
-              <span className="shrink-0 text-[10px] sm:text-xs">▶</span>
+              <span className="shrink-0 text-[10px] sm:text-xs">â–¶</span>
               <Link to="/browse" className="hover:text-foreground transition-colors shrink-0">Browse</Link>
-              <span className="shrink-0 text-[10px] sm:text-xs">▶</span>
+              <span className="shrink-0 text-[10px] sm:text-xs">â–¶</span>
               <Link to={`/browse?category=${listing.category}`} className="hover:text-foreground transition-colors capitalize shrink-0">{listing.category?.replace(/-/g, ' ')}</Link>
-              <span className="shrink-0 text-[10px] sm:text-xs">▶</span>
+              <span className="shrink-0 text-[10px] sm:text-xs">â–¶</span>
               <span className="text-foreground font-semibold truncate flex-1 min-w-[100px]">{listing.title}</span>
             </nav>
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 lg:gap-8 items-start">
               
-              {/* ── LEFT COLUMN ── */}
+              {/* â”€â”€ LEFT COLUMN â”€â”€ */}
               <div className="min-w-0 flex flex-col gap-6">
 
                 {/* 1. TITLE & PRICE BLOCK */}
@@ -256,7 +258,7 @@ export default function ListingDetailPage() {
                         <Image
                           key={activeImg}
                           src={imageUrl(images[activeImg])}
-                          alt={`${listing.title} – image ${activeImg + 1} of ${images.length}`}
+                          alt={`${listing.title} â€“ image ${activeImg + 1} of ${images.length}`}
                           className="w-full transition-transform duration-500 group-hover:scale-105"
                           style={{ maxHeight: 'max(380px, min(65vh, 520px))', height: 'max(380px, min(65vh, 520px))' }}
                           fallbackIconSize={48}
@@ -340,7 +342,7 @@ export default function ListingDetailPage() {
                 
               </div>
 
-              {/* ── RIGHT COLUMN: Contact card (sticky on desktop) ── */}
+              {/* â”€â”€ RIGHT COLUMN: Contact card (sticky on desktop) â”€â”€ */}
               <aside className="lg:sticky lg:top-24 z-10 flex flex-col gap-4">
                 <div className="rounded-2xl border border-border bg-card shadow-sm flex flex-col">
                   
@@ -443,7 +445,7 @@ export default function ListingDetailPage() {
                           <div className="flex items-center justify-center gap-2 w-full rounded-xl py-2.5 px-4 font-bold text-foreground text-sm border border-border bg-background"><Phone className="w-4 h-4" /> Show Phone Number</div>
                         </div>
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-card/80 rounded-xl backdrop-blur-sm p-4 text-center border border-border shadow-sm">
-                          <div className="text-3xl">🔒</div>
+                          <div className="text-3xl">ðŸ”’</div>
                           <div className="font-bold text-sm">Sign in to contact</div>
                           <div className="flex gap-2 w-full">
                             <Link to="/login" state={{ from: UrlService.listing(listing) }} className="flex-1 rounded-lg bg-primary text-primary-foreground py-2 font-semibold text-xs text-center hover:opacity-90 transition-opacity">Login</Link>
@@ -483,7 +485,7 @@ export default function ListingDetailPage() {
                       <AlertCircle className="w-4 h-4 shrink-0 text-primary mt-0.5" />
                       <div className="flex flex-col gap-1">
                         <p>Meet in a public place. Never send money in advance.</p>
-                        <Link to="/safety" className="text-primary font-semibold hover:underline">Learn More →</Link>
+                        <Link to="/safety" className="text-primary font-semibold hover:underline">Learn More â†’</Link>
                       </div>
                    </div>
                 </div>
@@ -494,7 +496,7 @@ export default function ListingDetailPage() {
           </>
         )}
 
-        {/* ── SEO CONTEXT LINKS ── */}
+        {/* â”€â”€ SEO CONTEXT LINKS â”€â”€ */}
         <div className="mt-8 flex flex-wrap gap-2 text-sm font-medium">
           <Link 
             to={UrlService.category(listing.category)}
