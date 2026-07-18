@@ -123,12 +123,26 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
   const labelClass = 'text-sm font-semibold text-foreground mb-1.5 inline-flex items-center gap-1';
 
   // Cascade dependency (options filtered by parent)
-  const cascadeDepAttrId = useMemo(() => {
-    const dep = dependencies.find(
-      d => d.attribute_id === attribute.id && d.effect === 'cascade' && d.operator === 'exists'
-    );
-    return dep ? dep.depends_on_attribute_id : null;
+  const cascadeDeps = useMemo(() => {
+    return dependencies.filter(d => d.attribute_id === attribute.id && d.effect === 'cascade' && d.operator === 'exists');
   }, [dependencies, attribute.id]);
+
+  // Find the first cascade dependency that actually has a value selected, 
+  // or fallback to the primary one if none are selected.
+  const activeCascadeDep = useMemo(() => {
+    if (cascadeDeps.length === 0) return null;
+    
+    // Try to find one where the parent attribute has a value
+    for (const dep of cascadeDeps) {
+      if (allValues?.attrs?.[dep.depends_on_attribute_id]) {
+        return dep;
+      }
+    }
+    // Fallback to the first one
+    return cascadeDeps[0];
+  }, [cascadeDeps, allValues]);
+
+  const cascadeDepAttrId = activeCascadeDep ? activeCascadeDep.depends_on_attribute_id : null;
 
   // Show dependency (visible when parent has value)
   const showDepAttrId = useMemo(() => {

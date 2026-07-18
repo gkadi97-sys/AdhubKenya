@@ -560,6 +560,11 @@ export const getLookupValues = async (lookupType, parentId = null, search = '') 
     const mapped = makes.map(m => ({ id: m.id, value: m.name, metadata: {} }));
     return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
   }
+  if (lookupType === 'vehicle_model') {
+    if (!parentId || parentId === 'any') return [];
+    const models = await getVehicleModels(parentId);
+    return models.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+  }
   if (lookupType === 'vehicle_generation') {
     if (!parentId || parentId === 'any') return [];
     const gens = await getVehicleGenerations(parentId);
