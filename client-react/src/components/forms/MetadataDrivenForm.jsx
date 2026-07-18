@@ -30,7 +30,7 @@ import {
 import AsyncSelect from 'react-select/async';
 import AmenitiesSearchPicker from './AmenitiesSearchPicker';
 
-const ASYNC_LOOKUPS = ['phones_brand', 'phones_series', 'phones_model', 'phones_variant', 'vehicle_model', 'vehicle_trim', 'electronics_brand', 'electronics_series', 'electronics_model'];
+const ASYNC_LOOKUPS = ['phones_brand', 'phones_series', 'phones_model', 'phones_variant', 'vehicle_make', 'vehicle_model', 'vehicle_generation', 'vehicle_trim', 'electronics_brand', 'electronics_series', 'electronics_model'];
 
 // ─── Icon Map (maps icon name strings from DB to Lucide components) ──────────
 const ICON_MAP = {
