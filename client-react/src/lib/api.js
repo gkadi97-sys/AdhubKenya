@@ -563,17 +563,20 @@ export const getLookupValues = async (lookupType, parentId = null, search = '') 
   if (lookupType === 'vehicle_model') {
     if (!parentId || parentId === 'any') return [];
     const models = await getVehicleModels(parentId);
-    return models.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    const mapped = models.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
   }
   if (lookupType === 'vehicle_generation') {
     if (!parentId || parentId === 'any') return [];
     const gens = await getVehicleGenerations(parentId);
-    return gens.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    const mapped = gens.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
   }
   if (lookupType === 'vehicle_trim') {
     if (!parentId || parentId === 'any') return [];
     const trims = await getVehicleTrims(parentId);
-    return trims.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    const mapped = trims.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
   }
 
   let query = supabase
