@@ -24,18 +24,25 @@ export default function CategoryPage({ context }) {
   const [searchParams] = useSearchParams();
 
   const filters = useMemo(() => {
-    const categorySlugs = [current.slug];
-    if (children && children.length > 0) {
-      categorySlugs.push(...children.map(c => c.slug));
-    }
-    
-    const obj = { category: categorySlugs.join(','), sort, page };
+    // Build a complete set of slugs to match:
+    // - current page slug (e.g. "cars")
+    // - all ancestor slugs (e.g. "vehicles") — because sellers pick top-level only
+    // - all direct children slugs (e.g. "sedan", "suv") — to catch more specific listings
+    const categorySlugs = [
+      ...(ancestors || []).map(a => a.slug),
+      current.slug,
+      ...(children || []).map(c => c.slug),
+    ];
+    // Deduplicate
+    const uniqueSlugs = [...new Set(categorySlugs)];
+
+    const obj = { category: uniqueSlugs.join(','), sort, page };
     for (const [k, v] of searchParams.entries()) {
-      if (k === 'category') continue; // Avoid overriding with URL if present (shouldn't be on Category pages)
+      if (k === 'category') continue;
       obj[k] = v;
     }
     return obj;
-  }, [current.slug, children, sort, page, searchParams]);
+  }, [current.slug, ancestors, children, sort, page, searchParams]);
 
   const { data, isLoading: loading, isError } = useQuery({
     queryKey: ['category-listings', filters],
