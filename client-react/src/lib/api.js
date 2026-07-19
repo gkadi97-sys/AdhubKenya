@@ -72,7 +72,13 @@ export const getListings = async (params = {}) => {
   }
 
   // ── Top-level column filters (exact match) ──────────────────────────────
-  if (params.category)  query = query.eq('category', params.category);
+  if (params.category) {
+    if (params.category.includes(',')) {
+      query = query.in('category', params.category.split(',').map(s => s.trim()));
+    } else {
+      query = query.eq('category', params.category);
+    }
+  }
   if (params.location)  query = query.eq('location', params.location);
   if (params.minPrice)  query = query.gte('price', params.minPrice);
   if (params.maxPrice)  query = query.lte('price', params.maxPrice);

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getListings } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import ListingCard from '@/components/ListingCard.jsx';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import CategorySidebar from '@/components/CategorySidebar.jsx';
 import CategoryBreadcrumbs from '@/components/CategoryBreadcrumbs.jsx';
 import FilterPanel from '@/components/filters/FilterPanel.jsx';
@@ -19,11 +19,27 @@ export default function CategoryPage({ context }) {
   const [sort, setSort] = useState('createdAt');
   const [page, setPage] = useState(1);
 
-  const { current, ancestors } = context;
+  const { current, ancestors, children } = context;
+
+  const [searchParams] = useSearchParams();
+
+  const filters = useMemo(() => {
+    const categorySlugs = [current.slug];
+    if (children && children.length > 0) {
+      categorySlugs.push(...children.map(c => c.slug));
+    }
+    
+    const obj = { category: categorySlugs.join(','), sort, page };
+    for (const [k, v] of searchParams.entries()) {
+      if (k === 'category') continue; // Avoid overriding with URL if present (shouldn't be on Category pages)
+      obj[k] = v;
+    }
+    return obj;
+  }, [current.slug, children, sort, page, searchParams]);
 
   const { data, isLoading: loading, isError } = useQuery({
-    queryKey: ['category-listings', current.slug, sort, page],
-    queryFn: () => getListings({ category: current.slug, sort, page }),
+    queryKey: ['category-listings', filters],
+    queryFn: () => getListings(filters),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
