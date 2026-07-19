@@ -6,6 +6,7 @@ import ListingCard from '@/components/ListingCard.jsx';
 import { Link } from 'react-router-dom';
 import CategorySidebar from '@/components/CategorySidebar.jsx';
 import CategoryBreadcrumbs from '@/components/CategoryBreadcrumbs.jsx';
+import FilterPanel from '@/components/filters/FilterPanel.jsx';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 
 const getIcon = (slug, dbIcon) => {
@@ -58,7 +59,18 @@ export default function CategoryPage({ context }) {
       {/* Content Layout */}
       <div className="container flex flex-col lg:flex-row gap-6" style={{padding:'32px 20px 80px'}}>
         
-        <CategorySidebar context={context} />
+        {/* Unified sticky wrapper for Sidebar and FilterPanel */}
+        <aside className="w-full lg:w-[260px] shrink-0">
+          <div className="sticky top-4 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-thin rounded-2xl border border-border bg-card">
+            {/* Category Navigation Sidebar */}
+            <CategorySidebar context={context} />
+            
+            {/* Filter Panel (Desktop) */}
+            <div className="hidden lg:block border-t border-border">
+              <FilterPanel categorySlug={[...(ancestors || []).map(a => a.slug), current.slug].join('/')} />
+            </div>
+          </div>
+        </aside>
         
         <main className="flex-1 min-w-0">
           {/* Sort bar */}

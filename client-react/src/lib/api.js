@@ -527,30 +527,38 @@ export const getCategoryContext = async (path) => {
   return data;
 };
 
-export const getCategoryMetadata = async (categorySlug) => {
-  if (!categorySlug) return null;
+export const getCategoryMetadata = async (categoryPath) => {
+  if (!categoryPath) return null;
   
-  // 1. Get Category
-  const { data: category, error: catErr } = await supabase
+  // Parse path (e.g. "vehicles/cars" or just "vehicles")
+  const slugs = categoryPath.split('/').filter(Boolean);
+  const targetSlug = slugs[slugs.length - 1];
+
+  // 1. Get Categories in path
+  const { data: categories, error: catErr } = await supabase
     .from('categories')
     .select('*')
-    .eq('slug', categorySlug)
-    .single();
+    .in('slug', slugs);
     
-  if (catErr || !category) return null;
+  if (catErr || !categories || categories.length === 0) return null;
 
-  // 2. Get Attribute Groups
+  const targetCategory = categories.find(c => c.slug === targetSlug);
+  if (!targetCategory) return null;
+
+  const categoryIds = categories.map(c => c.id);
+
+  // 2. Get Attribute Groups (inherited)
   const { data: groups } = await supabase
     .from('attribute_groups')
     .select('*')
-    .eq('category_id', category.id)
+    .in('category_id', categoryIds)
     .order('order_index');
 
-  // 3. Get Attributes
+  // 3. Get Attributes (inherited)
   const { data: attributes } = await supabase
     .from('attributes')
     .select('*')
-    .eq('category_id', category.id)
+    .in('category_id', categoryIds)
     .order('display_order');
 
   // 4. Get Dependencies
@@ -565,7 +573,7 @@ export const getCategoryMetadata = async (categorySlug) => {
   }
 
   return {
-    category,
+    category: targetCategory,
     groups: groups || [],
     attributes: attributes || [],
     dependencies

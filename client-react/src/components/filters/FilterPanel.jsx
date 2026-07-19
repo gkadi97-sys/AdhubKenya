@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getListings, getLookupValues, getVehicleMakes } from '@/lib/api';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
@@ -70,7 +70,7 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (attr.is_lookup && attr.lookup_type) {
+    if (attr.lookup_type) {
       // For vehicle_model, we need the parent make's DB id, not just the name string.
       // parentLookupId is pre-resolved and passed in from DynamicFilterField's parent.
       if (attr.lookup_type === 'vehicle_model' && !parentLookupId) {
@@ -114,7 +114,7 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
     );
   }
 
-  if (attr.field_type === 'multiselect') {
+  if (attr.field_type === 'multiselect' || attr.field_type === 'multicheck') {
     return (
       <div className="max-h-48 overflow-y-auto pr-2 custom-scrollbar">
         <MultiCheck options={options} value={value || ''} onChange={onChange} />
@@ -172,9 +172,10 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
 
 
 // ── FilterPanel ──
-export default function FilterPanel({ isMobile = false, onClose }) {
-  const [searchParams] = useSearchParams();
+export default function FilterPanel({ categorySlug = '', isMobile = false, onClose }) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [localParams, setLocalParams] = useState(new URLSearchParams(searchParams));
 
@@ -191,7 +192,7 @@ export default function FilterPanel({ isMobile = false, onClose }) {
     return obj;
   }, [localParams]);
 
-  const category = filters.category || '';
+  const category = filters.category || categorySlug || '';
   const metadata = useMetadataCache(category);
 
   // Resolve make name -> vehicle_makes DB id so Model can cascade
@@ -213,6 +214,15 @@ export default function FilterPanel({ isMobile = false, onClose }) {
     enabled: isMobile,
   });
   const liveCount = countData?.total || 0;
+
+  const handleRouting = (nextParams) => {
+    const isCategoryPage = location.pathname.startsWith('/') && location.pathname !== '/browse' && location.pathname !== '/';
+    if (isCategoryPage) {
+      setSearchParams(nextParams, { replace: true });
+    } else {
+      navigate(`/browse?${nextParams.toString()}`, { replace: true });
+    }
+  };
 
   const updateFilter = (key, value, explicitKey = null) => {
     const next = new URLSearchParams(localParams);
@@ -261,7 +271,7 @@ export default function FilterPanel({ isMobile = false, onClose }) {
     setLocalParams(next);
 
     if (!isMobile && category !== 'seeking-work') {
-      navigate(`/browse?${next.toString()}`, { replace: true });
+      handleRouting(next);
     }
   };
 
@@ -271,11 +281,13 @@ export default function FilterPanel({ isMobile = false, onClose }) {
     if (filters.keyword) next.set('keyword', filters.keyword);
     
     setLocalParams(next);
-    if (!isMobile) navigate(`/browse?${next.toString()}`);
+    if (!isMobile) {
+      handleRouting(next);
+    }
   };
 
   const handleApply = () => {
-    navigate(`/browse?${localParams.toString()}`);
+    handleRouting(localParams);
     if (onClose) onClose();
   };
 

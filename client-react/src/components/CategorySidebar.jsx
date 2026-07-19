@@ -18,8 +18,8 @@ export default function CategorySidebar({ context }) {
   );
 
   return (
-    <aside className="w-full lg:w-64 shrink-0">
-      <div className="sticky top-4 bg-card rounded-2xl border border-border shadow-sm p-4 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-thin">
+    <aside className="w-full shrink-0">
+      <div className="bg-card rounded-2xl border border-border shadow-sm p-4">
 
         {/* Root level: "All Categories" back link */}
         {!parent && (
