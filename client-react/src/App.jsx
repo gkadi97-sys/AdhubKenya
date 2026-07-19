@@ -27,7 +27,7 @@ import Home from '@/pages/Home.jsx';
 import Browse from '@/pages/Browse.jsx';
 import Category from '@/pages/Category.jsx';
 import Listing from '@/pages/Listing.jsx';
-import ListingOrBrowse from '@/pages/ListingOrBrowse.jsx';
+import CategoryRouter from '@/components/CategoryRouter.jsx';
 import Login from '@/pages/Login.jsx';
 import Register from '@/pages/Register.jsx';
 import SavedAds from './pages/SavedAds';
@@ -104,44 +104,45 @@ function AppLayout() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/browse" element={<Browse />} />
-            <Route path="/category/:slug" element={<Category />} />
-            {['vehicles','property','land-plots','phones-tablets','electronics',
-              'home-living','fashion','beauty','services','repair-construction',
-              'commercial-equipment','commercial-vehicles','leisure','babies-kids',
-              'food-agriculture','animals-pets','auto-spares','jobs','seeking-work'
-            ].map(cat => (
-              <Route key={cat} path={`/${cat}`} element={<Browse key={cat} defaultCategory={cat} />} />
-            ))}
             <Route path="/listing/:id" element={<Listing />} />
-            <Route path="/:category/:slugId" element={<ListingOrBrowse />} />
-            <Route path="/:category/:brand/:model" element={<Browse />} />
-            <Route path="/user/:id" element={<PublicProfilePage />} />
+
+            {/* Protected user routes */}
             <Route path="/post-cv" element={<ProtectedRoute><PostCvPage /></ProtectedRoute>} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/post-ad" element={<ProtectedRoute><PostAd /></ProtectedRoute>} />
             <Route path="/post-ad/success" element={<ProtectedRoute><PostAdConfirmation /></ProtectedRoute>} />
             <Route path="/edit-ad/:id" element={<ProtectedRoute><EditAd /></ProtectedRoute>} />
             <Route path="/my-ads" element={<ProtectedRoute><MyAds /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/saved-searches" element={<ProtectedRoute><SavedSearches /></ProtectedRoute>} />
-            
+
+            {/* Auth routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* Messaging */}
             <Route path="/messages" element={<Messages />} />
             <Route path="/messages/:conversationId" element={<Messages />} />
-            
+
+            {/* User profiles */}
+            <Route path="/user/:id" element={<PublicProfilePage />} />
+
+            {/* Saved */}
+            <Route path="/saved" element={<SavedAds />} />
+
+            {/* Legal / Info pages */}
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/safety" element={<SafetyPage />} />
-            <Route path="/saved" element={<SavedAds />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/careers" element={<CareersPage />} />
             <Route path="/report" element={<ReportPage />} />
             <Route path="/cookies" element={<CookiesPage />} />
-            
-            <Route path="*" element={<Navigate to="/" replace />} />
+
+            {/* Catch-all: dynamic category paths (must be last) */}
+            <Route path="/*" element={<CategoryRouter />} />
           </Routes>
         </Suspense>
       </main>

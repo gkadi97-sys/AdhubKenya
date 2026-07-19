@@ -183,7 +183,7 @@ export default function PostAdPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const { register, handleSubmit: rhfHandleSubmit, watch, control, setValue, getValues } = useForm({
+  const { register, handleSubmit: rhfHandleSubmit, watch, control, setValue, getValues, trigger } = useForm({
     defaultValues: (() => {
       const draft = loadDraft();
       return draft ? { ...draft, _savedAt: undefined } : {
@@ -194,6 +194,14 @@ export default function PostAdPage() {
       };
     })()
   });
+
+  const onInvalid = (errors) => {
+    console.error('Form validation errors:', errors);
+    toast.error('Some required fields are missing. Please review your entries.');
+    if (showReview) {
+      setShowReview(false);
+    }
+  };
 
   const category = watch('category');
   const make     = watch('attrs.make');
@@ -588,7 +596,7 @@ export default function PostAdPage() {
           </div>
         )}
 
-        <form onSubmit={rhfHandleSubmit(onSubmit)} className="space-y-3">
+        <form onSubmit={rhfHandleSubmit(onSubmit, onInvalid)} className="space-y-3">
           {error && <div className="rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive border border-destructive/20">{error}</div>}
 
           {showReview ? (
@@ -598,7 +606,7 @@ export default function PostAdPage() {
               category={category}
               metadata={formMetadata}
               onEdit={() => setShowReview(false)}
-              onSubmit={rhfHandleSubmit(onSubmit)}
+              onSubmit={rhfHandleSubmit(onSubmit, onInvalid)}
               loading={loading}
             />
           ) : (
@@ -826,7 +834,14 @@ export default function PostAdPage() {
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowReview(true)}
+                  onClick={async () => {
+                    const isValid = await trigger();
+                    if (isValid) {
+                      setShowReview(true);
+                    } else {
+                      toast.error('Please fill in all required fields marked with *');
+                    }
+                  }}
                   className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-primary text-primary bg-primary/5 px-6 py-4 text-base font-bold transition hover:bg-primary/10"
                 >
                   <Eye className="h-5 w-5" /> Review Listing

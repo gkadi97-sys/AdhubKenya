@@ -16,7 +16,7 @@ import ReportModal from '@/components/ReportModal';
 import StarRating from '@/components/StarRating';
 import ReviewModal from '@/components/ReviewModal';
 // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
-import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight, X, Star } from 'lucide-react';
+import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight, X, Star, Lock } from 'lucide-react';
 import Image from '@/components/Image';
 
 export default function ListingDetailPage() {
@@ -198,11 +198,11 @@ export default function ListingDetailPage() {
             {/* Breadcrumb - Truncated earlier items, only active final */}
             <nav className="flex items-center gap-1 sm:gap-2 mb-4 text-xs sm:text-sm text-muted-foreground flex-nowrap overflow-x-auto pb-2 scrollbar-none whitespace-nowrap">
               <Link to="/" className="hover:text-foreground transition-colors shrink-0">Home</Link>
-              <span className="shrink-0 text-[10px] sm:text-xs">â–¶</span>
+              <ChevronRight className="w-3 h-3 shrink-0" />
               <Link to="/browse" className="hover:text-foreground transition-colors shrink-0">Browse</Link>
-              <span className="shrink-0 text-[10px] sm:text-xs">â–¶</span>
+              <ChevronRight className="w-3 h-3 shrink-0" />
               <Link to={`/browse?category=${listing.category}`} className="hover:text-foreground transition-colors capitalize shrink-0">{listing.category?.replace(/-/g, ' ')}</Link>
-              <span className="shrink-0 text-[10px] sm:text-xs">â–¶</span>
+              <ChevronRight className="w-3 h-3 shrink-0" />
               <span className="text-foreground font-semibold truncate flex-1 min-w-[100px]">{listing.title}</span>
             </nav>
 
@@ -445,7 +445,9 @@ export default function ListingDetailPage() {
                           <div className="flex items-center justify-center gap-2 w-full rounded-xl py-2.5 px-4 font-bold text-foreground text-sm border border-border bg-background"><Phone className="w-4 h-4" /> Show Phone Number</div>
                         </div>
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-card/80 rounded-xl backdrop-blur-sm p-4 text-center border border-border shadow-sm">
-                          <div className="text-3xl">ðŸ”’</div>
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-1">
+                            <Lock className="w-5 h-5" />
+                          </div>
                           <div className="font-bold text-sm">Sign in to contact</div>
                           <div className="flex gap-2 w-full">
                             <Link to="/login" state={{ from: UrlService.listing(listing) }} className="flex-1 rounded-lg bg-primary text-primary-foreground py-2 font-semibold text-xs text-center hover:opacity-90 transition-opacity">Login</Link>

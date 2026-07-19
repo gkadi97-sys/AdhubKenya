@@ -41,23 +41,14 @@ class UrlService {
 
   /**
    * Generates a permanent URL for a listing.
-   * e.g. /phones-tablets/samsung-galaxy-s24-ultra-12gb-512gb-48392
+   * Explicitly uses the /listing/:id path to avoid collision with category routes.
+   * e.g. /listing/48392
    * @param {Object} listing 
    * @returns {string}
    */
   static listing(listing) {
     if (!listing || !listing.id) return '/';
-    
-    // Fallback if category or slug is missing
-    const categorySlug = listing.category ? this.generateSlug(listing.category) : 'misc';
-    
-    // We prefer a DB-persisted slug if available. Otherwise, generate one from title.
-    let itemSlug = listing.slug;
-    if (!itemSlug) {
-      itemSlug = listing.title ? this.generateSlug(listing.title) : 'listing';
-    }
-
-    return this.normalizePath(`/${categorySlug}/${itemSlug}-${listing.id}`);
+    return this.normalizePath(`/listing/${listing.id}`);
   }
 
   /**

@@ -495,6 +495,38 @@ export const getCategories = async () => {
   return data;
 };
 
+export const getCategoriesTree = async () => {
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('is_active', true)
+    .lte('depth', 1)
+    .order('order_index');
+  
+  if (error) {
+    console.error('Failed to fetch category tree:', error);
+    return [];
+  }
+  
+  const roots = data.filter(c => c.depth === 0);
+  const children = data.filter(c => c.depth === 1);
+  
+  return roots.map(root => ({
+    ...root,
+    children: children.filter(c => c.parent_id === root.id)
+  }));
+};
+
+export const getCategoryContext = async (path) => {
+  if (!path) return null;
+  const { data, error } = await supabase.rpc('get_category_context', { p_path: path });
+  if (error) {
+    console.error('Failed to fetch category context:', error);
+    return null;
+  }
+  return data;
+};
+
 export const getCategoryMetadata = async (categorySlug) => {
   if (!categorySlug) return null;
   

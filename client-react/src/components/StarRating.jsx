@@ -12,6 +12,16 @@ export default function StarRating({ rating = 0, count = 0, size = "md", showCou
   const hasHalfStar = rating - fullStars >= 0.5;
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
+  // If there are no ratings at all, don't show 5 empty stars (looks broken/like a placeholder)
+  if (rating === 0 && count === 0) {
+    return (
+      <div className="flex items-center gap-1.5 text-muted-foreground/60" title="No ratings yet">
+        <Star className={iconSize} />
+        {showCount && <span className="text-xs font-medium">New Seller</span>}
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-1.5" title={`${rating} out of 5 stars`}>
       <div className="flex">
