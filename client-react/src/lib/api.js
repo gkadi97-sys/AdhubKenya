@@ -533,6 +533,28 @@ export const getCategoryContext = async (path) => {
   return data;
 };
 
+/**
+ * Returns the slug of the given category plus every descendant at any depth.
+ * Uses the categories.path column for efficient prefix matching.
+ *
+ * @param {string} slug   - leaf slug, e.g. "cars"
+ * @param {string} path   - full path, e.g. "vehicles/cars"
+ * @returns {Promise<string[]>}
+ */
+export const getCategoryDescendantSlugs = async (slug, path) => {
+  if (!slug) return [];
+  const { data, error } = await supabase
+    .from('categories')
+    .select('slug')
+    .or(`slug.eq.${slug},path.like.${path}/%`);
+  if (error) {
+    console.error('getCategoryDescendantSlugs error:', error);
+    return [slug];
+  }
+  return (data || []).map(r => r.slug);
+};
+
+
 export const getCategoryMetadata = async (categoryPath) => {
   if (!categoryPath) return null;
   

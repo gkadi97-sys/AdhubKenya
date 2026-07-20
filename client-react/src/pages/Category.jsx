@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getListings } from '@/lib/api';
+import { getListings, getCategoryDescendantSlugs } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import ListingCard from '@/components/ListingCard.jsx';
@@ -19,35 +19,38 @@ export default function CategoryPage({ context }) {
   const [sort, setSort] = useState('createdAt');
   const [page, setPage] = useState(1);
 
-  const { current, ancestors, children } = context;
-
+  const { current, ancestors, children, parent, siblings } = context;
   const [searchParams] = useSearchParams();
 
-  const filters = useMemo(() => {
-    // Build a complete set of slugs to match:
-    // - current page slug (e.g. "cars")
-    // - all ancestor slugs (e.g. "vehicles") — because sellers pick top-level only
-    // - all direct children slugs (e.g. "sedan", "suv") — to catch more specific listings
-    const categorySlugs = [
-      ...(ancestors || []).map(a => a.slug),
-      current.slug,
-      ...(children || []).map(c => c.slug),
-    ];
-    // Deduplicate
-    const uniqueSlugs = [...new Set(categorySlugs)];
+  // 1. Resolve descendant slugs
+  const { data: descendantSlugs = [current.slug] } = useQuery({
+    queryKey: ['category-descendants', current.slug],
+    queryFn: () => getCategoryDescendantSlugs(current.slug, current.path),
+    staleTime: Infinity,
+  });
 
-    const obj = { category: uniqueSlugs.join(','), sort, page };
+  // 2. Build category filter (include ancestors for legacy ads tagged only at top level)
+  const categoryFilter = useMemo(() => {
+    const ancestorSlugs = (ancestors || []).map(a => a.slug);
+    const all = [...new Set([...ancestorSlugs, ...descendantSlugs])];
+    return all.join(',');
+  }, [ancestors, descendantSlugs]);
+
+  // 3. Build API params
+  const listingParams = useMemo(() => {
+    const obj = { category: categoryFilter, sort, page };
     for (const [k, v] of searchParams.entries()) {
       if (k === 'category') continue;
       obj[k] = v;
     }
     return obj;
-  }, [current.slug, ancestors, children, sort, page, searchParams]);
+  }, [categoryFilter, sort, page, searchParams]);
 
-  const { data, isLoading: loading, isError } = useQuery({
-    queryKey: ['category-listings', filters],
-    queryFn: () => getListings(filters),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+  // 4. Fetch listings
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['category-listings', listingParams],
+    queryFn: () => getListings(listingParams),
+    staleTime: 1000 * 60,
   });
 
   useEffect(() => {
@@ -84,13 +87,15 @@ export default function CategoryPage({ context }) {
         
         {/* Unified sticky wrapper for Sidebar and FilterPanel */}
         <aside className="w-full lg:w-[260px] shrink-0">
-          <div className="sticky top-4 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-thin rounded-2xl border border-border bg-card">
+          <div className="sticky top-4 flex flex-col rounded-2xl border border-border bg-card overflow-hidden max-h-[calc(100vh-5rem)]">
             {/* Category Navigation Sidebar */}
-            <CategorySidebar context={context} />
+            <div className="overflow-y-auto shrink-0">
+              <CategorySidebar context={context} />
+            </div>
             
             {/* Filter Panel (Desktop) */}
-            <div className="hidden lg:block border-t border-border">
-              <FilterPanel categorySlug={[...(ancestors || []).map(a => a.slug), current.slug].join('/')} />
+            <div className="hidden lg:flex border-t border-border overflow-y-auto flex-1">
+              <FilterPanel categorySlug={current.slug} embedded={true} isMobile={false} />
             </div>
           </div>
         </aside>
@@ -106,7 +111,7 @@ export default function CategoryPage({ context }) {
             </select>
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[...Array(12)].map((_,i) => (
                 <div key={i} style={{borderRadius:'var(--radius-lg)',overflow:'hidden',background:'var(--surface)'}}>

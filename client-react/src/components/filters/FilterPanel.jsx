@@ -172,7 +172,7 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
 
 
 // ── FilterPanel ──
-export default function FilterPanel({ categorySlug = '', isMobile = false, onClose }) {
+export default function FilterPanel({ categorySlug = '', isMobile = false, embedded = false, onClose }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -192,7 +192,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, onClo
     return obj;
   }, [localParams]);
 
-  const category = filters.category || categorySlug || '';
+  const category = embedded ? (categorySlug || filters.category || '') : (filters.category || categorySlug || '');
   const metadata = useMetadataCache(category);
 
   // Resolve make name -> vehicle_makes DB id so Model can cascade
@@ -216,11 +216,12 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, onClo
   const liveCount = countData?.total || 0;
 
   const handleRouting = (nextParams) => {
-    const isCategoryPage = location.pathname.startsWith('/') && location.pathname !== '/browse' && location.pathname !== '/';
-    if (isCategoryPage) {
+    if (embedded) {
       setSearchParams(nextParams, { replace: true });
-    } else {
+    } else if (location.pathname === '/browse' || location.pathname === '/') {
       navigate(`/browse?${nextParams.toString()}`, { replace: true });
+    } else {
+      setSearchParams(nextParams, { replace: true });
     }
   };
 
@@ -340,21 +341,23 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, onClo
 
       <div className={`flex-1 overflow-y-auto p-4 md:p-0 ${!isMobile ? 'pr-4 custom-scrollbar' : ''}`}>
         
-        <FilterGroup label="Category">
-          <div className="relative">
-            <select 
-              value={category} 
-              onChange={(e) => updateFilter('category', e.target.value)}
-              className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 pr-8 font-medium text-primary"
-            >
-              <option value="">All Categories</option>
-              {CATEGORY_ICONS.map(c => (
-                <option key={c.slug} value={c.slug}>{c.name}</option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          </div>
-        </FilterGroup>
+        {!embedded && (
+          <FilterGroup label="Category">
+            <div className="relative">
+              <select 
+                value={category} 
+                onChange={(e) => updateFilter('category', e.target.value)}
+                className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 pr-8 font-medium text-primary"
+              >
+                <option value="">All Categories</option>
+                {CATEGORY_ICONS.map(c => (
+                  <option key={c.slug} value={c.slug}>{c.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            </div>
+          </FilterGroup>
+        )}
 
         <FilterGroup label="Location">
           <LocationCascader 
