@@ -29,12 +29,13 @@ export default function CategoryPage({ context }) {
     staleTime: Infinity,
   });
 
-  // 2. Build category filter (include ancestors for legacy ads tagged only at top level)
+  // 2. Build category filter (only include descendants, e.g. if viewing 'vehicles', include 'cars', 'buses')
+  // We explicitly DO NOT include ancestors, otherwise an ad tagged generically as 'auto-spares'
+  // would show up inside specific subcategories like 'engine-components'.
   const categoryFilter = useMemo(() => {
-    const ancestorSlugs = (ancestors || []).map(a => a.slug);
-    const all = [...new Set([...ancestorSlugs, ...descendantSlugs])];
+    const all = [...new Set([...descendantSlugs])];
     return all.join(',');
-  }, [ancestors, descendantSlugs]);
+  }, [descendantSlugs]);
 
   // 3. Build API params
   const listingParams = useMemo(() => {
