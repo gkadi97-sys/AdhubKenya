@@ -213,14 +213,16 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
   // Resolve make name -> vehicle_makes DB id so Model can cascade
   const [vehicleMakeMap, setVehicleMakeMap] = useState({});
   useEffect(() => {
-    if (category && category.includes('vehicle') || category === 'vehicles' || category === 'cars' || category === 'motorcycles' || category === 'trucks' || category === 'agriculture' || category === 'construction') {
+    if (!metadata?.attributes) return;
+    const hasVehicleModel = metadata.attributes.some(a => a.lookup_type === 'vehicle_model');
+    if (hasVehicleModel) {
       getVehicleMakes().then(makes => {
         const m = {};
         makes.forEach(mk => { m[mk.name] = mk.id; });
         setVehicleMakeMap(m);
-      });
+      }).catch(console.error);
     }
-  }, [category]);
+  }, [metadata]);
 
   const { data: countData } = useQuery({
     queryKey: ['filter-live-count', filters],
