@@ -106,7 +106,6 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
         setOptions([]);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [attr.lookup_type, attr.options, parentLookupId]);
 
   if (loading) {

@@ -19,7 +19,7 @@ export default function CategoryPage({ context }) {
   const [sort, setSort] = useState('createdAt');
   const [page, setPage] = useState(1);
 
-  const { current, ancestors, children, parent, siblings } = context;
+  const { current, ancestors } = context;
   const [searchParams] = useSearchParams();
 
   // 1. Resolve descendant slugs

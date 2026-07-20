@@ -25,7 +25,6 @@ import AIChatbot from '@/components/AIChatbot.jsx';
 // --- Public Pages (Eager) ---
 import Home from '@/pages/Home.jsx';
 import Browse from '@/pages/Browse.jsx';
-import Category from '@/pages/Category.jsx';
 import Listing from '@/pages/Listing.jsx';
 import CategoryRouter from '@/components/CategoryRouter.jsx';
 import Login from '@/pages/Login.jsx';

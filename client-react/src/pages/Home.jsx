@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import {
   // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
@@ -26,12 +26,8 @@ function getRankedCategoriesWithCounts(slugs, enrichedIcons) {
       return scoreB - scoreA;
     });
 }
-import { ATTRIBUTE_ENGINE } from '@/lib/attributeEngine';
-import { getLevel1Options, getLevel2Options, getLevel3Options, getCascadeConfig } from '@/lib/filterEngine';
-import { getValidOptions, cleanInvalidFilters } from '@/lib/filterValidation';
 import HeroSearch from '@/components/HeroSearch';
 import QuickFilters from '@/components/QuickFilters';
-import DynamicDataFilter from '@/components/filters/DynamicDataFilter';
 import DiscoveryRow from '@/components/DiscoveryRow';
 import FeaturedListings from '@/components/FeaturedListings';
 import RecentlyViewed from '@/components/RecentlyViewed';
@@ -76,12 +72,11 @@ SIDEBAR_SECTIONS.push({ id: 'more', title: 'MORE CATEGORIES', slugs: MORE_SLUGS 
 
 // â”€â”€â”€ HomePage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function HomePage() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [liveAdCount, setLiveAdCount] = useState(null);
   const [trendingSearches, setTrendingSearches] = useState([]);
   const [countyCounts, setCountyCounts] = useState([]);
-  const [focusedCat, setFocusedCat] = useState(null);
+  const focusedCat = null;
   // eslint-disable-next-line no-unused-vars -- Dev banner preserved for future use
   const [showDevBanner, setShowDevBanner] = useState(() => localStorage.getItem('adhub_hide_dev') !== 'true');
   const [realCategoryCounts, setRealCategoryCounts] = useState({});

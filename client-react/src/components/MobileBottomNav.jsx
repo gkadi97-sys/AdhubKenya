@@ -8,6 +8,32 @@ export default function MobileBottomNav() {
   const { user } = useAuth();
   const [ripple, setRipple] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  // Auto-hide on scroll
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          // Hide if scrolling down past 100px, show if scrolling up or at top
+          if (currentScrollY > 100 && currentScrollY > lastScrollY) {
+            setIsVisible(false);
+          } else if (currentScrollY < lastScrollY || currentScrollY < 100) {
+            setIsVisible(true);
+          }
+          setLastScrollY(currentScrollY);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   // Show tooltip on first ever visit
   useEffect(() => {
@@ -45,7 +71,12 @@ export default function MobileBottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-background/95 backdrop-blur-md border-t border-border pb-safe pt-2 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:hidden" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
+    <nav 
+      className={`fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-background/95 backdrop-blur-md border-t border-border pb-safe pt-2 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:hidden transition-transform duration-300 ease-in-out ${
+        isVisible ? 'translate-y-0' : 'translate-y-full'
+      }`} 
+      style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}
+    >
       {navItems.map((item) => {
         // Center Sell Button
         if (item === null) {

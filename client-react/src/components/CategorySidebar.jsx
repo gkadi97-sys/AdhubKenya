@@ -9,7 +9,7 @@ const getIcon = (slug, dbIcon) => {
 };
 
 export default function CategorySidebar({ context }) {
-  const { current, parent, children, siblings } = context;
+  const { current, parent, children } = context;
 
   // We only show the current category (and its children) to keep the sidebar compact.
   // This ensures the filters are always visible near the top without excessive scrolling.
