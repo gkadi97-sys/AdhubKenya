@@ -319,6 +319,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
 
     const showDeps = attrDeps.filter(d => d.effect === 'show');
     const hideDeps = attrDeps.filter(d => d.effect === 'hide');
+    const cascadeDeps = attrDeps.filter(d => d.effect === 'cascade');
 
     const evalCondition = (dep) => {
       const parentAttr = metadata.attributes.find(a => a.id === dep.depends_on_attribute_id);
@@ -341,6 +342,9 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
       return showDeps.every(evalCondition);
     } else if (hideDeps.length > 0) {
       return !hideDeps.every(evalCondition);
+    } else if (cascadeDeps.length > 0) {
+      // If an attribute's options cascade based on a parent, hide it until the parent has a value
+      return cascadeDeps.every(evalCondition);
     }
     return true;
   };
