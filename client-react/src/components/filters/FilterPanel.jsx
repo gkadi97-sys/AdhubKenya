@@ -359,37 +359,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           </FilterGroup>
         )}
 
-        <FilterGroup label="Location">
-          <LocationCascader 
-            county={filters.county} 
-            town={filters.town} 
-            area={filters.area} 
-            onChange={updateFilter} 
-          />
-        </FilterGroup>
-
-        {!['jobs', 'seeking-work'].includes(filters.category) && (
-          <FilterGroup label="Price">
-            <PriceFilter 
-              min={filters.priceMin} 
-              max={filters.priceMax} 
-              onChange={updateFilter} 
-            />
-          </FilterGroup>
-        )}
-
-        {/* Global Standard Condition fallback, could be driven by metadata but kept for standard backward compat */}
-        {!metadata?.attributes?.some(a => a.name.toLowerCase() === 'condition') && !['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
-          <FilterGroup label="Condition">
-            <RadioGroup 
-              options={['Brand New', 'Used', 'Refurbished', 'Ex-UK/Ex-Japan']} 
-              value={filters.condition || ''} 
-              onChange={(val) => updateFilter('condition', val)} 
-            />
-          </FilterGroup>
-        )}
-
-        {/* ── Dynamic Metadata Filters ── */}
+        {/* ── Dynamic Metadata Filters (Category Specific) ── */}
         {metadata?.attributes && metadata.attributes
           .filter(isAttrVisible)
           .sort((a, b) => a.display_order - b.display_order)
@@ -415,6 +385,37 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
               </FilterGroup>
             );
           })}
+
+        {/* Global Standard Condition fallback, could be driven by metadata but kept for standard backward compat */}
+        {!metadata?.attributes?.some(a => a.name.toLowerCase() === 'condition') && !['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
+          <FilterGroup label="Condition">
+            <RadioGroup 
+              options={['Brand New', 'Used', 'Refurbished', 'Ex-UK/Ex-Japan']} 
+              value={filters.condition || ''} 
+              onChange={(val) => updateFilter('condition', val)} 
+            />
+          </FilterGroup>
+        )}
+
+        {/* ── Generic / Universal Filters ── */}
+        <FilterGroup label="Location">
+          <LocationCascader 
+            county={filters.county} 
+            town={filters.town} 
+            area={filters.area} 
+            onChange={updateFilter} 
+          />
+        </FilterGroup>
+
+        {!['jobs', 'seeking-work'].includes(filters.category) && (
+          <FilterGroup label="Price">
+            <PriceFilter 
+              min={filters.priceMin} 
+              max={filters.priceMax} 
+              onChange={updateFilter} 
+            />
+          </FilterGroup>
+        )}
       </div>
 
       <div className={`border-t border-border bg-background p-4 flex items-center gap-3 ${isMobile ? 'sticky bottom-0 z-10' : 'mt-4 sticky bottom-0 z-10 pb-6'}`}>
