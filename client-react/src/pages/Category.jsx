@@ -93,9 +93,9 @@ export default function CategoryPage({ context }) {
               <CategorySidebar context={context} />
             </div>
             
-            {/* Filter Panel (Desktop) */}
-            <div className="hidden lg:flex border-t border-border overflow-y-auto flex-1">
-              <FilterPanel categorySlug={current.slug} embedded={true} isMobile={false} />
+            {/* Filter Panel — always visible, uses full path for metadata inheritance */}
+            <div className="border-t border-border overflow-y-auto flex-1">
+              <FilterPanel categorySlug={current.path} embedded={true} isMobile={false} />
             </div>
           </div>
         </aside>
