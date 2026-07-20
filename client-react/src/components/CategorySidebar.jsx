@@ -11,11 +11,10 @@ const getIcon = (slug, dbIcon) => {
 export default function CategorySidebar({ context }) {
   const { current, parent, children, siblings } = context;
 
-  // If we are in a sub-category (parent exists), hide siblings so filters are closer to the top.
-  // The user can click the parent link to see siblings again.
-  const allItems = parent
-    ? [current]
-    : [...(siblings || []), current].sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+  // We only show the current category (and its children) to keep the sidebar compact.
+  // This ensures the filters are always visible near the top without excessive scrolling.
+  // The user can navigate to siblings by using the parent/root back links.
+  const allItems = [current];
 
   return (
     <div className="p-4">
