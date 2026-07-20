@@ -408,7 +408,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           {/* Dynamic Basic Attributes */}
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
-            .filter(a => ['condition', 'make', 'model', 'category', 'subcategory', 'type', 'brand'].includes(a.name.toLowerCase()))
+            .filter(a => ['condition', 'make', 'model', 'category', 'subcategory', 'type', 'brand', 'vehicleclass'].includes(a.name.toLowerCase()))
             .sort((a, b) => a.display_order - b.display_order)
             .map((attr) => renderDynamicAttr(attr, true))}
 
@@ -457,7 +457,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
         <SectionGroup title="Specifications">
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
-            .filter(a => !['condition', 'make', 'model', 'category', 'subcategory', 'type', 'brand', 'year', 'mileage', 'oemnumber'].includes(a.name.toLowerCase()))
+            .filter(a => !['condition', 'make', 'model', 'category', 'subcategory', 'type', 'brand', 'vehicleclass', 'year', 'mileage', 'oemnumber'].includes(a.name.toLowerCase()))
             .sort((a, b) => a.display_order - b.display_order)
             .map((attr) => renderDynamicAttr(attr, false))}
         </SectionGroup>
