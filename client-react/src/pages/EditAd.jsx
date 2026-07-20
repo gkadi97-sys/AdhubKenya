@@ -131,11 +131,25 @@ export default function EditAdPage() {
       if (isJob) listingData.price = 0;
       if (!showStandardCondition && !isVehicle && !isAutoSpares && !isPhone && !isElectronics) delete listingData.condition;
 
-      const { make, model, year, ...restSpecs } = attrs || {};
+      // Extract top-level make, model, year by mapping UUIDs to names
+      const { supabase } = await import('@/lib/supabase');
+      const { data: catData } = await supabase.from('categories').select('id').eq('slug', formValues.category).single();
+      let namedSpecs = {};
+      if (catData && attrs) {
+        const { data: attrData } = await supabase.from('attributes').select('id, name').eq('category_id', catData.id);
+        if (attrData) {
+          Object.entries(attrs).forEach(([k, v]) => {
+            const attrDef = attrData.find(a => a.id === k);
+            if (attrDef) namedSpecs[attrDef.name] = v;
+          });
+        }
+      }
+
+      const { make, model, year } = namedSpecs;
       if (make)  listingData.make  = make;
       if (model) listingData.model = model;
       if (year)  listingData.year  = year;
-      listingData.specs = restSpecs || {};
+      listingData.specs = attrs || {};
       
       await updateListing(id, { ...listingData, status: 'pending' });
       toast.success('Ad updated and submitted for review!');

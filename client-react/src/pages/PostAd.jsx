@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { createListing, checkDuplicateListing } from '@/lib/api';
+import { createListing, checkDuplicateListing, getCategoriesTree } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
 import MetadataDrivenForm from '@/components/forms/MetadataDrivenForm';
 import ListingPreviewCard from '@/components/forms/ListingPreviewCard';
@@ -229,15 +229,22 @@ export default function PostAdPage() {
   const [formMetadata, setFormMetadata] = useState(null);
   const [metaProgress, setMetaProgress] = useState({ completed: 0, total: 0 });
 
+  // Categories Tree
+  const [categoriesTree, setCategoriesTree] = useState([]);
+  useEffect(() => {
+    getCategoriesTree().then(setCategoriesTree);
+  }, []);
+
   // Category-derived flags
-  const isVehicle  = category === 'vehicles' || category === 'commercial-vehicles';
-  const isProperty = category === 'property' || category === 'land-plots';
-  const isJob      = category === 'jobs' || category === 'seeking-work';
-  const isAutoSpares = category === 'auto-spares';
-  const isPhone    = category === 'phones-tablets';
-  const isElectronics = category === 'electronics';
-  const isNoConditionCategory = ['property', 'land-plots', 'jobs', 'seeking-work', 'services', 'animals-pets', 'food-agriculture'].includes(category);
-  const showCondition = !isVehicle && !isAutoSpares && !isPhone && !isElectronics && category && !isNoConditionCategory;
+  const categoryBase = category ? category.split('/')[0] : '';
+  const isVehicle  = categoryBase === 'vehicles' || categoryBase === 'commercial-vehicles';
+  const isProperty = categoryBase === 'property' || categoryBase === 'land-plots';
+  const isJob      = categoryBase === 'jobs' || categoryBase === 'seeking-work';
+  const isAutoSpares = categoryBase === 'auto-spares';
+  const isPhone    = categoryBase === 'phones-tablets';
+  const isElectronics = categoryBase === 'electronics';
+  const isNoConditionCategory = ['property', 'land-plots', 'jobs', 'seeking-work', 'services', 'animals-pets', 'food-agriculture'].includes(categoryBase);
+  const showCondition = !isVehicle && !isAutoSpares && !isPhone && !isElectronics && categoryBase && !isNoConditionCategory;
 
   const getConditionOptions = () => {
     if (isVehicle && TRUCK_CONDITIONS && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers', 'Pickups'].includes(make)) return TRUCK_CONDITIONS;
@@ -467,26 +474,39 @@ export default function PostAdPage() {
     if (!formValues.title || !formValues.description || !formValues.category || !formValues.location || !formValues.phone) {
       setError('Please fill in all required fields'); return;
     }
+    const leafCategory = formValues.category.split('/').pop();
     if (!isJob && !formValues.price) { setError('Please enter a price'); return; }
 
     setLoading(true);
     try {
-      const listingData = { ...formValues };
+      const listingData = { ...formValues, category: leafCategory };
       if (isJob) listingData.price = 0;
 
       if (user) {
-        const isDup = await checkDuplicateListing(user.id, formValues.title, formValues.category);
+        const isDup = await checkDuplicateListing(user.id, formValues.title, leafCategory);
         if (isDup) {
           setError('You already have an active listing with a similar title in this category.');
           setLoading(false); return;
         }
       }
 
-      const { make, model, year, ...restSpecs } = attrs || {};
+      // Map UUID keys in attrs to their actual names
+      const namedSpecs = {};
+      if (attrs && formMetadata?.attributes) {
+        Object.entries(attrs).forEach(([k, v]) => {
+          const attrDef = formMetadata.attributes.find(a => a.id === k);
+          if (attrDef) {
+            namedSpecs[attrDef.name] = v;
+          }
+        });
+      }
+
+      const { make, model, year } = namedSpecs;
       if (make)  listingData.make  = make;
       if (model) listingData.model = model;
       if (year)  listingData.year  = year;
-      listingData.specs = restSpecs || {};
+      // Keep UUIDs in specs so EditAd works seamlessly with MetadataDrivenForm
+      listingData.specs = attrs || {};
 
       const newListing = await createListing(listingData, images);
       clearDraft(); // Clear draft on successful submit
@@ -637,7 +657,20 @@ export default function PostAdPage() {
                       }}
                     >
                       <option value="">Select Category</option>
-                      {TOP_CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.icon} {c.name}</option>)}
+                      {categoriesTree.length > 0 ? (
+                        categoriesTree.map(parent => (
+                          <optgroup key={parent.slug} label={parent.name}>
+                            <option value={parent.slug}>{parent.name} (General)</option>
+                            {parent.children?.map(child => (
+                              <option key={child.slug} value={`${parent.slug}/${child.slug}`}>
+                                -- {child.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))
+                      ) : (
+                        TOP_CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.icon} {c.name}</option>)
+                      )}
                     </select>
                   </div>
 

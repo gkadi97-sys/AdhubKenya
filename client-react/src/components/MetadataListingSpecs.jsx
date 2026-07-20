@@ -18,7 +18,7 @@ export default function MetadataListingSpecs({ listing }) {
     const populatedAttributes = metadata.attributes.filter(attr => {
       if (attr.is_hidden) return false;
       
-      const val = listing[attr.name] !== undefined ? listing[attr.name] : (listing.specs && listing.specs[attr.name]);
+      const val = listing[attr.name] !== undefined ? listing[attr.name] : (listing.specs && (listing.specs[attr.id] || listing.specs[attr.name]));
       if (val === undefined || val === null || val === '' || String(val).toLowerCase() === 'n/a') return false;
       return true;
     });
@@ -29,7 +29,7 @@ export default function MetadataListingSpecs({ listing }) {
     const ungroupedFields = [];
 
     populatedAttributes.forEach(attr => {
-      const val = listing[attr.name] !== undefined ? listing[attr.name] : listing.specs[attr.name];
+      const val = listing[attr.name] !== undefined ? listing[attr.name] : (listing.specs[attr.id] || listing.specs[attr.name]);
       const displayData = {
         id: attr.id,
         label: attr.label,
