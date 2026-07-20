@@ -379,7 +379,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
         )}
 
         {/* Global Standard Condition fallback, could be driven by metadata but kept for standard backward compat */}
-        {!['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
+        {!metadata?.attributes?.some(a => a.name.toLowerCase() === 'condition') && !['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
           <FilterGroup label="Condition">
             <RadioGroup 
               options={['Brand New', 'Used', 'Refurbished', 'Ex-UK/Ex-Japan']} 
