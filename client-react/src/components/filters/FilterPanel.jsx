@@ -311,6 +311,10 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
   const isAttrVisible = (attr) => {
     // Force oemNumber to be visible even if is_filterable is false in DB
     if (attr.name === 'oemNumber') return true;
+    
+    // Force make to always be visible, bypassing the vehicleClass dependency
+    if (attr.name === 'make') return true;
+
     if (!attr.is_filterable) return false;
     if (!metadata?.dependencies) return true;
     
