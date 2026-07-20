@@ -85,18 +85,11 @@ export default function CategoryPage({ context }) {
       {/* Content Layout */}
       <div className="container flex flex-col lg:flex-row gap-6" style={{padding:'32px 20px 80px'}}>
         
-        {/* Unified sticky wrapper for Sidebar and FilterPanel */}
+        {/* Single unified sticky panel — nav and filters flow as one column */}
         <aside className="w-full lg:w-[260px] shrink-0">
-          <div className="sticky top-4 flex flex-col rounded-2xl border border-border bg-card overflow-hidden max-h-[calc(100vh-5rem)]">
-            {/* Category Navigation Sidebar */}
-            <div className="overflow-y-auto shrink-0">
-              <CategorySidebar context={context} />
-            </div>
-            
-            {/* Filter Panel — always visible, uses full path for metadata inheritance */}
-            <div className="border-t border-border overflow-y-auto flex-1">
-              <FilterPanel categorySlug={current.path} embedded={true} isMobile={false} />
-            </div>
+          <div className="sticky top-4 rounded-2xl border border-border bg-card overflow-y-auto max-h-[calc(100vh-5rem)] custom-scrollbar">
+            <CategorySidebar context={context} />
+            <FilterPanel categorySlug={current.path} embedded={true} isMobile={false} />
           </div>
         </aside>
         

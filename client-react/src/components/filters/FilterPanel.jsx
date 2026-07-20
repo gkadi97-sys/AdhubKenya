@@ -329,7 +329,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
   };
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className={`flex flex-col bg-background ${embedded ? '' : 'h-full'}`}>
       {isMobile && (
         <div className="flex items-center justify-between border-b border-border p-4">
           <h2 className="text-lg font-bold text-foreground">Filters</h2>
@@ -339,7 +339,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
         </div>
       )}
 
-      <div className={`flex-1 overflow-y-auto p-4 md:p-0 ${!isMobile ? 'pr-4 custom-scrollbar' : ''}`}>
+      <div className={`p-4 md:p-0 ${embedded ? '' : 'flex-1 overflow-y-auto'} ${!isMobile && !embedded ? 'pr-4 custom-scrollbar' : ''}`}>
         
         {!embedded && (
           <FilterGroup label="Category">
