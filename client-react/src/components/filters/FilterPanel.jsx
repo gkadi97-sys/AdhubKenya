@@ -309,6 +309,8 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
 
   // Evaluate if an attribute should be shown
   const isAttrVisible = (attr) => {
+    // Force oemNumber to be visible even if is_filterable is false in DB
+    if (attr.name === 'oemNumber') return true;
     if (!attr.is_filterable) return false;
     if (!metadata?.dependencies) return true;
     
@@ -398,6 +400,11 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
             </FilterGroup>
           )}
 
+          {/* OEM Number forced to top */}
+          {metadata?.attributes && metadata.attributes
+            .filter(a => a.name === 'oemNumber')
+            .map((attr) => renderDynamicAttr(attr, true))}
+
           {/* Dynamic Basic Attributes */}
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
@@ -450,7 +457,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
         <SectionGroup title="Specifications">
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
-            .filter(a => !['condition', 'make', 'model', 'category', 'subcategory', 'type', 'brand', 'year', 'mileage'].includes(a.name.toLowerCase()))
+            .filter(a => !['condition', 'make', 'model', 'category', 'subcategory', 'type', 'brand', 'year', 'mileage', 'oemnumber'].includes(a.name.toLowerCase()))
             .sort((a, b) => a.display_order - b.display_order)
             .map((attr) => renderDynamicAttr(attr, false))}
         </SectionGroup>
