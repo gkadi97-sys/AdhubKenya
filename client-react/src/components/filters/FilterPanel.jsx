@@ -22,6 +22,21 @@ function FilterGroup({ label, children, defaultOpen = true }) {
   );
 }
 
+function SectionGroup({ title, children }) {
+  // Check if children is empty (falsy, empty array, or array of falsy values)
+  const hasChildren = React.Children.toArray(children).some(child => !!child);
+  if (!hasChildren) return null;
+
+  return (
+    <div className="mb-6">
+      <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1 px-1">{title}</h3>
+      <div className="flex flex-col">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function RadioGroup({ options, value, onChange }) {
   return (
     <div className="flex flex-col gap-2">
@@ -328,6 +343,28 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
     return true;
   };
 
+  const renderDynamicAttr = (attr, defaultOpen = false) => {
+    let parentLookupId = null;
+    if (attr.lookup_type === 'vehicle_model') {
+      const makeAttr = metadata.attributes.find(a => a.lookup_type === 'vehicle_make');
+      if (makeAttr) {
+        const selectedMakeName = filters[makeAttr.name];
+        parentLookupId = vehicleMakeMap[selectedMakeName] || null;
+      }
+    }
+    return (
+      <FilterGroup key={attr.id} label={attr.label} defaultOpen={defaultOpen || !!filters[attr.name]}>
+        <DynamicFilterField
+          attr={attr}
+          value={filters[attr.name]}
+          filters={filters}
+          parentLookupId={parentLookupId}
+          onChange={(val, explicitKey) => updateFilter(attr.name, val, explicitKey)}
+        />
+      </FilterGroup>
+    );
+  };
+
   return (
     <div className={`flex flex-col bg-background ${embedded ? '' : 'h-full'}`}>
       {isMobile && (
@@ -341,81 +378,82 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
 
       <div className={`p-4 md:p-0 ${embedded ? '' : 'flex-1 overflow-y-auto'} ${!isMobile && !embedded ? 'pr-4 custom-scrollbar' : ''}`}>
         
-        {!embedded && (
-          <FilterGroup label="Category">
-            <div className="relative">
-              <select 
-                value={category} 
-                onChange={(e) => updateFilter('category', e.target.value)}
-                className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 pr-8 font-medium text-primary"
-              >
-                <option value="">All Categories</option>
-                {CATEGORY_ICONS.map(c => (
-                  <option key={c.slug} value={c.slug}>{c.name}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            </div>
-          </FilterGroup>
-        )}
+        {/* ── Basic Filters ── */}
+        <SectionGroup title="Basic Filters">
+          {!embedded && (
+            <FilterGroup label="Category" defaultOpen={true}>
+              <div className="relative">
+                <select 
+                  value={category} 
+                  onChange={(e) => updateFilter('category', e.target.value)}
+                  className="w-full appearance-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 pr-8 font-medium text-primary"
+                >
+                  <option value="">All Categories</option>
+                  {CATEGORY_ICONS.map(c => (
+                    <option key={c.slug} value={c.slug}>{c.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              </div>
+            </FilterGroup>
+          )}
 
-        {/* ── Dynamic Metadata Filters (Category Specific) ── */}
-        {metadata?.attributes && metadata.attributes
-          .filter(isAttrVisible)
-          .sort((a, b) => a.display_order - b.display_order)
-          .map((attr, index) => {
-            // For vehicle_model fields, resolve the parent make's DB id
-            let parentLookupId = null;
-            if (attr.lookup_type === 'vehicle_model') {
-              const makeAttr = metadata.attributes.find(a => a.lookup_type === 'vehicle_make');
-              if (makeAttr) {
-                const selectedMakeName = filters[makeAttr.name];
-                parentLookupId = vehicleMakeMap[selectedMakeName] || null;
-              }
-            }
-            return (
-              <FilterGroup key={attr.id} label={attr.label} defaultOpen={index < 3 || !!filters[attr.name]}>
-                <DynamicFilterField
-                  attr={attr}
-                  value={filters[attr.name]}
-                  filters={filters}
-                  parentLookupId={parentLookupId}
-                  onChange={(val, explicitKey) => updateFilter(attr.name, val, explicitKey)}
-                />
-              </FilterGroup>
-            );
-          })}
+          {/* Dynamic Basic Attributes */}
+          {metadata?.attributes && metadata.attributes
+            .filter(isAttrVisible)
+            .filter(a => ['condition', 'make', 'model', 'category', 'subcategory', 'type', 'brand'].includes(a.name.toLowerCase()))
+            .sort((a, b) => a.display_order - b.display_order)
+            .map((attr) => renderDynamicAttr(attr, true))}
 
-        {/* Global Standard Condition fallback, could be driven by metadata but kept for standard backward compat */}
-        {!metadata?.attributes?.some(a => a.name.toLowerCase() === 'condition') && !['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
-          <FilterGroup label="Condition">
-            <RadioGroup 
-              options={['Brand New', 'Used', 'Refurbished', 'Ex-UK/Ex-Japan']} 
-              value={filters.condition || ''} 
-              onChange={(val) => updateFilter('condition', val)} 
-            />
-          </FilterGroup>
-        )}
+          {/* Global Standard Condition fallback */}
+          {!metadata?.attributes?.some(a => a.name.toLowerCase() === 'condition') && !['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
+            <FilterGroup label="Condition" defaultOpen={true}>
+              <RadioGroup 
+                options={['Brand New', 'Used', 'Refurbished', 'Ex-UK/Ex-Japan']} 
+                value={filters.condition || ''} 
+                onChange={(val) => updateFilter('condition', val)} 
+              />
+            </FilterGroup>
+          )}
+        </SectionGroup>
 
-        {/* ── Generic / Universal Filters ── */}
-        <FilterGroup label="Location">
-          <LocationCascader 
-            county={filters.county} 
-            town={filters.town} 
-            area={filters.area} 
-            onChange={updateFilter} 
-          />
-        </FilterGroup>
-
-        {!['jobs', 'seeking-work'].includes(filters.category) && (
-          <FilterGroup label="Price">
-            <PriceFilter 
-              min={filters.priceMin} 
-              max={filters.priceMax} 
+        {/* ── Price & Location ── */}
+        <SectionGroup title="Price & Location">
+          <FilterGroup label="Location" defaultOpen={true}>
+            <LocationCascader 
+              county={filters.county} 
+              town={filters.town} 
+              area={filters.area} 
               onChange={updateFilter} 
             />
           </FilterGroup>
-        )}
+
+          {!['jobs', 'seeking-work'].includes(filters.category) && (
+            <FilterGroup label="Price" defaultOpen={true}>
+              <PriceFilter 
+                min={filters.priceMin} 
+                max={filters.priceMax} 
+                onChange={updateFilter} 
+              />
+            </FilterGroup>
+          )}
+
+          {/* Dynamic Price/Mileage Attributes */}
+          {metadata?.attributes && metadata.attributes
+            .filter(isAttrVisible)
+            .filter(a => ['year', 'mileage'].includes(a.name.toLowerCase()))
+            .sort((a, b) => a.display_order - b.display_order)
+            .map((attr) => renderDynamicAttr(attr, true))}
+        </SectionGroup>
+
+        {/* ── Specifications ── */}
+        <SectionGroup title="Specifications">
+          {metadata?.attributes && metadata.attributes
+            .filter(isAttrVisible)
+            .filter(a => !['condition', 'make', 'model', 'category', 'subcategory', 'type', 'brand', 'year', 'mileage'].includes(a.name.toLowerCase()))
+            .sort((a, b) => a.display_order - b.display_order)
+            .map((attr) => renderDynamicAttr(attr, false))}
+        </SectionGroup>
       </div>
 
       <div className={`border-t border-border bg-background p-4 flex items-center gap-3 ${isMobile ? 'sticky bottom-0 z-10' : 'mt-4 sticky bottom-0 z-10 pb-6'}`}>

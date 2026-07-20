@@ -134,11 +134,24 @@ export default function CategoryPage({ context }) {
               )}
             </>
           ) : (
-            <div className="empty-state">
-              <div className="icon">{icon}</div>
-              <h3>No {current.name} listings yet</h3>
-              <p>Be the first to post in this category!</p>
-              <Link to="/post-ad" className="btn btn-primary">Post Free Ad</Link>
+            <div className="flex flex-col items-center justify-center p-12 text-center rounded-2xl border border-dashed border-border bg-card/50">
+              <div className="text-4xl mb-4 opacity-50">{icon}</div>
+              <h3 className="text-xl font-bold mb-2">No results found</h3>
+              <p className="text-muted-foreground mb-6 max-w-md">
+                {searchParams.toString() 
+                  ? "We couldn't find any listings matching your exact filters. Try adjusting your search criteria or clearing some filters." 
+                  : `There are currently no listings in ${current.name}. Be the first to post!`}
+              </p>
+              <div className="flex gap-4">
+                {searchParams.toString() && (
+                  <Link to={`/${current.path}`} className="btn btn-outline">
+                    Clear All Filters
+                  </Link>
+                )}
+                <Link to="/post-ad" className="btn btn-primary">
+                  Post Free Ad
+                </Link>
+              </div>
             </div>
           )}
         </main>
