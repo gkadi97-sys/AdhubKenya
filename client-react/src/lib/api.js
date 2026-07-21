@@ -71,12 +71,23 @@ export const getListings = async (params = {}) => {
     }
   }
 
-  // ── Top-level column filters (exact match) ──────────────────────────────
+  // ── Top-level column filters (exact match or descendants) ──────────────────────────────
   if (params.category) {
     if (params.category.includes(',')) {
       query = query.in('category', params.category.split(',').map(s => s.trim()));
     } else {
-      query = query.eq('category', params.category);
+      // Automatically include all descendant categories (e.g. search 'vehicles' -> includes 'cars', 'suvs', etc)
+      const { data: catData } = await supabase.from('categories').select('path').eq('slug', params.category).single();
+      if (catData && catData.path) {
+        const { data: descs } = await supabase.from('categories').select('slug').like('path', `${catData.path}%`);
+        if (descs && descs.length > 0) {
+          query = query.in('category', descs.map(d => d.slug));
+        } else {
+          query = query.eq('category', params.category);
+        }
+      } else {
+        query = query.eq('category', params.category);
+      }
     }
   }
   if (params.location)  query = query.eq('location', params.location);
