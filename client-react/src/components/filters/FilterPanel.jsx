@@ -425,7 +425,21 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           {!metadata?.attributes?.some(a => a.name.toLowerCase() === 'condition') && !['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
             <FilterGroup label="Condition" defaultOpen={true}>
               <RadioGroup 
-                options={['Brand New', 'Used', 'Refurbished', 'Ex-UK/Ex-Japan']} 
+                options={(() => {
+                  const hasCategory = (slug) => metadata?.categories?.some(c => c.slug === slug);
+                  const isVehicle = hasCategory('vehicles') || hasCategory('commercial-vehicles');
+                  const isAutoSpares = hasCategory('auto-spares');
+                  const isPhone = hasCategory('phones-tablets');
+                  const isElectronics = hasCategory('electronics');
+                  const isHeavyTruck = isVehicle && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers'].includes(filters.make);
+                  const isPickupTruck = isVehicle && filters.make === 'Pickups';
+                  
+                  if (isHeavyTruck || isPickupTruck) return ['Brand New', 'Ex-Japan', 'Ex-UK', 'Foreign Used', 'Locally Used', 'Refurbished'];
+                  if (isVehicle) return ['Brand New', 'Foreign Used', 'Locally Used', 'Accident Damaged', 'Rebuilt'];
+                  if (isAutoSpares) return ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'];
+                  if (isPhone || isElectronics) return ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
+                  return ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
+                })()} 
                 value={filters.condition || ''} 
                 onChange={(val) => updateFilter('condition', val)} 
               />

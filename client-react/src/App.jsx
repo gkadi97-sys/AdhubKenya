@@ -9,7 +9,16 @@ import { logPageView } from '@/lib/api';
 function PageViewTracker() {
   const location = useLocation();
   useEffect(() => {
-    logPageView(location.pathname + location.search);
+    const url = location.pathname + location.search;
+    logPageView(url);
+    
+    // Google Analytics SPAs tracking
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'page_view', {
+        page_path: url,
+        page_title: document.title
+      });
+    }
   }, [location]);
   return null;
 }

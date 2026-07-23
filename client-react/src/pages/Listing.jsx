@@ -255,16 +255,20 @@ export default function ListingDetailPage() {
                   <div className="relative rounded-2xl overflow-hidden border border-border bg-[#0f1411] dark:bg-black group flex items-center justify-center">
                     {images.length > 0 ? (
                       <>
-                        <Image
-                          key={activeImg}
-                          src={imageUrl(images[activeImg])}
-                          alt={`${listing.title} â€“ image ${activeImg + 1} of ${images.length}`}
-                          className="w-full transition-transform duration-500 group-hover:scale-105"
-                          style={{ maxHeight: 'max(380px, min(65vh, 520px))', height: 'max(380px, min(65vh, 520px))' }}
-                          fallbackIconSize={48}
-                        />
+                        <div className="w-full relative h-full flex items-center justify-center overflow-hidden">
+                          {images.map((img, i) => (
+                            <Image
+                              key={i}
+                              src={imageUrl(img)}
+                              alt={`${listing.title} â€“ image ${i + 1} of ${images.length}`}
+                              className={`absolute inset-0 w-full object-contain transition-all duration-500 ease-out ${i === activeImg ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-95 z-0'}`}
+                              style={{ maxHeight: 'max(380px, min(65vh, 520px))', height: 'max(380px, min(65vh, 520px))' }}
+                              fallbackIconSize={48}
+                            />
+                          ))}
+                        </div>
                         {/* Image Counter Overlay */}
-                        <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full z-10 shadow-sm border border-white/10 pointer-events-none">
+                        <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full z-20 shadow-sm border border-white/10 pointer-events-none">
                           {activeImg + 1} / {images.length}
                         </div>
                         {/* Navigation Arrows */}
@@ -273,14 +277,14 @@ export default function ListingDetailPage() {
                             <button
                               onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? images.length - 1 : prev - 1); }}
                               aria-label="Previous image"
-                              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/80 transition backdrop-blur-md z-10 opacity-0 group-hover:opacity-100 border border-white/20 shadow-lg"
+                              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/80 transition backdrop-blur-md z-20 opacity-0 group-hover:opacity-100 border border-white/20 shadow-lg"
                             >
                               <ChevronLeft className="w-5 h-5" />
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === images.length - 1 ? 0 : prev + 1); }}
                               aria-label="Next image"
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/80 transition backdrop-blur-md z-10 opacity-0 group-hover:opacity-100 border border-white/20 shadow-lg"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white/80 hover:text-white hover:bg-black/80 transition backdrop-blur-md z-20 opacity-0 group-hover:opacity-100 border border-white/20 shadow-lg"
                             >
                               <ChevronRight className="w-5 h-5" />
                             </button>
@@ -289,7 +293,7 @@ export default function ListingDetailPage() {
                         {/* Fullscreen Hint */}
                         <button 
                           onClick={() => setIsZoomModalOpen(true)}
-                          className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white p-2 rounded-full z-10 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black border border-white/10 shadow-sm">
+                          className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white p-2 rounded-full z-20 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black border border-white/10 shadow-sm">
                           <Maximize2 className="w-4 h-4" />
                         </button>
                       </>
@@ -300,17 +304,17 @@ export default function ListingDetailPage() {
                   
                   {/* Thumbnail Strip (Moved below image) */}
                   {images.length > 1 && (
-                    <div className="flex gap-2 overflow-x-auto pb-2 snap-x scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+                    <div className="flex gap-2 overflow-x-auto pb-2 snap-x hide-scrollbar">
                       {images.map((img, i) => (
                         <button 
                           key={i} 
                           onClick={() => setActiveImg(i)}
-                          className={`snap-start relative h-16 w-20 sm:h-20 sm:w-28 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all duration-200 ${i === activeImg ? 'border-primary ring-2 ring-primary/20 scale-[1.02]' : 'border-transparent opacity-60 hover:opacity-100 hover:scale-95'}`}
+                          className={`snap-start relative h-16 w-20 sm:h-20 sm:w-28 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all duration-300 ease-out ${i === activeImg ? 'border-primary ring-2 ring-primary/20 scale-100 shadow-md' : 'border-transparent opacity-50 hover:opacity-100 hover:scale-95'}`}
                         >
                             <Image
                             src={imageUrl(img)}
                             alt={`Thumbnail ${i + 1}`}
-                            className="w-full h-full"
+                            className="w-full h-full object-cover"
                             fallbackIconSize={14}
                           />
                         </button>

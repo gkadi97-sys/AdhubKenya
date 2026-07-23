@@ -659,14 +659,16 @@ export default function PostAdPage() {
                       <option value="">Select Category</option>
                       {categoriesTree.length > 0 ? (
                         categoriesTree.map(parent => (
-                          <optgroup key={parent.slug} label={parent.name}>
-                            <option value={parent.slug}>{parent.name} (General)</option>
-                            {parent.children?.map(child => (
-                              <option key={child.slug} value={`${parent.slug}/${child.slug}`}>
-                                -- {child.name}
+                            <optgroup key={parent.slug} label={parent.name}>
+                              <option value={parent.slug} disabled={parent.children?.length > 0}>
+                                {parent.name} {parent.children?.length > 0 ? '(Select a subcategory)' : '(General)'}
                               </option>
-                            ))}
-                          </optgroup>
+                              {parent.children?.map(child => (
+                                <option key={child.slug} value={`${parent.slug}/${child.slug}`}>
+                                  -- {child.name}
+                                </option>
+                              ))}
+                            </optgroup>
                         ))
                       ) : (
                         TOP_CATEGORIES.map(c => <option key={c.slug} value={c.slug}>{c.icon} {c.name}</option>)

@@ -569,15 +569,29 @@ export const getCategoryDescendantSlugs = async (slug, path) => {
 export const getCategoryMetadata = async (categoryPath) => {
   if (!categoryPath) return null;
   
-  // Parse path (e.g. "vehicles/cars" or just "vehicles")
-  const slugs = categoryPath.split('/').filter(Boolean);
-  const targetSlug = slugs[slugs.length - 1];
+  // Parse path (e.g. "vehicles/cars" or just "cars")
+  const inputSlugs = categoryPath.split('/').filter(Boolean);
+  const targetSlug = inputSlugs[inputSlugs.length - 1];
+
+  let slugsToFetch = inputSlugs;
+
+  // If we only received a leaf slug, look up its full path to ensure we fetch inherited attributes
+  if (inputSlugs.length === 1) {
+    const { data: targetCat } = await supabase
+      .from('categories')
+      .select('path')
+      .eq('slug', targetSlug)
+      .single();
+    if (targetCat && targetCat.path) {
+      slugsToFetch = targetCat.path.split('/').filter(Boolean);
+    }
+  }
 
   // 1. Get Categories in path
   const { data: categories, error: catErr } = await supabase
     .from('categories')
     .select('*')
-    .in('slug', slugs);
+    .in('slug', slugsToFetch);
     
   if (catErr || !categories || categories.length === 0) return null;
 
