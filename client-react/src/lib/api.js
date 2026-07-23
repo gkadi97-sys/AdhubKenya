@@ -93,6 +93,14 @@ export const getListings = async (params = {}) => {
   if (params.location)  query = query.eq('location', params.location);
   if (params.minPrice)  query = query.gte('price', params.minPrice);
   if (params.maxPrice)  query = query.lte('price', params.maxPrice);
+  if (params.condition) {
+    const vals = params.condition.split(',').map(s => s.trim()).filter(Boolean);
+    if (vals.length > 1) {
+      query = query.in('condition', vals);
+    } else if (vals.length === 1) {
+      query = query.eq('condition', vals[0]);
+    }
+  }
 
   // ── Top-level structured columns (exact match — PostAd saves these as columns) ───
   // make, model, year are extracted from attrs and saved as top-level DB columns.
@@ -184,7 +192,7 @@ export const getListings = async (params = {}) => {
     if (!params[key]) return;
 
     // Already handled explicitly above
-    if (['make', 'model', 'fuel', 'drive', 'job_type', 'tv_size', 'tv_tech', 'seller_type', 'amenities', 'oemNumber'].includes(key)) return;
+    if (['make', 'model', 'fuel', 'drive', 'job_type', 'tv_size', 'tv_tech', 'seller_type', 'amenities', 'oemNumber', 'condition'].includes(key)) return;
 
     // Handle comma-separated multicheck values (e.g., "Petrol,Diesel") as OR clauses
     const values = params[key].split(',').map(v => v.trim()).filter(Boolean);
@@ -209,16 +217,16 @@ export const getListings = async (params = {}) => {
   });
 
   // ── Numeric range filters ─────────────────────────────────────────────────
-  if (params.engineCC_max)  query = query.lte(`specs->>engineCC`,  params.engineCC_max);
-  if (params.mileage_max)   query = query.lte(`specs->>mileage`,   params.mileage_max);
+  if (params.engineCC_max)  query = query.lte(`specs->>engineCC::numeric`,  parseInt(params.engineCC_max));
+  if (params.mileage_max)   query = query.lte(`specs->>mileage::numeric`,   parseInt(params.mileage_max));
   if (params.year_min)      query = query.gte('year', parseInt(params.year_min));
   if (params.year_max)      query = query.lte('year', parseInt(params.year_max));
   // Salary range for jobs
-  if (params.salaryMin_min) query = query.gte(`specs->>salaryMin`, params.salaryMin_min);
-  if (params.salaryMax_max) query = query.lte(`specs->>salaryMax`, params.salaryMax_max);
+  if (params.salaryMin_min) query = query.gte(`specs->>salaryMin::numeric`, parseInt(params.salaryMin_min));
+  if (params.salaryMax_max) query = query.lte(`specs->>salaryMax::numeric`, parseInt(params.salaryMax_max));
   // CV expected salary range
-  if (params.cvSalaryMin_min) query = query.gte(`specs->>salaryMin`, params.cvSalaryMin_min);
-  if (params.cvSalaryMax_max) query = query.lte(`specs->>salaryMax`, params.cvSalaryMax_max);
+  if (params.cvSalaryMin_min) query = query.gte(`specs->>salaryMin::numeric`, parseInt(params.cvSalaryMin_min));
+  if (params.cvSalaryMax_max) query = query.lte(`specs->>salaryMax::numeric`, parseInt(params.cvSalaryMax_max));
   // Skills substring search (stored as comma-separated string in specs.skills)
   if (params.skills) query = query.ilike(`specs->>skills`, `%${params.skills}%`);
   // Has CV file uploaded
