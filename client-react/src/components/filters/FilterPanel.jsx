@@ -461,8 +461,8 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           {!['jobs', 'seeking-work'].includes(filters.category) && (
             <FilterGroup label="Price" defaultOpen={true}>
               <PriceFilter 
-                min={filters.priceMin} 
-                max={filters.priceMax} 
+                min={filters.minPrice} 
+                max={filters.maxPrice} 
                 onChange={updateFilter} 
               />
             </FilterGroup>

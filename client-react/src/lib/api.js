@@ -247,6 +247,8 @@ export const getListings = async (params = {}) => {
 
   // ── County / location ─────────────────────────────────────────────────────
   if (params.county) query = query.ilike('location', `%${params.county}%`);
+  if (params.town) query = query.ilike('location', `%${params.town}%`);
+  if (params.area) query = query.ilike('location', `%${params.area}%`);
 
   // ── Sorting ───────────────────────────────────────────────────────────────
   const sort = params.sort || 'createdAt';
