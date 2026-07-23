@@ -138,8 +138,7 @@ async function generateSitemaps() {
     'sitemap-static.xml',
     'sitemap-categories.xml',
     'sitemap-listings.xml',
-    'sitemap-users.xml',
-    'sitemap-locations.xml'
+    'sitemap-users.xml'
   ];
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), buildSitemapIndex(sitemaps));
 
