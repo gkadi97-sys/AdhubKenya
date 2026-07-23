@@ -93,7 +93,7 @@ async function generateSitemaps() {
 
   // 3. Listings
   // For production with >50k listings, this should paginate. Keeping it simple here.
-  const { data: listings } = await supabase.from('listings').select('id, title, slug, category, updated_at').eq('status', 'active');
+  const { data: listings } = await supabase.from('listings').select('id, title, slug, category, created_at').eq('status', 'active');
   const listingUrls = (listings || []).map(l => {
     const cat = generateSlug(l.category || 'misc');
     const slug = l.slug || generateSlug(l.title);
@@ -101,18 +101,18 @@ async function generateSitemaps() {
       url: `/${cat}/${slug}-${l.id}`,
       priority: '0.9',
       changefreq: 'daily',
-      lastmod: l.updated_at ? l.updated_at.split('T')[0] : TODAY
+      lastmod: l.created_at ? l.created_at.split('T')[0] : TODAY
     };
   });
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-listings.xml'), buildUrlset(listingUrls));
 
   // 4. Sellers / Users
-  const { data: sellers } = await supabase.from('profiles').select('id, name, updated_at');
+  const { data: sellers } = await supabase.from('profiles').select('id, name, created_at');
   const sellerUrls = (sellers || []).map(s => ({
     url: `/seller/${generateSlug(s.name)}-${s.id}`,
     priority: '0.6',
     changefreq: 'weekly',
-    lastmod: s.updated_at ? s.updated_at.split('T')[0] : TODAY
+    lastmod: s.created_at ? s.created_at.split('T')[0] : TODAY
   }));
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-users.xml'), buildUrlset(sellerUrls));
 
