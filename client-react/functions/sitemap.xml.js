@@ -28,10 +28,6 @@ export async function onRequest() {
     <loc>${BASE_URL}/sitemap-users.xml</loc>
     <lastmod>${TODAY}</lastmod>
   </sitemap>
-  <sitemap>
-    <loc>${BASE_URL}/sitemap-locations.xml</loc>
-    <lastmod>${TODAY}</lastmod>
-  </sitemap>
 </sitemapindex>`;
 
   return new Response(xml, {
