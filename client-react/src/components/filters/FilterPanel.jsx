@@ -6,7 +6,7 @@ import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useMetadataCache } from '@/lib/useMetadataCache';
 import LocationCascader from './LocationCascader';
 import PriceFilter from './PriceFilter';
-import { ChevronDown, X, Loader2 } from 'lucide-react';
+import { ChevronDown, X, Loader2, Search } from 'lucide-react';
 
 function FilterGroup({ label, children, defaultOpen = true }) {
   return (
@@ -35,35 +35,73 @@ function SectionGroup({ title, children }) {
       </div>
     </div>
   );
-}
-
 function RadioGroup({ options, value, onChange }) {
+  const [search, setSearch] = useState('');
+  const filtered = options.filter(o => String(o).toLowerCase().includes(search.toLowerCase()));
+  const showSearch = options.length > 8;
+
   return (
-    <div className="flex flex-col gap-2">
-      {options.map(opt => (
-        <label key={opt} className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50 ${value === opt ? 'font-medium text-primary' : 'text-muted-foreground text-sm'}`}>
-          <input type="radio" checked={value === opt} onChange={() => onChange(value === opt ? '' : opt)} className="h-4 w-4 accent-primary" />
-          {opt}
-        </label>
-      ))}
+    <div className="flex flex-col">
+      {showSearch && (
+        <div className="relative mb-2 shrink-0">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-md border border-border bg-secondary/30 py-1.5 pl-8 pr-3 text-sm outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+          />
+        </div>
+      )}
+      <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+        {filtered.map(opt => (
+          <label key={opt} className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50 ${value === opt ? 'font-medium text-primary' : 'text-muted-foreground text-sm'}`}>
+            <input type="radio" checked={value === opt} onChange={() => onChange(value === opt ? '' : opt)} className="h-4 w-4 accent-primary shrink-0" />
+            <span className="truncate">{opt}</span>
+          </label>
+        ))}
+        {filtered.length === 0 && <span className="text-xs text-muted-foreground px-2 py-1">No options match.</span>}
+      </div>
     </div>
   );
 }
 
 function MultiCheck({ options, value = '', onChange }) {
+  const [search, setSearch] = useState('');
   const selected = value ? value.split(',') : [];
+  
+  const filtered = options.filter(o => String(o).toLowerCase().includes(search.toLowerCase()));
+  const showSearch = options.length > 8;
+
   const toggle = (opt) => {
     const next = selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt];
     onChange(next.join(','));
   };
+
   return (
-    <div className="flex flex-col gap-2">
-      {options.map(opt => (
-        <label key={opt} className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50 ${selected.includes(opt) ? 'font-medium text-primary' : 'text-muted-foreground text-sm'}`}>
-          <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggle(opt)} className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 accent-primary" />
-          {opt}
-        </label>
-      ))}
+    <div className="flex flex-col">
+      {showSearch && (
+        <div className="relative mb-2 shrink-0">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-md border border-border bg-secondary/30 py-1.5 pl-8 pr-3 text-sm outline-none transition focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+          />
+        </div>
+      )}
+      <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+        {filtered.map(opt => (
+          <label key={opt} className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50 ${selected.includes(opt) ? 'font-medium text-primary' : 'text-muted-foreground text-sm'}`}>
+            <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggle(opt)} className="h-4 w-4 rounded border-border text-primary focus:ring-primary/20 accent-primary shrink-0" />
+            <span className="truncate">{opt}</span>
+          </label>
+        ))}
+        {filtered.length === 0 && <span className="text-xs text-muted-foreground px-2 py-1">No options match.</span>}
+      </div>
     </div>
   );
 }
@@ -112,7 +150,11 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
     return <div className="flex items-center gap-2 text-muted-foreground text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>;
   }
 
+  // Convert large 'select' fields into searchable 'radio' lists for better UX
   if (attr.field_type === 'select') {
+    if (options.length > 8) {
+      return <RadioGroup options={options} value={value || ''} onChange={onChange} />;
+    }
     return (
       <div className="relative">
         <select 
@@ -129,19 +171,11 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
   }
 
   if (attr.field_type === 'multiselect' || attr.field_type === 'multicheck') {
-    return (
-      <div className="max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-        <MultiCheck options={options} value={value || ''} onChange={onChange} />
-      </div>
-    );
+    return <MultiCheck options={options} value={value || ''} onChange={onChange} />;
   }
 
   if (attr.field_type === 'radio') {
-    return (
-      <div className="max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-        <RadioGroup options={options} value={value || ''} onChange={onChange} />
-      </div>
-    );
+    return <RadioGroup options={options} value={value || ''} onChange={onChange} />;
   }
 
   if (attr.field_type === 'number') {
