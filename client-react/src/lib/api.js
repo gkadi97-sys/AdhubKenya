@@ -513,10 +513,10 @@ export async function getVehicleMakes(categorySlug = '') {
   const { data } = await supabase.from('vehicle_makes').select('*').eq('is_active', true).order('name');
   if (!data) return [];
 
-  if (categorySlug === 'motorcycles') {
+  if (categorySlug.endsWith('motorcycles')) {
     const exceptions = ['Honda', 'Suzuki', 'BMW', 'Peugeot', 'Mahindra'];
     return data.filter(d => d.vehicle_type === 'Motorcycle' || exceptions.includes(d.name));
-  } else if (categorySlug === 'cars') {
+  } else if (categorySlug.endsWith('cars')) {
     const allowedTypes = ['Passenger/Commercial', 'car'];
     return data.filter(d => allowedTypes.includes(d.vehicle_type));
   }

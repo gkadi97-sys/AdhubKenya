@@ -406,7 +406,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           attr={attr}
           value={filters[attr.name]}
           filters={filters}
-          categorySlug={categorySlug}
+          categorySlug={category}
           parentLookupId={parentLookupId}
           onChange={(val, explicitKey) => updateFilter(attr.name, val, explicitKey)}
         />
