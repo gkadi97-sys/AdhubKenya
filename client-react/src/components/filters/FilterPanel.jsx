@@ -120,9 +120,10 @@ function DebouncedInput({ value: initialValue, onChange, ...props }) {
 }
 
 // ── Dynamic Field Renderer ──
-function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) {
+function DynamicFilterField({ attr, value, onChange, filters, parentLookupId, categorySlug }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (attr.lookup_type) {
@@ -134,7 +135,7 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
         return;
       }
       setLoading(true);
-      getLookupValues(attr.lookup_type, parentLookupId || null, '', filters?.category || '').then(data => {
+      getLookupValues(attr.lookup_type, parentLookupId || null, '', categorySlug || '').then(data => {
         setOptions(data.map(d => d.value));
         setLoading(false);
       });
@@ -146,7 +147,7 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
         setOptions([]);
       }
     }
-  }, [attr.lookup_type, attr.options, parentLookupId]);
+  }, [attr.lookup_type, attr.options, parentLookupId, categorySlug]);
 
   if (loading) {
     return <div className="flex items-center gap-2 text-muted-foreground text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>;
@@ -405,6 +406,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           attr={attr}
           value={filters[attr.name]}
           filters={filters}
+          categorySlug={categorySlug}
           parentLookupId={parentLookupId}
           onChange={(val, explicitKey) => updateFilter(attr.name, val, explicitKey)}
         />
