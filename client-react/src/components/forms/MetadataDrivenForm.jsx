@@ -103,10 +103,10 @@ function evaluateDependencies(attribute, dependencies, allValues) {
 // ─── Lookup Cache ─────────────────────────────────────────────────────────────
 // Session-scoped cache (cleared on each page load via module re-import)
 const LOOKUP_CACHE = new Map();
-async function cachedGetLookupValues(lookupType, parentId = null, search = '') {
-  const key = `${lookupType}:${parentId}:${search}`;
+async function cachedGetLookupValues(lookupType, parentId = null, search = '', categorySlug = '') {
+  const key = `${lookupType}:${parentId}:${search}:${categorySlug}`;
   if (LOOKUP_CACHE.has(key)) return LOOKUP_CACHE.get(key);
-  const result = await getLookupValues(lookupType, parentId, search);
+  const result = await getLookupValues(lookupType, parentId, search, categorySlug);
   // Only cache small/static lists — not large models/variants
   if (!['phones_model', 'phones_variant'].includes(lookupType)) {
     LOOKUP_CACHE.set(key, result);
@@ -175,7 +175,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
       setParentLookupId(null);
       return;
     }
-    cachedGetLookupValues(parentAttr.lookup_type, 'any', parentValue).then(rows => {
+    cachedGetLookupValues(parentAttr.lookup_type, 'any', parentValue, categorySlug).then(rows => {
       const match = rows.find(r => r.value.toLowerCase() === parentValue.toLowerCase());
       setParentLookupId(match?.id ?? null);
     });
@@ -205,7 +205,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
 
     const resolvedParentId = cascadeDepAttrId && parentValue ? parentLookupId : null;
     setLoadingOptions(true);
-    cachedGetLookupValues(attribute.lookup_type, resolvedParentId).then(data => {
+    cachedGetLookupValues(attribute.lookup_type, resolvedParentId, '', categorySlug).then(data => {
       const sorted = [...data].sort((a, b) => a.value.localeCompare(b.value));
       setOptions(sorted.map(d => ({ value: d.value, metadata: d.metadata })));
       setLoadingOptions(false);
@@ -262,7 +262,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
 
     const loadOptions = (inputValue) => {
       const resolvedParentId = cascadeDepAttrId && parentValue ? parentLookupId : null;
-      return getLookupValues(attribute.lookup_type, resolvedParentId, inputValue).then(data => {
+      return getLookupValues(attribute.lookup_type, resolvedParentId, inputValue, categorySlug).then(data => {
         return data.map(d => ({ label: d.value, value: d.value, metadata: d.metadata }));
       });
     };

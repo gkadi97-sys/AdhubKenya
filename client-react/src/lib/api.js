@@ -509,6 +509,21 @@ export const moderateListing = async (id, currentStatus, newStatus, updates = {}
 };
 
 // ── Platform-Wide Metadata API ──
+export async function getVehicleMakes(categorySlug = '') {
+  const { data } = await supabase.from('vehicle_makes').select('*').eq('is_active', true).order('name');
+  if (!data) return [];
+
+  if (categorySlug === 'motorcycles') {
+    const exceptions = ['Honda', 'Suzuki', 'BMW', 'Peugeot', 'Mahindra'];
+    return data.filter(d => d.vehicle_type === 'Motorcycle' || exceptions.includes(d.name));
+  } else if (categorySlug === 'cars') {
+    const allowedTypes = ['Passenger/Commercial', 'car'];
+    return data.filter(d => allowedTypes.includes(d.vehicle_type));
+  }
+
+  return data;
+}
+
 export const getCategories = async () => {
   const { data, error } = await supabase
     .from('categories')
@@ -643,7 +658,7 @@ export const getCategoryMetadata = async (categoryPath) => {
   };
 };
 
-export const getLookupValues = async (lookupType, parentId = null, search = '') => {
+export const getLookupValues = async (lookupType, parentId = null, search = '', categorySlug = '') => {
   if (lookupType === 'vehicle_make') {
     // If a parentId is given (commercial vehicle type), use lookup_values (type-specific brands)
     if (parentId && parentId !== 'any') {
@@ -659,7 +674,7 @@ export const getLookupValues = async (lookupType, parentId = null, search = '') 
       return (data || []).map(m => ({ id: m.id, value: m.value, metadata: m.metadata || {} }));
     }
     // Default: use vehicle_makes table (for regular cars/bikes with no vehicle type filter)
-    const makes = await getVehicleMakes();
+    const makes = await getVehicleMakes(categorySlug);
     const mapped = makes.map(m => ({ id: m.id, value: m.name, metadata: {} }));
     return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
   }
@@ -1078,11 +1093,7 @@ export const fetchAdminAnalytics = async () => {
 // Phase 4: Vehicle Taxonomy lookups
 // ==========================================
 
-export const getVehicleMakes = async () => {
-  const { data, error } = await supabase.from('vehicle_makes').select('id, name').eq('is_active', true).order('name');
-  if (error) throw error;
-  return data;
-};
+
 
 export const getVehicleModels = async (makeId) => {
   const { data, error } = await supabase.from('vehicle_models').select('id, name').eq('make_id', makeId).eq('is_active', true).order('name');

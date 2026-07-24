@@ -134,7 +134,7 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId }) 
         return;
       }
       setLoading(true);
-      getLookupValues(attr.lookup_type, parentLookupId || null).then(data => {
+      getLookupValues(attr.lookup_type, parentLookupId || null, '', filters?.category || '').then(data => {
         setOptions(data.map(d => d.value));
         setLoading(false);
       });
