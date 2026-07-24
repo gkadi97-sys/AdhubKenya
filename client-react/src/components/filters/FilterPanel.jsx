@@ -35,6 +35,8 @@ function SectionGroup({ title, children }) {
       </div>
     </div>
   );
+}
+
 function RadioGroup({ options, value, onChange }) {
   const [search, setSearch] = useState('');
   const filtered = options.filter(o => String(o).toLowerCase().includes(search.toLowerCase()));
