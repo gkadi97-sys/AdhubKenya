@@ -826,7 +826,6 @@ export default function MetadataDrivenForm({
   // Compute states for each group
   const groupStateMap = useMemo(() => {
     const map = {};
-    let previousComplete = true;
     visibleGroups.forEach(group => {
       if (isLocked) {
         map[group.id] = 'locked';
@@ -835,14 +834,9 @@ export default function MetadataDrivenForm({
       const isDone = groupCompletionMap[group.id];
       if (isDone) {
         map[group.id] = 'completed';
-      } else if (previousComplete) {
-        map[group.id] = expandedGroups[group.id] ? 'in-progress' : 'available';
       } else {
-        map[group.id] = 'locked';
+        map[group.id] = expandedGroups[group.id] ? 'in-progress' : 'available';
       }
-      // For locking: only lock subsequent if this group has required fields that aren't filled
-      const hasRequired = group.fields.some(f => f._required);
-      if (hasRequired && !isDone) previousComplete = false;
     });
     return map;
   }, [visibleGroups, groupCompletionMap, expandedGroups, isLocked]);

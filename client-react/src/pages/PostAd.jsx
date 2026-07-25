@@ -266,7 +266,6 @@ export default function PostAdPage() {
   const mediaComplete = images.length > 0;
 
   const getSectionState = (key, prevComplete) => {
-    if (!prevComplete) return 'locked';
     const complete = { basics: basicsComplete, pricing: pricingComplete, location: locationComplete, media: mediaComplete }[key];
     if (complete) return 'completed';
     return expanded[key] ? 'in-progress' : 'available';
@@ -835,9 +834,9 @@ export default function PostAdPage() {
                 id="section-contact"
                 icon={null}
                 title="Contact Details"
-                state={basicsComplete ? 'available' : 'locked'}
+                state={'available'}
                 isExpanded={!!expanded.contact}
-                onToggle={() => toggleSection('contact', basicsComplete ? 'available' : 'locked')}
+                onToggle={() => toggleSection('contact', 'available')}
                 summary={watch('phone') || null}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
