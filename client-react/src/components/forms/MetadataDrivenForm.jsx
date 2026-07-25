@@ -765,6 +765,37 @@ export default function MetadataDrivenForm({
   // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [categorySlug]);
 
+  // Auto-fill certain attributes based on the selected subcategory.
+  // e.g. if user picks "animals-pets/dogs", pre-fill animalType = "Dog"
+  useEffect(() => {
+    if (!metadata || !categorySlug) return;
+    const subSlug = categorySlug.split('/')[1];
+    if (!subSlug) return;
+
+    const SUBCATEGORY_AUTO_FILL = {
+      // Animals & Pets
+      'dogs':           { animalType: 'Dog' },
+      'cats':           { animalType: 'Cat' },
+      'birds':          { animalType: 'Bird' },
+      'fish-aquariums': { animalType: 'Fish & Aquatic' },
+    };
+
+    const preset = SUBCATEGORY_AUTO_FILL[subSlug];
+    if (!preset) return;
+
+    Object.entries(preset).forEach(([attrName, attrValue]) => {
+      const attr = metadata.attributes.find(a => a.name === attrName);
+      if (!attr) return;
+      const fieldName = `attrs.${attr.id}`;
+      // Only set if the field is currently empty to avoid overwriting user input
+      const currentVal = allValues?.attrs?.[attr.id];
+      if (!currentVal || currentVal === '') {
+        setValue(fieldName, attrValue, { shouldValidate: false, shouldDirty: true });
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Run only when metadata first loads
+  }, [metadata]);
+
   // Evaluate visible attributes
   const evaluatedAttributes = useMemo(() => {
     if (!metadata) return [];
