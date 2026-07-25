@@ -603,19 +603,6 @@ export default function PostAdPage() {
           </div>
         </div>
 
-        {/* Overall progress bar */}
-        {totalSections > 0 && (
-          <div className="sticky top-20 z-40 bg-background/95 backdrop-blur py-3 mb-6 space-y-1.5 border-b border-border/50">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Listing progress</span>
-              <span className="font-semibold text-primary">{overallPct}% complete</span>
-            </div>
-            <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
-              <div className="h-full rounded-full bg-primary transition-all duration-500 ease-out" style={{ width: `${overallPct}%` }} />
-            </div>
-          </div>
-        )}
-
         <form onSubmit={rhfHandleSubmit(onSubmit, onInvalid)} className="space-y-3">
           {error && <div className="rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive border border-destructive/20">{error}</div>}
 
