@@ -116,7 +116,7 @@ async function cachedGetLookupValues(lookupType, parentId = null, search = '', c
 
 // ─── FieldRenderer ────────────────────────────────────────────────────────────
 // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
-function FieldRenderer({ attribute, required, register, control, allValues, setValue, attributes, dependencies, isGroupAvailable }) {
+function FieldRenderer({ attribute, required, register, control, allValues, setValue, attributes, dependencies, isGroupAvailable, categorySlug }) {
   const fieldName = `attrs.${attribute.id}`;
 
   const inputClass = 'w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed';
@@ -615,7 +615,7 @@ function generateSummary(group, allValues, attributes) {
 // ─── Section Component ────────────────────────────────────────────────────────
 function WorkflowSection({
   group, fields, state, isExpanded, onToggle,
-  register, control, allValues, setValue, attributes, dependencies,
+  register, control, allValues, setValue, attributes, dependencies, categorySlug
 }) {
   // State classes
   const stateConfig = {
@@ -691,6 +691,7 @@ function WorkflowSection({
                 attributes={attributes}
                 dependencies={dependencies}
                 isGroupAvailable={state !== 'locked'}
+                categorySlug={categorySlug}
               />
             ))}
           </div>
@@ -945,6 +946,7 @@ export default function MetadataDrivenForm({
           setValue={setValue}
           attributes={metadata.attributes}
           dependencies={metadata.dependencies}
+          categorySlug={categorySlug}
         />
       ))}
 
@@ -964,6 +966,7 @@ export default function MetadataDrivenForm({
                 attributes={metadata.attributes}
                 dependencies={metadata.dependencies}
                 isGroupAvailable={true}
+                categorySlug={categorySlug}
               />
             ))}
           </div>
