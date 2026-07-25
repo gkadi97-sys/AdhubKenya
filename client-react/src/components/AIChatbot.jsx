@@ -2,9 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import './AIChatbot.css';
 
 // ─── Constants ───────────────────────────────────────────────
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-const MODEL = 'llama-3.3-70b-versatile';
+import { supabase } from '../lib/supabase';
 
 const SYSTEM_PROMPT = `You are AdBot, the friendly and knowledgeable AI assistant for AdHub Kenya — Kenya's premier online classifieds and marketplace platform. Your role is to help users navigate the site, buy and sell safely, and get the most out of AdHub Kenya.
 
@@ -271,9 +269,7 @@ export default function AIChatbot() {
     setLoading(true);
 
     try {
-      if (!API_KEY) {
-        throw new Error('VITE_GROQ_API_KEY is not set in your .env file.');
-      }
+
 
       // Build conversation history for multi-turn context
       const history = messages.map(m => ({
@@ -281,30 +277,22 @@ export default function AIChatbot() {
         content: m.text,
       }));
 
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            ...history,
-            { role: 'user', content: trimmed },
-          ],
-          temperature: 0.75,
-          max_tokens: 800,
-        }),
+      // Send request to Edge Function
+      const { data, error } = await supabase.functions.invoke('chatbot', {
+        body: { messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...history,
+          { role: 'user', content: trimmed }
+        ] }
       });
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `API error ${response.status}`);
+      if (error) {
+        throw new Error(`Proxy error: ${error.message}`);
       }
-
-      const data = await response.json();
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
       const botText =
         data?.choices?.[0]?.message?.content ||
         "Pole, I couldn't get a response right now. Please try again!";
