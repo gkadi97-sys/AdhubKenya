@@ -72,73 +72,82 @@ ${sitemaps.map(sm => `  <sitemap>
 async function generateSitemaps() {
   console.log('Generating Enterprise Sitemaps...');
   
-  // 1. Static Pages
+  // 1. Static Pages — all pages that have actual routes in App.jsx
   const staticUrls = [
-    { url: '/', priority: '1.0', changefreq: 'daily' },
-    { url: '/browse', priority: '0.9', changefreq: 'hourly' },
-    { url: '/about', priority: '0.5', changefreq: 'monthly' },
-    { url: '/safety', priority: '0.5', changefreq: 'monthly' },
-    { url: '/terms', priority: '0.4', changefreq: 'yearly' },
+    { url: '/',          priority: '1.0', changefreq: 'daily' },
+    { url: '/browse',    priority: '0.9', changefreq: 'hourly' },
+    { url: '/about',     priority: '0.6', changefreq: 'monthly' },
+    { url: '/safety',    priority: '0.6', changefreq: 'monthly' },
+    { url: '/contact',   priority: '0.6', changefreq: 'monthly' },
+    { url: '/help',      priority: '0.6', changefreq: 'monthly' },
+    { url: '/careers',   priority: '0.5', changefreq: 'monthly' },
+    { url: '/terms',     priority: '0.4', changefreq: 'yearly' },
+    { url: '/privacy',   priority: '0.4', changefreq: 'yearly' },
+    { url: '/cookies',   priority: '0.3', changefreq: 'yearly' },
   ];
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-static.xml'), buildUrlset(staticUrls));
 
-  // 2. Categories
-  const { data: categories } = await supabase.from('categories').select('slug').eq('is_active', true);
+  // 2. Category Browse Pages — /browse?category=slug (matches actual app routing)
+  const { data: categories } = await supabase.from('categories').select('slug, name').eq('is_active', true);
   const catUrls = (categories || []).map(c => ({
-    url: `/${c.slug}`,
+    url: `/browse?category=${encodeURIComponent(c.slug)}`,
     priority: '0.8',
     changefreq: 'daily'
   }));
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-categories.xml'), buildUrlset(catUrls));
 
-  // 3. Listings
-  // For production with >50k listings, this should paginate. Keeping it simple here.
-  const { data: listings } = await supabase.from('listings').select('id, title, slug, category, created_at').eq('status', 'active');
-  const listingUrls = (listings || []).map(l => {
-    const cat = generateSlug(l.category || 'misc');
-    const slug = l.slug || generateSlug(l.title);
-    return {
-      url: `/${cat}/${slug}-${l.id}`,
-      priority: '0.9',
-      changefreq: 'daily',
-      lastmod: l.created_at ? l.created_at.split('T')[0] : TODAY
-    };
-  });
+  // 3. Listings — /listing/:id (matches actual app route: /listing/:id)
+  const { data: listings } = await supabase
+    .from('listings')
+    .select('id, title, slug, category, created_at, updated_at')
+    .eq('status', 'active');
+  const listingUrls = (listings || []).map(l => ({
+    url: `/listing/${l.id}`,
+    priority: '0.9',
+    changefreq: 'weekly',
+    lastmod: (l.updated_at || l.created_at || '').split('T')[0] || TODAY
+  }));
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-listings.xml'), buildUrlset(listingUrls));
 
-  // 4. Sellers / Users
+  // 4. Seller/User Profiles — /user/:id (matches actual route)
   const { data: sellers } = await supabase.from('profiles').select('id, name, created_at');
   const sellerUrls = (sellers || []).map(s => ({
-    url: `/seller/${generateSlug(s.name)}-${s.id}`,
-    priority: '0.6',
+    url: `/user/${s.id}`,
+    priority: '0.5',
     changefreq: 'weekly',
     lastmod: s.created_at ? s.created_at.split('T')[0] : TODAY
   }));
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-users.xml'), buildUrlset(sellerUrls));
 
-  // 5. Locations (distinct counties from listings)
+  // 5. Category+Location combination pages (useful landing pages for local SEO)
   const locUrls = [];
-  if (listings && categories) {
-    // Generate Location Pages for top categories
-    const counties = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret']; 
-    categories.forEach(c => {
-      counties.forEach(county => {
-        locUrls.push({
-          url: `/${c.slug}/in/${generateSlug(county)}`,
-          priority: '0.7',
-          changefreq: 'weekly'
-        });
+  const TOP_COUNTIES = [
+    'nairobi', 'mombasa', 'kisumu', 'nakuru', 'eldoret',
+    'thika', 'malindi', 'kitale', 'garissa', 'nyeri'
+  ];
+  const TOP_CATEGORY_SLUGS = [
+    'vehicles', 'property', 'phones-tablets', 'electronics',
+    'home-living', 'jobs', 'land-plots', 'fashion'
+  ];
+  const topCategories = (categories || []).filter(c => TOP_CATEGORY_SLUGS.includes(c.slug));
+  topCategories.forEach(c => {
+    TOP_COUNTIES.forEach(county => {
+      locUrls.push({
+        url: `/browse?category=${encodeURIComponent(c.slug)}&location=${encodeURIComponent(county)}`,
+        priority: '0.6',
+        changefreq: 'daily'
       });
     });
-  }
+  });
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-locations.xml'), buildUrlset(locUrls));
 
-  // -- Master Index --
+  // -- Master Index (includes all child sitemaps) --
   const sitemaps = [
     'sitemap-static.xml',
     'sitemap-categories.xml',
     'sitemap-listings.xml',
-    'sitemap-users.xml'
+    'sitemap-users.xml',
+    'sitemap-locations.xml',
   ];
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), buildSitemapIndex(sitemaps));
 
@@ -151,9 +160,10 @@ Disallow: /settings
 Disallow: /saved-searches
 Disallow: /my-ads
 Disallow: /post-ad
-Disallow: /browse?*keyword=*
-Disallow: /browse?*sort=*
-Disallow: /*?*keyword=*
+Disallow: /post-cv
+Disallow: /edit-ad
+Disallow: /profile
+Disallow: /saved
 
 Sitemap: ${BASE_URL}/sitemap.xml
 `;
@@ -163,6 +173,7 @@ Sitemap: ${BASE_URL}/sitemap.xml
   console.log(`   - Listings: ${listingUrls.length}`);
   console.log(`   - Categories: ${catUrls.length}`);
   console.log(`   - Users: ${sellerUrls.length}`);
+  console.log(`   - Location pages: ${locUrls.length}`);
 }
 
 generateSitemaps().catch(e => {
