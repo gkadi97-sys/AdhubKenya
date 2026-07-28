@@ -519,6 +519,12 @@ export async function getVehicleMakes(categorySlug = '') {
   } else if (categorySlug.endsWith('cars')) {
     const allowedTypes = ['Passenger/Commercial', 'car'];
     return data.filter(d => allowedTypes.includes(d.vehicle_type));
+  } else if (categorySlug.includes('tuk-tuks')) {
+    const tukTukMakes = ['Bajaj', 'TVS', 'Piaggio', 'Mahindra'];
+    return data.filter(d => tukTukMakes.includes(d.name));
+  } else if (categorySlug.includes('heavy-commercial')) {
+    const heavyMakes = ['Isuzu', 'Mitsubishi', 'Tata', 'Scania', 'Mercedes-Benz', 'Ashok Leyland', 'FAW', 'Hino', 'MAN', 'Volvo'];
+    return data.filter(d => d.vehicle_type === 'Commercial' || d.vehicle_type === 'Commercial/Industrial' || heavyMakes.includes(d.name));
   }
 
   return data;
