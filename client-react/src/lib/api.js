@@ -513,16 +513,19 @@ export async function getVehicleMakes(categorySlug = '') {
   const { data } = await supabase.from('vehicle_makes').select('*').eq('is_active', true).order('name');
   if (!data) return [];
 
-  if (categorySlug.endsWith('motorcycles')) {
+  const lightVehicles = ['cars', 'suvs', 'pickups', 'vans', 'electric-vehicles'];
+  const heavyVehicles = ['heavy-trucks', 'buses', 'trailers', 'construction-equipment', 'agricultural-equipment'];
+
+  if (categorySlug.includes('motorcycles')) {
     const exceptions = ['Honda', 'Suzuki', 'BMW', 'Peugeot', 'Mahindra'];
     return data.filter(d => d.vehicle_type === 'Motorcycle' || exceptions.includes(d.name));
-  } else if (categorySlug.endsWith('cars')) {
-    const allowedTypes = ['Passenger/Commercial', 'car'];
+  } else if (lightVehicles.some(slug => categorySlug.includes(slug))) {
+    const allowedTypes = ['Passenger/Commercial', 'car', 'Commercial'];
     return data.filter(d => allowedTypes.includes(d.vehicle_type));
   } else if (categorySlug.includes('tuk-tuks')) {
     const tukTukMakes = ['Bajaj', 'TVS', 'Piaggio', 'Mahindra'];
     return data.filter(d => tukTukMakes.includes(d.name));
-  } else if (categorySlug.includes('heavy-commercial')) {
+  } else if (heavyVehicles.some(slug => categorySlug.includes(slug))) {
     const heavyMakes = ['Isuzu', 'Mitsubishi', 'Tata', 'Scania', 'Mercedes-Benz', 'Ashok Leyland', 'FAW', 'Hino', 'MAN', 'Volvo'];
     return data.filter(d => d.vehicle_type === 'Commercial' || d.vehicle_type === 'Commercial/Industrial' || heavyMakes.includes(d.name));
   }
