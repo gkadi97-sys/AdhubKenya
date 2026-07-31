@@ -97,15 +97,20 @@ async function generateSitemaps() {
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-categories.xml'), buildUrlset(catUrls));
 
   // 3. Listings — /listing/:id (matches actual app route: /listing/:id)
-  const { data: listings } = await supabase
+  const { data: listings, error: listingsError } = await supabase
     .from('listings')
-    .select('id, title, slug, category, created_at, updated_at')
-    .eq('status', 'active');
+    .select('id, title, slug, category, created_at')
+    .or('status.eq.active,status.is.null');
+  
+  if (listingsError) {
+    console.error("Error fetching listings:", listingsError);
+  }
+  
   const listingUrls = (listings || []).map(l => ({
     url: `/listing/${l.id}`,
     priority: '0.9',
     changefreq: 'weekly',
-    lastmod: (l.updated_at || l.created_at || '').split('T')[0] || TODAY
+    lastmod: (l.created_at || '').split('T')[0] || TODAY
   }));
   fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap-listings.xml'), buildUrlset(listingUrls));
 
