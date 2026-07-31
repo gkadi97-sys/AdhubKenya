@@ -513,25 +513,51 @@ export async function getVehicleMakes(categorySlug = '') {
   const { data } = await supabase.from('vehicle_makes').select('*').eq('is_active', true).order('name');
   if (!data) return [];
 
-  const lightVehicles = ['cars', 'suvs', 'pickups', 'vans', 'electric-vehicles'];
-  const heavyVehicles = ['heavy-trucks', 'buses', 'trailers', 'construction-equipment', 'agricultural-equipment'];
+  // Brands that are purely industrial/construction and should NEVER appear
+  // in passenger vehicle (cars, SUVs, vans, pickups) make filters.
+  const INDUSTRIAL_BRANDS = new Set([
+    'Caterpillar', 'Komatsu', 'Hitachi', 'Volvo CE', 'JCB', 'Liebherr',
+    'Case', 'Doosan', 'Kobelco', 'Kubota', 'John Deere', 'Massey Ferguson',
+    'New Holland', 'Claas', 'Fendt', 'XCMG', 'SANY', 'Zoomlion',
+  ]);
+
+  const lightVehicleSlugs = ['cars', 'suvs', 'pickups', 'vans', 'electric-vehicles', 'sedans', 'hatchbacks', 'crossovers', 'convertibles', 'wagons'];
+  const heavyVehicles = ['heavy-trucks', 'buses', 'trailers', 'construction-equipment', 'agricultural-equipment', 'heavy-equipment', 'agricultural-machinery'];
 
   if (categorySlug.includes('motorcycles')) {
-    const exceptions = ['Honda', 'Suzuki', 'BMW', 'Peugeot', 'Mahindra'];
-    return data.filter(d => d.vehicle_type === 'Motorcycle' || exceptions.includes(d.name));
-  } else if (lightVehicles.some(slug => categorySlug.includes(slug))) {
-    const allowedTypes = ['Passenger/Commercial', 'car', 'Commercial'];
-    return data.filter(d => allowedTypes.includes(d.vehicle_type));
-  } else if (categorySlug.includes('tuk-tuks')) {
-    const tukTukMakes = ['Bajaj', 'TVS', 'Piaggio', 'Mahindra'];
-    return data.filter(d => tukTukMakes.includes(d.name));
-  } else if (heavyVehicles.some(slug => categorySlug.includes(slug))) {
-    const heavyMakes = ['Isuzu', 'Mitsubishi', 'Tata', 'Scania', 'Mercedes-Benz', 'Ashok Leyland', 'FAW', 'Hino', 'MAN', 'Volvo'];
-    return data.filter(d => d.vehicle_type === 'Commercial' || d.vehicle_type === 'Commercial/Industrial' || heavyMakes.includes(d.name));
+    const motorcycleMakes = ['Honda', 'Suzuki', 'Yamaha', 'BMW', 'Kawasaki', 'KTM', 'Bajaj', 'TVS', 'Hero',
+      'Haojue', 'Lifan', 'Loncin', 'Zongshen', 'Dayun', 'CF Moto', 'SYM', 'Kymco',
+      'Peugeot', 'Mahindra', 'Royal Enfield', 'Triumph', 'Harley-Davidson', 'Ducati',
+      'Aprilia', 'Benelli', 'Keeway'];
+    return data.filter(d => d.vehicle_type === 'Motorcycle' || motorcycleMakes.includes(d.name));
   }
 
-  return data;
+  if (categorySlug.includes('tuk-tuks') || categorySlug.includes('three-wheelers')) {
+    const tukTukMakes = ['Bajaj', 'TVS', 'Piaggio', 'Mahindra', 'Atul', 'Kinetic'];
+    return data.filter(d => tukTukMakes.includes(d.name));
+  }
+
+  if (heavyVehicles.some(slug => categorySlug.includes(slug))) {
+    return data.filter(d =>
+      d.vehicle_type === 'Commercial' ||
+      d.vehicle_type === 'Commercial/Industrial' ||
+      d.vehicle_type === 'Heavy'
+    );
+  }
+
+  if (lightVehicleSlugs.some(slug => categorySlug.includes(slug)) || categorySlug.includes('cars')) {
+    // Passenger vehicles: only allow Passenger/Commercial and 'car' types,
+    // and explicitly block industrial/construction brands that share type strings.
+    return data.filter(d =>
+      ['Passenger/Commercial', 'car', 'Passenger'].includes(d.vehicle_type) &&
+      !INDUSTRIAL_BRANDS.has(d.name)
+    );
+  }
+
+  // Default (no specific category, e.g. top-level vehicles page): return all but industrial
+  return data.filter(d => !INDUSTRIAL_BRANDS.has(d.name));
 }
+
 
 export const getCategories = async () => {
   const { data, error } = await supabase
