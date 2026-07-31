@@ -6,8 +6,9 @@ Disallow: /settings
 Disallow: /saved-searches
 Disallow: /my-ads
 Disallow: /post-ad
-Disallow: /browse?*keyword=*
-Disallow: /browse?*sort=*
-Disallow: /*?*keyword=*
+Disallow: /post-cv
+Disallow: /edit-ad
+Disallow: /profile
+Disallow: /saved
 
 Sitemap: https://adhubkenya.co.ke/sitemap.xml

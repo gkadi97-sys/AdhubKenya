@@ -7,6 +7,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import CategorySidebar from '@/components/CategorySidebar.jsx';
 import CategoryBreadcrumbs from '@/components/CategoryBreadcrumbs.jsx';
 import FilterPanel from '@/components/filters/FilterPanel.jsx';
+import FilterChips from '@/components/filters/FilterChips.jsx';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 
 const getIcon = (slug, dbIcon) => {
@@ -95,10 +96,20 @@ export default function CategoryPage({ context }) {
         </aside>
         
         <main className="flex-1 min-w-0">
+          <FilterChips categorySlug={current.path} />
+          
           {/* Sort bar */}
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
-            <span style={{color:'var(--text-muted)',fontSize:'0.9rem'}}>{total} listings</span>
-            <select className="form-control" style={{width:'auto',padding:'8px 12px'}} value={sort} onChange={e=>{setSort(e.target.value);setPage(1);}}>
+            <span style={{color:'var(--text-muted)',fontSize:'0.9rem',fontWeight:500}}>
+              {total > 0 ? `Showing ${listings.length} of ${total.toLocaleString()} ${current.name.toLowerCase()}` : `0 ${current.name.toLowerCase()} found`}
+            </span>
+            <select 
+              className="form-control" 
+              style={{width:'auto',padding:'8px 12px', opacity: total === 0 ? 0.5 : 1}} 
+              value={sort} 
+              disabled={total === 0}
+              onChange={e=>{setSort(e.target.value);setPage(1);}}
+            >
               <option value="createdAt">Newest First</option>
               <option value="price_asc">Price: Low to High</option>
               <option value="price_desc">Price: High to Low</option>
@@ -135,21 +146,23 @@ export default function CategoryPage({ context }) {
               )}
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center p-12 text-center rounded-2xl border border-dashed border-border bg-card/50">
-              <div className="text-4xl mb-4 opacity-50">{icon}</div>
-              <h3 className="text-xl font-bold mb-2">No results found</h3>
-              <p className="text-muted-foreground mb-6 max-w-md">
+            <div className="flex flex-col items-center justify-center p-16 text-center rounded-2xl border-2 border-dashed border-border bg-card/50 mt-4">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                <span className="text-4xl">{icon}</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3">No {current.name.toLowerCase()} found</h3>
+              <p className="text-muted-foreground mb-8 max-w-lg text-lg">
                 {searchParams.toString() 
-                  ? "We couldn't find any listings matching your exact filters. Try adjusting your search criteria or clearing some filters." 
+                  ? "We couldn't find any listings matching your exact filters. Try broadening your search by clearing some filters." 
                   : `There are currently no listings in ${current.name}. Be the first to post!`}
               </p>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-4">
                 {searchParams.toString() && (
-                  <Link to={`/${current.path}`} className="btn btn-outline">
+                  <Link to={`/${current.path}`} className="btn btn-primary px-8">
                     Clear All Filters
                   </Link>
                 )}
-                <Link to="/post-ad" className="btn btn-primary">
+                <Link to="/post-ad" className={`btn ${searchParams.toString() ? 'btn-outline' : 'btn-primary'} px-8`}>
                   Post Free Ad
                 </Link>
               </div>

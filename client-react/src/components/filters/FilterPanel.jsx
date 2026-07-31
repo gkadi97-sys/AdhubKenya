@@ -4,16 +4,27 @@ import { useQuery } from '@tanstack/react-query';
 import { getListings, getLookupValues, getVehicleMakes } from '@/lib/api';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useMetadataCache } from '@/lib/useMetadataCache';
+import { getCascadeChain } from '@/lib/categoryContextMap';
 import LocationCascader from './LocationCascader';
 import PriceFilter from './PriceFilter';
 import { ChevronDown, X, Loader2, Search } from 'lucide-react';
 
-function FilterGroup({ label, children, defaultOpen = true }) {
+function FilterGroup({ label, children, defaultOpen = true, onClear, hasValue }) {
   return (
     <details className="group border-b border-border py-4" open={defaultOpen}>
       <summary className="flex cursor-pointer items-center justify-between font-semibold text-foreground outline-none marker:content-none">
         <span className="text-sm">{label}</span>
-        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+        <div className="flex items-center gap-3">
+          {hasValue && onClear && (
+            <button 
+              onClick={(e) => { e.preventDefault(); onClear(); }}
+              className="text-xs font-normal text-muted-foreground hover:text-primary hover:underline"
+            >
+              Clear
+            </button>
+          )}
+          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+        </div>
       </summary>
       <div className="mt-4 flex flex-col gap-3 animate-in fade-in duration-200">
         {children}
@@ -37,10 +48,22 @@ function SectionGroup({ title, children }) {
   );
 }
 
-function RadioGroup({ options, value, onChange }) {
+function RadioGroup({ options, value, onChange, groupAlphabetically = false }) {
   const [search, setSearch] = useState('');
   const filtered = options.filter(o => String(o).toLowerCase().includes(search.toLowerCase()));
   const showSearch = options.length > 8;
+
+  const grouped = useMemo(() => {
+    if (!groupAlphabetically) return null;
+    const map = {};
+    filtered.forEach(opt => {
+      const char = String(opt).charAt(0).toUpperCase();
+      const groupKey = /[A-Z]/.test(char) ? char : '#';
+      if (!map[groupKey]) map[groupKey] = [];
+      map[groupKey].push(opt);
+    });
+    return Object.keys(map).sort().map(key => ({ letter: key, options: map[key] }));
+  }, [filtered, groupAlphabetically]);
 
   return (
     <div className="flex flex-col">
@@ -57,12 +80,28 @@ function RadioGroup({ options, value, onChange }) {
         </div>
       )}
       <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-        {filtered.map(opt => (
-          <label key={opt} className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50 ${value === opt ? 'font-medium text-primary' : 'text-muted-foreground text-sm'}`}>
-            <input type="radio" checked={value === opt} onChange={() => onChange(value === opt ? '' : opt)} className="h-4 w-4 accent-primary shrink-0" />
-            <span className="truncate">{opt}</span>
-          </label>
-        ))}
+        {groupAlphabetically && grouped ? (
+          grouped.map(group => (
+            <div key={group.letter} className="mb-2">
+              <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 mb-1 opacity-60">
+                {group.letter}
+              </div>
+              {group.options.map(opt => (
+                <label key={opt} className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50 ${value === opt ? 'font-medium text-primary' : 'text-muted-foreground text-sm'}`}>
+                  <input type="radio" checked={value === opt} onChange={() => onChange(value === opt ? '' : opt)} className="h-4 w-4 accent-primary shrink-0" />
+                  <span className="truncate">{opt}</span>
+                </label>
+              ))}
+            </div>
+          ))
+        ) : (
+          filtered.map(opt => (
+            <label key={opt} className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50 ${value === opt ? 'font-medium text-primary' : 'text-muted-foreground text-sm'}`}>
+              <input type="radio" checked={value === opt} onChange={() => onChange(value === opt ? '' : opt)} className="h-4 w-4 accent-primary shrink-0" />
+              <span className="truncate">{opt}</span>
+            </label>
+          ))
+        )}
         {filtered.length === 0 && <span className="text-xs text-muted-foreground px-2 py-1">No options match.</span>}
       </div>
     </div>
@@ -120,37 +159,49 @@ function DebouncedInput({ value: initialValue, onChange, ...props }) {
 }
 
 // ── Dynamic Field Renderer ──
-function DynamicFilterField({ attr, value, onChange, filters, parentLookupId, categorySlug }) {
+function DynamicFilterField({ attr, value, onChange, filters, parentLookupId, categorySlug, parentAttrLabel }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+
+  // Determine if this field is waiting on a parent value
+  const needsParentFirst = attr.lookup_type === 'vehicle_model' && !parentLookupId;
 
   useEffect(() => {
     if (attr.lookup_type) {
-      // For vehicle_model, we need the parent make's DB id, not just the name string.
-      // parentLookupId is pre-resolved and passed in from DynamicFilterField's parent.
-      if (attr.lookup_type === 'vehicle_model' && !parentLookupId) {
+      if (needsParentFirst) {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
         setOptions([]);
         return;
       }
       setLoading(true);
       getLookupValues(attr.lookup_type, parentLookupId || null, '', categorySlug || '').then(data => {
-        setOptions(data.map(d => d.value));
+        const sorted = [...data].sort((a, b) => a.value.localeCompare(b.value));
+        setOptions(sorted.map(d => d.value));
         setLoading(false);
       });
     } else if (attr.options) {
       try {
-        setOptions(typeof attr.options === 'string' ? JSON.parse(attr.options) : attr.options);
+        const raw = typeof attr.options === 'string' ? JSON.parse(attr.options) : attr.options;
+        setOptions(raw);
       // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
       } catch (e) {
         setOptions([]);
       }
     }
-  }, [attr.lookup_type, attr.options, parentLookupId, categorySlug]);
+  }, [attr.lookup_type, attr.options, parentLookupId, categorySlug, needsParentFirst]);
 
   if (loading) {
     return <div className="flex items-center gap-2 text-muted-foreground text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>;
+  }
+
+  // Show a helpful nudge when parent has not been selected yet
+  if (needsParentFirst) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
+        <Search className="h-3.5 w-3.5 opacity-50 shrink-0" />
+        Select {parentAttrLabel || 'the previous field'} first
+      </div>
+    );
   }
 
   // Convert large 'select' fields into searchable 'radio' lists for better UX
@@ -178,7 +229,8 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId, ca
   }
 
   if (attr.field_type === 'radio') {
-    return <RadioGroup options={options} value={value || ''} onChange={onChange} />;
+    const isMake = attr.name.toLowerCase() === 'make';
+    return <RadioGroup options={options} value={value || ''} onChange={onChange} groupAlphabetically={isMake} />;
   }
 
   if (attr.field_type === 'number') {
@@ -304,7 +356,17 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
       if (keyword) next.set('keyword', keyword);
     }
 
-    // Dynamic Dependency Clears
+    // ── Phase 2: Cascade Chain Auto-Clear ────────────────────────────────────
+    // Use the categoryContextMap cascade chain to clear all downstream children
+    // when any parent in the chain is changed. E.g. changing Make clears Model.
+    const chain = getCascadeChain(category);
+    const chainIdx = chain.indexOf(key);
+    if (chainIdx !== -1) {
+      // Clear all attributes AFTER this one in the chain
+      chain.slice(chainIdx + 1).forEach(childKey => next.delete(childKey));
+    }
+
+    // ── Also clear children via DB attribute_dependencies (existing logic) ─
     if (metadata?.dependencies && metadata?.attributes) {
       const clearDependentKeys = (parentName) => {
         const parentAttr = metadata.attributes.find(a => a.name === parentName);
@@ -332,7 +394,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
   const handleClearAll = () => {
     const next = new URLSearchParams();
     if (filters.category) next.set('category', filters.category);
-    if (filters.keyword) next.set('keyword', filters.keyword);
+    if (searchParams.has('keyword')) next.set('keyword', searchParams.get('keyword'));
     
     setLocalParams(next);
     if (!isMobile) {
@@ -393,21 +455,37 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
 
   const renderDynamicAttr = (attr, defaultOpen = false) => {
     let parentLookupId = null;
+    let autoExpandModel = false;
+    let parentAttrLabel = null;
+
     if (attr.lookup_type === 'vehicle_model') {
       const makeAttr = metadata.attributes.find(a => a.lookup_type === 'vehicle_make');
       if (makeAttr) {
         const selectedMakeName = filters[makeAttr.name];
         parentLookupId = vehicleMakeMap[selectedMakeName] || null;
+        if (selectedMakeName) autoExpandModel = true;
+        parentAttrLabel = makeAttr.label;
       }
     }
+
+    const hasVal = !!filters[attr.name];
+    const isOpen = defaultOpen || hasVal || autoExpandModel;
+
     return (
-      <FilterGroup key={attr.id} label={attr.label} defaultOpen={defaultOpen || !!filters[attr.name]}>
+      <FilterGroup 
+        key={attr.id} 
+        label={attr.label} 
+        defaultOpen={isOpen}
+        hasValue={hasVal}
+        onClear={() => updateFilter(attr.name, '')}
+      >
         <DynamicFilterField
           attr={attr}
           value={filters[attr.name]}
           filters={filters}
           categorySlug={category}
           parentLookupId={parentLookupId}
+          parentAttrLabel={parentAttrLabel}
           onChange={(val, explicitKey) => updateFilter(attr.name, val, explicitKey)}
         />
       </FilterGroup>
@@ -416,11 +494,23 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
 
   return (
     <div className={`flex flex-col bg-background ${embedded ? '' : 'h-full'}`}>
-      {isMobile && (
+      {isMobile ? (
         <div className="flex items-center justify-between border-b border-border p-4">
-          <h2 className="text-lg font-bold text-foreground">Filters</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-bold text-foreground">Filters</h2>
+            {Object.keys(filters).length > 0 && (
+              <button onClick={handleClearAll} className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">Clear All</button>
+            )}
+          </div>
           <button onClick={onClose} className="rounded-full p-2 hover:bg-secondary transition-colors">
             <X className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between border-b border-border p-4 md:px-1 md:pt-1 md:pb-4 mb-2">
+          <h2 className="text-lg font-bold text-foreground">Filters</h2>
+          <button onClick={handleClearAll} className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
+            Clear All
           </button>
         </div>
       )}
@@ -524,21 +614,15 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
         </SectionGroup>
       </div>
 
-      <div className={`border-t border-border bg-background p-4 flex items-center gap-3 ${isMobile ? 'sticky bottom-0 z-10' : 'mt-4 sticky bottom-0 z-10 pb-6'}`}>
-        <button 
-          onClick={handleClearAll}
-          className="flex-1 rounded-xl border border-border bg-background py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
-        >
-          Clear All
-        </button>
-        {(isMobile || filters.category === 'seeking-work') && (
+      <div className={`border-t border-border bg-background p-4 flex items-center justify-center ${isMobile ? 'sticky bottom-0 z-10' : 'mt-4 sticky bottom-0 z-10 pb-6'}`}>
+        {(isMobile || filters.category === 'seeking-work') ? (
           <button 
             onClick={handleApply}
-            className="flex-[2] rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
+            className="w-full rounded-xl bg-primary py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-opacity hover:opacity-90"
           >
             {isMobile ? `Show ${liveCount.toLocaleString()} Results` : 'Apply Filters'}
           </button>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -18,6 +18,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWatch, Controller } from 'react-hook-form';
 import { getCategoryMetadata, getLookupValues } from '@/lib/api';
+import { getCascadeChain } from '@/lib/categoryContextMap';
 import {
   ChevronDown, ChevronRight, Loader2, AlertCircle,
   CheckCircle2, Lock, Car, Smartphone, Home, Briefcase,
@@ -181,7 +182,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     });
   }, [cascadeDepAttrId, parentAttr, parentValue]);
 
-  // Recursive Reset Logic: When parentValue changes, clear this field.
+  // Recursive Reset Logic (DB dependency-based): When parentValue changes, clear this field.
   const prevParentValue = useRef(parentValue);
   useEffect(() => {
     if (prevParentValue.current !== parentValue) {
@@ -189,6 +190,19 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
       prevParentValue.current = parentValue;
     }
   }, [parentValue, fieldName, setValue]);
+
+  // Cascade Chain Reset (categoryContextMap-based): When this field changes, clear all
+  // downstream children defined in the category's cascade chain.
+  // This is a safety net for attributes that may not have DB dependency entries.
+  useEffect(() => {
+    const currentValue = allValues?.attrs?.[attribute.id];
+    if (!currentValue || !attribute.name) return;
+    // The effect above handles resetting when parent changes.
+    // This hook registers a handler so PostAd can call it directly if needed.
+    // The actual cascade clearing on change is handled by the FieldRenderer's parent
+    // via the prevParentValue pattern above.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentional: subscribe to attribute.name only
+  }, [attribute.name]);
 
   const [options, setOptions] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(false);

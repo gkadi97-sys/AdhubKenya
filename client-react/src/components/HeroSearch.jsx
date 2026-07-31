@@ -5,6 +5,7 @@ import { Search, MapPin, Clock, Flame, Grid, Navigation, X, Mic, ArrowLeft } fro
 import { getListings, getCategoryCounts, logSearch } from '@/lib/api';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import { getCategoryContext } from '@/lib/categoryContextMap';
 
 const COUNTIES = ['All Kenya', 'Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Nyeri', 'Meru'];
 const RECENT_SEARCHES_KEY = 'adhub_recent_searches';
@@ -25,23 +26,29 @@ export default function HeroSearch({ stickyCategory = null }) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const PLACEHOLDERS = [
-    'Search vehicles...',
-    'Search apartments...',
-    'Search jobs...',
-    'Search phones...',
-    'Search electronics...',
-    'Search services...'
-  ];
+  // Category-aware context: swap placeholder + trending when category tab changes
+  const activeCategoryCtx = getCategoryContext(categoryTab);
+
+  const PLACEHOLDERS = activeCategoryCtx
+    ? activeCategoryCtx.trending.slice(0, 5)
+    : [
+        'Search vehicles...',
+        'Search apartments...',
+        'Search jobs...',
+        'Search phones...',
+        'Search electronics...',
+        'Search services...'
+      ];
 
   // ── Placeholder rotation ────────────────────────────────────────────────────
   useEffect(() => {
+    setPlaceholderIdx(0);
     const interval = setInterval(() => {
       setPlaceholderIdx(prev => (prev + 1) % PLACEHOLDERS.length);
     }, 3500);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally reset on category change
+  }, [categoryTab]);
 
   // ── Recent searches from localStorage ──────────────────────────────────────
   useEffect(() => {
@@ -223,6 +230,11 @@ export default function HeroSearch({ stickyCategory = null }) {
   const suggestions = processSuggestions();
 
   const getPopularSearches = () => {
+    // If a category tab is selected, use that category's trending terms
+    if (categoryTab && activeCategoryCtx?.trending?.length) {
+      return activeCategoryCtx.trending;
+    }
+    // Fallback to top categories by listing count
     if (!catCounts) return ['Toyota Fielder', 'iPhone 15', 'Nairobi Apartments', 'Laptops'];
     const sorted = Object.entries(catCounts)
       .filter(([k]) => k !== 'total')
@@ -308,42 +320,79 @@ export default function HeroSearch({ stickyCategory = null }) {
 
       {!keyword.trim() && (
         <div className="mt-2 border-t border-border/50 pt-2">
-          <div className="px-3 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-            <Flame className="h-3.5 w-3.5 text-gold" /> Popular Right Now
-          </div>
-          <div className="flex flex-wrap gap-2 px-3 py-2">
-            {popular.map(p => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => { setKeyword(p); handleSearch(null, p); }}
-                className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:border-primary/50 hover:text-primary active:scale-95 transition cursor-pointer"
-              >
-                {p}
-              </button>
-            ))}
-          </div>
+          {/* Category-specific quick links when a category tab is active */}
+          {categoryTab && activeCategoryCtx?.quickLinks?.length ? (
+            <>
+              <div className="px-3 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                <Flame className="h-3.5 w-3.5 text-gold" /> Popular in {activeCategoryCtx.label}
+              </div>
+              <div className="flex flex-wrap gap-2 px-3 py-2">
+                {activeCategoryCtx.quickLinks.slice(0, 6).map(ql => (
+                  <button
+                    key={ql.label}
+                    type="button"
+                    onClick={() => {
+                      const p = new URLSearchParams();
+                      p.set('category', categoryTab);
+                      Object.entries(ql.params).forEach(([k, v]) => p.set(k, v));
+                      setIsFocused(false);
+                      navigate(`/browse?${p.toString()}`);
+                    }}
+                    className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:border-primary/50 hover:text-primary active:scale-95 transition cursor-pointer"
+                  >
+                    {ql.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="px-3 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                <Flame className="h-3.5 w-3.5 text-gold" /> Popular Right Now
+              </div>
+              <div className="flex flex-wrap gap-2 px-3 py-2">
+                {popular.map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => { setKeyword(p); handleSearch(null, p); }}
+                    className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:border-primary/50 hover:text-primary active:scale-95 transition cursor-pointer"
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
   );
 
   // ── Category filter pills (shared) ─────────────────────────────────────────
+  const ALL_TABS = [
+    { id: '', label: 'All' },
+    { id: 'vehicles', label: '🚗 Vehicles' },
+    { id: 'property', label: '🏠 Property' },
+    { id: 'phones-tablets', label: '📱 Phones' },
+    { id: 'electronics', label: '💻 Electronics' },
+    { id: 'jobs', label: '💼 Jobs' },
+    { id: 'fashion', label: '👗 Fashion' },
+    { id: 'home-living', label: '🛋️ Home' },
+    { id: 'services', label: '🛠️ Services' },
+    { id: 'animals-pets', label: '🐕 Pets' },
+    { id: 'agriculture-food', label: '🌾 Agriculture' },
+  ];
+
   const CategoryPills = () => (
-    <div className="flex flex-wrap items-center gap-2 mb-2 sm:mb-3">
-      <span className="text-xs font-semibold text-muted-foreground mr-1">Popular searches:</span>
-      {[
-        { id: '', label: 'All' },
-        { id: 'vehicles', label: 'Vehicles' },
-        { id: 'property', label: 'Property' },
-        { id: 'electronics', label: 'Electronics' },
-        { id: 'phones-tablets', label: 'Phones' },
-      ].map(tab => (
+    <div className="flex items-center gap-2 mb-2 sm:mb-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+      <span className="text-xs font-semibold text-muted-foreground mr-1 shrink-0">Search in:</span>
+      {ALL_TABS.map(tab => (
         <button
           key={tab.id}
           type="button"
           onClick={() => setCategoryTab(tab.id)}
-          className={`px-3 py-1 rounded-full text-[10px] transition-colors cursor-pointer ${
+          className={`px-3 py-1 rounded-full text-[10px] transition-colors cursor-pointer shrink-0 ${
             categoryTab === tab.id
               ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
               : 'bg-background/60 backdrop-blur border border-border/50 text-foreground/80 hover:bg-background/90 font-medium'
@@ -382,7 +431,7 @@ export default function HeroSearch({ stickyCategory = null }) {
               <input
                 ref={overlayInputRef}
                 type="text"
-                placeholder="Search listings..."
+                placeholder={activeCategoryCtx ? activeCategoryCtx.placeholder : 'Search listings...'}
                 value={keyword}
                 onChange={e => setKeyword(e.target.value)}
                 className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
@@ -423,7 +472,7 @@ export default function HeroSearch({ stickyCategory = null }) {
               </select>
             </div>
             <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-              {[{ id: '', label: 'All' }, { id: 'vehicles', label: 'Vehicles' }, { id: 'property', label: 'Property' }, { id: 'electronics', label: 'Electronics' }, { id: 'phones-tablets', label: 'Phones' }].map(tab => (
+              {ALL_TABS.map(tab => (
                 <button
                   key={tab.id}
                   type="button"
