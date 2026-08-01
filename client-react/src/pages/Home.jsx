@@ -121,7 +121,7 @@ export default function HomePage() {
   }, []);
 
   useSEO({
-    title: 'AdHub Kenya â€“ Buy & Sell Anything in Kenya',
+    title: 'AdHub Kenya – Buy & Sell Anything in Kenya',
     description: "AdHub Kenya is Kenya's free classifieds marketplace. Buy and sell cars, property, electronics, phones, fashion, and jobs across all 47 counties.",
     canonicalPath: '/'
   });
@@ -152,7 +152,7 @@ export default function HomePage() {
       <div className="gradient-emerald text-primary-foreground">
         <div className="mx-auto flex max-w-[1400px] items-center justify-center gap-2 px-4 py-1.5 text-xs">
           <Sparkles className="h-3 w-3 text-gold" />
-          <span className="opacity-90">Free posting â€” list your ad in under 60 seconds.</span>
+          <span className="opacity-90">Free posting — list your ad in under 60 seconds.</span>
         </div>
       </div>
 

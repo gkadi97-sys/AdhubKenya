@@ -161,11 +161,12 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  body {
+  html, body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-feature-settings: "ss01", "cv11";
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5 {
