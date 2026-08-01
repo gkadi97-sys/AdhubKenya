@@ -260,7 +260,7 @@ export default function PostAdPage() {
   const description = watch('description');
 
   // Determine states of static sections
-  const basicsComplete = !!(title && category && description && (!conditionOptions || condition));
+  const basicsComplete = !!(title && category && description);
   const pricingComplete = isJob ? true : !!(price);
   const locationComplete = !!(location);
   const mediaComplete = images.length > 0;
@@ -662,16 +662,7 @@ export default function PostAdPage() {
                     </select>
                   </div>
 
-                  {/* Condition */}
-                  {conditionOptions && (
-                    <div>
-                      <label className={labelClass}>Condition *</label>
-                      <select className={inputClass} {...register('condition', { required: true })}>
-                        <option value="">Select Condition</option>
-                        {conditionOptions.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                  )}
+                  {/* Condition is handled by MetadataDrivenForm's category-specific attributes */}
 
                   {/* Title */}
                   {category && (
