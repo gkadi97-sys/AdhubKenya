@@ -556,6 +556,33 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
     );
   }
 
+  // YEAR (Special intercept to render a dropdown instead of free text)
+  if (attribute.name && attribute.name.toLowerCase() === 'year') {
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 50 }, (_, i) => currentYear + 1 - i);
+    
+    return (
+      <div>
+        <label className={labelClass}>
+          {attribute.label}{unitLabel} {required && <span className="text-destructive">*</span>}
+        </label>
+        <div className="relative">
+          <select
+            className={`${inputClass} appearance-none pr-8 transition-all duration-150`}
+            {...register(fieldName, validationRules)}
+          >
+            <option value="">{attribute.placeholder || 'Select year'}</option>
+            {years.map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        </div>
+        {helpText}
+      </div>
+    );
+  }
+
   // NUMBER
   if (attribute.field_type === 'number') {
     return (
