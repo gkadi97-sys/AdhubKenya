@@ -48,6 +48,10 @@ const dieselId = addLookup('fuel_types', 'Diesel');
 
 const autoId = addLookup('transmission_types', 'Automatic');
 const manualId = addLookup('transmission_types', 'Manual');
+addLookup('transmission_types', 'CVT (Continuously Variable Transmission)');
+addLookup('transmission_types', 'AMT (Automated Manual Transmission)');
+addLookup('transmission_types', 'Dual-Clutch (DCT / DSG)');
+addLookup('transmission_types', 'Semi-Automatic / Tiptronic');
 
 if (lookups.length > 0) {
   sql += `INSERT INTO public.lookup_values (id, lookup_type, value, parent_id) VALUES \n` + lookups.join(',\n') + `;\n\n`;
