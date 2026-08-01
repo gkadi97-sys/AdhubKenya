@@ -9,36 +9,36 @@
 export const TAXONOMY_RULES = {
   // ─── PROPERTY ──────────────────────────────────────────────────────────────
   'houses-sale': {
-    implied: { property_type: 'House', listing_type: 'Sale' },
-    hide: ['property_type', 'listing_type']
+    implied: { propertyType: 'House', listingType: 'Sale' },
+    hide: ['propertyType', 'listingType']
   },
   'houses-rent': {
-    implied: { property_type: 'House', listing_type: 'Rent' },
-    hide: ['property_type', 'listing_type']
+    implied: { propertyType: 'House', listingType: 'Rent' },
+    hide: ['propertyType', 'listingType']
   },
   'apartments-sale': {
-    implied: { property_type: 'Apartment', listing_type: 'Sale' },
-    hide: ['property_type', 'listing_type']
+    implied: { propertyType: 'Apartment', listingType: 'Sale' },
+    hide: ['propertyType', 'listingType']
   },
   'apartments-rent': {
-    implied: { property_type: 'Apartment', listing_type: 'Rent', price_period: 'Per Month' },
-    hide: ['property_type', 'listing_type', 'price_period']
+    implied: { propertyType: 'Apartment', listingType: 'Rent', pricePeriod: 'Per Month' },
+    hide: ['propertyType', 'listingType', 'pricePeriod']
   },
   'land-plots': {
-    implied: { property_type: 'Land', listing_type: 'Sale' },
-    hide: ['property_type', 'listing_type']
+    implied: { propertyType: 'Land', listingType: 'Sale' },
+    hide: ['propertyType', 'listingType']
   },
   'commercial-property': {
-    implied: { property_type: 'Commercial Office' },
+    implied: { propertyType: 'Commercial Office' },
     hide: []
   },
   'short-stays': {
-    implied: { listing_type: 'Short Let' },
-    hide: ['listing_type']
+    implied: { listingType: 'Short Let' },
+    hide: ['listingType']
   },
   'student-hostels': {
-    implied: { property_type: 'Hostel', listing_type: 'Rent', price_period: 'Per Month' },
-    hide: ['property_type', 'listing_type']
+    implied: { propertyType: 'Hostel', listingType: 'Rent', pricePeriod: 'Per Month' },
+    hide: ['propertyType', 'listingType']
   }
 };
 
