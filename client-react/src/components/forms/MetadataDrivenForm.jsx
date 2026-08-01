@@ -19,6 +19,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWatch, Controller } from 'react-hook-form';
 import { getCategoryMetadata, getLookupValues } from '@/lib/api';
 import { getCascadeChain } from '@/lib/categoryContextMap';
+import { getTaxonomyRules } from '@/lib/taxonomyEngine';
 import {
   ChevronDown, ChevronRight, Loader2, AlertCircle,
   CheckCircle2, Lock, Car, Smartphone, Home, Briefcase,
@@ -807,45 +808,40 @@ export default function MetadataDrivenForm({
   // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on initial mount
   }, [categorySlug]);
 
-  // Auto-fill certain attributes based on the selected subcategory.
-  // e.g. if user picks "animals-pets/dogs", pre-fill animalType = "Dog"
+  // Auto-fill attributes based on Central Taxonomy Engine
   useEffect(() => {
     if (!metadata || !categorySlug) return;
     const subSlug = categorySlug.split('/')[1];
     if (!subSlug) return;
 
-    const SUBCATEGORY_AUTO_FILL = {
-      // Animals & Pets
-      'dogs':           { animalType: 'Dog' },
-      'cats':           { animalType: 'Cat' },
-      'birds':          { animalType: 'Bird' },
-      'fish-aquariums': { animalType: 'Fish & Aquatic' },
-    };
+    const rules = getTaxonomyRules(subSlug);
+    if (!rules || !rules.implied) return;
 
-    const preset = SUBCATEGORY_AUTO_FILL[subSlug];
-    if (!preset) return;
-
-    Object.entries(preset).forEach(([attrName, attrValue]) => {
+    Object.entries(rules.implied).forEach(([attrName, attrValue]) => {
       const attr = metadata.attributes.find(a => a.name === attrName);
       if (!attr) return;
       const fieldName = `attrs.${attr.id}`;
-      // Only set if the field is currently empty to avoid overwriting user input
-      const currentVal = allValues?.attrs?.[attr.id];
-      if (!currentVal || currentVal === '') {
-        setValue(fieldName, attrValue, { shouldValidate: false, shouldDirty: true });
-      }
+      // Set the implied value aggressively to ensure it's always accurate to the category
+      setValue(fieldName, attrValue, { shouldValidate: false, shouldDirty: true });
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps -- Run only when metadata first loads
-  }, [metadata]);
+  }, [metadata, categorySlug]);
 
   // Evaluate visible attributes
   const evaluatedAttributes = useMemo(() => {
     if (!metadata) return [];
+    
+    const subSlug = categorySlug?.split('/')[1];
+    const rules = subSlug ? getTaxonomyRules(subSlug) : { hide: [] };
+    const hiddenNames = rules.hide || [];
+
     return metadata.attributes
       .filter(attr => !attr.is_hidden && !attr.is_admin_only)
       .map(attr => {
         const { visible, required } = evaluateDependencies(attr, metadata.dependencies, allValues);
-        return { ...attr, _visible: visible, _required: required };
+        // Force hide if taxonomy engine says so
+        const finalVisible = hiddenNames.includes(attr.name) ? false : visible;
+        return { ...attr, _visible: finalVisible, _required: required };
       })
       .filter(attr => attr._visible);
   }, [metadata, allValues]);
@@ -896,19 +892,32 @@ export default function MetadataDrivenForm({
     return map;
   }, [visibleGroups, allValues]);
 
-  // Compute states for each group
+  // Compute states for each group with strict progressive disclosure
   const groupStateMap = useMemo(() => {
     const map = {};
+    let previousGroupsCompleted = true;
+
     visibleGroups.forEach(group => {
       if (isLocked) {
         map[group.id] = 'locked';
         return;
       }
+      
       const isDone = groupCompletionMap[group.id];
-      if (isDone) {
-        map[group.id] = 'completed';
+      
+      // Strict Progressive Disclosure: Lock if previous sections are not completed
+      if (!previousGroupsCompleted) {
+        map[group.id] = 'locked';
       } else {
-        map[group.id] = expandedGroups[group.id] ? 'in-progress' : 'available';
+        if (isDone) {
+          map[group.id] = 'completed';
+        } else {
+          map[group.id] = expandedGroups[group.id] ? 'in-progress' : 'available';
+        }
+      }
+      
+      if (!isDone) {
+        previousGroupsCompleted = false;
       }
     });
     return map;
