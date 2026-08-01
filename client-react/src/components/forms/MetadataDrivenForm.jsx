@@ -559,7 +559,8 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
   // YEAR (Special intercept to render a dropdown instead of free text)
   if (attribute.name && attribute.name.toLowerCase() === 'year') {
     const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: 50 }, (_, i) => currentYear + 1 - i);
+    const startYear = 1950;
+    const years = Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
     
     return (
       <div>
