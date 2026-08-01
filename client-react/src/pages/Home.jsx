@@ -183,15 +183,18 @@ export default function HomePage() {
             {/* â”€â”€ DESKTOP HERO â”€â”€ */}
             <section className="relative mb-8 z-20 group hidden lg:block">
               <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl bg-background">
-                <img 
-                  src={heroNairobi} 
-                  alt="Nairobi marketplace" 
-                  width={1920} 
-                  height={800} 
-                  fetchPriority="high"
-                  decoding="sync"
-                  className="h-full w-full object-cover blur-[1.5px] scale-100 saturate-[.95] opacity-[.92] transition-transform duration-[800ms] ease-out group-hover:scale-[1.02]" 
-                />
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  poster={heroNairobi}
+                  className="h-full w-full object-cover scale-100 saturate-[1.05] opacity-100 transition-transform duration-[1000ms] ease-out group-hover:scale-[1.02]"
+                >
+                  <source src="/hero-video.mp4" type="video/mp4" />
+                  {/* Fallback if video is missing or unsupported */}
+                  <img src={heroNairobi} alt="Nairobi marketplace" className="h-full w-full object-cover" />
+                </video>
                 <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,247,242,0.78)] via-[rgba(248,247,242,0.45)] via-45% to-[rgba(248,247,242,0.10)] dark:from-[rgba(10,10,10,0.85)] dark:via-[rgba(10,10,10,0.65)] dark:via-45% dark:to-[rgba(10,10,10,0.15)] pointer-events-none" />
               </div>
 
