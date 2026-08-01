@@ -190,6 +190,7 @@ export default function HomePage() {
                   playsInline
                   poster={heroNairobi}
                   className="h-full w-full object-cover scale-100 saturate-[1.05] opacity-100 transition-transform duration-[1000ms] ease-out group-hover:scale-[1.02]"
+                  onError={(e) => { e.target.style.display = 'none'; }}
                 >
                   <source src="/hero-video.mp4" type="video/mp4" />
                   {/* Fallback if video is missing or unsupported */}
