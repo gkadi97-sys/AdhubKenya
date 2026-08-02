@@ -205,8 +205,142 @@ export const CATEGORY_CONTEXT = {
     cascadeChain: ['brand', 'series', 'model'],
   },
 
+  televisions: {
+    label: 'TVs & Monitors',
+    icon: '📺',
+    placeholder: 'Search by brand, screen size or resolution...',
+    trending: ['Samsung 65" QLED', 'LG OLED 55"', 'Sony Bravia 4K', 'TCL 50"', 'Hisense 43"'],
+    quickLinks: [
+      { label: 'Samsung', params: { brand: 'Samsung' } },
+      { label: 'LG', params: { brand: 'LG' } },
+      { label: 'Sony', params: { brand: 'Sony' } },
+      { label: '4K', params: { resolution: '4K UHD' } },
+      { label: 'Smart TV', params: { smartTV: 'Yes' } },
+    ],
+    // brand → series → model (all isolated under tvs_* lookup_types)
+    cascadeChain: ['brand', 'series', 'model'],
+  },
+
+  'audio-music': {
+    label: 'Audio & Music',
+    icon: '🔊',
+    placeholder: 'Search by brand, speaker type or audio format...',
+    trending: ['JBL Xtreme 3', 'Sony WH-1000XM5', 'Bose QuietComfort', 'Marshall Emberton', 'Yamaha MusicCast'],
+    quickLinks: [
+      { label: 'JBL', params: { brand: 'JBL' } },
+      { label: 'Sony', params: { brand: 'Sony' } },
+      { label: 'Bose', params: { brand: 'Bose' } },
+      { label: 'Soundbar', params: { audioType: 'Soundbar' } },
+      { label: 'Headphones', params: { audioType: 'Headphones' } },
+    ],
+    cascadeChain: ['brand', 'series', 'model'],
+  },
+
+  'laptops-computers': {
+    label: 'Laptops & Computers',
+    icon: '💻',
+    placeholder: 'Search by brand, CPU, RAM or screen size...',
+    trending: ['MacBook Pro M3', 'Dell XPS 15', 'HP EliteBook 840', 'Lenovo ThinkPad X1', 'ASUS ROG'],
+    quickLinks: [
+      { label: 'Apple', params: { brand: 'Apple' } },
+      { label: 'Dell', params: { brand: 'Dell' } },
+      { label: 'HP', params: { brand: 'HP' } },
+      { label: 'Gaming Laptop', params: { laptopType: 'Gaming' } },
+      { label: '16GB RAM', params: { ram: '16GB' } },
+    ],
+    cascadeChain: ['brand', 'series', 'model'],
+  },
+
+  cameras: {
+    label: 'Cameras & Photography',
+    icon: '📷',
+    placeholder: 'Search by brand, type or megapixels...',
+    trending: ['Sony A7 IV', 'Canon EOS R6', 'Nikon Z6 III', 'DJI Air 3', 'GoPro Hero 12'],
+    quickLinks: [
+      { label: 'Sony', params: { brand: 'Sony' } },
+      { label: 'Canon', params: { brand: 'Canon' } },
+      { label: 'Mirrorless', params: { cameraType: 'Mirrorless' } },
+      { label: 'DSLR', params: { cameraType: 'DSLR' } },
+      { label: 'Drone', params: { cameraType: 'Drone' } },
+    ],
+    cascadeChain: ['brand', 'series', 'model'],
+  },
+
+  gaming: {
+    label: 'Gaming',
+    icon: '🎮',
+    placeholder: 'Search consoles, games or accessories...',
+    trending: ['PlayStation 5', 'Xbox Series X', 'Nintendo Switch', 'Steam Deck', 'ASUS ROG Ally'],
+    quickLinks: [
+      { label: 'PlayStation', params: { brand: 'Sony (PlayStation)' } },
+      { label: 'Xbox', params: { brand: 'Microsoft (Xbox)' } },
+      { label: 'Nintendo', params: { brand: 'Nintendo' } },
+      { label: 'PC Gaming', params: { brand: 'Asus (ROG)' } },
+    ],
+    cascadeChain: ['brand', 'series', 'model'],
+  },
+
+  'printers-office': {
+    label: 'Printers & Office',
+    icon: '🖨️',
+    placeholder: 'Search printers, scanners or office equipment...',
+    trending: ['Epson L3250', 'HP LaserJet Pro', 'Canon PIXMA', 'Brother DCP'],
+    quickLinks: [
+      { label: 'Epson', params: { brand: 'Epson' } },
+      { label: 'HP', params: { brand: 'HP' } },
+      { label: 'Canon', params: { brand: 'Canon' } },
+      { label: 'Laser', params: { printerType: 'Laser' } },
+      { label: 'Inkjet', params: { printerType: 'Inkjet' } },
+    ],
+    cascadeChain: ['brand', 'series', 'model'],
+  },
+
+  networking: {
+    label: 'Networking & IT',
+    icon: '📡',
+    placeholder: 'Search routers, switches, access points...',
+    trending: ['TP-Link Archer AX90', 'Ubiquiti UniFi', 'MikroTik hEX', 'Cisco Switch', 'Netgear Nighthawk'],
+    quickLinks: [
+      { label: 'TP-Link', params: { brand: 'TP-Link' } },
+      { label: 'Ubiquiti', params: { brand: 'Ubiquiti' } },
+      { label: 'MikroTik', params: { brand: 'MikroTik' } },
+      { label: 'Router', params: { deviceType: 'Router' } },
+      { label: 'Switch', params: { deviceType: 'Switch' } },
+    ],
+    cascadeChain: ['brand', 'series', 'model'],
+  },
+
+  'home-appliances': {
+    label: 'Home Appliances',
+    icon: '🏠',
+    placeholder: 'Search fridges, washing machines, microwaves...',
+    trending: ['Samsung Fridge', 'LG Washing Machine', 'Miele Dishwasher', 'Ramtons Microwave'],
+    quickLinks: [
+      { label: 'Fridges', params: { applianceType: 'Fridge' } },
+      { label: 'Washing Machine', params: { applianceType: 'Washing Machine' } },
+      { label: 'Microwave', params: { applianceType: 'Microwave' } },
+      { label: 'Air Conditioner', params: { applianceType: 'Air Conditioner' } },
+    ],
+    cascadeChain: ['brand', 'model'],
+  },
+
+  'solar-power': {
+    label: 'Solar & Power',
+    icon: '☀️',
+    placeholder: 'Search solar panels, inverters, batteries...',
+    trending: ['Victron Inverter', 'Pylontech Battery', '400W Solar Panel', 'Growatt MPPT'],
+    quickLinks: [
+      { label: 'Solar Panels', params: { solarType: 'Solar Panel' } },
+      { label: 'Inverters', params: { solarType: 'Inverter' } },
+      { label: 'Batteries', params: { solarType: 'Battery' } },
+      { label: 'Complete Kit', params: { solarType: 'Complete Kit' } },
+    ],
+    cascadeChain: ['brand', 'model'],
+  },
+
+  // Alias for backwards-compat with slug 'laptops'
   laptops: {
-    label: 'Laptops',
+    label: 'Laptops & Computers',
     icon: '💻',
     placeholder: 'Search by brand, CPU or RAM...',
     trending: ['MacBook Pro M3', 'Dell XPS 15', 'HP EliteBook 840', 'Lenovo ThinkPad X1'],
@@ -220,35 +354,7 @@ export const CATEGORY_CONTEXT = {
     cascadeChain: ['brand', 'series', 'model'],
   },
 
-  televisions: {
-    label: 'TVs',
-    icon: '📺',
-    placeholder: 'Search by brand, screen size or resolution...',
-    trending: ['Samsung 65" QLED', 'LG OLED 55"', 'Sony Bravia 4K', 'TCL 50"'],
-    quickLinks: [
-      { label: 'Samsung', params: { brand: 'Samsung' } },
-      { label: 'LG', params: { brand: 'LG' } },
-      { label: '4K', params: { resolution: '4K UHD' } },
-      { label: 'Smart TV', params: { smartTV: 'Yes' } },
-    ],
-    cascadeChain: ['brand', 'model'],
-  },
 
-  cameras: {
-    label: 'Cameras',
-    icon: '📷',
-    placeholder: 'Search by brand, type or megapixels...',
-    trending: ['Sony A7 IV', 'Canon EOS R6', 'Nikon Z6 III', 'DJI Drone'],
-    quickLinks: [
-      { label: 'Sony', params: { brand: 'Sony' } },
-      { label: 'Canon', params: { brand: 'Canon' } },
-      { label: 'Mirrorless', params: { cameraType: 'Mirrorless' } },
-      { label: 'DSLR', params: { cameraType: 'DSLR' } },
-    ],
-    cascadeChain: ['brand', 'model'],
-  },
-
-  // ─── HOME & LIVING ────────────────────────────────────────────────────────
   'home-living': {
     label: 'Home & Living',
     icon: '🛋️',

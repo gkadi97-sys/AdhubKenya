@@ -39,6 +39,40 @@ export const TAXONOMY_RULES = {
   'student-hostels': {
     implied: { propertyType: 'Hostel', listingType: 'Rent', pricePeriod: 'Per Month' },
     hide: ['propertyType', 'listingType']
+  },
+  
+  // ─── ELECTRONICS (Child Categories) ────────────────────────────────────────
+  'televisions': {
+    implied: { subcategory: 'Smart TV / Monitor' },
+    hide: ['subcategory']
+  },
+  'audio-music': {
+    implied: { subcategory: 'Audio / Speakers' },
+    hide: ['subcategory']
+  },
+  'laptops-computers': {
+    implied: { subcategory: 'Laptop / Computer' },
+    hide: ['subcategory']
+  },
+  'cameras': {
+    implied: { subcategory: 'Camera / DSLR' },
+    hide: ['subcategory']
+  },
+  'gaming': {
+    implied: { subcategory: 'Gaming Console' },
+    hide: ['subcategory']
+  },
+  'printers-office': {
+    implied: { subcategory: 'Printer / Scanner' },
+    hide: ['subcategory']
+  },
+  'networking': {
+    implied: { subcategory: 'Networking (Router/Modem)' },
+    hide: ['subcategory']
+  },
+  'solar-power': {
+    implied: { subcategory: 'Solar / Power' },
+    hide: ['subcategory']
   }
 };
 

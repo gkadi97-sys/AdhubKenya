@@ -32,7 +32,25 @@ import {
 import AsyncSelect from 'react-select/async';
 import AmenitiesSearchPicker from './AmenitiesSearchPicker';
 
-const ASYNC_LOOKUPS = ['phones_brand', 'phones_series', 'phones_model', 'phones_variant', 'vehicle_make', 'vehicle_model', 'vehicle_generation', 'vehicle_trim', 'electronics_brand', 'electronics_series', 'electronics_model'];
+const ASYNC_LOOKUPS = [
+  // Phones & Tablets
+  'phones_brand', 'phones_series', 'phones_model', 'phones_variant',
+  // Vehicles
+  'vehicle_make', 'vehicle_model', 'vehicle_generation', 'vehicle_trim',
+  // Electronics — isolated per subcategory
+  'tvs_brand', 'tvs_series', 'tvs_model',
+  'audio_brand', 'audio_series', 'audio_model',
+  'laptops_brand', 'laptops_series', 'laptops_model',
+  'cameras_brand', 'cameras_series', 'cameras_model',
+  'gaming_brand', 'gaming_series', 'gaming_model',
+  'printers_brand', 'printers_series', 'printers_model',
+  'networking_brand', 'networking_series', 'networking_model',
+  'projectors_brand', 'projectors_series', 'projectors_model',
+  'wearables_brand', 'wearables_series', 'wearables_model',
+  'solar_brand', 'solar_series', 'solar_model',
+  // Legacy — kept for backwards compat until all listings are migrated
+  'electronics_brand', 'electronics_series', 'electronics_model',
+];
 
 // ─── Icon Map (maps icon name strings from DB to Lucide components) ──────────
 const ICON_MAP = {

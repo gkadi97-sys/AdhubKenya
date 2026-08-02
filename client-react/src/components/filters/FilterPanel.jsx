@@ -5,6 +5,7 @@ import { getListings, getLookupValues, getVehicleMakes } from '@/lib/api';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useMetadataCache } from '@/lib/useMetadataCache';
 import { getCascadeChain } from '@/lib/categoryContextMap';
+import { getTaxonomyRules } from '@/lib/taxonomyEngine';
 import LocationCascader from './LocationCascader';
 import PriceFilter from './PriceFilter';
 import { ChevronDown, X, Loader2, Search } from 'lucide-react';
@@ -298,6 +299,15 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
   const category = embedded ? (categorySlug || filters.category || '') : (filters.category || categorySlug || '');
   const metadata = useMetadataCache(category);
 
+  // Derive taxonomy rules for the active category
+  const activeSubSlug = category.split('/')[1] || category;
+  const taxonomyRules = useMemo(() => getTaxonomyRules(activeSubSlug), [activeSubSlug]);
+
+  // Combine URL filters with implied taxonomy values for dependency evaluation
+  const computedFilters = useMemo(() => {
+    return { ...filters, ...(taxonomyRules.implied || {}) };
+  }, [filters, taxonomyRules]);
+
   // Resolve make name -> vehicle_makes DB id so Model can cascade
   const [vehicleMakeMap, setVehicleMakeMap] = useState({});
   useEffect(() => {
@@ -409,6 +419,9 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
 
   // Evaluate if an attribute should be shown
   const isAttrVisible = (attr) => {
+    // Taxonomy engine forced hide
+    if (taxonomyRules.hide?.includes(attr.name)) return false;
+
     // Force oemNumber to be visible even if is_filterable is false in DB
     if (attr.name === 'oemNumber') return true;
     
@@ -429,7 +442,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
       const parentAttr = metadata.attributes.find(a => a.id === dep.depends_on_attribute_id);
       if (!parentAttr) return false;
       
-      const fieldValue = filters[parentAttr.name];
+      const fieldValue = computedFilters[parentAttr.name];
       const depVal = dep.dependency_value;
 
       switch (dep.operator) {
