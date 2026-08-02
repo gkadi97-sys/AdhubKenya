@@ -40,14 +40,17 @@ const ASYNC_LOOKUPS = [
   // Electronics — isolated per subcategory
   'tvs_brand', 'tvs_series', 'tvs_model',
   'audio_brand', 'audio_series', 'audio_model',
+  'printers_brand', 'printers_series', 'printers_model',
   'laptops_brand', 'laptops_series', 'laptops_model',
   'cameras_brand', 'cameras_series', 'cameras_model',
   'gaming_brand', 'gaming_series', 'gaming_model',
-  'printers_brand', 'printers_series', 'printers_model',
+  'appliances_brand', 'appliances_series', 'appliances_model',
   'networking_brand', 'networking_series', 'networking_model',
   'projectors_brand', 'projectors_series', 'projectors_model',
   'wearables_brand', 'wearables_series', 'wearables_model',
   'solar_brand', 'solar_series', 'solar_model',
+  // Fashion
+  'fashion_brand', 'shoes_model', 'watches_model',
   // Legacy — kept for backwards compat until all listings are migrated
   'electronics_brand', 'electronics_series', 'electronics_model',
 ];

@@ -385,6 +385,86 @@ export const CATEGORY_CONTEXT = {
     ],
     cascadeChain: [],
   },
+  'mens-clothing': {
+    label: "Men's Clothing",
+    icon: '👔',
+    placeholder: 'Search shirts, trousers, suits...',
+    trending: ['Men Suit', 'Jeans', 'T-Shirts', 'Jackets'],
+    quickLinks: [
+      { label: 'Suits', params: { search: 'suit' } },
+      { label: 'Jeans', params: { search: 'jeans' } }
+    ],
+    cascadeChain: [],
+  },
+  'womens-clothing': {
+    label: "Women's Clothing",
+    icon: '👗',
+    placeholder: 'Search dresses, tops, skirts...',
+    trending: ['Ladies Dress', 'Skirts', 'Blouses', 'Jeans'],
+    quickLinks: [
+      { label: 'Dresses', params: { search: 'dress' } },
+      { label: 'Tops', params: { search: 'top' } }
+    ],
+    cascadeChain: [],
+  },
+  'kids-clothing': {
+    label: "Kids' Clothing",
+    icon: '👕',
+    placeholder: 'Search boys, girls, baby clothes...',
+    trending: ['Baby Romper', 'Kids Dress', 'Boys Suit'],
+    quickLinks: [
+      { label: 'Baby', params: { search: 'baby' } },
+      { label: 'School Uniform', params: { search: 'uniform' } }
+    ],
+    cascadeChain: [],
+  },
+  'shoes': {
+    label: 'Shoes',
+    icon: '👞',
+    placeholder: 'Search sneakers, boots, heels...',
+    trending: ['Nike Sneakers', 'Jordan 1', 'Air Force 1', 'High Heels', 'Chelsea Boots'],
+    quickLinks: [
+      { label: 'Sneakers', params: { search: 'sneakers' } },
+      { label: 'Boots', params: { search: 'boots' } },
+      { label: 'Heels', params: { search: 'heels' } }
+    ],
+    cascadeChain: ['brand', 'model', 'sizeStandard', 'size'],
+  },
+  'bags-luggage': {
+    label: 'Bags & Luggage',
+    icon: '👜',
+    placeholder: 'Search handbags, backpacks, suitcases...',
+    trending: ['Louis Vuitton Bag', 'Travel Suitcase', 'Leather Backpack', 'Laptop Bag'],
+    quickLinks: [
+      { label: 'Handbags', params: { search: 'handbag' } },
+      { label: 'Backpacks', params: { search: 'backpack' } },
+      { label: 'Suitcases', params: { search: 'suitcase' } }
+    ],
+    cascadeChain: [],
+  },
+  'watches-jewellery': {
+    label: 'Watches & Jewellery',
+    icon: '⌚',
+    placeholder: 'Search watches, rings, necklaces...',
+    trending: ['Rolex Watch', 'Gold Chain', 'Engagement Ring', 'Smart Watch'],
+    quickLinks: [
+      { label: 'Watches', params: { search: 'watch' } },
+      { label: 'Rings', params: { search: 'ring' } },
+      { label: 'Necklaces', params: { search: 'necklace' } }
+    ],
+    cascadeChain: ['brand', 'model'],
+  },
+  'eyewear': {
+    label: 'Eyewear',
+    icon: '🕶️',
+    placeholder: 'Search sunglasses, optical frames...',
+    trending: ['Ray-Ban Sunglasses', 'Designer Frames', 'Reading Glasses'],
+    quickLinks: [
+      { label: 'Sunglasses', params: { search: 'sunglasses' } },
+      { label: 'Frames', params: { search: 'frames' } }
+    ],
+    cascadeChain: [],
+  },
 
   // ─── HEALTH & BEAUTY ──────────────────────────────────────────────────────
   'health-beauty': {

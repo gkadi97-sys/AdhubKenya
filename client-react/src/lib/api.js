@@ -757,6 +757,15 @@ export const getLookupValues = async (lookupType, parentId = null, search = '', 
   
   const { data, error } = await query;
   if (error) return [];
+  
+  if (lookupType === 'fashion_brand' && categorySlug) {
+    const activeSubSlug = categorySlug.split('/').pop();
+    return data.filter(d => {
+      if (!d.metadata || !Array.isArray(d.metadata.applicable_categories)) return true;
+      return d.metadata.applicable_categories.includes(activeSubSlug);
+    });
+  }
+
   return data;
 };
 

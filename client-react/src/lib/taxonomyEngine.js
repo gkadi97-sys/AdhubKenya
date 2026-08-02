@@ -70,6 +70,40 @@ export const TAXONOMY_RULES = {
     implied: { subcategory: 'Networking (Router/Modem)' },
     hide: ['subcategory']
   },
+  'accessories': {
+    implied: { subcategory: 'Accessories' },
+    hide: ['subcategory']
+  },
+
+  // ─── FASHION (Child Categories) ────────────────────────────────────────────
+  'mens-clothing': {
+    implied: { category: 'Clothing', subcategory: 'Men' },
+    hide: ['category', 'subcategory']
+  },
+  'womens-clothing': {
+    implied: { category: 'Clothing', subcategory: 'Women' },
+    hide: ['category', 'subcategory']
+  },
+  'kids-clothing': {
+    implied: { category: 'Clothing', subcategory: 'Kids' },
+    hide: ['category', 'subcategory']
+  },
+  'shoes': {
+    implied: { category: 'Shoes', subcategory: 'Unisex' },
+    hide: ['category', 'subcategory']
+  },
+  'bags-luggage': {
+    implied: { category: 'Bags & Wallets', subcategory: 'Unisex' },
+    hide: ['category', 'subcategory']
+  },
+  'watches-jewellery': {
+    implied: { category: 'Watches', subcategory: 'Unisex' },
+    hide: ['category', 'subcategory']
+  },
+  'eyewear': {
+    implied: { category: 'Accessories', subcategory: 'Unisex' },
+    hide: ['category', 'subcategory']
+  },
   'solar-power': {
     implied: { subcategory: 'Solar / Power' },
     hide: ['subcategory']
