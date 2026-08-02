@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getListings, getLookupValues, getVehicleMakes } from '@/lib/api';
+import { getListings, getLookupValues } from '@/lib/api';
 import { CATEGORY_ICONS } from '@/lib/categoryData';
 import { useMetadataCache } from '@/lib/useMetadataCache';
 import { getCascadeChain } from '@/lib/categoryContextMap';
@@ -160,12 +160,44 @@ function DebouncedInput({ value: initialValue, onChange, ...props }) {
 }
 
 // ── Dynamic Field Renderer ──
-function DynamicFilterField({ attr, value, onChange, filters, parentLookupId, categorySlug, parentAttrLabel }) {
+// Generically resolves parentLookupId for any cascade dependency chain
+// (vehicles, laptops, phones, fashion, etc.) by looking at the
+// attribute_dependencies table and the current filter state.
+function DynamicFilterField({ attr, value, onChange, filters, categorySlug, metadata }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [resolvedParentId, setResolvedParentId] = useState(null);
 
-  // Determine if this field is waiting on a parent value
-  const needsParentFirst = attr.lookup_type === 'vehicle_model' && !parentLookupId;
+  // Find the cascade dependency for this attribute (parent must be selected first)
+  const cascadeDep = useMemo(() => {
+    if (!metadata?.dependencies) return null;
+    return metadata.dependencies.find(
+      d => d.attribute_id === attr.id && d.effect === 'cascade'
+    ) || null;
+  }, [metadata, attr.id]);
+
+  // Resolve parent attr name + current value from filters
+  const parentAttr = useMemo(() => {
+    if (!cascadeDep || !metadata?.attributes) return null;
+    return metadata.attributes.find(a => a.id === cascadeDep.depends_on_attribute_id) || null;
+  }, [cascadeDep, metadata]);
+
+  const parentValue = parentAttr ? (filters[parentAttr.name] || '') : '';
+  const parentAttrLabel = parentAttr?.label || null;
+  const needsParentFirst = !!cascadeDep && !parentValue;
+
+  // When parent value changes, look up the parent's DB row id (for filtering child options)
+  useEffect(() => {
+    if (!cascadeDep || !parentAttr?.lookup_type || !parentValue) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
+      setResolvedParentId(null);
+      return;
+    }
+    getLookupValues(parentAttr.lookup_type, null, parentValue, categorySlug || '').then(rows => {
+      const match = rows.find(r => r.value.toLowerCase() === parentValue.toLowerCase());
+      setResolvedParentId(match?.id ?? null);
+    });
+  }, [cascadeDep, parentAttr, parentValue, categorySlug]);
 
   useEffect(() => {
     if (attr.lookup_type) {
@@ -175,7 +207,7 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId, ca
         return;
       }
       setLoading(true);
-      getLookupValues(attr.lookup_type, parentLookupId || null, '', categorySlug || '').then(data => {
+      getLookupValues(attr.lookup_type, resolvedParentId || null, '', categorySlug || '').then(data => {
         const sorted = [...data].sort((a, b) => a.value.localeCompare(b.value));
         setOptions(sorted.map(d => d.value));
         setLoading(false);
@@ -189,7 +221,7 @@ function DynamicFilterField({ attr, value, onChange, filters, parentLookupId, ca
         setOptions([]);
       }
     }
-  }, [attr.lookup_type, attr.options, parentLookupId, categorySlug, needsParentFirst]);
+  }, [attr.lookup_type, attr.options, resolvedParentId, categorySlug, needsParentFirst]);
 
   if (loading) {
     return <div className="flex items-center gap-2 text-muted-foreground text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>;
@@ -308,19 +340,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
     return { ...filters, ...(taxonomyRules.implied || {}) };
   }, [filters, taxonomyRules]);
 
-  // Resolve make name -> vehicle_makes DB id so Model can cascade
-  const [vehicleMakeMap, setVehicleMakeMap] = useState({});
-  useEffect(() => {
-    if (!metadata?.attributes) return;
-    const hasVehicleModel = metadata.attributes.some(a => a.lookup_type === 'vehicle_model');
-    if (hasVehicleModel) {
-      getVehicleMakes().then(makes => {
-        const m = {};
-        makes.forEach(mk => { m[mk.name] = mk.id; });
-        setVehicleMakeMap(m);
-      }).catch(console.error);
-    }
-  }, [metadata]);
+  // vehicleMakeMap removed — cascade resolution is now generic inside DynamicFilterField
 
   const { data: countData } = useQuery({
     queryKey: ['filter-live-count', filters],
@@ -467,22 +487,15 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
   };
 
   const renderDynamicAttr = (attr, defaultOpen = false) => {
-    let parentLookupId = null;
-    let autoExpandModel = false;
-    let parentAttrLabel = null;
-
-    if (attr.lookup_type === 'vehicle_model') {
-      const makeAttr = metadata.attributes.find(a => a.lookup_type === 'vehicle_make');
-      if (makeAttr) {
-        const selectedMakeName = filters[makeAttr.name];
-        parentLookupId = vehicleMakeMap[selectedMakeName] || null;
-        if (selectedMakeName) autoExpandModel = true;
-        parentAttrLabel = makeAttr.label;
-      }
-    }
+    // Auto-expand if the attr has a value, or if its cascade parent has a value
+    const cascadeDep = metadata?.dependencies?.find(
+      d => d.attribute_id === attr.id && d.effect === 'cascade'
+    );
+    const parentAttr = cascadeDep && metadata?.attributes?.find(a => a.id === cascadeDep.depends_on_attribute_id);
+    const parentHasValue = parentAttr ? !!filters[parentAttr.name] : false;
 
     const hasVal = !!filters[attr.name];
-    const isOpen = defaultOpen || hasVal || autoExpandModel;
+    const isOpen = defaultOpen || hasVal || parentHasValue;
 
     return (
       <FilterGroup 
@@ -497,8 +510,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           value={filters[attr.name]}
           filters={filters}
           categorySlug={category}
-          parentLookupId={parentLookupId}
-          parentAttrLabel={parentAttrLabel}
+          metadata={metadata}
           onChange={(val, explicitKey) => updateFilter(attr.name, val, explicitKey)}
         />
       </FilterGroup>
@@ -555,10 +567,10 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
             .filter(a => a.name === 'oemNumber')
             .map((attr) => renderDynamicAttr(attr, true))}
 
-          {/* Dynamic Basic Attributes */}
+          {/* Dynamic Basic Attributes — includes series/model for cascading electronics/fashion/laptops */}
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
-            .filter(a => ['condition', 'make', 'model', 'category', 'subcategory', 'type', 'brand', 'vehicleclass'].includes(a.name.toLowerCase()))
+            .filter(a => ['condition', 'make', 'model', 'series', 'category', 'subcategory', 'type', 'brand', 'vehicleclass'].includes(a.name.toLowerCase()))
             .sort((a, b) => a.display_order - b.display_order)
             .map((attr) => renderDynamicAttr(attr, true))}
 
