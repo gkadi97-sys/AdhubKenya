@@ -167,6 +167,9 @@ function DynamicFilterField({ attr, value, onChange, filters, categorySlug, meta
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [resolvedParentId, setResolvedParentId] = useState(null);
+  // Track when we're waiting for the parent's DB id to resolve, so we don't
+  // prematurely fetch child options with parentId=null (which returns top-level rows only).
+  const [resolvingParent, setResolvingParent] = useState(false);
 
   // Find the cascade dependency for this attribute (parent must be selected first)
   const cascadeDep = useMemo(() => {
@@ -191,11 +194,15 @@ function DynamicFilterField({ attr, value, onChange, filters, categorySlug, meta
     if (!cascadeDep || !parentAttr?.lookup_type || !parentValue) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional derived state cascade
       setResolvedParentId(null);
+      setResolvingParent(false);
       return;
     }
-    getLookupValues(parentAttr.lookup_type, null, parentValue, categorySlug || '').then(rows => {
+    setResolvingParent(true);
+    // Use 'any' so we search all rows regardless of their own parent_id
+    getLookupValues(parentAttr.lookup_type, 'any', parentValue, categorySlug || '').then(rows => {
       const match = rows.find(r => r.value.toLowerCase() === parentValue.toLowerCase());
       setResolvedParentId(match?.id ?? null);
+      setResolvingParent(false);
     });
   }, [cascadeDep, parentAttr, parentValue, categorySlug]);
 
@@ -206,6 +213,8 @@ function DynamicFilterField({ attr, value, onChange, filters, categorySlug, meta
         setOptions([]);
         return;
       }
+      // If we have a cascade dep and are still resolving the parent id, wait
+      if (cascadeDep && resolvingParent) return;
       setLoading(true);
       getLookupValues(attr.lookup_type, resolvedParentId || null, '', categorySlug || '').then(data => {
         const sorted = [...data].sort((a, b) => a.value.localeCompare(b.value));
@@ -221,7 +230,7 @@ function DynamicFilterField({ attr, value, onChange, filters, categorySlug, meta
         setOptions([]);
       }
     }
-  }, [attr.lookup_type, attr.options, resolvedParentId, categorySlug, needsParentFirst]);
+  }, [attr.lookup_type, attr.options, resolvedParentId, categorySlug, needsParentFirst, cascadeDep, resolvingParent]);
 
   if (loading) {
     return <div className="flex items-center gap-2 text-muted-foreground text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading...</div>;
