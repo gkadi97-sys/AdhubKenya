@@ -687,6 +687,7 @@ export const getCategoryMetadata = async (categoryPath) => {
 
   return {
     category: targetCategory,
+    categories, // Added to allow hasCategory checks
     groups: groups || [],
     attributes: attributes || [],
     dependencies
