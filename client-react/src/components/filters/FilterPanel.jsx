@@ -563,7 +563,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
             .map((attr) => renderDynamicAttr(attr, true))}
 
           {/* Global Standard Condition fallback */}
-          {!metadata?.attributes?.some(a => a.name.toLowerCase() === 'condition') && !['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(filters.category) && (
+          {!metadata?.attributes?.some(a => a.name.toLowerCase() === 'condition') && !['jobs', 'seeking-work', 'services', 'property', 'animals-pets', 'food-agriculture'].includes(category.split('/')[0]) && (
             <FilterGroup label="Condition" defaultOpen={true}>
               <RadioGroup 
                 options={(() => {
