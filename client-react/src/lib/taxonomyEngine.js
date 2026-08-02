@@ -40,6 +40,29 @@ export const TAXONOMY_RULES = {
     implied: { propertyType: 'Hostel', listingType: 'Rent', pricePeriod: 'Per Month' },
     hide: ['propertyType', 'listingType']
   },
+
+  // ─── PHONES & TABLETS (Child Categories) ───────────────────────────────────
+  'smartphones': {
+    implied: { device_type: 'Mobile Phones' },
+    hide: ['device_type']
+  },
+  'feature-phones': {
+    implied: { device_type: 'Feature Phones' },
+    hide: ['device_type']
+  },
+  'tablets': {
+    implied: { device_type: 'Tablets' },
+    hide: ['device_type']
+  },
+  'phone-accessories': {
+    implied: { device_type: 'Accessories' },
+    hide: ['device_type']
+  },
+  'wearables': {
+    implied: { device_type: 'Smart Watches' },
+    hide: ['device_type']
+  },
+  
   
   // ─── ELECTRONICS (Child Categories) ────────────────────────────────────────
   'televisions': {
