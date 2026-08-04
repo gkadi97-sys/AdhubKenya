@@ -260,7 +260,7 @@ export default function ListingDetailPage() {
                             <Image
                               key={i}
                               src={imageUrl(img)}
-                              alt={`${listing.title} â€“ image ${i + 1} of ${images.length}`}
+                              alt={`${listing.title} - image ${i + 1} of ${images.length}`}
                               className={`absolute inset-0 w-full object-contain transition-all duration-500 ease-out ${i === activeImg ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-95 z-0'}`}
                               style={{ maxHeight: 'max(380px, min(65vh, 520px))', height: 'max(380px, min(65vh, 520px))' }}
                               fallbackIconSize={48}

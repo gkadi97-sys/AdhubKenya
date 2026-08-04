@@ -121,7 +121,7 @@ export default function HomePage() {
   }, []);
 
   useSEO({
-    title: 'AdHub Kenya – Buy & Sell Anything in Kenya',
+    title: 'AdHub Kenya - Buy & Sell Anything in Kenya',
     description: "AdHub Kenya is Kenya's free classifieds marketplace. Buy and sell cars, property, electronics, phones, fashion, and jobs across all 47 counties.",
     canonicalPath: '/'
   });

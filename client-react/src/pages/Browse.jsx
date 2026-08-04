@@ -165,7 +165,7 @@ function BrowseContent({ defaultCategory, defaultBrand, defaultModel }) {
   // Build a keyword-aware title
   const pageTitle = (() => {
     if (keyword && catLabel) return `${keyword} ${catLabel} for Sale in Kenya | AdHub Kenya`;
-    if (keyword)             return `${keyword} – Search Results | AdHub Kenya`;
+    if (keyword)             return `${keyword} - Search Results | AdHub Kenya`;
     if (catLabel)            return `${catLabel} for Sale in Kenya | AdHub Kenya`;
     return 'Browse Ads in Kenya | AdHub Kenya';
   })();
