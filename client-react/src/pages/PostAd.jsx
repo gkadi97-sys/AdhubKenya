@@ -9,7 +9,6 @@ import MetadataDrivenForm from '@/components/forms/MetadataDrivenForm';
 import ListingPreviewCard from '@/components/forms/ListingPreviewCard';
 import PlateRedactModal from '@/components/PlateRedactModal';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
-import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { useSEO } from '@/lib/useSEO';
 import toast from 'react-hot-toast';
 import imageCompression from 'browser-image-compression';
@@ -20,15 +19,6 @@ import {
   ArrowLeft, Edit2, ShieldAlert
 } from 'lucide-react';
 
-// ─── Condition option sets ───────────────────────────────────────────────────
-const STANDARD_CONDITIONS   = ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
-const VEHICLE_CONDITIONS    = ['Brand New', 'Foreign Used', 'Locally Used', 'Accident Damaged', 'Rebuilt'];
-const AUTOSPARES_CONDITIONS = ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'];
-// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
-const AUDIO_CONDITIONS      = ['Brand New', 'Open Box', 'Ex-UK', 'Foreign Used', 'Locally Used', 'Refurbished'];
-// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
-const LAPTOP_CONDITIONS     = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
-const PHONE_CONDITIONS      = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
 
 // ─── Draft helpers ───────────────────────────────────────────────────────────
 const DRAFT_KEY = 'adhub_post_ad_draft';
@@ -204,7 +194,6 @@ export default function PostAdPage() {
   };
 
   const category = watch('category');
-  const make     = watch('attrs.make');
   const title    = watch('title');
   const price    = watch('price');
   const location = watch('location');
@@ -227,7 +216,6 @@ export default function PostAdPage() {
 
   // Metadata section progress
   const [formMetadata, setFormMetadata] = useState(null);
-  const [metaProgress, setMetaProgress] = useState({ completed: 0, total: 0 });
 
   // Categories Tree
   const [categoriesTree, setCategoriesTree] = useState([]);
@@ -240,23 +228,7 @@ export default function PostAdPage() {
   const isVehicle  = categoryBase === 'vehicles' || categoryBase === 'commercial-vehicles';
   const isProperty = categoryBase === 'property' || categoryBase === 'land-plots';
   const isJob      = categoryBase === 'jobs' || categoryBase === 'seeking-work';
-  const isAutoSpares = categoryBase === 'auto-spares';
-  const isPhone    = categoryBase === 'phones-tablets';
-  const isElectronics = categoryBase === 'electronics';
-  const isNoConditionCategory = ['property', 'land-plots', 'jobs', 'seeking-work', 'services', 'animals-pets', 'food-agriculture'].includes(categoryBase);
-  const showCondition = !isVehicle && !isAutoSpares && !isPhone && !isElectronics && categoryBase && !isNoConditionCategory;
 
-  const getConditionOptions = () => {
-    if (isVehicle && TRUCK_CONDITIONS && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers', 'Pickups'].includes(make)) return TRUCK_CONDITIONS;
-    if (isVehicle) return VEHICLE_CONDITIONS;
-    if (isAutoSpares) return AUTOSPARES_CONDITIONS;
-    if (isPhone) return PHONE_CONDITIONS;
-    if (showCondition) return STANDARD_CONDITIONS;
-    return null;
-  };
-  const conditionOptions = getConditionOptions();
-
-  const condition = watch('condition');
   const description = watch('description');
 
   // Determine states of static sections
@@ -265,7 +237,7 @@ export default function PostAdPage() {
   const locationComplete = !!(location);
   const mediaComplete = images.length > 0;
 
-  const getSectionState = (key, prevComplete) => {
+  const getSectionState = (key) => {
     const complete = { basics: basicsComplete, pricing: pricingComplete, location: locationComplete, media: mediaComplete }[key];
     if (complete) return 'completed';
     return expanded[key] ? 'in-progress' : 'available';
@@ -292,8 +264,6 @@ export default function PostAdPage() {
   useEffect(() => {
     if (category) {
       setExpanded(prev => ({ ...prev, basics: true }));
-    } else {
-      setMetaProgress({ completed: 0, total: 0 });
     }
   }, [category]);
 
@@ -538,23 +508,6 @@ export default function PostAdPage() {
     </div>
   );
 
-  // Overall progress across static + metadata sections
-  const isPricingApplicable = !isJob;
-  const staticTotal = isPricingApplicable ? 5 : 4; // basics, [pricing], location, media, contact
-  
-  const contactComplete = !!(watch('phone'));
-  
-  const staticComplete = [
-    basicsComplete, 
-    isPricingApplicable ? (basicsComplete && pricingComplete) : false, 
-    basicsComplete && locationComplete, 
-    basicsComplete && mediaComplete,
-    basicsComplete && contactComplete
-  ].filter(Boolean).length;
-  
-  const totalSections = staticTotal + metaProgress.total;
-  const doneSections  = staticComplete + metaProgress.completed;
-  const overallPct    = totalSections > 0 ? Math.round((doneSections / totalSections) * 100) : 0;
 
   const basicsState   = getSectionState('basics', true);
   // Show metadata form as soon as category is selected — it provides context-specific fields
@@ -700,7 +653,6 @@ export default function PostAdPage() {
                   watch={watch}
                   setValue={setValue}
                   isLocked={!basicsComplete}
-                  onProgressChange={(completed, total) => setMetaProgress({ completed, total })}
                   onSectionComplete={() => {}}
                   onMetadataLoaded={setFormMetadata}
                 />

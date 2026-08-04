@@ -42,13 +42,11 @@ export default function HeroSearch({ stickyCategory = null }) {
 
   // ── Placeholder rotation ────────────────────────────────────────────────────
   useEffect(() => {
-    setPlaceholderIdx(0);
     const interval = setInterval(() => {
       setPlaceholderIdx(prev => (prev + 1) % PLACEHOLDERS.length);
     }, 3500);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally reset on category change
-  }, [categoryTab]);
+  }, [PLACEHOLDERS.length]);
 
   // ── Recent searches from localStorage ──────────────────────────────────────
   useEffect(() => {
@@ -391,7 +389,10 @@ export default function HeroSearch({ stickyCategory = null }) {
         <button
           key={tab.id}
           type="button"
-          onClick={() => setCategoryTab(tab.id)}
+          onClick={() => {
+            setCategoryTab(tab.id);
+            setPlaceholderIdx(0);
+          }}
           className={`px-3 py-1 rounded-full text-[10px] transition-colors cursor-pointer shrink-0 ${
             categoryTab === tab.id
               ? 'bg-primary text-primary-foreground shadow-sm font-semibold'

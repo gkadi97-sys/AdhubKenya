@@ -18,7 +18,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useWatch, Controller } from 'react-hook-form';
 import { getCategoryMetadata, getLookupValues } from '@/lib/api';
-import { getCascadeChain } from '@/lib/categoryContextMap';
 import { getTaxonomyRules } from '@/lib/taxonomyEngine';
 import {
   ChevronDown, ChevronRight, Loader2, AlertCircle,
@@ -202,7 +201,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
       const match = rows.find(r => r.value.toLowerCase() === parentValue.toLowerCase());
       setParentLookupId(match?.id ?? null);
     });
-  }, [cascadeDepAttrId, parentAttr, parentValue]);
+  }, [cascadeDepAttrId, parentAttr, parentValue, categorySlug]);
 
   // Recursive Reset Logic (DB dependency-based): When parentValue changes, clear this field.
   const prevParentValue = useRef(parentValue);
@@ -246,7 +245,7 @@ function FieldRenderer({ attribute, required, register, control, allValues, setV
       setOptions(sorted.map(d => ({ value: d.value, metadata: d.metadata })));
       setLoadingOptions(false);
     });
-  }, [attribute.lookup_type, attribute.id, cascadeDepAttrId, parentLookupId, parentValue, parentAttrId, needsLookup]);
+  }, [attribute.lookup_type, attribute.id, cascadeDepAttrId, parentLookupId, parentValue, parentAttrId, needsLookup, categorySlug]);
 
   const handleSelectChange = (e, fullOption = null) => {
     const selectedValue = e.target.value;
@@ -865,7 +864,7 @@ export default function MetadataDrivenForm({
         return { ...attr, _visible: finalVisible, _required: required };
       })
       .filter(attr => attr._visible);
-  }, [metadata, allValues]);
+  }, [metadata, allValues, categorySlug]);
 
   // Build visible groups (deduplicated, only those with ≥1 visible field)
   const visibleGroups = useMemo(() => {
