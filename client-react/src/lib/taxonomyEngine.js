@@ -100,16 +100,16 @@ export const TAXONOMY_RULES = {
 
   // ─── FASHION (Child Categories) ────────────────────────────────────────────
   'mens-clothing': {
-    implied: { category: 'Clothing', subcategory: 'Men' },
-    hide: ['category', 'subcategory']
+    implied: { category: 'Clothing', subcategory: 'Men', gender: 'Men' },
+    hide: ['category', 'subcategory', 'gender']
   },
   'womens-clothing': {
-    implied: { category: 'Clothing', subcategory: 'Women' },
-    hide: ['category', 'subcategory']
+    implied: { category: 'Clothing', subcategory: 'Women', gender: 'Women' },
+    hide: ['category', 'subcategory', 'gender']
   },
   'kids-clothing': {
-    implied: { category: 'Clothing', subcategory: 'Kids' },
-    hide: ['category', 'subcategory']
+    implied: { category: 'Clothing', subcategory: 'Kids', gender: 'Kids' },
+    hide: ['category', 'subcategory', 'gender']
   },
   'shoes': {
     implied: { category: 'Shoes', subcategory: 'Unisex' },
