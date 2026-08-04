@@ -45,12 +45,25 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+function escapeXml(unsafe) {
+  if (!unsafe) return '';
+  return unsafe.replace(/[<>&'"]/g, function (c) {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '&': return '&amp;';
+      case '\'': return '&apos;';
+      case '"': return '&quot;';
+    }
+  });
+}
+
 // -- XML Generators --
 function buildUrlset(urls) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map(u => `  <url>
-    <loc>${BASE_URL}${u.url}</loc>
+    <loc>${BASE_URL}${escapeXml(u.url)}</loc>
     <lastmod>${u.lastmod || TODAY}</lastmod>
     <changefreq>${u.changefreq || 'daily'}</changefreq>
     <priority>${u.priority || '0.5'}</priority>
