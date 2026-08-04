@@ -717,7 +717,29 @@ export const getLookupValues = async (lookupType, parentId = null, search = '', 
   if (lookupType === 'vehicle_model') {
     if (!parentId || parentId === 'any') return [];
     const models = await getVehicleModels(parentId);
-    const mapped = models.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    let mapped = models.map(m => ({ id: m.id, value: m.name, metadata: {} }));
+    
+    // Filter by body type if category demands it
+    if (categorySlug) {
+      const slug = categorySlug.split('/').pop();
+      if (slug === 'suvs') {
+        const { VEHICLE_CLASSIFICATIONS } = await import('./vehicleMapping');
+        mapped = mapped.filter(m => VEHICLE_CLASSIFICATIONS.suvs.has(m.value));
+      } else if (slug === 'pickups') {
+        const { VEHICLE_CLASSIFICATIONS } = await import('./vehicleMapping');
+        mapped = mapped.filter(m => VEHICLE_CLASSIFICATIONS.pickups.has(m.value));
+      } else if (slug === 'vans') {
+        const { VEHICLE_CLASSIFICATIONS } = await import('./vehicleMapping');
+        mapped = mapped.filter(m => VEHICLE_CLASSIFICATIONS.vans.has(m.value));
+      } else if (slug === 'cars') {
+        // Exclude SUVs, Pickups, Vans for general "cars" if we want to be strict,
+        // but often "cars" is a catch-all in Kenya. We'll exclude commercial Pickups/Vans
+        // and let them see SUVs/Sedans/Hatchbacks.
+        const { VEHICLE_CLASSIFICATIONS } = await import('./vehicleMapping');
+        mapped = mapped.filter(m => !VEHICLE_CLASSIFICATIONS.pickups.has(m.value) && !VEHICLE_CLASSIFICATIONS.vans.has(m.value));
+      }
+    }
+    
     return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
   }
   if (lookupType === 'vehicle_generation') {
