@@ -31,15 +31,24 @@ INSERT INTO public.lookup_values (id, lookup_type, value, parent_id) VALUES
 ('cefab1ce-b82a-42b4-9b49-14dcacebf4e8', 'transmission_types', 'CVT (Continuously Variable Transmission)', NULL),
 ('bc77a50d-3719-4641-a1d4-0572acc28bf8', 'transmission_types', 'AMT (Automated Manual Transmission)', NULL),
 ('db3f573d-caf5-4c3f-8d00-22955b464383', 'transmission_types', 'Dual-Clutch (DCT / DSG)', NULL),
-('ce20f99d-bc68-4df5-8540-77ad03d1fda6', 'transmission_types', 'Semi-Automatic / Tiptronic', NULL);
+('ce20f99d-bc68-4df5-8540-77ad03d1fda6', 'transmission_types', 'Semi-Automatic / Tiptronic', NULL),
+('c958b340-5edd-4bc0-8c3f-08a8ffcc3028', 'vehicle_conditions', 'Brand New', NULL),
+('d8ee8ab6-55ee-4c04-bfa5-348c40399e60', 'vehicle_conditions', 'Foreign Used', NULL),
+('66bc8d0f-2ba2-4714-97f2-b2cae4d4f6ab', 'vehicle_conditions', 'Locally Used', NULL),
+('f72b569e-5328-4a5b-baf9-94235f24acc7', 'vehicle_drive_types', '2WD', NULL),
+('c91ed105-bdc1-48b9-a78d-b90be1e4a885', 'vehicle_drive_types', '4WD', NULL),
+('c2cb5864-56d3-4b63-ae42-2314f8714742', 'vehicle_drive_types', 'AWD', NULL);
 
 INSERT INTO public.attributes (id, category_id, group_id, name, label, field_type, is_required, is_searchable, is_listing_card, lookup_type) VALUES 
 ('8a1212b7-eb4e-4db7-80df-f727a17f0ae6', 'afd9220b-7e93-4999-bf65-d130edb6e5ba', '1f99e5a5-015e-44b2-a8ed-e8c037e329ce', 'make', 'Make', 'select', true, true, true, 'vehicle_makes'),
 ('f554c457-3f4d-4d65-801f-295953ba1938', 'afd9220b-7e93-4999-bf65-d130edb6e5ba', '1f99e5a5-015e-44b2-a8ed-e8c037e329ce', 'model', 'Model', 'select', true, true, true, 'vehicle_models'),
 ('b24d23f5-c7e2-4cb7-bf3c-8c81b1105cad', 'afd9220b-7e93-4999-bf65-d130edb6e5ba', '1f99e5a5-015e-44b2-a8ed-e8c037e329ce', 'year', 'Year', 'number', true, true, true, NULL),
 ('c93cead1-f4c4-4a4d-836b-e26e9d290295', 'afd9220b-7e93-4999-bf65-d130edb6e5ba', '1f99e5a5-015e-44b2-a8ed-e8c037e329ce', 'mileage', 'Mileage (km)', 'number', true, true, true, NULL),
+('12debcff-2b77-4012-9f59-8619f3fda719', 'afd9220b-7e93-4999-bf65-d130edb6e5ba', '1f99e5a5-015e-44b2-a8ed-e8c037e329ce', 'condition', 'Condition', 'select', true, true, true, 'vehicle_conditions'),
 ('db8cabbd-7231-4804-8d61-f8b82ec16157', 'afd9220b-7e93-4999-bf65-d130edb6e5ba', '2babf927-60b7-4d96-b820-76485d42e38d', 'transmission', 'Transmission', 'select', true, true, true, 'transmission_types'),
-('5332b572-82b4-46f8-8c94-ef8b479a5176', 'afd9220b-7e93-4999-bf65-d130edb6e5ba', '2babf927-60b7-4d96-b820-76485d42e38d', 'fuel_type', 'Fuel Type', 'select', true, true, false, 'fuel_types');
+('5332b572-82b4-46f8-8c94-ef8b479a5176', 'afd9220b-7e93-4999-bf65-d130edb6e5ba', '2babf927-60b7-4d96-b820-76485d42e38d', 'fuel_type', 'Fuel Type', 'select', true, true, false, 'fuel_types'),
+('f2b233a1-98ce-4531-8220-0a4cab5aebcc', 'afd9220b-7e93-4999-bf65-d130edb6e5ba', '2babf927-60b7-4d96-b820-76485d42e38d', 'drive_type', 'Drive Type', 'select', false, true, false, 'vehicle_drive_types'),
+('aec63d01-fd8c-4267-8d11-cb81c148d06c', 'afd9220b-7e93-4999-bf65-d130edb6e5ba', '2babf927-60b7-4d96-b820-76485d42e38d', 'engine_size', 'Engine Size (CC)', 'number', false, true, false, NULL);
 
 INSERT INTO public.attribute_dependencies (attribute_id, depends_on_attribute_id, operator, dependency_value, effect) VALUES 
 ('f554c457-3f4d-4d65-801f-295953ba1938', '8a1212b7-eb4e-4db7-80df-f727a17f0ae6', 'exists', NULL, 'show');
