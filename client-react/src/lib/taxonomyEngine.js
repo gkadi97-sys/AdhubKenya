@@ -41,6 +41,44 @@ export const TAXONOMY_RULES = {
     hide: ['propertyType', 'listingType']
   },
 
+  // ─── ANIMALS & PETS ────────────────────────────────────────────────────────
+  'dogs': {
+    implied: { animalType: 'Dog' },
+    hide: ['animalType']
+  },
+  'cats': {
+    implied: { animalType: 'Cat' },
+    hide: ['animalType']
+  },
+  'birds': {
+    implied: { animalType: 'Bird' },
+    hide: ['animalType']
+  },
+  'fish-aquatic': {
+    implied: { animalType: 'Fish & Aquatic' },
+    hide: ['animalType']
+  },
+  'rabbits': {
+    implied: { animalType: 'Rabbit' },
+    hide: ['animalType']
+  },
+  'reptiles': {
+    implied: { animalType: 'Reptile' },
+    hide: ['animalType']
+  },
+  'horses': {
+    implied: { animalType: 'Horse' },
+    hide: ['animalType']
+  },
+  'livestock-poultry': {
+    implied: {},
+    hide: []
+  },
+  'other-pets': {
+    implied: { animalType: 'Other Pet' },
+    hide: ['animalType']
+  },
+
   // ─── PHONES & TABLETS (Child Categories) ───────────────────────────────────
   'smartphones': {
     implied: { device_type: 'Mobile Phones' },
