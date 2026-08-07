@@ -592,6 +592,7 @@ export default function PostAdPage() {
                           window.location.href = '/post-cv';
                         } else {
                           register('category').onChange(e);
+                          setValue('attrs', {});
                         }
                       }}
                     >
