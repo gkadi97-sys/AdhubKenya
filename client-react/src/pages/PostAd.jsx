@@ -592,7 +592,11 @@ export default function PostAdPage() {
                           window.location.href = '/post-cv';
                         } else {
                           register('category').onChange(e);
-                          unregister('attrs');
+                          const currentAttrs = getValues('attrs') || {};
+                          Object.keys(currentAttrs).forEach(key => {
+                            setValue(`attrs.${key}`, '');
+                          });
+                          setValue('attrs', {});
                         }
                       }}
                     >
