@@ -172,8 +172,8 @@ export default function PostAdPage() {
 
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  const { register, handleSubmit: rhfHandleSubmit, watch, control, setValue, getValues, trigger } = useForm({
+  const [posting, setPosting] = useState(false);
+  const { register, handleSubmit: rhfHandleSubmit, watch, control, setValue, getValues, trigger, unregister } = useForm({
     defaultValues: (() => {
       const draft = loadDraft();
       return draft ? { ...draft, _savedAt: undefined } : {
@@ -592,7 +592,7 @@ export default function PostAdPage() {
                           window.location.href = '/post-cv';
                         } else {
                           register('category').onChange(e);
-                          setValue('attrs', {});
+                          unregister('attrs');
                         }
                       }}
                     >
