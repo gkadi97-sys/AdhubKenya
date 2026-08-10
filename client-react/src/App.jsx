@@ -1,9 +1,12 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
+import { CallProvider } from '@/context/CallContext.jsx';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { logPageView } from '@/lib/api';
+import IncomingCallOverlay from '@/components/IncomingCallOverlay.jsx';
+import ActiveCallBar from '@/components/ActiveCallBar.jsx';
 
 // --- Tracking Component ---
 function PageViewTracker() {
@@ -158,6 +161,9 @@ function AppLayout() {
       <MobileBottomNav />
       <GoogleSignInPrompt />
       <AIChatbot />
+      {/* ── Global Call UI (persists across all pages) ── */}
+      <ActiveCallBar />
+      <IncomingCallOverlay />
     </>
   );
 }
@@ -168,6 +174,7 @@ export default function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
+          <CallProvider>
           <GlobalSEO />
           <Toaster position="top-center" />
           <Routes>
@@ -208,6 +215,7 @@ export default function App() {
             {/* ── Public App Shell ── */}
             <Route path="/*" element={<AppLayout />} />
           </Routes>
+          </CallProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

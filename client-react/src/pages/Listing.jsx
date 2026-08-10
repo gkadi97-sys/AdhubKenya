@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import { getListing, getListings, toggleSaved, getSaved, imageUrl, formatPrice, timeAgo, getSellerStats, getListingViews, trackInteraction, canUserReviewSeller } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { useCall } from '@/context/CallContext';
 import { useSEO } from '@/lib/useSEO';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import SEOEngine from '@/lib/seo/SEOEngine';
@@ -16,7 +17,7 @@ import ReportModal from '@/components/ReportModal';
 import StarRating from '@/components/StarRating';
 import ReviewModal from '@/components/ReviewModal';
 // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
-import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight, X, Star, Lock } from 'lucide-react';
+import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, PhoneCall, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight, X, Star, Lock } from 'lucide-react';
 import Image from '@/components/Image';
 
 export default function ListingDetailPage() {
@@ -25,6 +26,7 @@ export default function ListingDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { callState, initiateCall } = useCall();
   const { addListing, recentListings } = useRecentlyViewed();
   const [listing, setListing] = useState(null);
   // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
@@ -408,6 +410,7 @@ export default function ListingDetailPage() {
                   <div className="p-5 flex flex-col gap-3">
                     {user ? (
                       <>
+                        {/* WhatsApp */}
                         {(listing.whatsapp || listing.phone) && (
                           <a href={waLink} target="_blank" rel="noopener noreferrer"
                             className="flex items-center justify-center gap-2 w-full rounded-xl py-[13px] px-4 font-bold text-white text-sm hover:opacity-90 transition-opacity shadow-sm"
@@ -415,6 +418,27 @@ export default function ListingDetailPage() {
                             <MessageCircle className="w-5 h-5 fill-current" /> Chat on WhatsApp
                           </a>
                         )}
+
+                          {/* In-App Call Button — hidden if viewer is the seller */}
+                          {listing.seller_id !== user?.id && (
+                            <button
+                              onClick={() => initiateCall({
+                                sellerId: listing.seller_id,
+                                sellerName: listing.seller?.name || 'Seller',
+                                listingId: listing.id,
+                                listingTitle: listing.title,
+                              })}
+                              disabled={callState !== 'idle'}
+                              className={`flex items-center justify-center gap-2 w-full rounded-xl py-[13px] px-4 font-bold text-white text-sm transition-all shadow-sm ${
+                                callState !== 'idle'
+                                  ? 'opacity-50 cursor-not-allowed bg-slate-500'
+                                  : 'bg-primary hover:bg-primary/90'
+                              }`}
+                            >
+                              <PhoneCall className="w-5 h-5" />
+                              {callState !== 'idle' ? 'Call in progress…' : 'Call Seller'}
+                            </button>
+                          )}
                         
                         <MessageButton listing={listing} variant="primary" />
                         
