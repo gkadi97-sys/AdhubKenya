@@ -10,6 +10,22 @@ import LocationCascader from './LocationCascader';
 import PriceFilter from './PriceFilter';
 import { ChevronDown, X, Loader2, Search } from 'lucide-react';
 
+const sortAttributes = (a, b) => {
+  const orderA = a.display_order || 0;
+  const orderB = b.display_order || 0;
+  if (orderA !== orderB) return orderA - orderB;
+  
+  const commonOrder = ['make', 'model', 'year', 'mileage', 'condition', 'transmission', 'fuel_type', 'engine_size', 'drive_type'];
+  const idxA = commonOrder.indexOf(a.name.toLowerCase());
+  const idxB = commonOrder.indexOf(b.name.toLowerCase());
+  
+  if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+  if (idxA !== -1) return -1;
+  if (idxB !== -1) return 1;
+  
+  return 0;
+};
+
 function FilterGroup({ label, children, defaultOpen = true, onClear, hasValue }) {
   return (
     <details className="group border-b border-border py-4" open={defaultOpen}>
@@ -579,7 +595,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
             .filter(a => ['condition', 'make', 'model', 'series', 'category', 'subcategory', 'type', 'brand', 'vehicleclass'].includes(a.name.toLowerCase()))
-            .sort((a, b) => a.display_order - b.display_order)
+            .sort(sortAttributes)
             .map((attr) => renderDynamicAttr(attr, true))}
 
           {/* Global Standard Condition fallback */}
@@ -633,7 +649,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
             .filter(a => ['year', 'mileage'].includes(a.name.toLowerCase()))
-            .sort((a, b) => a.display_order - b.display_order)
+            .sort(sortAttributes)
             .map((attr) => renderDynamicAttr(attr, true))}
         </SectionGroup>
 
@@ -642,7 +658,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
             .filter(a => !['condition', 'make', 'model', 'series', 'category', 'subcategory', 'type', 'brand', 'vehicleclass', 'year', 'mileage', 'oemnumber'].includes(a.name.toLowerCase()))
-            .sort((a, b) => a.display_order - b.display_order)
+            .sort(sortAttributes)
             .map((attr) => renderDynamicAttr(attr, false))}
         </SectionGroup>
       </div>
