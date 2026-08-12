@@ -153,6 +153,10 @@ export const getListings = async (params = {}) => {
   if (params.oemNumber) {
     query = query.ilike('specs->>oemNumber', `%${params.oemNumber}%`);
   }
+  // laptopType: saved as specs.laptopType by MetadataDrivenForm (used by laptops-computers quickLinks)
+  if (params.laptopType) {
+    query = query.ilike('specs->>laptopType', `%${params.laptopType}%`);
+  }
 
   // ── Standard JSONB specs filters (dynamic) ────────────────────────────────
   // Any parameter that isn't a top-level column or reserved keyword is treated as a specs filter.
@@ -192,7 +196,7 @@ export const getListings = async (params = {}) => {
     if (!params[key]) return;
 
     // Already handled explicitly above
-    if (['make', 'model', 'fuel', 'drive', 'job_type', 'tv_size', 'tv_tech', 'seller_type', 'amenities', 'oemNumber', 'condition'].includes(key)) return;
+    if (['make', 'model', 'fuel', 'drive', 'job_type', 'tv_size', 'tv_tech', 'seller_type', 'amenities', 'oemNumber', 'condition', 'laptopType'].includes(key)) return;
 
     // Handle comma-separated multicheck values (e.g., "Petrol,Diesel") as OR clauses
     const values = params[key].split(',').map(v => v.trim()).filter(Boolean);

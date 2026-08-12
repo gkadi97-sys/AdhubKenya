@@ -3,23 +3,32 @@ import { useForm, Controller } from 'react-hook-form';
 // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
 import { useNavigate, useParams, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getListing, updateListing } from '@/lib/api';
+import { getListing, updateListing, getCategoryMetadata } from '@/lib/api';
 import CountyTownSelect from '@/components/CountyTownSelect';
 import MetadataDrivenForm from '@/components/forms/MetadataDrivenForm';
 import { TOP_CATEGORIES } from '@/lib/categoryData';
-import { TRUCK_CONDITIONS } from '@/lib/truckData';
 import { useSEO } from '@/lib/useSEO';
 import toast from 'react-hot-toast';
 import { Lock, Save } from 'lucide-react';
 
-const STANDARD_CONDITIONS   = ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
-const VEHICLE_CONDITIONS    = ['Brand New', 'Foreign Used', 'Locally Used', 'Accident Damaged', 'Rebuilt'];
-const AUTOSPARES_CONDITIONS = ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'];
-// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
-const AUDIO_CONDITIONS      = ['Brand New', 'Open Box', 'Ex-UK', 'Foreign Used', 'Locally Used', 'Refurbished'];
-// eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
-const LAPTOP_CONDITIONS     = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
-const PHONE_CONDITIONS      = ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
+// Derive condition options dynamically — same logic as PostAd & FilterPanel
+function getConditionOptions(categoryBase, hasMetadataCondition) {
+  // If the metadata form handles 'condition' natively, don't show a static one
+  if (hasMetadataCondition) return null;
+
+  const isVehicle   = categoryBase === 'vehicles' || categoryBase === 'commercial-vehicles';
+  const isAutoSpares = categoryBase === 'auto-spares';
+  const isPhone     = categoryBase === 'phones-tablets';
+  const isElectronics = categoryBase === 'electronics';
+  const isJob       = categoryBase === 'jobs' || categoryBase === 'seeking-work';
+  const isNoCondition = ['property', 'land-plots', 'services', 'animals-pets', 'food-agriculture'].includes(categoryBase);
+
+  if (isJob || isNoCondition || !categoryBase) return null;
+  if (isVehicle)    return ['Brand New', 'Foreign Used', 'Locally Used', 'Accident Damaged', 'Rebuilt'];
+  if (isAutoSpares) return ['New', 'Ex-Japan', 'Locally Used', 'OEM (Original)', 'Aftermarket', 'Refurbished'];
+  if (isPhone || isElectronics) return ['Brand New', 'Open Box', 'Ex-UK', 'Ex-USA', 'Foreign Used', 'Locally Used', 'Refurbished'];
+  return ['New', 'Used - Like New', 'Used - Good', 'Used - Fair'];
+}
 
 export default function EditAdPage() {
   const { id } = useParams();
@@ -37,6 +46,7 @@ export default function EditAdPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [listing, setListing] = useState(null);
+  const [metadataAttributes, setMetadataAttributes] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -49,14 +59,40 @@ export default function EditAdPage() {
           return;
         }
         setListing(data);
-        
-        // Reconstruct attrs for DynamicListingForm
-        const attrs = {
-          make: data.make,
-          model: data.model,
-          year: data.year,
-          ...data.specs
-        };
+
+        // ── FIX: Fetch metadata to resolve UUID keys ──────────────────────
+        // PostAd saves specs as { <attr_uuid>: value }. We must reconstruct
+        // attrs using the same UUID keys so MetadataDrivenForm can bind them.
+        const metadata = await getCategoryMetadata(data.category);
+        const attrs = {};
+
+        if (metadata?.attributes && data.specs) {
+          // First pass: map by UUID key (new listings)
+          Object.entries(data.specs).forEach(([k, v]) => {
+            if (v === '' || v === null || v === undefined) return;
+            // If k is already a UUID, use it directly
+            const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            if (uuidPattern.test(k)) {
+              attrs[k] = v;
+            } else {
+              // Legacy: k is an attribute name — look up its UUID
+              const attrDef = metadata.attributes.find(a => a.name === k);
+              if (attrDef) attrs[attrDef.id] = v;
+            }
+          });
+
+          // Second pass: also map top-level make/model/year to their UUIDs
+          const topLevelMap = { make: data.make, model: data.model, year: data.year };
+          Object.entries(topLevelMap).forEach(([name, value]) => {
+            if (!value) return;
+            const attrDef = metadata.attributes.find(a => a.name === name);
+            if (attrDef && !attrs[attrDef.id]) {
+              attrs[attrDef.id] = String(value);
+            }
+          });
+
+          setMetadataAttributes(metadata.attributes);
+        }
 
         reset({
           title: data.title || '',
@@ -81,9 +117,13 @@ export default function EditAdPage() {
     fetchAd();
   }, [id, user, navigate, reset]);
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const category = watch('category');
-  const make = watch('attrs.make');
+  const categoryBase = category ? category.split('/')[0] : '';
+  const isJob = categoryBase === 'jobs' || categoryBase === 'seeking-work';
+
+  // Check if metadata form already handles 'condition' natively (avoid duplicate field)
+  const hasMetadataCondition = !!(metadataAttributes?.some(a => a.name === 'condition'));
+  const conditionOptions = getConditionOptions(categoryBase, hasMetadataCondition);
 
   if (!user) return (
     <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
@@ -98,25 +138,8 @@ export default function EditAdPage() {
 
   if (loadingListing) return <div className="text-center py-20">Loading...</div>;
 
-  const isVehicle = category === 'vehicles' || category === 'commercial-vehicles';
-  const isProperty = category === 'property' || category === 'land-plots';
-  const isJob = category === 'jobs' || category === 'seeking-work';
-  const isAutoSpares = category === 'auto-spares';
-  const isPhone = category === 'phones-tablets';
-  const isElectronics = category === 'electronics';
-  const showStandardCondition = !isVehicle && !isAutoSpares && !isPhone && !isElectronics && category && !isJob;
-  const isHeavyTruck = isVehicle && ['Trucks', 'Buses', 'Tractors', 'Heavy Equipment', 'Trailers'].includes(make);
-  const isPickupTruck = isVehicle && make === 'Pickups';
-
-  const getConditionOptions = () => {
-    if (isHeavyTruck || isPickupTruck) return TRUCK_CONDITIONS;
-    if (isVehicle) return VEHICLE_CONDITIONS;
-    if (isAutoSpares) return AUTOSPARES_CONDITIONS;
-    if (isPhone) return PHONE_CONDITIONS;
-    if (showStandardCondition) return STANDARD_CONDITIONS;
-    return null;
-  };
-  const conditionOptions = getConditionOptions();
+  const isVehicle  = categoryBase === 'vehicles' || categoryBase === 'commercial-vehicles';
+  const isProperty = categoryBase === 'property' || categoryBase === 'land-plots';
 
   const onSubmit = async (data) => {
     setError('');
@@ -129,20 +152,14 @@ export default function EditAdPage() {
     try {
       const listingData = { ...formValues };
       if (isJob) listingData.price = 0;
-      if (!showStandardCondition && !isVehicle && !isAutoSpares && !isPhone && !isElectronics) delete listingData.condition;
 
       // Extract top-level make, model, year by mapping UUIDs to names
-      const { supabase } = await import('@/lib/supabase');
-      const { data: catData } = await supabase.from('categories').select('id').eq('slug', formValues.category).single();
       let namedSpecs = {};
-      if (catData && attrs) {
-        const { data: attrData } = await supabase.from('attributes').select('id, name').eq('category_id', catData.id);
-        if (attrData) {
-          Object.entries(attrs).forEach(([k, v]) => {
-            const attrDef = attrData.find(a => a.id === k);
-            if (attrDef) namedSpecs[attrDef.name] = v;
-          });
-        }
+      if (metadataAttributes && attrs) {
+        Object.entries(attrs).forEach(([k, v]) => {
+          const attrDef = metadataAttributes.find(a => a.id === k);
+          if (attrDef) namedSpecs[attrDef.name] = v;
+        });
       }
 
       const { make, model, year } = namedSpecs;
@@ -247,7 +264,6 @@ export default function EditAdPage() {
             <Controller name="location" control={control} rules={{ required: true }} render={({ field: { value, onChange } }) => <CountyTownSelect value={value} onChange={onChange} required />} />
           </div>
 
-          {/* Photo Editing could go here later. For now, disabled text */}
           <div className={cardClass}>
              <h3 className={cardHeaderClass}>🖼️ Photos</h3>
              <p className="text-muted-foreground text-sm">To change photos, please delete and repost this ad for now.</p>
