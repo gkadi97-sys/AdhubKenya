@@ -719,23 +719,9 @@ export const getLookupValues = async (lookupType, parentId = null, search = '', 
     const models = await getVehicleModels(parentId);
     let mapped = models.map(m => ({ id: m.id, value: m.name, metadata: {} }));
     
-    // Filter by body type if category demands it
-    if (categorySlug) {
-      const slug = categorySlug.split('/').pop();
-      if (slug === 'suvs') {
-        const { VEHICLE_CLASSIFICATIONS } = await import('./vehicleMapping');
-        mapped = mapped.filter(m => VEHICLE_CLASSIFICATIONS.suvs.has(m.value));
-      } else if (slug === 'pickups') {
-        const { VEHICLE_CLASSIFICATIONS } = await import('./vehicleMapping');
-        mapped = mapped.filter(m => VEHICLE_CLASSIFICATIONS.pickups.has(m.value));
-      } else if (slug === 'vans') {
-        const { VEHICLE_CLASSIFICATIONS } = await import('./vehicleMapping');
-        mapped = mapped.filter(m => VEHICLE_CLASSIFICATIONS.vans.has(m.value));
-      } else if (slug === 'cars') {
-        // Cars is a catch-all category in Kenya. We no longer filter out vans or pickups,
-        // allowing users to find any model (Noah, Probox, Hilux, etc.) without restriction.
-      }
-    }
+    // We used to filter models by body type (SUVs, Vans, Pickups) based on a hardcoded list.
+    // However, this caused many valid models (like Probox, Noah, LX, etc.) to be hidden if they 
+    // weren't in that exact list. We now allow all models from the database to be selected.
     
     return search ? mapped.filter(m => m.value.toLowerCase().includes(search.toLowerCase())) : mapped;
   }
