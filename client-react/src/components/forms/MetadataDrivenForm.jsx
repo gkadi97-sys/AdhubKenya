@@ -855,7 +855,24 @@ export default function MetadataDrivenForm({
     const rules = subSlug ? getTaxonomyRules(subSlug) : { hide: [] };
     const hiddenNames = rules.hide || [];
 
-    return metadata.attributes
+    // Sort attributes by display_order, falling back to a sensible common order
+    const sortedAttributes = [...metadata.attributes].sort((a, b) => {
+      const orderA = a.display_order || 0;
+      const orderB = b.display_order || 0;
+      if (orderA !== orderB) return orderA - orderB;
+      
+      const commonOrder = ['make', 'model', 'year', 'mileage', 'condition', 'transmission', 'fuel_type', 'engine_size', 'drive_type'];
+      const idxA = commonOrder.indexOf(a.name);
+      const idxB = commonOrder.indexOf(b.name);
+      
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      
+      return 0;
+    });
+
+    return sortedAttributes
       .filter(attr => !attr.is_hidden && !attr.is_admin_only)
       .map(attr => {
         const { visible, required } = evaluateDependencies(attr, metadata.dependencies, allValues);
