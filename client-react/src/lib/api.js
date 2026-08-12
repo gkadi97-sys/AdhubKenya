@@ -732,11 +732,8 @@ export const getLookupValues = async (lookupType, parentId = null, search = '', 
         const { VEHICLE_CLASSIFICATIONS } = await import('./vehicleMapping');
         mapped = mapped.filter(m => VEHICLE_CLASSIFICATIONS.vans.has(m.value));
       } else if (slug === 'cars') {
-        // Exclude SUVs, Pickups, Vans for general "cars" if we want to be strict,
-        // but often "cars" is a catch-all in Kenya. We'll exclude commercial Pickups/Vans
-        // and let them see SUVs/Sedans/Hatchbacks/Passenger Vans.
-        const { VEHICLE_CLASSIFICATIONS } = await import('./vehicleMapping');
-        mapped = mapped.filter(m => !VEHICLE_CLASSIFICATIONS.pickups.has(m.value));
+        // Cars is a catch-all category in Kenya. We no longer filter out vans or pickups,
+        // allowing users to find any model (Noah, Probox, Hilux, etc.) without restriction.
       }
     }
     
