@@ -61,14 +61,17 @@ export default function ListingDetailPage() {
     const endX = e.type === 'touchend' ? e.changedTouches[0].clientX : e.clientX;
     const diff = swipeStartX - endX;
     if (Math.abs(diff) > 50) {
-      setActiveImg(prev => {
-        if (diff > 0) return prev === images.length - 1 ? 0 : prev + 1; // swipe left → next
-        return prev === 0 ? images.length - 1 : prev - 1; // swipe right → prev
-      });
+      const totalImages = listing?.images?.length || 0;
+      if (totalImages > 0) {
+        setActiveImg(prev => {
+          if (diff > 0) return prev === totalImages - 1 ? 0 : prev + 1; // swipe left → next
+          return prev === 0 ? totalImages - 1 : prev - 1; // swipe right → prev
+        });
+      }
     }
     setSwipeStartX(null);
     setIsDragging(false);
-  }, [isDragging, swipeStartX, images.length]);
+  }, [isDragging, swipeStartX, listing?.images?.length]);
 
 
   // Keyboard navigation for zoom modal
