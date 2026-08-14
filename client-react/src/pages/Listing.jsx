@@ -259,38 +259,20 @@ export default function ListingDetailPage() {
                   >
                     {images.length > 0 ? (
                       <>
-                        {/* Image Stack — plain <img> to avoid CSS position conflicts */}
+                        {/* Image Stack */}
                         {images.map((img, i) => (
-                          <div
+                          <img
                             key={i}
-                            className="absolute inset-0 w-full h-full transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
+                            src={imageUrl(img)}
+                            alt={`${listing.title} - photo ${i + 1}`}
+                            className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-out"
                             style={{
                               opacity: i === activeImg ? 1 : 0,
-                              transform: i === activeImg ? 'scale(1)' : 'scale(0.96)',
+                              transform: i === activeImg ? 'scale(1)' : 'scale(1.02)',
                               zIndex: i === activeImg ? 10 : 0,
+                              imageOrientation: 'from-image',
                             }}
-                          >
-                            {/* Ambient blurred backdrop */}
-                            <img
-                              src={imageUrl(img)}
-                              alt=""
-                              className="absolute inset-0 w-full h-full object-cover scale-[2] select-none pointer-events-none"
-                              style={{ 
-                                filter: 'blur(30px)', 
-                                opacity: 0.7,
-                                imageOrientation: 'from-image' 
-                              }}
-                            />
-                            {/* Main image */}
-                            <img
-                              src={imageUrl(img)}
-                              alt={`${listing.title} - photo ${i + 1}`}
-                              className="relative max-w-full max-h-full object-contain z-10 shadow-xl"
-                              style={{
-                                imageOrientation: 'from-image',
-                              }}
-                            />
-                          </div>
+                          />
                         ))}
 
                         {/* Image Counter Overlay */}
