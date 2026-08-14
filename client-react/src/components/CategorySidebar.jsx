@@ -66,7 +66,7 @@ export default function CategorySidebar({ context }) {
                       )}
                       <span className="truncate">{item.name}</span>
                     </div>
-                    <ChevronDown className="w-4 h-4 shrink-0" />
+                    {children && children.length > 0 && <ChevronDown className="w-4 h-4 shrink-0" />}
                   </div>
 
                   {/* Children of current */}
