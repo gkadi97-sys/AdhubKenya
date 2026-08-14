@@ -255,8 +255,7 @@ export default function ListingDetailPage() {
                 {/* 2. IMAGE GALLERY */}
                 <div className="flex flex-col gap-3">
                   <div
-                    className="relative rounded-2xl overflow-hidden border border-border bg-[#0f1411] group"
-                    style={{ height: 'max(380px, min(65vh, 520px))' }}
+                    className="relative rounded-2xl overflow-hidden border border-border bg-[#0f1411] group w-full h-[260px] sm:h-[360px] md:h-[450px] lg:h-[500px]"
                   >
                     {images.length > 0 ? (
                       <>
