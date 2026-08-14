@@ -150,7 +150,18 @@ export default function CategoryPage({ context }) {
               <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                 <span className="text-4xl">{icon}</span>
               </div>
-              <h3 className="text-2xl font-bold mb-3">No {current.name.toLowerCase()} found</h3>
+              <h3 className="text-2xl font-bold mb-3">
+                No {(() => {
+                  // Use the most specific active filter for a contextual message
+                  const part = searchParams.get('part');
+                  const partCategory = searchParams.get('partCategory');
+                  const keyword = searchParams.get('keyword');
+                  if (part) return part.toLowerCase();
+                  if (partCategory) return partCategory.toLowerCase();
+                  if (keyword) return `results for "${keyword}"`;
+                  return current.name.toLowerCase();
+                })()} found
+              </h3>
               <p className="text-muted-foreground mb-8 max-w-lg text-lg">
                 {searchParams.toString() 
                   ? "We couldn't find any listings matching your exact filters. Try broadening your search by clearing some filters." 
