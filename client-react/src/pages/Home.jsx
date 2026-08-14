@@ -189,14 +189,14 @@ export default function HomePage() {
                   muted
                   playsInline
                   poster={heroNairobi}
-                  className="h-full w-full object-cover scale-100 saturate-[1.05] opacity-100 transition-transform duration-[1000ms] ease-out group-hover:scale-[1.02]"
+                  className="h-full w-full object-cover scale-100 saturate-50 opacity-40 blur-[4px] transition-transform duration-[1000ms] ease-out group-hover:scale-[1.02]"
                   onError={(e) => { e.target.style.display = 'none'; }}
                 >
                   <source src="/hero-video.mp4" type="video/mp4" />
                   {/* Fallback if video is missing or unsupported */}
                   <img src={heroNairobi} alt="Nairobi marketplace" className="h-full w-full object-cover" />
                 </video>
-                <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,247,242,0.78)] via-[rgba(248,247,242,0.45)] via-45% to-[rgba(248,247,242,0.10)] dark:from-[rgba(10,10,10,0.85)] dark:via-[rgba(10,10,10,0.65)] dark:via-45% dark:to-[rgba(10,10,10,0.15)] pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,247,242,0.95)] via-[rgba(248,247,242,0.75)] via-50% to-[rgba(248,247,242,0.30)] dark:from-[rgba(10,10,10,0.95)] dark:via-[rgba(10,10,10,0.85)] dark:via-50% dark:to-[rgba(10,10,10,0.40)] pointer-events-none" />
               </div>
 
               <div className="px-8 pb-8 pt-6">
