@@ -80,6 +80,7 @@ export default function HomePage() {
   // eslint-disable-next-line no-unused-vars -- Dev banner preserved for future use
   const [showDevBanner, setShowDevBanner] = useState(() => localStorage.getItem('adhub_hide_dev') !== 'true');
   const [realCategoryCounts, setRealCategoryCounts] = useState({});
+  const [latestCategoryImages, setLatestCategoryImages] = useState({});
 
   // enrichedIcons = CATEGORY_ICONS with real DB counts merged in
   const enrichedIcons = mergeRealCounts(realCategoryCounts);
@@ -101,18 +102,27 @@ export default function HomePage() {
       })
       .catch(() => {});
 
-    // Per-category counts from real data
+    // Per-category counts and latest images from real data
     supabase
       .from('listings')
-      .select('category')
+      .select('category, images')
       .eq('status', 'active')
+      .order('created_at', { ascending: false }) // Get newest first
       .then(({ data }) => {
         if (!data) return;
         const counts = {};
-        data.forEach(({ category }) => {
-          if (category) counts[category] = (counts[category] || 0) + 1;
+        const images = {};
+        data.forEach(({ category, images: adImages }) => {
+          if (!category) return;
+          const topLevel = category.split('/')[0];
+          counts[topLevel] = (counts[topLevel] || 0) + 1;
+          
+          if (!images[topLevel] && adImages && adImages.length > 0) {
+            images[topLevel] = adImages[0];
+          }
         });
         setRealCategoryCounts(counts);
+        setLatestCategoryImages(images);
       })
       .catch(() => {});
 
@@ -317,7 +327,7 @@ export default function HomePage() {
 
                     return (
                       <Link key={slug} to={`/browse?category=${slug}`} className="group relative aspect-[4/3] sm:aspect-[3/2] lg:h-[180px] xl:h-[220px] shrink-0 w-[240px] sm:w-[280px] lg:w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated block snap-center">
-                        <img src={CAT_IMAGES[slug] || catServices} alt={c.name} loading="lazy" width={600} height={480} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                        <img src={latestCategoryImages[slug] || CAT_IMAGES[slug] || catServices} alt={c.name} loading="lazy" width={600} height={480} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                         <div className={`absolute inset-0 bg-gradient-to-t ${CAT_TINTS[slug] || 'from-gray-900/70'} via-transparent to-transparent opacity-90 group-hover:opacity-100 transition-opacity`} />
                         <div className="absolute inset-0 flex flex-col justify-between p-4">
                           <div className="flex items-center justify-between">
