@@ -17,7 +17,6 @@ export default function HeroSearch({ stickyCategory = null }) {
   const [categoryTab, setCategoryTab] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
-  const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const [isListening, setIsListening] = useState(false);
 
   const searchRef = useRef(null);
@@ -26,27 +25,35 @@ export default function HeroSearch({ stickyCategory = null }) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  // Category-aware context: swap placeholder + trending when category tab changes
+  // Category-aware context: load trending data when category tab changes
   const activeCategoryCtx = getCategoryContext(categoryTab);
 
-  const PLACEHOLDERS = activeCategoryCtx
-    ? activeCategoryCtx.trending.slice(0, 5)
-    : [
-        'Search vehicles...',
-        'Search apartments...',
-        'Search jobs...',
-        'Search phones...',
-        'Search electronics...',
-        'Search services...'
-      ];
+  const getSearchPlaceholder = (tab) => {
+    switch (tab) {
+      case 'all': return 'Search for anything...';
+      case 'vehicles': return 'Search cars, motorcycles, trucks...';
+      case 'property': return 'Search houses, apartments, land...';
+      case 'phones-tablets': return 'Search phones, tablets...';
+      case 'electronics': return 'Search TVs, laptops, appliances...';
+      case 'jobs': return 'Search jobs...';
+      case 'fashion': return 'Search clothing, shoes, accessories...';
+      case 'home-living': return 'Search furniture, appliances, home items...';
+      case 'services': return 'Search services...';
+      case 'health-beauty': return 'Search health, beauty products...';
+      case 'agriculture-food': return 'Search farm equipment, food...';
+      case 'animals-pets': return 'Search pets, accessories...';
+      case 'commercial-equipment': return 'Search commercial equipment...';
+      case 'commercial-vehicles': return 'Search commercial vehicles...';
+      case 'hobbies-art-sport': return 'Search hobbies, sports gear...';
+      case 'repair-construction': return 'Search tools, materials...';
+      case 'seeking-work': return 'Search people seeking work...';
+      case 'auto-parts-accessories': return 'Search car parts, accessories...';
+      default: return 'Search for anything...';
+    }
+  };
 
-  // ── Placeholder rotation ────────────────────────────────────────────────────
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderIdx(prev => (prev + 1) % PLACEHOLDERS.length);
-    }, 3500);
-    return () => clearInterval(interval);
-  }, [PLACEHOLDERS.length]);
+  const currentPlaceholder = getSearchPlaceholder(categoryTab);
+
 
   // ── Recent searches from localStorage ──────────────────────────────────────
   useEffect(() => {
@@ -521,7 +528,7 @@ export default function HeroSearch({ stickyCategory = null }) {
               <input
                 id="heroSearch"
                 type="text"
-                placeholder={isFocused ? 'Type to search...' : PLACEHOLDERS[placeholderIdx]}
+                placeholder={isFocused ? 'Type to search...' : currentPlaceholder}
                 value={keyword}
                 onChange={e => setKeyword(e.target.value)}
                 onFocus={() => setIsFocused(true)}

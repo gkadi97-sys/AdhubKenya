@@ -186,6 +186,13 @@ export default function HomePage() {
                 {/* Subtle decorative glow */}
                 <div className="absolute -top-32 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
                 <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                {/* Subtle decorative cards on the right */}
+                <div className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 w-[350px] h-[280px] hidden md:block pointer-events-none opacity-30 dark:opacity-20 transition-opacity">
+                  <div className="absolute top-0 right-10 w-48 h-32 rounded-2xl bg-secondary/80 border border-border/50 shadow-sm rotate-6 blur-[1px]" />
+                  <div className="absolute top-20 left-0 w-56 h-40 rounded-2xl bg-primary/5 border border-primary/10 shadow-sm -rotate-3 backdrop-blur-sm blur-[0.5px]" />
+                  <div className="absolute bottom-0 right-0 w-52 h-24 rounded-2xl bg-card border border-border/80 shadow-sm rotate-2" />
+                </div>
                 
                 <div className="relative z-10">
                   <div className="max-w-2xl">
@@ -265,7 +272,7 @@ export default function HomePage() {
                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-4 py-3 sm:px-6 sm:py-4 relative z-10 divide-x divide-primary-foreground/10 h-full items-center">
                     {[
-                      { icon: BadgeCheck, n: liveAdCount !== null ? liveAdCount.toLocaleString() : 'â€¦', l: 'Active Listings' },
+                      { icon: ShieldCheck, n: 'Secure', l: 'Marketplace' },
                       { icon: Grid,       n: '18',     l: 'Categories' },
                       { icon: MapPin,     n: '47',      l: 'Counties' },
                       { icon: Sparkles,   n: '100%',    l: 'Free Posting' },
