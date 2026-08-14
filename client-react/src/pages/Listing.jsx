@@ -255,7 +255,7 @@ export default function ListingDetailPage() {
                 {/* 2. IMAGE GALLERY */}
                 <div className="flex flex-col gap-3">
                   <div
-                    className="relative rounded-2xl overflow-hidden border border-border bg-[#0f1411] group w-full h-[260px] sm:h-[360px] md:h-[450px] lg:h-[500px]"
+                    className="relative rounded-2xl overflow-hidden border border-border bg-black group w-full h-[260px] sm:h-[360px] md:h-[450px] lg:h-[500px]"
                   >
                     {images.length > 0 ? (
                       <>
@@ -274,8 +274,12 @@ export default function ListingDetailPage() {
                             <img
                               src={imageUrl(img)}
                               alt=""
-                              className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-105 select-none pointer-events-none"
-                              style={{ imageOrientation: 'from-image' }}
+                              className="absolute inset-0 w-full h-full object-cover scale-110 select-none pointer-events-none"
+                              style={{ 
+                                filter: 'blur(30px)', 
+                                opacity: 0.65,
+                                imageOrientation: 'from-image' 
+                              }}
                             />
                             {/* Main image */}
                             <img
