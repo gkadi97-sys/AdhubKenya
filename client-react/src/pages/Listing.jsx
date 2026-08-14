@@ -161,7 +161,7 @@ export default function ListingDetailPage() {
 
   if (!listing) return (
     <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
-      <div className="text-6xl mb-4">ðŸ˜•</div>
+      <AlertCircle className="w-16 h-16 text-muted-foreground mb-4" />
       <h3 className="font-display text-2xl font-bold mb-2">Listing not found</h3>
       <p className="text-muted-foreground mb-6">This ad may have been removed or expired</p>
       <Link to="/browse" className="rounded-xl bg-primary text-primary-foreground px-6 py-3 font-semibold text-sm hover:opacity-90 transition-opacity">Browse Ads</Link>
