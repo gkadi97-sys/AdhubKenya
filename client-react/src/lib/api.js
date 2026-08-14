@@ -471,21 +471,28 @@ export const createListing = async (listingData, imageFiles) => {
   }
 
   // Then create listing
-  const { data, error } = await supabase
-    .from('listings')
-    .insert([
-      {
-        ...listingData,
-        images: imageUrls.map(i => i.url),
-        seller_id: session.user.id,
-        status: listingData.status || 'pending'
-      }
-    ])
-    .select()
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('listings')
+      .insert([
+        {
+          ...listingData,
+          images: imageUrls.map(i => i.url),
+          seller_id: session.user.id,
+          status: listingData.status || 'pending'
+        }
+      ])
+      .select()
+      .single();
 
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    if (err.message === 'Failed to fetch') {
+      throw new Error('Network error. If you are using an Ad Blocker, it might be blocking the request. Please disable it and try again.');
+    }
+    throw err;
+  }
 };
 
 export const updateListing = async (id, updates) => {
@@ -873,20 +880,25 @@ export const timeAgo = (date) => {
 
 export async function checkDuplicateListing(sellerId, title, category) {
   if (!sellerId || !title || !category) return false;
-  const { data, error } = await supabase
-    .from('listings')
-    .select('id')
-    .eq('seller_id', sellerId)
-    .eq('category', category)
-    .eq('status', 'active')
-    .ilike('title', title.trim())
-    .limit(1);
-    
-  if (error) {
-    console.error('Duplicate check error:', error);
-    return false; // Fail open
+  try {
+    const { data, error } = await supabase
+      .from('listings')
+      .select('id')
+      .eq('seller_id', sellerId)
+      .eq('category', category)
+      .eq('status', 'active')
+      .ilike('title', title.trim())
+      .limit(1);
+      
+    if (error) {
+      console.error('Duplicate check error:', error);
+      return false; // Fail open
+    }
+    return data && data.length > 0;
+  } catch (err) {
+    console.error('Network error during duplicate check:', err);
+    return false; // Fail open on network/adblock errors
   }
-  return data && data.length > 0;
 }
 
 // ============================================================================
