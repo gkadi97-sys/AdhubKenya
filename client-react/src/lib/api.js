@@ -590,7 +590,14 @@ export const getCategoriesTree = async () => {
   }
   
   const roots = data.filter(c => c.depth === 0);
-  const children = data.filter(c => c.depth === 1);
+  let children = data.filter(c => c.depth === 1);
+  
+  const brokenSlugs = new Set([
+    'engine-components', 'brakes-suspension', 'body-exterior', 
+    'auto-electrical', 'transmission', 'tyres-wheels', 
+    'car-audio', 'oils-fluids', 'garage-tools'
+  ]);
+  children = children.filter(c => !brokenSlugs.has(c.slug));
   
   return roots.map(root => ({
     ...root,
@@ -605,6 +612,16 @@ export const getCategoryContext = async (path) => {
     console.error('Failed to fetch category context:', error);
     return null;
   }
+  
+  if (data && data.children) {
+    const brokenSlugs = new Set([
+      'engine-components', 'brakes-suspension', 'body-exterior', 
+      'auto-electrical', 'transmission', 'tyres-wheels', 
+      'car-audio', 'oils-fluids', 'garage-tools'
+    ]);
+    data.children = data.children.filter(child => !brokenSlugs.has(child.slug));
+  }
+  
   return data;
 };
 
