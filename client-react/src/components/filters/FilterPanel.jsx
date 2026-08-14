@@ -472,6 +472,12 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
     // Force make to always be visible, bypassing the vehicleClass dependency
     if (attr.name === 'make') return true;
 
+    // Force 'part' (Spare Part) visible when a partCategory is selected — cascading filter
+    if (attr.name === 'part' && computedFilters.partCategory) return true;
+    // Force accessory sub-filters visible when listingType=accessory
+    if (attr.name === 'accCategory' && computedFilters.listingType === 'accessory') return true;
+    if (attr.name === 'accSubcategory' && computedFilters.accCategory) return true;
+
     if (!attr.is_filterable) return false;
     
     // Force visibility if the attribute is currently selected in the URL
@@ -599,7 +605,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           {/* Dynamic Basic Attributes — includes series/model for cascading electronics/fashion/laptops */}
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
-            .filter(a => ['condition', 'make', 'model', 'series', 'category', 'subcategory', 'type', 'brand', 'vehicleclass', 'listingtype', 'partcategory', 'part'].includes(a.name.toLowerCase()))
+            .filter(a => ['condition', 'make', 'model', 'series', 'category', 'subcategory', 'type', 'brand', 'vehicleclass', 'listingtype', 'partcategory', 'part', 'acccategory', 'accsubcategory', 'item'].includes(a.name.toLowerCase()))
             .sort(sortAttributes)
             .map((attr) => renderDynamicAttr(attr, true))}
 
