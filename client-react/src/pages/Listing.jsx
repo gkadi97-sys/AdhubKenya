@@ -47,6 +47,30 @@ export default function ListingDetailPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [savingListing, setSavingListing] = useState(false);
 
+  // Swipe / drag state for gallery
+  const [swipeStartX, setSwipeStartX] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handlePointerDown = useCallback((e) => {
+    setSwipeStartX(e.type === 'touchstart' ? e.touches[0].clientX : e.clientX);
+    setIsDragging(true);
+  }, []);
+
+  const handlePointerUp = useCallback((e) => {
+    if (!isDragging || swipeStartX === null) return;
+    const endX = e.type === 'touchend' ? e.changedTouches[0].clientX : e.clientX;
+    const diff = swipeStartX - endX;
+    if (Math.abs(diff) > 50) {
+      setActiveImg(prev => {
+        if (diff > 0) return prev === images.length - 1 ? 0 : prev + 1; // swipe left → next
+        return prev === 0 ? images.length - 1 : prev - 1; // swipe right → prev
+      });
+    }
+    setSwipeStartX(null);
+    setIsDragging(false);
+  }, [isDragging, swipeStartX, images.length]);
+
+
   // Keyboard navigation for zoom modal
   const handleZoomKeyDown = useCallback((e) => {
     if (!isZoomModalOpen) return;
@@ -255,7 +279,13 @@ export default function ListingDetailPage() {
                 {/* 2. IMAGE GALLERY */}
                 <div className="flex flex-col gap-3">
                   <div
-                    className="relative rounded-2xl overflow-hidden border border-border bg-black group w-full h-[260px] sm:h-[360px] md:h-[450px] lg:h-[500px]"
+                    className="relative rounded-2xl overflow-hidden border border-border bg-black group w-full h-[260px] sm:h-[360px] md:h-[450px] lg:h-[500px] select-none"
+                    onTouchStart={handlePointerDown}
+                    onTouchEnd={handlePointerUp}
+                    onMouseDown={handlePointerDown}
+                    onMouseUp={handlePointerUp}
+                    onMouseLeave={() => { setSwipeStartX(null); setIsDragging(false); }}
+                    style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
                   >
                     {images.length > 0 ? (
                       <>
