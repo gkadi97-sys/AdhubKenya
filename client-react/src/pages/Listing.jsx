@@ -254,27 +254,33 @@ export default function ListingDetailPage() {
 
                 {/* 2. IMAGE GALLERY */}
                 <div className="flex flex-col gap-3">
-                  <div className="relative rounded-2xl overflow-hidden border border-border bg-[#0f1411] dark:bg-black group flex items-center justify-center"
-                       style={{ minHeight: 'max(380px, min(65vh, 520px))' }}>
+                  <div
+                    className="relative rounded-2xl overflow-hidden border border-border bg-[#0f1411] group"
+                    style={{ height: 'max(380px, min(65vh, 520px))' }}
+                  >
                     {images.length > 0 ? (
                       <>
-                        <div className="w-full relative flex items-center justify-center overflow-hidden"
-                             style={{ height: 'max(380px, min(65vh, 520px))' }}>
-                          {images.map((img, i) => (
-                            <Image
-                              key={i}
-                              src={imageUrl(img)}
-                              alt={`${listing.title} - image ${i + 1} of ${images.length}`}
-                              className={`absolute inset-0 w-full h-full transition-all duration-500 ease-out ${i === activeImg ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-95 z-0'}`}
-                              imgClassName="object-contain"
-                              fallbackIconSize={48}
-                            />
-                          ))}
-                        </div>
+                        {/* Image Stack — plain <img> to avoid CSS position conflicts */}
+                        {images.map((img, i) => (
+                          <img
+                            key={i}
+                            src={imageUrl(img)}
+                            alt={`${listing.title} - photo ${i + 1}`}
+                            className="absolute inset-0 w-full h-full object-contain transition-all duration-500 ease-out"
+                            style={{
+                              opacity: i === activeImg ? 1 : 0,
+                              transform: i === activeImg ? 'scale(1)' : 'scale(0.96)',
+                              zIndex: i === activeImg ? 10 : 0,
+                              imageOrientation: 'from-image',
+                            }}
+                          />
+                        ))}
+
                         {/* Image Counter Overlay */}
                         <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full z-20 shadow-sm border border-white/10 pointer-events-none">
                           {activeImg + 1} / {images.length}
                         </div>
+
                         {/* Navigation Arrows */}
                         {images.length > 1 && (
                           <>
@@ -294,32 +300,36 @@ export default function ListingDetailPage() {
                             </button>
                           </>
                         )}
-                        {/* Fullscreen Hint */}
-                        <button 
+
+                        {/* Fullscreen Button */}
+                        <button
                           onClick={() => setIsZoomModalOpen(true)}
-                          className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white p-2 rounded-full z-20 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black border border-white/10 shadow-sm">
+                          className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white p-2 rounded-full z-20 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black border border-white/10 shadow-sm"
+                        >
                           <Maximize2 className="w-4 h-4" />
                         </button>
                       </>
                     ) : (
-                      <Image src={null} className="w-full" style={{ height: 400 }} fallbackIconSize={56} />
+                      <div className="absolute inset-0 flex items-center justify-center text-muted-foreground bg-secondary">
+                        <Image src={null} className="w-full h-full" fallbackIconSize={56} />
+                      </div>
                     )}
                   </div>
-                  
-                  {/* Thumbnail Strip (Moved below image) */}
+
+                  {/* Thumbnail Strip */}
                   {images.length > 1 && (
                     <div className="flex gap-2 overflow-x-auto pb-2 snap-x hide-scrollbar">
                       {images.map((img, i) => (
-                        <button 
-                          key={i} 
+                        <button
+                          key={i}
                           onClick={() => setActiveImg(i)}
-                          className={`snap-start relative h-16 w-20 sm:h-20 sm:w-28 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all duration-300 ease-out ${i === activeImg ? 'border-primary ring-2 ring-primary/20 scale-100 shadow-md' : 'border-transparent opacity-50 hover:opacity-100 hover:scale-95'}`}
+                          className={`snap-start relative h-16 w-20 sm:h-20 sm:w-28 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all duration-300 ease-out ${i === activeImg ? 'border-primary ring-2 ring-primary/20 shadow-md' : 'border-transparent opacity-50 hover:opacity-100 hover:scale-95'}`}
                         >
-                            <Image
+                          <img
                             src={imageUrl(img)}
                             alt={`Thumbnail ${i + 1}`}
                             className="w-full h-full object-cover"
-                            fallbackIconSize={14}
+                            style={{ imageOrientation: 'from-image' }}
                           />
                         </button>
                       ))}
