@@ -173,9 +173,9 @@ export const getListings = async (params = {}) => {
     'employmentType', 'energyRating', 'equipmentType', 'experience', 'experienceLevel', 
     'experienceYears', 'floor', 'floors', 'fuel_type', 'fuelType', 'furnishing', 'gender', 
     'grading', 'includesBox', 'indoorOutdoor', 'industry', 'item', 'itemType', 'languages', 
-    'leisureType', 'licenceClass', 'listingType', 'make', 'manualElectric', 'material', 
+    'leisureType', 'licenceClass', 'make', 'manualElectric', 'material', 
     'mattressIncluded', 'mattressSize', 'microchipped', 'model', 'nearbyFacilities', 'network', 
-    'organic', 'os', 'parking', 'part', 'partCategory', 'position', 'pricePeriod', 'produceType', 
+    'organic', 'os', 'parking', 'position', 'pricePeriod', 'produceType', 
     'propertyType', 'ram', 'ramGB', 'registered', 'releaseYear', 'salaryPeriod', 'sellerType', 
     'series', 'serviceMode', 'serviceType', 'size', 'sizeUnit', 'smartCompatible', 'storage', 
     'storageGB', 'storageIncluded', 'subcategory', 'targetGender', 'tenure', 'transmission', 
@@ -197,6 +197,35 @@ export const getListings = async (params = {}) => {
 
     // Already handled explicitly above
     if (['make', 'model', 'fuel', 'drive', 'job_type', 'tv_size', 'tv_tech', 'seller_type', 'amenities', 'oemNumber', 'condition', 'laptopType'].includes(key)) return;
+
+    // ── Auto-Spares special handling ─────────────────────────────────────────
+    // listingType: normalize label → stored value, and accept ads that predate the field (no listingType in specs)
+    if (key === 'listingType') {
+      const val = params[key].trim();
+      // Normalize display label → DB value
+      const normalize = (v) => {
+        if (/replacement|spare.?part/i.test(v)) return 'spare-part';
+        if (/accessory|accessories/i.test(v)) return 'accessory';
+        return v; // pass through (already a slug like 'spare-part')
+      };
+      const normalized = normalize(val);
+      // If partCategory is also set, listingType may be missing on older ads — use OR
+      if (params.partCategory || params.part) {
+        query = query.or(`specs->>listingType.ilike.${normalized},specs->>partCategory.not.is.null`);
+      } else {
+        query = query.ilike('specs->>listingType', normalized);
+      }
+      return;
+    }
+    // partCategory and part: use ILIKE so "Fuel System" matches regardless of case
+    if (key === 'partCategory') {
+      query = query.ilike('specs->>partCategory', params[key].trim());
+      return;
+    }
+    if (key === 'part') {
+      query = query.ilike('specs->>part', params[key].trim());
+      return;
+    }
 
     // Handle comma-separated multicheck values (e.g., "Petrol,Diesel") as OR clauses
     const values = params[key].split(',').map(v => v.trim()).filter(Boolean);
