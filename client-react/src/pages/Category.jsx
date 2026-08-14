@@ -151,16 +151,31 @@ export default function CategoryPage({ context }) {
                 <span className="text-4xl">{icon}</span>
               </div>
               <h3 className="text-2xl font-bold mb-3">
-                No {(() => {
-                  // Use the most specific active filter for a contextual message
-                  const part = searchParams.get('part');
-                  const partCategory = searchParams.get('partCategory');
-                  const keyword = searchParams.get('keyword');
-                  if (part) return part.toLowerCase();
-                  if (partCategory) return partCategory.toLowerCase();
-                  if (keyword) return `results for "${keyword}"`;
-                  return current.name.toLowerCase();
-                })()} found
+                {(() => {
+                  // Priority order: most specific → least specific
+                  // Combine multiple for richer messages (e.g. "Toyota Fielder")
+                  const get = (k) => searchParams.get(k);
+                  const keyword   = get('keyword');
+                  const part      = get('part');
+                  const model     = get('model');
+                  const brand     = get('brand');
+                  const subcategory = get('subcategory');
+                  const make      = get('make');
+                  const partCategory = get('partCategory');
+                  const category  = get('category');
+
+                  if (keyword) return `No results for "${keyword}"`;
+
+                  // Build a compound label from available filters
+                  const parts = [make, model || part || brand || subcategory || partCategory || category]
+                    .filter(Boolean);
+
+                  if (parts.length > 0) {
+                    return `No ${parts.join(' ').toLowerCase()} found`;
+                  }
+
+                  return `No ${current.name.toLowerCase()} found`;
+                })()}
               </h3>
               <p className="text-muted-foreground mb-8 max-w-lg text-lg">
                 {searchParams.toString() 
