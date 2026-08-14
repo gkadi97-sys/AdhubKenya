@@ -473,6 +473,11 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
     if (attr.name === 'make') return true;
 
     if (!attr.is_filterable) return false;
+    
+    // Force visibility if the attribute is currently selected in the URL
+    // so the user can see and unselect it even if dependencies are missing.
+    if (computedFilters[attr.name]) return true;
+
     if (!metadata?.dependencies) return true;
     
     const attrDeps = metadata.dependencies.filter(d => d.attribute_id === attr.id);
@@ -594,7 +599,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
           {/* Dynamic Basic Attributes — includes series/model for cascading electronics/fashion/laptops */}
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
-            .filter(a => ['condition', 'make', 'model', 'series', 'category', 'subcategory', 'type', 'brand', 'vehicleclass'].includes(a.name.toLowerCase()))
+            .filter(a => ['condition', 'make', 'model', 'series', 'category', 'subcategory', 'type', 'brand', 'vehicleclass', 'listingtype', 'partcategory', 'part'].includes(a.name.toLowerCase()))
             .sort(sortAttributes)
             .map((attr) => renderDynamicAttr(attr, true))}
 
@@ -657,7 +662,7 @@ export default function FilterPanel({ categorySlug = '', isMobile = false, embed
         <SectionGroup title="Specifications">
           {metadata?.attributes && metadata.attributes
             .filter(isAttrVisible)
-            .filter(a => !['condition', 'make', 'model', 'series', 'category', 'subcategory', 'type', 'brand', 'vehicleclass', 'year', 'mileage', 'oemnumber'].includes(a.name.toLowerCase()))
+            .filter(a => !['condition', 'make', 'model', 'series', 'category', 'subcategory', 'type', 'brand', 'vehicleclass', 'listingtype', 'partcategory', 'part', 'year', 'mileage', 'oemnumber'].includes(a.name.toLowerCase()))
             .sort(sortAttributes)
             .map((attr) => renderDynamicAttr(attr, false))}
         </SectionGroup>
