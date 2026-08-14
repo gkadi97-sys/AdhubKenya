@@ -180,66 +180,55 @@ export default function HomePage() {
           {/* â”€â”€ RIGHT MAIN CONTENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           <main className="flex-1 min-w-0">
 
-            {/* â”€â”€ DESKTOP HERO â”€â”€ */}
-            <section className="relative mb-8 z-20 group hidden lg:block">
-              <div className="absolute inset-0 -z-10 overflow-hidden rounded-3xl bg-background">
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  poster={heroNairobi}
-                  className="h-full w-full object-cover scale-100 saturate-50 opacity-40 blur-[4px] transition-transform duration-[1000ms] ease-out group-hover:scale-[1.02]"
-                  onError={(e) => { e.target.style.display = 'none'; }}
-                >
-                  <source src="/hero-video.mp4" type="video/mp4" />
-                  {/* Fallback if video is missing or unsupported */}
-                  <img src={heroNairobi} alt="Nairobi marketplace" className="h-full w-full object-cover" />
-                </video>
-                <div className="absolute inset-0 bg-gradient-to-r from-[rgba(248,247,242,0.95)] via-[rgba(248,247,242,0.75)] via-50% to-[rgba(248,247,242,0.30)] dark:from-[rgba(10,10,10,0.95)] dark:via-[rgba(10,10,10,0.85)] dark:via-50% dark:to-[rgba(10,10,10,0.40)] pointer-events-none" />
-              </div>
-
-              <div className="px-8 pb-8 pt-6">
-                <div className="max-w-2xl">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-medium backdrop-blur shadow-sm">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+            {/* ── DESKTOP HERO ── */}
+            <section className="mb-8 hidden lg:block">
+              <div className="rounded-3xl bg-card border border-border px-8 pb-10 pt-8 shadow-sm relative overflow-hidden">
+                {/* Subtle decorative glow */}
+                <div className="absolute -top-32 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+                
+                <div className="relative z-10">
+                  <div className="max-w-2xl">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium shadow-sm">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                      </span>
+                      {(liveAdCount !== null && liveAdCount >= 100) ? (
+                         `Live from 47 counties · ${liveAdCount.toLocaleString()} active ads`
+                      ) : (
+                         `Live across Kenya`
+                      )}
                     </span>
-                    {(liveAdCount !== null && liveAdCount >= 100) ? (
-                       `Live from 47 counties Â· ${liveAdCount.toLocaleString()} active ads`
-                    ) : (
-                       `Live across Kenya`
-                    )}
-                  </span>
-                  <h1 className="mt-3 font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-[68px] drop-shadow-sm">
-                    Buy. Sell. Discover.<br />
-                    <span className="text-gold-grad">Across Kenya.</span>
-                  </h1>
-                  <p className="mt-1 max-w-lg text-sm text-muted-foreground hidden sm:block">
-                    Find vehicles, property, electronics, jobs and more.
-                  </p>
-                </div>
-
-                <div className="mt-6">
-                  <HeroSearch stickyCategory={focusedCat} />
-                </div>
-
-                {/* Trending Searches */}
-                {trendingSearches.length > 0 && (
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-semibold text-muted-foreground mr-1">Trending:</span>
-                    {trendingSearches.map(({ search_term, search_count }) => (
-                      <Link
-                        key={search_term}
-                        to={`/browse?keyword=${encodeURIComponent(search_term)}`}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-background/50 backdrop-blur border border-border/40 px-3 py-1.5 text-[10px] font-medium text-foreground/80 transition hover:bg-background/90 hover:border-primary/40 shadow-sm hover:shadow"
-                      >
-                        {search_term} <span className="text-muted-foreground text-[10px]">({search_count})</span>
-                      </Link>
-                    ))}
+                    <h1 className="mt-5 font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-[60px] text-foreground">
+                      Buy. Sell. Discover.<br />
+                      <span className="text-primary">Across Kenya.</span>
+                    </h1>
+                    <p className="mt-3 max-w-lg text-base text-muted-foreground hidden sm:block">
+                      Find vehicles, property, electronics, jobs and more.
+                    </p>
                   </div>
-                )}
+
+                  <div className="mt-8">
+                    <HeroSearch stickyCategory={focusedCat} />
+                  </div>
+
+                  {/* Trending Searches */}
+                  {trendingSearches.length > 0 && (
+                    <div className="mt-6 flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-medium text-muted-foreground mr-1 uppercase tracking-wider">Trending:</span>
+                      {trendingSearches.map(({ search_term, search_count }) => (
+                        <Link
+                          key={search_term}
+                          to={`/browse?keyword=${encodeURIComponent(search_term)}`}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-secondary hover:bg-secondary/80 px-3 py-1.5 text-[11px] font-medium text-foreground transition"
+                        >
+                          {search_term} <span className="text-muted-foreground text-[10px]">({search_count})</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
 
