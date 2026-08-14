@@ -274,10 +274,10 @@ export default function ListingDetailPage() {
                             <img
                               src={imageUrl(img)}
                               alt=""
-                              className="absolute inset-0 w-full h-full object-cover scale-110 select-none pointer-events-none"
+                              className="absolute inset-0 w-full h-full object-cover scale-[2] select-none pointer-events-none"
                               style={{ 
                                 filter: 'blur(30px)', 
-                                opacity: 0.65,
+                                opacity: 0.7,
                                 imageOrientation: 'from-image' 
                               }}
                             />
