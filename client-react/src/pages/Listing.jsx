@@ -254,17 +254,19 @@ export default function ListingDetailPage() {
 
                 {/* 2. IMAGE GALLERY */}
                 <div className="flex flex-col gap-3">
-                  <div className="relative rounded-2xl overflow-hidden border border-border bg-[#0f1411] dark:bg-black group flex items-center justify-center">
+                  <div className="relative rounded-2xl overflow-hidden border border-border bg-[#0f1411] dark:bg-black group flex items-center justify-center"
+                       style={{ minHeight: 'max(380px, min(65vh, 520px))' }}>
                     {images.length > 0 ? (
                       <>
-                        <div className="w-full relative h-full flex items-center justify-center overflow-hidden">
+                        <div className="w-full relative flex items-center justify-center overflow-hidden"
+                             style={{ height: 'max(380px, min(65vh, 520px))' }}>
                           {images.map((img, i) => (
                             <Image
                               key={i}
                               src={imageUrl(img)}
                               alt={`${listing.title} - image ${i + 1} of ${images.length}`}
-                              className={`absolute inset-0 w-full object-contain transition-all duration-500 ease-out ${i === activeImg ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-95 z-0'}`}
-                              style={{ maxHeight: 'max(380px, min(65vh, 520px))', height: 'max(380px, min(65vh, 520px))' }}
+                              className={`absolute inset-0 w-full h-full transition-all duration-500 ease-out ${i === activeImg ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-95 z-0'}`}
+                              imgClassName="object-contain"
                               fallbackIconSize={48}
                             />
                           ))}

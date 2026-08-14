@@ -4,7 +4,8 @@ import { Image as ImageIcon } from 'lucide-react';
 export default function Image({ 
   src, 
   alt = '', 
-  className = '', 
+  className = '',
+  imgClassName = '',
   fallbackIconSize = 24,
   ...props 
 }) {
@@ -12,7 +13,7 @@ export default function Image({
   const [hasError, setHasError] = useState(false);
 
   return (
-    <div className={`relative overflow-hidden bg-secondary flex items-center justify-center ${className}`}>
+    <div className={`relative overflow-hidden bg-secondary flex items-center justify-center ${className}`} {...props}>
       {/* Loading Skeleton */}
       {!isLoaded && !hasError && src && (
         <div className="absolute inset-0 bg-secondary animate-pulse" />
@@ -31,13 +32,12 @@ export default function Image({
           src={src}
           alt={alt}
           loading="lazy"
-          className={`w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`w-full h-full transition-opacity duration-300 ${imgClassName || 'object-cover'} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setIsLoaded(true)}
           onError={() => {
             setHasError(true);
             setIsLoaded(true);
           }}
-          {...props}
         />
       )}
     </div>
