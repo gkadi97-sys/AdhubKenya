@@ -261,18 +261,32 @@ export default function ListingDetailPage() {
                       <>
                         {/* Image Stack — plain <img> to avoid CSS position conflicts */}
                         {images.map((img, i) => (
-                          <img
+                          <div
                             key={i}
-                            src={imageUrl(img)}
-                            alt={`${listing.title} - photo ${i + 1}`}
-                            className="absolute inset-0 w-full h-full object-contain transition-all duration-500 ease-out"
+                            className="absolute inset-0 w-full h-full transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
                             style={{
                               opacity: i === activeImg ? 1 : 0,
                               transform: i === activeImg ? 'scale(1)' : 'scale(0.96)',
                               zIndex: i === activeImg ? 10 : 0,
-                              imageOrientation: 'from-image',
                             }}
-                          />
+                          >
+                            {/* Ambient blurred backdrop */}
+                            <img
+                              src={imageUrl(img)}
+                              alt=""
+                              className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-105 select-none pointer-events-none"
+                              style={{ imageOrientation: 'from-image' }}
+                            />
+                            {/* Main image */}
+                            <img
+                              src={imageUrl(img)}
+                              alt={`${listing.title} - photo ${i + 1}`}
+                              className="relative max-w-full max-h-full object-contain z-10 shadow-xl"
+                              style={{
+                                imageOrientation: 'from-image',
+                              }}
+                            />
+                          </div>
                         ))}
 
                         {/* Image Counter Overlay */}
