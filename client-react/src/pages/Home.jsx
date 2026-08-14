@@ -102,29 +102,34 @@ export default function HomePage() {
       })
       .catch(() => {});
 
-    // Per-category counts and latest images from real data
-    supabase
-      .from('listings')
-      .select('category, images')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false }) // Get newest first
-      .then(({ data }) => {
-        if (!data) return;
-        const counts = {};
-        const images = {};
-        data.forEach(({ category, images: adImages }) => {
-          if (!category) return;
-          const topLevel = category.split('/')[0];
-          counts[topLevel] = (counts[topLevel] || 0) + 1;
-          
-          if (!images[topLevel] && adImages && adImages.length > 0) {
-            images[topLevel] = adImages[0];
-          }
-        });
-        setRealCategoryCounts(counts);
-        setLatestCategoryImages(images);
-      })
-      .catch(() => {});
+    // Fetch categories and listings in parallel to map leaf category to top-level category
+    Promise.all([
+      supabase.from('categories').select('slug, path'),
+      supabase.from('listings').select('category, images').eq('status', 'active').order('created_at', { ascending: false })
+    ]).then(([{ data: cats }, { data: listings }]) => {
+      if (!cats || !listings) return;
+      
+      const leafToTop = {};
+      cats.forEach(c => {
+        leafToTop[c.slug] = c.path ? c.path.split('/')[0] : c.slug;
+      });
+
+      const counts = {};
+      const images = {};
+      
+      listings.forEach(({ category, images: adImages }) => {
+        if (!category) return;
+        const topLevel = leafToTop[category] || category;
+        counts[topLevel] = (counts[topLevel] || 0) + 1;
+        
+        if (!images[topLevel] && adImages && adImages.length > 0) {
+          images[topLevel] = adImages[0];
+        }
+      });
+      
+      setRealCategoryCounts(counts);
+      setLatestCategoryImages(images);
+    }).catch(() => {});
 
     getTrendingSearches().then(setTrendingSearches);
     getCountyCounts().then(setCountyCounts);
