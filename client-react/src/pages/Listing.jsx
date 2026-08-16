@@ -17,7 +17,7 @@ import ReportModal from '@/components/ReportModal';
 import StarRating from '@/components/StarRating';
 import ReviewModal from '@/components/ReviewModal';
 // eslint-disable-next-line no-unused-vars -- Kept for structural/API compatibility
-import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, PhoneCall, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight, X, Star, Lock } from 'lucide-react';
+import { Heart, Share2, MapPin, Eye, Clock, Flag, ShieldCheck, ChevronDown, ChevronUp, Maximize2, MessageCircle, Phone, PhoneCall, ArrowLeft, AlertCircle, ChevronLeft, ChevronRight, X, Star, Lock, Link as LinkIcon } from 'lucide-react';
 import Image from '@/components/Image';
 
 export default function ListingDetailPage() {
@@ -530,22 +530,40 @@ export default function ListingDetailPage() {
                     )}
                     
                     {/* Action Row (Save / Share Inline) */}
-                    <div className="flex gap-3 mt-1">
-                      <button
-                        onClick={handleToggleSave}
-                        disabled={savingListing}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border transition-colors text-sm font-semibold disabled:opacity-50 ${
-                          isSaved
-                            ? 'border-rose-400/50 bg-rose-50 dark:bg-rose-900/20 text-rose-500'
-                            : 'border-border bg-secondary hover:bg-secondary/70 text-foreground'
-                        }`}
-                      >
-                        <Heart className={`w-4 h-4 transition-all ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`} />
-                        {isSaved ? 'Saved' : 'Save'}
-                      </button>
-                      <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold">
-                        <Share2 className="w-4 h-4" /> Share
-                      </button>
+                    <div className="flex flex-col gap-3 mt-1">
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleToggleSave}
+                          disabled={savingListing}
+                          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border transition-colors text-sm font-semibold disabled:opacity-50 ${
+                            isSaved
+                              ? 'border-rose-400/50 bg-rose-50 dark:bg-rose-900/20 text-rose-500'
+                              : 'border-border bg-secondary hover:bg-secondary/70 text-foreground'
+                          }`}
+                        >
+                          <Heart className={`w-4 h-4 transition-all ${isSaved ? 'fill-rose-500 text-rose-500' : ''}`} />
+                          {isSaved ? 'Saved' : 'Save'}
+                        </button>
+                        <button onClick={handleShare} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg border border-border bg-secondary hover:bg-secondary/70 transition-colors text-sm font-semibold md:hidden">
+                          <Share2 className="w-4 h-4" /> Share
+                        </button>
+                      </div>
+                      
+                      <div className="hidden md:flex gap-2 items-center justify-center w-full py-2 bg-secondary/30 rounded-lg border border-border">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground mr-1">Share</span>
+                        <a href={`https://wa.me/?text=${encodeURIComponent(window.location.href + ' - ' + listing.title)}`} target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-colors" title="Share on WhatsApp">
+                          <MessageCircle className="w-4 h-4" />
+                        </a>
+                        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-[#1877F2]/10 text-[#1877F2] hover:bg-[#1877F2]/20 transition-colors" title="Share on Facebook">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" /></svg>
+                        </a>
+                        <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent('Check out this ad on AdHub Kenya: ' + listing.title)}`} target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-full bg-foreground/5 text-foreground hover:bg-foreground/10 transition-colors" title="Share on X">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                        </a>
+                        <button onClick={() => { navigator.clipboard.writeText(window.location.href); alert('Copied to clipboard!'); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors" title="Copy Link">
+                          <LinkIcon className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
