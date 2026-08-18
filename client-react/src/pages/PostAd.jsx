@@ -188,7 +188,13 @@ export default function PostAdPage() {
 
   const onInvalid = (errors) => {
     console.error('Form validation errors:', errors);
-    toast.error('Some required fields are missing. Please review your entries.');
+    const fieldNames = Object.keys(errors).map(k => {
+      if (k === 'attrs') {
+        return Object.keys(errors.attrs || {}).map(ak => `attrs.${ak}`).join(', ');
+      }
+      return k;
+    }).join(', ');
+    toast.error(`Missing fields: ${fieldNames}`);
     if (showReview) {
       setShowReview(false);
     }
