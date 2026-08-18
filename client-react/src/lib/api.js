@@ -477,6 +477,7 @@ export const createListing = async (listingData, imageFiles) => {
       .insert([
         {
           ...listingData,
+          status: 'pending',
           images: imageUrls.map(i => i.url),
           seller_id: session.user.id,
         }
