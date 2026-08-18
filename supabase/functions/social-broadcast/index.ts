@@ -19,9 +19,11 @@ serve(async (req) => {
   try {
     const payload = await req.json()
     const record = payload.record
+    
+    console.error(`[social-broadcast] Invoked for table: ${payload.table}, type: ${payload.type}, record ID: ${record?.id}, status: ${record?.status}`);
 
     // Only broadcast active listings
-    if (record.status !== 'active') {
+    if (record?.status !== 'active') {
       return new Response("Not active, skipping", { status: 200 })
     }
 
@@ -45,16 +47,27 @@ serve(async (req) => {
     // 2. Broadcast to Facebook Page
     if (FACEBOOK_PAGE_ID && FACEBOOK_PAGE_ACCESS_TOKEN) {
       const fbApi = `https://graph.facebook.com/v18.0/${FACEBOOK_PAGE_ID}/feed`
-      const fbRes = await fetch(fbApi, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: message,
-          link: link,
-          access_token: FACEBOOK_PAGE_ACCESS_TOKEN
-        }),
-      })
-      results.facebook = fbRes.ok ? 'success' : 'failed'
+      try {
+        const fbRes = await fetch(fbApi, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: message,
+            link: link,
+            access_token: FACEBOOK_PAGE_ACCESS_TOKEN
+          }),
+        })
+        if (!fbRes.ok) {
+          const errorText = await fbRes.text()
+          console.error(`[social-broadcast] Facebook API Error: ${fbRes.status} ${fbRes.statusText}`, errorText)
+          results.facebook = `failed: ${fbRes.status}`
+        } else {
+          results.facebook = 'success'
+        }
+      } catch (err) {
+        console.error(`[social-broadcast] Facebook Network Error:`, err)
+        results.facebook = 'error'
+      }
     }
 
     // 3. Broadcast to Twitter (X)
