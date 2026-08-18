@@ -182,7 +182,8 @@ export default function PostAdPage() {
         phone: user?.phone || '', whatsapp: user?.whatsapp || '',
         attrs: {}
       };
-    })()
+    })(),
+    shouldUnregister: true
   });
 
   const onInvalid = (errors) => {
