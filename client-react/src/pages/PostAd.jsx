@@ -494,6 +494,7 @@ export default function PostAdPage() {
         } 
       });
     } catch (err) {
+      console.error('createListing error:', err, JSON.stringify(err));
       setError(err.message);
     } finally { setLoading(false); }
   };
