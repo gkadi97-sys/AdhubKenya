@@ -470,28 +470,36 @@ export const createListing = async (listingData, imageFiles) => {
     }
   }
 
-  // Then create listing
-  try {
-    const { data, error } = await supabase
-      .from('listings')
-      .insert([
-        {
-          ...listingData,
-          status: 'pending',
-          images: imageUrls.map(i => i.url),
-          seller_id: session.user.id,
-        }
-      ])
-      .select()
-      .single();
+  // Then create listing — retry once on network failure (common on mobile)
+  const insertPayload = {
+    ...listingData,
+    status: 'pending',
+    images: imageUrls.map(i => i.url),
+    seller_id: session.user.id,
+  };
 
-    if (error) throw error;
-    return data;
-  } catch (err) {
-    if (err.message === 'Failed to fetch') {
-      throw new Error('Network error. If you are using an Ad Blocker, it might be blocking the request. Please disable it and try again.');
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const { data, error } = await supabase
+        .from('listings')
+        .insert([insertPayload])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      const isNetworkError = err.message === 'Failed to fetch' || err.message === 'NetworkError when attempting to fetch resource.';
+      if (isNetworkError && attempt < 2) {
+        // Wait 1.5s then retry
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        continue;
+      }
+      if (isNetworkError) {
+        throw new Error('Network error. Please check your internet connection and try again.');
+      }
+      throw err;
     }
-    throw err;
   }
 };
 
