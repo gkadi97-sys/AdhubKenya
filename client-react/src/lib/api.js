@@ -426,7 +426,7 @@ export const createListing = async (listingData, imageFiles) => {
   if (imageFiles && imageFiles.length > 0) {
     try {
       for (const file of imageFiles) {
-        const fileExt = file.name.split('.').pop() || 'jpg';
+        const fileExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
         const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).substring(2)}`;
         
         // Generate SEO-friendly slug for the image filename
