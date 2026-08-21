@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import imageCompression from 'browser-image-compression';
 
 // Generic fetch wrapper is no longer needed since we use Supabase client
 
@@ -438,13 +439,32 @@ export const createListing = async (listingData, imageFiles) => {
           .replace(/--+/g, '-')
           .replace(/^-+/, '')
           .replace(/-+$/, '');
-          
-        const fileName = `${baseSlug}-${uniqueId}.${fileExt}`;
+
+        // Compress image before upload (critical for mobile — phone cameras produce 5–15MB files)
+        let fileToUpload = file;
+        const isImage = file.type.startsWith('image/') || ['jpg','jpeg','png','webp','heic'].includes(fileExt);
+        if (isImage) {
+          try {
+            fileToUpload = await imageCompression(file, {
+              maxSizeMB: 1,
+              maxWidthOrHeight: 1920,
+              useWebWorker: true,
+              fileType: 'image/jpeg',
+            });
+          } catch (_compressionErr) {
+            // If compression fails, fall back to original file
+            fileToUpload = file;
+          }
+        }
+
+        // Use .jpg extension after compression (since we output image/jpeg)
+        const uploadExt = isImage ? 'jpg' : fileExt;
+        const fileName = `${baseSlug}-${uniqueId}.${uploadExt}`;
         const filePath = `${session.user.id}/${fileName}`;
         
         const { error: uploadError } = await supabase.storage
           .from('listing-images')
-          .upload(filePath, file);
+          .upload(filePath, fileToUpload);
           
         if (uploadError) throw uploadError;
         
